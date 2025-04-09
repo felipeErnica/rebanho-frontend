@@ -3,11 +3,12 @@
     "private": true,
     "version": "0.0.0",
     "type": "module",
-    "main": "src/electron/main.js",
+    "main": "dist-electron/main.js",
     "scripts": {
         "dev:react": "vite",
+        "build:react": "tsc -b && vite build",
         "dev:electron": "electron .",
-        "build": "tsc -b && vite build",
+        "transpile:electron": "tsc --project src/electron/tsconfig.json",
         "lint": "eslint .",
         "preview": "vite preview"
     },
