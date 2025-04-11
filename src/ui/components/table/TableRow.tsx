@@ -1,10 +1,8 @@
-import { DataRow } from "./Table"
+import { RowData } from "./Table"
 
-export const TableRow = ({items}: DataRow) => {
+export const TableRow = ({items}: RowData) => {
     return (
-        <tr>
-            {items.map((item) => (<td>{item}</td>))}
-        </tr>
+        <tr className="hover:bg-amber-50"> {items.map((item) => (<td className="px-6 py-4">{item.value}</td>))} </tr>
     )
 }
 

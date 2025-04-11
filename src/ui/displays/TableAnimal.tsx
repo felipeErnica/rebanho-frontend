@@ -1,26 +1,34 @@
 import { JSX, useEffect, useState } from "react";
-import { DataRow, Table } from "../components/table/Table";
-import { Animal } from "../../types/Animal";
+import { Table } from "../components/table/Table";
+import { Animal, AnimalFilter } from "../../types/Animal";
+import { Page } from "../../types/Page";
 
-function fetchData(data: string): DataRow[] {
-    const animals: Animal[] = JSON.parse(data)
-    let rows: DataRow[] = []
-    animals.map((animal) => {
-        const row: DataRow = {
-            items: [
-                animal.ringNumber,
-                animal.name,
-                animal.birthDate,
-                animal.deathDate,
-                animal.averageBirthInterval
-            ]
-        }
-
-    })
+const getCellValues = (row: Animal, columnIndex: number) => {
+    let value: any = null
+    switch (columnIndex) {
+        case 0:
+            value = row.ringNumber
+            break
+        case 1:
+            value = row.name
+            break
+        case 2:
+            value = !row.birthDate ? null : row.birthDate.toString().substring(0,10)
+            break
+        case 3:
+            value = !row.deathDate ? null : row.deathDate.toString().substring(0,10)
+            break
+        case 4:
+            value = row.averageBirthInterval
+            break
+    }
+    return value
 }
 
+const auth = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQ0MTMwMzYsInVzZXJfaWQiOiIxMDAyNjdjMC1hZWE5LTRlZjItOThhMC00MWM0ODU3MDYyZDIifQ.WYMjjn0QC57qC_oyoIZ1aT-6mgH-5KhlKpnS6HSux80'
+const fixedUrl = "http://localhost:8080/animals/page?sort=average_birth_interval&order=desc"
 
-export const TableAnimal = ():JSX.Element => {
+export const TableAnimal = function (filter: AnimalFilter): JSX.Element {
     const columns: string[] = [
         "Brinco",
         "Nome",
@@ -29,25 +37,47 @@ export const TableAnimal = ():JSX.Element => {
         "Intervalo de Parição Médio"
     ]
 
-
-    const [animals, setAnimals] = useState<DataRow[]>([])
+    const [page, setPage] = useState<Page<Animal> | null>(null)
 
     useEffect(() => {
-        const requestOptions = {
-            method: "POST",
-            body: JSON.stringify({ isFiltered: false}),
+        const requestOptions: RequestInit = {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${auth}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filter),
         }
 
-        fetch("localhost:8080/animals/", requestOptions)
+        fetch(fixedUrl, requestOptions)
             .then(response => response.json())
-            .then(data => {
-                const rowData: DataRow[] = fetchData(JSON.stringify(data))
-                setAnimals(rowData)
+            .then(page => {
+                setPage(page)
             })
-    })
+            .catch(() => setPage(null))
+    }, [filter])
 
+    const fetchNextPage = async (cursor: string): Promise<Page<Animal>> => {
+        const requestOptions: RequestInit = {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${auth}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filter),
+        }
 
-    return (
-        <Table columns={columns} rows={animals}/>
-    )
+        const response = await fetch(`${fixedUrl}&cursor=${cursor}`, requestOptions);
+        return await response.json();
+    }
+
+    return(
+        !page ? <i>Nenhm resultado encontrado!</i> : 
+        <Table 
+            columns={columns} 
+            page={page} 
+            getCellValue={getCellValues} 
+            fetchNextPage={fetchNextPage}
+        />
+    )    
 }
