@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect, useState } from "react";
+import { ComponentRef, JSX, useCallback, useEffect, useRef, useState } from "react";
 import { TableRow } from "./TableRow";
 import { Page } from "../../../types/Page";
 import { TableColumn } from "./TableColumn";
@@ -17,13 +17,18 @@ function getRowData<D>(columns: string[], row: D,
 
 export const Table = function <D>(props: TableProps<D>): JSX.Element {
 
-    const [page, setPage] = useState<Page<D>>(props.page)
-    const [list, setList] = useState<D[]>(props.page.list)
+    const divRef = useRef<ComponentRef<'div'>>(null)
+    const tableRef = useRef<ComponentRef<'table'>>(null)
+    const [page, setPage] = useState<Page<D> | null>(props.page)
+    const [list, setList] = useState<D[]>([])
     const [nextCursor, setNextCursor] = useState<string>("")
+    const [tableHeight, setTableHeight] = useState(0)
 
     useEffect(() => {
         setPage(props.page)
-        setList(props.page.list)
+        setList(props.page ? props.page.list : [])
+        if (!tableRef.current) return
+        setTableHeight(tableRef.current.offsetHeight)
     }, [props])
 
     const scrollEvent = useCallback((cursor: string) => {
@@ -32,13 +37,24 @@ export const Table = function <D>(props: TableProps<D>): JSX.Element {
             .then((result) => {
                 setPage(result);
                 setList((prevList) => prevList.concat(result.list));
+                setTableHeight(tableRef.current ? tableRef.current.offsetHeight : 0)
             })
     }, [props])
 
+    const EmptyPanel = () => {
+        return <div className="bg-gray-200 h-full"> 
+            <i className="grow text-gray-400 align-middle">
+                {"Nenhum resultado encontrado"}
+            </i> 
+        </div>
+    }
+
     return (
         <div
-            className="h-full relative overflow-auto"
+            ref={divRef}
+            className="h-full relative overflow-auto flex flex-col"
             onScroll={(e) => {
+                if (!page) return
                 if (!page.hasNextPage) return
 
                 const scrollPosition = e.currentTarget.scrollTop;
@@ -56,12 +72,13 @@ export const Table = function <D>(props: TableProps<D>): JSX.Element {
             }}
         >
             <table
-                className="min-w-full border-collapse table-auto text-left text-sm shadow-md rounded-xl overflow-y-auto"
+                ref={tableRef}
+                className="min-w-full flex-none border-collapse table-auto text-left text-sm shadow-md rounded-xl overflow-y-auto"
             >
                 <thead className="bg-gray-100 text-gray-700 uppercase tracking-wide sticky top-0 text-xs font-semibold">
                     <tr>
                         {props.columns.map((column) => {
-                            return <TableColumn column={column} />
+                            return <TableColumn column={column} tableHeight={tableHeight} />
                         })}
                     </tr>
                 </thead>
@@ -72,13 +89,14 @@ export const Table = function <D>(props: TableProps<D>): JSX.Element {
                     })}
                 </tbody>
             </table>
+            {!page ? <EmptyPanel /> : null}
         </div>
     )
 }
 
 interface TableProps<D> {
     columns: string[];
-    page: Page<D>;
+    page: Page<D> | null;
     getCellValue: (value: D, columnIndex: number) => unknown;
     fetchNextPage: (cursor: string) => Promise<Page<D>>;
 }
