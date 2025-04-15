@@ -1,6 +1,6 @@
-import { ComponentRef, JSX, useCallback, useEffect, useRef, useState} from "react"
+import { ComponentRef, JSX, useCallback, useEffect, useRef, useState } from "react"
 
-export const TableColumn = ({column, tableHeight}: TableColumnProps): JSX.Element => {
+export const TableColumn = ({ column }: TableColumnProps): JSX.Element => {
 
     const [activeHandler, setActiveHandler] = useState<HTMLDivElement | null>(null)
     const refHandle = useRef<ComponentRef<'div'>>(null)
@@ -41,13 +41,12 @@ export const TableColumn = ({column, tableHeight}: TableColumnProps): JSX.Elemen
     }, [handleMouseMove, handleMouseUp, removeListeners])
 
     return (
-        <th className="relative px-6 py-4 border-b">
+        <th className="relative px-6 py-4">
             <span className="overflow-ellipsis block">{column}</span>
-            <div ref={refHandle} 
+            <div ref={refHandle}
                 onMouseDown={() => setActiveHandler(refHandle.current)}
-                className="absolute top-0 right-0 bg-gray-200 cursor-col-resize w-[2px]
+                className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[2px]
                 hover:bg-gray-300"
-                style={{height: tableHeight}}
             />
         </th>
     )
@@ -55,5 +54,4 @@ export const TableColumn = ({column, tableHeight}: TableColumnProps): JSX.Elemen
 
 interface TableColumnProps {
     column: string;
-    tableHeight: number;
 }

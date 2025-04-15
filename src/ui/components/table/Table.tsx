@@ -15,20 +15,17 @@ function getRowData<D>(columns: string[], row: D,
     return { items: values }
 }
 
-export const Table = function <D>(props: TableProps<D>): JSX.Element {
+export function Table<D>(props: TableProps<D>): JSX.Element {
 
     const divRef = useRef<ComponentRef<'div'>>(null)
     const tableRef = useRef<ComponentRef<'table'>>(null)
     const [page, setPage] = useState<Page<D> | null>(props.page)
     const [list, setList] = useState<D[]>([])
     const [nextCursor, setNextCursor] = useState<string>("")
-    const [tableHeight, setTableHeight] = useState(0)
 
     useEffect(() => {
         setPage(props.page)
         setList(props.page ? props.page.list : [])
-        if (!tableRef.current) return
-        setTableHeight(tableRef.current.offsetHeight)
     }, [props])
 
     const scrollEvent = useCallback((cursor: string) => {
@@ -37,16 +34,17 @@ export const Table = function <D>(props: TableProps<D>): JSX.Element {
             .then((result) => {
                 setPage(result);
                 setList((prevList) => prevList.concat(result.list));
-                setTableHeight(tableRef.current ? tableRef.current.offsetHeight : 0)
             })
     }, [props])
 
     const EmptyPanel = () => {
-        return <div className="bg-gray-200 h-full"> 
-            <i className="grow text-gray-400 align-middle">
-                {"Nenhum resultado encontrado"}
-            </i> 
-        </div>
+        return (
+            <div className="bg-gray-200 flex justify-center items-center h-full">
+                <i className="text-gray-400 text-2xl">
+                    {"Nenhum resultado encontrado!"}
+                </i>
+            </div>
+        )
     }
 
     return (
@@ -60,7 +58,7 @@ export const Table = function <D>(props: TableProps<D>): JSX.Element {
                 const scrollPosition = e.currentTarget.scrollTop;
 
                 //Define a altura para disparar evento de próxima página.
-                const eventHeight = (e.currentTarget.scrollHeight - e.currentTarget.offsetHeight)*0.9;
+                const eventHeight = (e.currentTarget.scrollHeight - e.currentTarget.offsetHeight) * 0.9;
 
                 if (scrollPosition >= eventHeight) {
                     //Verifica se o cursor mudou, indicando uma nova página.
@@ -75,10 +73,10 @@ export const Table = function <D>(props: TableProps<D>): JSX.Element {
                 ref={tableRef}
                 className="min-w-full flex-none border-collapse table-auto text-left text-sm shadow-md rounded-xl overflow-y-auto"
             >
-                <thead className="bg-gray-100 text-gray-700 uppercase tracking-wide sticky top-0 text-xs font-semibold">
+                <thead className="bg-gray-200 border-x text-gray-700 uppercase tracking-wide sticky top-0 text-xs font-semibold">
                     <tr>
                         {props.columns.map((column) => {
-                            return <TableColumn column={column} tableHeight={tableHeight} />
+                            return <TableColumn column={column} />
                         })}
                     </tr>
                 </thead>
