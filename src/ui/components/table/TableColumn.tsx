@@ -1,6 +1,6 @@
 import { ComponentRef, JSX, useCallback, useEffect, useRef, useState } from "react"
 
-export const TableColumn = ({ column }: TableColumnProps): JSX.Element => {
+export const TableColumn = ({ column, isLast }: TableColumnProps): JSX.Element => {
 
     const [activeHandler, setActiveHandler] = useState<HTMLDivElement | null>(null)
     const refHandle = useRef<ComponentRef<'div'>>(null)
@@ -41,17 +41,18 @@ export const TableColumn = ({ column }: TableColumnProps): JSX.Element => {
     }, [handleMouseMove, handleMouseUp, removeListeners])
 
     return (
-        <th className="relative px-6 py-4">
-            <span className="overflow-ellipsis block">{column}</span>
-            <div ref={refHandle}
+        <th className="relative border-t border-b border-black px-6 py-4">
+            <span className="overflow-clip">{column}</span>
+            {!isLast ? <div ref={refHandle}
                 onMouseDown={() => setActiveHandler(refHandle.current)}
                 className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[2px]
                 hover:bg-gray-300"
-            />
+            /> : null}
         </th>
     )
 }
 
 interface TableColumnProps {
     column: string;
+    isLast: boolean;
 }

@@ -39,7 +39,7 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
 
     const EmptyPanel = () => {
         return (
-            <div className="bg-gray-200 flex justify-center items-center h-full">
+            <div className="bg-gray-200 flex justify-center items-center h-full p-4">
                 <i className="text-gray-400 text-2xl">
                     {"Nenhum resultado encontrado!"}
                 </i>
@@ -71,12 +71,12 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
         >
             <table
                 ref={tableRef}
-                className="min-w-full flex-none border-collapse table-auto text-left text-sm shadow-md rounded-xl overflow-y-auto"
+                className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm shadow-md rounded-xl overflow-y-auto"
             >
-                <thead className="bg-gray-200 border-x text-gray-700 uppercase tracking-wide sticky top-0 text-xs font-semibold">
-                    <tr>
-                        {props.columns.map((column) => {
-                            return <TableColumn column={column} />
+                <thead className="sticky bg-gray-200 text-gray-700 uppercase tracking-wider top-0 text-xs font-semibold">
+                    <tr className="border-y-black">
+                        {props.columns.map((column, i) => {
+                            return <TableColumn isLast={i == props.columns.length - 1} column={column} />
                         })}
                     </tr>
                 </thead>

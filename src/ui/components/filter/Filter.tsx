@@ -1,5 +1,6 @@
 import { JSX, useState } from "react"
-import { ComboBox } from "../text-components/ComboBox"
+import { ComboBox } from "../common/ComboBox"
+import { Label } from "../common/Label"
 
 const FilterIcon = (): JSX.Element => {
     return <svg
@@ -58,14 +59,23 @@ const ArrowDownIcon = (): JSX.Element => {
     </svg>
 }
 
-export const Filter = ({ panel }: FilterProps): JSX.Element => {
+export const Filter = ({ panel, setOpenState }: FilterProps): JSX.Element => {
     const [isOpen, setOpen] = useState(false)
 
     return <div className="flex flex-col">
         <button
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 shadow-sm 
-            hover:bg-gray-100 hover:shadow-md transition duration-200 text-sm font-medium text-gray-700"
-            onClick={() => !isOpen ? setOpen(true) : setOpen(false)}
+            hover:bg-gray-100 transition duration-200 text-sm font-medium text-gray-700
+            focus:border-blue-500 focus:outline-none"
+            onClick={() => {
+                if (!isOpen) {
+                    setOpen(true)
+                    setOpenState(true)
+                } else {
+                    setOpen(false)
+                    setOpenState(false)
+                }
+            }}
         >
             <FilterIcon />
             <label>Filtros</label>
@@ -74,13 +84,16 @@ export const Filter = ({ panel }: FilterProps): JSX.Element => {
             </span>
         </button>
         <div
-            className={`flex flex-col transition-all duration-500 ease-in-out overflow-hidden
-                ${isOpen ? 'max-h-96 opacity-100 scale-100 p-4' : 'max-h-0 opacity-0 scale-95'}`} >
+            className={`grid transition-all duration-500 ease-in-out 
+                ${isOpen ? 'max-h-96 scale-100 grid-rows-[auto] opacity-100 p-4' : 'max-h-0 scale-0 grid-rows-[0fr] opacity-0'}`}
+        >
             {panel()}
-            <div className="grid grid-cols-2 gap-2 pt-4">
-                <div className="grid grid-cols-[1fr_2fr] grid-rows-2 gap-2">
-                    <ComboBox items={["aaaa", "bbbb"]} label="Ordenar Por:" />
-                    <ComboBox items={["Crescente", "Descrescente"]} label="Sentido:" />
+            <div className="grid grid-cols-3 pt-10">
+                <div className="grid grid-cols-[auto_1fr] grid-rows-2 gap-2">
+                    <Label label="Ordenar por:" />
+                    <ComboBox items={["aaaa", "bbbb"]} />
+                    <Label label="Sentido:" />
+                    <ComboBox items={["Crescente", "Descrescente"]} />
                 </div>
             </div>
         </div>
@@ -89,4 +102,5 @@ export const Filter = ({ panel }: FilterProps): JSX.Element => {
 
 interface FilterProps {
     panel: () => JSX.Element
+    setOpenState: (isOpen: boolean) => void
 }

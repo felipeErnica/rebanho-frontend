@@ -25,7 +25,7 @@ const getCellValues = (row: Animal, columnIndex: number) => {
     return value
 }
 
-const auth = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQ3NjcxMjgsInVzZXJfaWQiOiIxMDAyNjdjMC1hZWE5LTRlZjItOThhMC00MWM0ODU3MDYyZDIifQ.Y-1CNW63uj8F72QVh2twhZV77DHOdPeEiNmvBV4Yyhs'
+const auth = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQ4NDk3MDEsInVzZXJfaWQiOiIxMDAyNjdjMC1hZWE5LTRlZjItOThhMC00MWM0ODU3MDYyZDIifQ.aUH2i1X0lCE9V8edIUGJebuysVEuDhXfkGld5bqowkg'
 const fixedUrl = "http://localhost:8080/animals/page?sort=name&order=asc"
 
 export const TableAnimal = function (filter: AnimalFilter): JSX.Element {
