@@ -1,7 +1,8 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX, useCallback, useEffect, useState } from "react";
 import { Table } from "../components/table/Table";
 import { Animal, AnimalFilter } from "../../types/Animal";
 import { Page } from "../../types/Page";
+import { findPage } from "../../controllers/AnimalController";
 
 const getCellValues = (row: Animal, columnIndex: number) => {
     let value: any = null
@@ -25,10 +26,7 @@ const getCellValues = (row: Animal, columnIndex: number) => {
     return value
 }
 
-const auth = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQ4NDk3MDEsInVzZXJfaWQiOiIxMDAyNjdjMC1hZWE5LTRlZjItOThhMC00MWM0ODU3MDYyZDIifQ.aUH2i1X0lCE9V8edIUGJebuysVEuDhXfkGld5bqowkg'
-const fixedUrl = "http://localhost:8080/animals/page?sort=name&order=asc"
-
-export const TableAnimal = function (filter: AnimalFilter): JSX.Element {
+export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
     const columns: string[] = [
         "Brinco",
         "Nome",
@@ -40,43 +38,30 @@ export const TableAnimal = function (filter: AnimalFilter): JSX.Element {
     const [page, setPage] = useState<Page<Animal> | null>(null)
 
     useEffect(() => {
-        const requestOptions: RequestInit = {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${auth}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(filter),
-        }
+        console.log(props.filter)
+        findPage(props.sort, props.order, '', props.filter).
+            then(response => {
+                setPage(response)
+            }).
+            catch(() => setPage(null))
+    }, [props, props.filter])
 
-        fetch(fixedUrl, requestOptions)
-            .then(response => response.json())
-            .then(page => {
-                setPage(page)
-            })
-            .catch(() => setPage(null))
-    }, [filter])
-
-    const fetchNextPage = async (cursor: string): Promise<Page<Animal>> => {
-        const requestOptions: RequestInit = {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${auth}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(filter),
-        }
-
-        const response = await fetch(`${fixedUrl}&cursor=${cursor}`, requestOptions);
-        return await response.json();
-    }
+    const fetchNextPage = useCallback(async (cursor: string): Promise<Page<Animal>> => {
+        return findPage(props.sort, props.order, cursor, props.filter)
+    }, [props])
 
     return(
-        <Table 
+        <Table
             columns={columns} 
             page={page} 
             getCellValue={getCellValues} 
             fetchNextPage={fetchNextPage}
         />
     )    
+}
+
+interface TableAnimalProps {
+    filter: AnimalFilter
+    sort: string
+    order: string
 }

@@ -42,7 +42,7 @@ export const TableColumn = ({ column, isLast }: TableColumnProps): JSX.Element =
 
     return (
         <th className="relative border-t border-b border-black px-6 py-4">
-            <span className="overflow-clip">{column}</span>
+            <span className="block whitespace-nowrap overflow-ellipsis">{column}</span>
             {!isLast ? <div ref={refHandle}
                 onMouseDown={() => setActiveHandler(refHandle.current)}
                 className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[2px]

@@ -73,7 +73,7 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
                 ref={tableRef}
                 className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm shadow-md rounded-xl overflow-y-auto"
             >
-                <thead className="sticky bg-gray-200 text-gray-700 uppercase tracking-wider top-0 text-xs font-semibold">
+                <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-xs font-semibold">
                     <tr className="border-y-black">
                         {props.columns.map((column, i) => {
                             return <TableColumn isLast={i == props.columns.length - 1} column={column} />

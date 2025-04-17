@@ -1,15 +1,16 @@
 import { JSX } from "react";
 
 export const Label = (props: LabelProps):JSX.Element => {
-    return <label 
-        className="w-full flex text-gray-700 text-sm justify-center items-center"
-        htmlFor={props.forLabel}
+    return <span 
+        className={`h-full flex items-center whitespace-nowrap overflow-clip w-full text-gray-600 text-sm text-left 
+            ${props.className ? props.className : ''}`
+        }
     >
         {props.label}
-    </label>
+    </span>
 }
 
 interface LabelProps {
+    className?: string;
     label: string;
-    forLabel?: string;
 }

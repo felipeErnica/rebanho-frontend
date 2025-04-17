@@ -1,62 +1,82 @@
-import { JSX, useState } from "react";
+import { JSX, useCallback, useState } from "react";
 import { TableAnimal } from "./TableAnimal";
 import { TableTopBar } from "../components/table/TableTopBar";
-import { Drawer } from "../components/common/Drawer";
+import { FilterDrawer } from "../components/common/Drawer";
+import { InputBox } from "../components/common/InputBox";
+import { ComboBox, ComboBoxItem } from "../components/common/ComboBox";
+import { AbstractFilterDiv, DateFilterDiv, NumberFilterDiv } from "../components/common/CommonFilterDivs";
+import { AnimalFilter } from "../../types/Animal";
+import { activateFilter } from "../../util/Filter";
 
 export const AnimalDisplay = (): JSX.Element => {
 
-    const [openDrawer, setOpenDrawer] = useState(false)
+    const [filter, setFilter] = useState<AnimalFilter>({isFiltered: false})
+    const [isDrawerOpen, setOpenDrawer] = useState(false)
+    const [order, setOrder] = useState('asc')
+    const [sort, setSort] = useState('name')
 
-    //const AnimalFilter = (): JSX.Element => {
-    //return <div className="grid grid-cols-[auto_1fr_auto] grid-rows-[auto] gap-2">
-    //<InputBox
-    //type="search"
-    //placeholder="Pesquisar brinco..."
-    ///>
-    //<InputBox
-    //type="search"
-    //placeholder="Pesquisar nome..."
-    //onInput={(event) => {
-    //setFilter(true)
-    //setName(event.currentTarget.value)
-    //}} />
-    //<ComboBox placeholder="Selecionar sexo..." items={["M", "F"]} />
-    //<div className="col-start-2 grid grid-cols-3 gap-2">
-    //<div className="grid grid-rows-2 grid-cols-[auto_1fr] gap-2">
-    //<label>Valor de Pico Mínimo:</label>
-    //<InputBox type="number" />
-    //<label>Valor de Pico Máximo:</label>
-    //<InputBox type="number" />
-    //</div>
-    //<div className="grid grid-rows-2 grid-cols-[auto_1fr] gap-2">
-    //<label>Valor de Pico Mínimo:</label>
-    //<InputBox type="number" />
-    //<label>Valor de Pico Máximo:</label>
-    //<InputBox type="number" />
-    //</div>
-    //<div className="grid grid-rows-2 grid-cols-[auto_1fr] gap-2">
-    //<label>Valor de Pico Mínimo:</label>
-    //<InputBox type="number" />
-    //<label>Valor de Pico Máximo:</label>
-    //<InputBox type="number" />
-    //</div>
-    //</div>
-    //</div>
-    //}
+    const sortableColumns: ComboBoxItem[] = [
+        {name: "Nome", value: "name"},
+        {name: "Data de Morte", value: "death_date"},
+        {name: "Brinco", value: "ring_order"},
+    ]
 
-    const buttonDrawer = (isOpen: boolean) => {
-        setOpenDrawer(isOpen)
+    const AnimalFilter = (): JSX.Element => {
+        return <div className="grid grid-cols-1 grid-rows-[auto] gap-16">
+
+            <AbstractFilterDiv mainTitle="Informações principais">
+                <div className="grid grid-cols-1 grid-rows-3 gap-2">
+                    <InputBox
+                        type="search"
+                        placeholder="Pesquisar brinco..."
+                    />
+                    <InputBox
+                        onInput={(event) => {
+                            const newFilter = activateFilter(filter)
+                            newFilter.name = event.currentTarget.value
+                            setFilter(newFilter)
+                        }}
+                        type="search"
+                        placeholder="Pesquisar nome..."
+                    />
+                    <ComboBox placeholder="Selecionar sexo..." items={[{name: "M"}, {name: "F"}]} />
+                </div>
+            </AbstractFilterDiv>
+
+            <DateFilterDiv mainTitle="Data de Nascimento" />
+            <DateFilterDiv mainTitle="Data de Morte" />
+            <NumberFilterDiv mainTitle="Valor de Pico" step=".1" />
+            <NumberFilterDiv mainTitle="Intervalo entre Partos Médio" step=".1" />
+            <NumberFilterDiv mainTitle="I.S.R. Médio" step=".1" />
+            <NumberFilterDiv mainTitle="Produção Média" step=".1" />
+            <NumberFilterDiv mainTitle="Quantidade de Filho" />
+        </div>
     }
 
+    const onOrderChange = useCallback(() => setOrder(order === 'asc' ? 'desc' : 'asc'), [order])
+    const onSortChange = useCallback((newSort: string) => setSort(newSort), [])
+    const onClose = useCallback(() => { setOpenDrawer(false) }, [])
+    const onOpenDrawer = useCallback(() => {
+        if (!isDrawerOpen) {
+            setOpenDrawer(true)
+        }
+    }, [isDrawerOpen])
+
     return (
-        <div className="h-screen w-screen grid grid-cols-[1fr_auto]"> 
+        <div className="h-screen w-screen grid grid-cols-[1fr_auto]">
             <div className="h-full grid grid-rows-[auto_1fr] overflow-x-auto">
-                <TableTopBar openFilter={buttonDrawer} isFilterOpen={openDrawer} title="Tabela de Rebanho" />
-                <div className="overflow-auto">
-                    <TableAnimal isFiltered={false} />
-                </div>
+                <TableTopBar 
+                    title="Tabela de Rebanho" 
+                    sortableColumns={sortableColumns}
+                    order={order}
+                    sort={sort}
+                    onOrderChange={onOrderChange}
+                    onSortChange={onSortChange}
+                    onOpenFilter={onOpenDrawer} 
+                />
+                <TableAnimal sort={sort} order={order} filter={filter} />
             </div>
-            <Drawer isOpen={openDrawer} openEvent={buttonDrawer} /> 
+            <FilterDrawer childPanel={AnimalFilter} isOpen={isDrawerOpen} onClose={onClose} />
         </div>
     )
 

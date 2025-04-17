@@ -1,35 +1,49 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX } from "react";
+import { CloseIcon } from "./SvgIcons";
 
-export const Drawer = (props: DrawerProps): JSX.Element => {
-    const [isOpen, setOpen] = useState<boolean>(false)
+export const FilterDrawer = (props: DrawerProps) => {
+    return <Drawer
+        title="Controle de Filtros"
+        childPanel={props.childPanel}
+        isOpen={props.isOpen}
+        onClose={props.onClose} 
+    />
+}
 
-    useEffect(() => {
-        setOpen(props.isOpen)
-    }, [props])
+export const Drawer = (props: AbstractDrawerProps): JSX.Element => {
 
-    return <div 
-        className={`h-full grid grid-rows-[auto_1fr] transition-all duration-500 ease-in-out 
-        ${isOpen ? 'max-w-96 scale-100 opacity-100 p-4' : 'max-w-0 opacity-0 scale-0'}`}
+    return <div
+        className={`h-full grid grid-rows-[auto_1fr] transition-all duration-500 ease-in-out overflow-auto
+        ${props.isOpen ? 'max-w-96' : 'max-w-0'}`}
     >
-        <div>
+        <div className="sticky top-0 grid bg-gray-700 grid-cols-[auto_1fr] gap-4 p-4">
             <button 
-                onClick={() => {
-                    if (isOpen) { 
-                        setOpen(false)
-                        props.openEvent(false)
-                        return
-                    }
-                    setOpen(false)
-                    props.openEvent(false)
-                }}
+                className="text-white" 
+                onClick={props.onClose} 
             >
-                {"Fechar"}
+                <CloseIcon />
             </button>
+            <span 
+                className="block whitespace-nowrap text-2xl px-4 overflow-clip justify-center text-white text-left"
+            >
+                {props.title}
+            </span>
+        </div>
+        <div className="p-4">
+            {props.childPanel()}
         </div>
     </div>
 }
 
+interface AbstractDrawerProps {
+    title: string;
+    isOpen: boolean;
+    onClose: () => void;
+    childPanel: () => JSX.Element
+}
+
 interface DrawerProps {
     isOpen: boolean;
-    openEvent: (isOpen: boolean) => void;
+    onClose: () => void;
+    childPanel: () => JSX.Element
 }
