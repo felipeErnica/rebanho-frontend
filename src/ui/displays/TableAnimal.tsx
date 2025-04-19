@@ -3,6 +3,8 @@ import { Table } from "../components/table/Table";
 import { Animal, AnimalFilter } from "../../types/Animal";
 import { Page } from "../../types/Page";
 import { findPage } from "../../controllers/AnimalController";
+import { ControlButton } from "../components/common/ControlButtons";
+import { DetailsIcon, EditIcon, TrashIcon } from "../components/common/SvgIcons";
 
 const getCellValues = (row: Animal, columnIndex: number) => {
     let value: any = null
@@ -36,9 +38,13 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
     ]
 
     const [page, setPage] = useState<Page<Animal> | null>(null)
+    const controlButtons = [
+        <ControlButton icon={TrashIcon} />,
+        <ControlButton icon={EditIcon} />,
+        <ControlButton icon={DetailsIcon} />,
+    ]
 
     useEffect(() => {
-        console.log(props.filter)
         findPage(props.sort, props.order, '', props.filter).
             then(response => {
                 setPage(response)
@@ -56,6 +62,7 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
             page={page} 
             getCellValue={getCellValues} 
             fetchNextPage={fetchNextPage}
+            controlButtons={controlButtons}
         />
     )    
 }

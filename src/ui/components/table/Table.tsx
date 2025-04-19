@@ -76,14 +76,15 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
                 <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-xs font-semibold">
                     <tr className="border-y-black">
                         {props.columns.map((column, i) => {
-                            return <TableColumn isLast={i == props.columns.length - 1} column={column} />
+                            return <TableColumn isLast={props.controlButtons ? false : i == props.columns.length} column={column} />
                         })}
+                        {props.controlButtons ? <TableColumn isLast={true} column="" /> : null}
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                     {list.map((row) => {
                         const rowData: RowData = getRowData(props.columns, row, props.getCellValue)
-                        return <TableRow items={rowData.items} />
+                        return <TableRow items={rowData.items} controlButtons={props.controlButtons} />
                     })}
                 </tbody>
             </table>
@@ -97,10 +98,12 @@ interface TableProps<D> {
     page: Page<D> | null;
     getCellValue: (value: D, columnIndex: number) => unknown;
     fetchNextPage: (cursor: string) => Promise<Page<D>>;
+    controlButtons?: JSX.Element[]
 }
 
 export interface RowData {
     items: CellValue[];
+    controlButtons?: JSX.Element[]
 }
 
 interface CellValue {
