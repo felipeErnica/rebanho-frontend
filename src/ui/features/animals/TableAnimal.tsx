@@ -1,10 +1,10 @@
+import { findPage } from "@/controllers/AnimalController";
+import { Animal, AnimalFilter } from "@/types/Animal";
+import { Page } from "@/types/Page";
+import { ControlButton } from "@/ui/components/common/ControlButtons";
+import { DetailsIcon, EditIcon, TrashIcon } from "@/ui/components/common/SvgIcons";
+import { Table } from "@/ui/components/table/Table";
 import { JSX, useCallback, useEffect, useState } from "react";
-import { Table } from "../components/table/Table";
-import { Animal, AnimalFilter } from "../../types/Animal";
-import { Page } from "../../types/Page";
-import { findPage } from "../../controllers/AnimalController";
-import { ControlButton } from "../components/common/ControlButtons";
-import { DetailsIcon, EditIcon, TrashIcon } from "../components/common/SvgIcons";
 
 const getCellValues = (row: Animal, columnIndex: number) => {
     let value: any = null

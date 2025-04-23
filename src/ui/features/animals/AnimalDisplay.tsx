@@ -1,12 +1,12 @@
 import { JSX, useCallback, useState } from "react";
+import { ComboBox, ComboBoxItem } from "@/ui/components/common/ComboBox";
+import { AbstractFilterDiv, DateFilterDiv, NumberFilterDiv } from "@/ui/components/common/CommonFilterDivs";
+import { InputBox } from "@/ui/components/common/InputBox";
+import { activateFilter } from "@/util/Filter";
+import { AnimalFilter } from "@/types/Animal";
+import { TableTopBar } from "@/ui/components/table/TableTopBar";
 import { TableAnimal } from "./TableAnimal";
-import { TableTopBar } from "../components/table/TableTopBar";
-import { FilterDrawer } from "../components/common/Drawer";
-import { InputBox } from "../components/common/InputBox";
-import { ComboBox, ComboBoxItem } from "../components/common/ComboBox";
-import { AbstractFilterDiv, DateFilterDiv, NumberFilterDiv } from "../components/common/CommonFilterDivs";
-import { AnimalFilter } from "../../types/Animal";
-import { activateFilter } from "../../util/Filter";
+import { FilterDrawer } from "@/ui/components/common/Drawer";
 
 export const AnimalDisplay = (): JSX.Element => {
 
