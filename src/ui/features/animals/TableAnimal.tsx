@@ -1,10 +1,10 @@
-import { findPage } from "@/controllers/AnimalController";
 import { Animal, AnimalFilter } from "@/types/Animal";
 import { Page } from "@/types/Page";
 import { ControlButton } from "@/ui/components/common/ControlButtons";
 import { DetailsIcon, EditIcon, TrashIcon } from "@/ui/components/common/SvgIcons";
 import { Table } from "@/ui/components/table/Table";
-import { JSX, useCallback, useEffect, useState } from "react";
+import { JSX, useCallback } from "react";
+import { findPage } from "./api/AnimalController";
 
 const getCellValues = (row: Animal, columnIndex: number) => {
     let value: any = null
@@ -37,20 +37,12 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
         "Intervalo de Parição Médio"
     ]
 
-    const [page, setPage] = useState<Page<Animal> | null>(null)
     const controlButtons = [
         <ControlButton icon={TrashIcon} />,
         <ControlButton icon={EditIcon} />,
         <ControlButton icon={DetailsIcon} />,
     ]
 
-    useEffect(() => {
-        findPage(props.sort, props.order, '', props.filter).
-            then(response => {
-                setPage(response)
-            }).
-            catch(() => setPage(null))
-    }, [props, props.filter])
 
     const fetchNextPage = useCallback(async (cursor: string): Promise<Page<Animal>> => {
         return findPage(props.sort, props.order, cursor, props.filter)
@@ -58,10 +50,12 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
 
     return(
         <Table
+            order={props.order}
+            sort={props.sort}
             columns={columns} 
-            page={page} 
+            filter={props.filter}
             getCellValue={getCellValues} 
-            fetchNextPage={fetchNextPage}
+            fetchPage={fetchNextPage}
             controlButtons={controlButtons}
         />
     )    

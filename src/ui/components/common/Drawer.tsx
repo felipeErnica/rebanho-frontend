@@ -1,16 +1,20 @@
 import { JSX } from "react";
 import { CloseIcon } from "./SvgIcons";
 
-export const FilterDrawer = (props: DrawerProps) => {
-    return <Drawer
-        title="Controle de Filtros"
-        childPanel={props.childPanel}
-        isOpen={props.isOpen}
-        onClose={props.onClose} 
-    />
+interface AbstractDrawerProps {
+    title: string;
+    isOpen: boolean;
+    setOpen: (isOpen: boolean) => void;
+    childPanel: () => JSX.Element
 }
 
-export const Drawer = (props: AbstractDrawerProps): JSX.Element => {
+interface DrawerProps {
+    isOpen: boolean;
+    setOpen: (isOpen: boolean) => void;
+    childPanel: () => JSX.Element
+}
+
+const Drawer = (props: AbstractDrawerProps): JSX.Element => {
 
     return <div
         className={`h-full grid grid-rows-[auto_1fr] transition-all duration-500 ease-in-out overflow-auto
@@ -19,7 +23,7 @@ export const Drawer = (props: AbstractDrawerProps): JSX.Element => {
         <div className="sticky top-0 grid bg-gray-700 grid-cols-[auto_1fr] gap-4 p-4">
             <button 
                 className="text-white" 
-                onClick={props.onClose} 
+                onClick={() => props.setOpen(false)} 
             >
                 <CloseIcon />
             </button>
@@ -35,15 +39,11 @@ export const Drawer = (props: AbstractDrawerProps): JSX.Element => {
     </div>
 }
 
-interface AbstractDrawerProps {
-    title: string;
-    isOpen: boolean;
-    onClose: () => void;
-    childPanel: () => JSX.Element
-}
-
-interface DrawerProps {
-    isOpen: boolean;
-    onClose: () => void;
-    childPanel: () => JSX.Element
+export const FilterDrawer = (props: DrawerProps) => {
+    return <Drawer
+        title="Controle de Filtros"
+        childPanel={props.childPanel}
+        isOpen={props.isOpen}
+        setOpen={props.setOpen} 
+    />
 }

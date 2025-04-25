@@ -2,6 +2,26 @@ import { ComponentRef, JSX, useCallback, useEffect, useRef, useState } from "rea
 import { TableRow } from "./TableRow";
 import { Page } from "../../../types/Page";
 import { TableColumn } from "./TableColumn";
+import { IFilters } from "@/interfaces/Filter";
+
+type TableProps<D> = {
+    filter: IFilters
+    order: string
+    sort: string
+    columns: string[];
+    getCellValue: (value: D, columnIndex: number) => unknown;
+    fetchPage: (cursor: string) => Promise<Page<D>>;
+    controlButtons?: JSX.Element[]
+}
+
+export type RowData = {
+    items: CellValue[];
+    controlButtons?: JSX.Element[]
+}
+
+type CellValue = {
+    value: any;
+}
 
 function getRowData<D>(columns: string[], row: D,
     getCellValue: (row: D, columnIndex: number) => unknown): RowData {
@@ -17,25 +37,77 @@ function getRowData<D>(columns: string[], row: D,
 
 export function Table<D>(props: TableProps<D>): JSX.Element {
 
+    const scrollRef = useRef<ComponentRef<'div'>>(null)
     const divRef = useRef<ComponentRef<'div'>>(null)
-    const tableRef = useRef<ComponentRef<'table'>>(null)
-    const [page, setPage] = useState<Page<D> | null>(props.page)
+    const [page, setPage] = useState<Page<D> | null>(null)
     const [list, setList] = useState<D[]>([])
-    const [nextCursor, setNextCursor] = useState<string>("")
+    const [isLoading, setLoading] = useState(false)
 
     useEffect(() => {
-        setPage(props.page)
-        setList(props.page ? props.page.list : [])
-    }, [props])
+        setLoading(true)
 
-    const scrollEvent = useCallback((cursor: string) => {
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
-        props.fetchNextPage(cursor)
+        props.fetchPage("")
             .then((result) => {
-                setPage(result);
-                setList((prevList) => prevList.concat(result.list));
+                setList(result.list)
+                setPage(result)
+                setLoading(false)
+            })
+            .catch(() => {
+                setPage(null)
+                setList([])
+                setLoading(false)
             })
     }, [props])
+
+    const putScrollAtTop = () => {
+        const scrollContainer = scrollRef.current
+        if (!scrollContainer) return
+        scrollContainer.scrollTo({ top: 0 })
+    }
+
+
+    const fetchData = useCallback(() => {
+        if (!page) return
+        if (!page.hasNextPage) return
+        if (isLoading) return
+        setLoading(true)
+
+        //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
+        props.fetchPage(page.nextCursor)
+            .then((result) => {
+                setPage(result)
+                setList(result.list)
+                setLoading(false)
+                putScrollAtTop()
+            })
+            .catch(() => {
+                setPage(null)
+                setList([])
+                setLoading(false)
+            })
+    }, [props, page, isLoading])
+
+    useEffect(() => {
+        const loader = divRef.current
+        const observer = new IntersectionObserver((entries) => {
+            const target = entries[0]
+            if (target.isIntersecting) {
+                console.log("fetching")
+                fetchData()
+            }
+        }, { threshold: 1 })
+
+        if (loader) {
+            observer.observe(loader)
+        }
+
+        return () => {
+            if (loader) {
+                observer.unobserve(loader)
+            }
+        }
+    }, [fetchData])
 
     const EmptyPanel = () => {
         return (
@@ -47,31 +119,22 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
         )
     }
 
+    const BottomLoadingElement = () => {
+        if (page?.hasNextPage) return
+        return <div ref={divRef} className="bg-gray-100 justify-center items-center flex flex-row" >
+            {isLoading ? <>
+                <span className="h-full text-gray-400 text-6xl animate-pulse ease-in-out">....</span>
+            </> : null}
+        </div>
+    }
+
     return (
         <div
-            ref={divRef}
             className="h-full relative overflow-auto flex flex-col"
-            onScroll={(e) => {
-                if (!page) return
-                if (!page.hasNextPage) return
-
-                const scrollPosition = e.currentTarget.scrollTop;
-
-                //Define a altura para disparar evento de próxima página.
-                const eventHeight = (e.currentTarget.scrollHeight - e.currentTarget.offsetHeight) * 0.9;
-
-                if (scrollPosition >= eventHeight) {
-                    //Verifica se o cursor mudou, indicando uma nova página.
-                    //Isto previne chamadas repetidas que causam lentidão da aplicação
-                    if (nextCursor === page.nextCursor) return
-                    setNextCursor(page.nextCursor)
-                    scrollEvent(page.nextCursor)
-                }
-            }}
+            ref={scrollRef}
         >
             <table
-                ref={tableRef}
-                className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm shadow-md rounded-xl overflow-y-auto"
+                className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm shadow-md rounded-xl"
             >
                 <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-xs font-semibold">
                     <tr className="border-y-black">
@@ -88,24 +151,9 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
                     })}
                 </tbody>
             </table>
-            {!page ? <EmptyPanel /> : null}
-        </div>
+            {!page && isLoading ? <EmptyPanel /> : null}
+            <BottomLoadingElement />
+        </div >
     )
 }
 
-interface TableProps<D> {
-    columns: string[];
-    page: Page<D> | null;
-    getCellValue: (value: D, columnIndex: number) => unknown;
-    fetchNextPage: (cursor: string) => Promise<Page<D>>;
-    controlButtons?: JSX.Element[]
-}
-
-export interface RowData {
-    items: CellValue[];
-    controlButtons?: JSX.Element[]
-}
-
-interface CellValue {
-    value: any;
-}

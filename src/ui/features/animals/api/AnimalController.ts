@@ -1,6 +1,6 @@
-import { Animal, AnimalFilter } from "../types/Animal"
-import { Page } from "../types/Page"
-import { apiPost, basePageCall } from "../util/ApiRequest"
+import { Animal, AnimalFilter } from "@/types/Animal";
+import { Page } from "@/types/Page";
+import { apiPost, basePageCall } from "@/util/ApiRequest";
 
 const BASE = 'animals/'
 
