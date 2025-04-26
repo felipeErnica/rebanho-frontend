@@ -38,8 +38,9 @@ function getRowData<D>(columns: string[], row: D,
 export function Table<D>(props: TableProps<D>): JSX.Element {
 
     const scrollRef = useRef<ComponentRef<'div'>>(null)
-    const divRef = useRef<ComponentRef<'div'>>(null)
     const [page, setPage] = useState<Page<D> | null>(null)
+    const [pageList, setPageList] = useState<Page<D>[]>([])
+    const [index, setIndex] = useState<number>(0)
     const [list, setList] = useState<D[]>([])
     const [isLoading, setLoading] = useState(false)
 
@@ -51,6 +52,8 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
             .then((result) => {
                 setList(result.list)
                 setPage(result)
+                setPageList([result])
+                setIndex(0)
                 setLoading(false)
             })
             .catch(() => {
@@ -63,9 +66,43 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
     const putScrollAtTop = () => {
         const scrollContainer = scrollRef.current
         if (!scrollContainer) return
-        scrollContainer.scrollTo({ top: 0 })
+        scrollContainer.scrollTo({ top: scrollContainer.scrollHeight * 0.15 })
     }
 
+    const putScrollAtBottom = () => {
+        const scrollContainer = scrollRef.current
+        if (!scrollContainer) return
+        const scrollHeight = scrollContainer.scrollHeight
+        scrollContainer.scrollTo({ top: scrollHeight * 0.75 })
+    }
+
+    const fetchPreviousData = useCallback(() => {
+        console.log("fetching previous")
+        setLoading(true)
+
+        const newIndex = index - 1
+        const newPage = pageList[newIndex]
+        setIndex(newIndex)
+        setPage(newPage)
+
+        if (!newPage) return
+
+        setList(newPage.list)
+        putScrollAtBottom()
+        setLoading(false)
+    }, [index])
+
+    const fetchFromList = useCallback(() => {
+        const newIndex = index + 1
+        const newPage = pageList[newIndex]
+        setIndex(newIndex)
+        setPage(newPage)
+
+        if (!newPage) return
+
+        setList(newPage.list)
+        putScrollAtTop()
+    }, [index])
 
     const fetchData = useCallback(() => {
         if (!page) return
@@ -73,13 +110,21 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
         if (isLoading) return
         setLoading(true)
 
+        if (index < pageList.length - 1) {
+            fetchFromList()
+            setLoading(false)
+            return
+        }
+
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage(page.nextCursor)
             .then((result) => {
                 setPage(result)
+                setPageList(list => [...list, page])
+                setIndex(index + 1)
                 setList(result.list)
-                setLoading(false)
                 putScrollAtTop()
+                setLoading(false)
             })
             .catch(() => {
                 setPage(null)
@@ -89,25 +134,30 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
     }, [props, page, isLoading])
 
     useEffect(() => {
-        const loader = divRef.current
-        const observer = new IntersectionObserver((entries) => {
-            const target = entries[0]
-            if (target.isIntersecting) {
-                console.log("fetching")
+        const scrollContainer = scrollRef.current
+
+        if (!scrollContainer) return
+
+        const handleScroll = () => {
+            const scrollHeight = scrollContainer.scrollHeight
+            const scrollPos = scrollContainer.scrollTop
+
+            if (scrollPos <= scrollHeight * 0.1) {
+                if (isLoading || index === 0) return
+                fetchPreviousData()
+                return
+            }
+
+            if (scrollPos >= scrollHeight * 0.8) {
+                if (isLoading) return
                 fetchData()
-            }
-        }, { threshold: 1 })
-
-        if (loader) {
-            observer.observe(loader)
-        }
-
-        return () => {
-            if (loader) {
-                observer.unobserve(loader)
+                return
             }
         }
-    }, [fetchData])
+
+        scrollContainer.addEventListener('scroll', handleScroll)
+        return () => scrollContainer.removeEventListener('scroll', handleScroll)
+    }, [props, isLoading, index])
 
     const EmptyPanel = () => {
         return (
@@ -119,15 +169,6 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
         )
     }
 
-    const BottomLoadingElement = () => {
-        if (page?.hasNextPage) return
-        return <div ref={divRef} className="bg-gray-100 justify-center items-center flex flex-row" >
-            {isLoading ? <>
-                <span className="h-full text-gray-400 text-6xl animate-pulse ease-in-out">....</span>
-            </> : null}
-        </div>
-    }
-
     return (
         <div
             className="h-full relative overflow-auto flex flex-col"
@@ -136,7 +177,7 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
             <table
                 className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm shadow-md rounded-xl"
             >
-                <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-xs font-semibold">
+                <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-xl font-semibold">
                     <tr className="border-y-black">
                         {props.columns.map((column, i) => {
                             return <TableColumn isLast={props.controlButtons ? false : i == props.columns.length} column={column} />
@@ -151,9 +192,7 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
                     })}
                 </tbody>
             </table>
-            {!page && isLoading ? <EmptyPanel /> : null}
-            <BottomLoadingElement />
+            {!page ? <EmptyPanel /> : null}
         </div >
     )
 }
-
