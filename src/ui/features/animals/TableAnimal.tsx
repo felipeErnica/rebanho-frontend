@@ -1,7 +1,7 @@
 import { Animal, AnimalFilter } from "@/types/Animal";
 import { Page } from "@/types/Page";
 import { ControlButton } from "@/ui/components/common/ControlButtons";
-import { DetailsIcon, EditIcon, TrashIcon } from "@/ui/components/common/SvgIcons";
+import { DetailsIcon, EditIcon } from "@/ui/components/common/SvgIcons";
 import { Table } from "@/ui/components/table/Table";
 import { JSX, useCallback } from "react";
 import { findPage } from "./api/AnimalController";
@@ -38,10 +38,13 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
     ]
 
     const controlButtons = [
-        <ControlButton icon={TrashIcon} />,
         <ControlButton icon={EditIcon} />,
         <ControlButton icon={DetailsIcon} />,
     ]
+
+    const onDeleteRow = (id: string) => {
+        console.log(`Deleted Row: ${id}`)
+    }
 
 
     const fetchNextPage = useCallback(async (cursor: string): Promise<Page<Animal>> => {
@@ -56,6 +59,7 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
             filter={props.filter}
             getCellValue={getCellValues} 
             fetchPage={fetchNextPage}
+            onDeleteRow={onDeleteRow}
             controlButtons={controlButtons}
         />
     )    

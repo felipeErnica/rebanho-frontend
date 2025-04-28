@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { ComponentRef, JSX, useCallback, useEffect, useRef, useState } from "react";
 import { TableRow } from "./TableRow";
 import { Page } from "../../../types/Page";
 import { TableColumn } from "./TableColumn";
-import { IFilters } from "@/interfaces/Filter";
+import { IData, IFilters } from "@/interfaces/Filter";
 
 type TableProps<D> = {
     filter: IFilters
@@ -12,18 +13,21 @@ type TableProps<D> = {
     getCellValue: (value: D, columnIndex: number) => unknown;
     fetchPage: (cursor: string) => Promise<Page<D>>;
     controlButtons?: JSX.Element[]
+    onDeleteRow?: (id: string) => void
 }
 
 export type RowData = {
+    rowId: string;
     items: CellValue[];
     controlButtons?: JSX.Element[]
+    onDeleteRow?: (id: string) => void
 }
 
 type CellValue = {
     value: any;
 }
 
-function getRowData<D>(columns: string[], row: D,
+function getRowData<D extends IData>(columns: string[], row: D,
     getCellValue: (row: D, columnIndex: number) => unknown): RowData {
 
     const values: CellValue[] = []
@@ -32,10 +36,10 @@ function getRowData<D>(columns: string[], row: D,
         values.push(value)
     }
 
-    return { items: values }
+    return { rowId: row.id, items: values }
 }
 
-export function Table<D>(props: TableProps<D>): JSX.Element {
+export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
 
     const scrollRef = useRef<ComponentRef<'div'>>(null)
     const [page, setPage] = useState<Page<D> | null>(null)
@@ -57,8 +61,10 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
                 setLoading(false)
             })
             .catch(() => {
+                setPageList([])
                 setPage(null)
                 setList([])
+                setIndex(0)
                 setLoading(false)
             })
     }, [props])
@@ -66,43 +72,44 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
     const putScrollAtTop = () => {
         const scrollContainer = scrollRef.current
         if (!scrollContainer) return
-        scrollContainer.scrollTo({ top: scrollContainer.scrollHeight * 0.15 })
+        scrollContainer.scrollTo({ top: scrollContainer.scrollHeight * 0.01 })
     }
 
     const putScrollAtBottom = () => {
         const scrollContainer = scrollRef.current
         if (!scrollContainer) return
         const scrollHeight = scrollContainer.scrollHeight
-        scrollContainer.scrollTo({ top: scrollHeight * 0.75 })
+        scrollContainer.scrollTo({ top: (scrollHeight * 0.99) - scrollContainer.clientHeight })
     }
 
     const fetchPreviousData = useCallback(() => {
-        console.log("fetching previous")
         setLoading(true)
 
         const newIndex = index - 1
         const newPage = pageList[newIndex]
+        const fillerList = page ? page.list.slice(0, 10) : []
         setIndex(newIndex)
         setPage(newPage)
 
         if (!newPage) return
 
-        setList(newPage.list)
+        setList([...newPage.list, ...fillerList])
         putScrollAtBottom()
         setLoading(false)
-    }, [index])
+    }, [props, index, page, pageList])
 
     const fetchFromList = useCallback(() => {
         const newIndex = index + 1
         const newPage = pageList[newIndex]
+        const fillerList = page ? page.list.slice(-10) : []
         setIndex(newIndex)
         setPage(newPage)
 
         if (!newPage) return
 
-        setList(newPage.list)
+        setList([...fillerList, ...newPage.list])
         putScrollAtTop()
-    }, [index])
+    }, [props, index, pageList, page])
 
     const fetchData = useCallback(() => {
         if (!page) return
@@ -116,22 +123,25 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
             return
         }
 
+        const fillerList = page ? page.list.slice(-10) : []
+
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage(page.nextCursor)
             .then((result) => {
                 setPage(result)
-                setPageList(list => [...list, page])
+                setPageList(list => [...list, result])
                 setIndex(index + 1)
-                setList(result.list)
+                setList([...fillerList, ...result.list])
                 putScrollAtTop()
                 setLoading(false)
             })
             .catch(() => {
+                setIndex(0)
                 setPage(null)
                 setList([])
                 setLoading(false)
             })
-    }, [props, page, isLoading])
+    }, [props, page, pageList, fetchFromList, index, isLoading])
 
     useEffect(() => {
         const scrollContainer = scrollRef.current
@@ -140,15 +150,16 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
 
         const handleScroll = () => {
             const scrollHeight = scrollContainer.scrollHeight
-            const scrollPos = scrollContainer.scrollTop
+            const scrollTopPos = scrollContainer.scrollTop
+            const scrollBottomPos = scrollContainer.scrollTop + scrollContainer.clientHeight
 
-            if (scrollPos <= scrollHeight * 0.1) {
+            if (scrollTopPos == 0) {
                 if (isLoading || index === 0) return
                 fetchPreviousData()
                 return
             }
 
-            if (scrollPos >= scrollHeight * 0.8) {
+            if (scrollBottomPos == scrollHeight) {
                 if (isLoading) return
                 fetchData()
                 return
@@ -157,7 +168,7 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
 
         scrollContainer.addEventListener('scroll', handleScroll)
         return () => scrollContainer.removeEventListener('scroll', handleScroll)
-    }, [props, isLoading, index])
+    }, [props, isLoading, index, fetchData, fetchPreviousData])
 
     const EmptyPanel = () => {
         return (
@@ -177,7 +188,7 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
             <table
                 className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm shadow-md rounded-xl"
             >
-                <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-xl font-semibold">
+                <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-sm font-semibold">
                     <tr className="border-y-black">
                         {props.columns.map((column, i) => {
                             return <TableColumn isLast={props.controlButtons ? false : i == props.columns.length} column={column} />
@@ -188,7 +199,12 @@ export function Table<D>(props: TableProps<D>): JSX.Element {
                 <tbody className="divide-y divide-gray-200">
                     {list.map((row) => {
                         const rowData: RowData = getRowData(props.columns, row, props.getCellValue)
-                        return <TableRow items={rowData.items} controlButtons={props.controlButtons} />
+                        return <TableRow 
+                            rowId={row.id} 
+                            items={rowData.items} 
+                            controlButtons={props.controlButtons} 
+                            onDeleteRow={props.onDeleteRow}
+                        />
                     })}
                 </tbody>
             </table>
