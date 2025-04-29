@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { ComponentRef, JSX, useCallback, useEffect, useRef, useState } from "react";
+import { ComponentRef, HTMLInputTypeAttribute, JSX, useCallback, useEffect, useRef, useState } from "react";
 import { TableRow } from "./TableRow";
 import { Page } from "../../../types/Page";
 import { TableColumn } from "./TableColumn";
@@ -9,30 +9,43 @@ type TableProps<D> = {
     filter: IFilters
     order: string
     sort: string
-    columns: string[];
-    getCellValue: (value: D, columnIndex: number) => unknown;
+    columns: ColumnProps[];
+    getCellValue: (value: D, columnName: string) => CellProps;
     fetchPage: (cursor: string) => Promise<Page<D>>;
     controlButtons?: JSX.Element[]
     onDeleteRow?: (id: string) => void
 }
 
-export type RowData = {
+export type RowProps = {
     rowId: string;
-    items: CellValue[];
+    items: CellProps[];
     controlButtons?: JSX.Element[]
     onDeleteRow?: (id: string) => void
 }
 
-type CellValue = {
-    value: any;
+export type RowCells = {
+    [column: string]: CellProps
 }
 
-function getRowData<D extends IData>(columns: string[], row: D,
-    getCellValue: (row: D, columnIndex: number) => unknown): RowData {
+export type CellProps = {
+    columnName: string
+    value: any;
+    type: HTMLInputTypeAttribute;
+    isEditable: boolean
+    step?: string
+}
 
-    const values: CellValue[] = []
-    for (let i = 0; i < columns.length; i++) {
-        const value: CellValue = { value: getCellValue(row, i) }
+export type ColumnProps = {
+    title: string,
+    name: string
+}
+
+function getRowData<D extends IData>(columns: ColumnProps[], row: D,
+    getCellValue: (row: D, columnName: string) => CellProps): RowProps {
+
+    const values: CellProps[] = []
+    for (const column of columns) {
+        const value: CellProps = getCellValue(row, column.name)
         values.push(value)
     }
 
@@ -191,14 +204,14 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
                 <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-sm font-semibold">
                     <tr className="border-y-black">
                         {props.columns.map((column, i) => {
-                            return <TableColumn isLast={props.controlButtons ? false : i == props.columns.length} column={column} />
+                            return <TableColumn isLast={props.controlButtons ? false : i == props.columns.length} column={column.title} />
                         })}
                         {props.controlButtons ? <TableColumn isLast={true} column="" /> : null}
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                     {list.map((row) => {
-                        const rowData: RowData = getRowData(props.columns, row, props.getCellValue)
+                        const rowData: RowProps = getRowData(props.columns, row, props.getCellValue)
                         return <TableRow 
                             rowId={row.id} 
                             items={rowData.items} 

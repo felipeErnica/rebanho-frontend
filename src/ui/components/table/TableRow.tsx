@@ -1,34 +1,57 @@
-import { JSX, useCallback, useEffect, useState } from "react"
+import { JSX, useEffect, useState } from "react"
 import { ControlButton } from "../common/ControlButtons"
-import { TrashIcon } from "../common/SvgIcons"
-import { RowData } from "./Table"
+import { EditIcon, TrashIcon } from "../common/SvgIcons"
+import { RowProps } from "./Table"
+import { InputBox } from "../common/InputBox"
 
 
-export const TableRow = ({ rowId, items, controlButtons, onDeleteRow }: RowData) => {
+export const TableRow = (props: RowProps) => {
 
-    const [rowButtons, setRowButtons] = useState<JSX.Element[]>(controlButtons ? controlButtons : [])
+    const [isEditableRow, setEditableRow] = useState(false)
 
-    const DeleteButton = useCallback((): JSX.Element => {
+    useEffect(() => setEditableRow(false), [props])
+
+    const DeleteButton = (): JSX.Element => {
         return <ControlButton
             icon={TrashIcon}
-            onClick={onDeleteRow ? () => onDeleteRow(rowId) : () => { }}
+            onClick={() => {
+                if (props.onDeleteRow) props.onDeleteRow(props.rowId) 
+            }}
         />
-    }, [onDeleteRow, rowId])
+    }
 
-    useEffect(() => {
+    const EditButton = (): JSX.Element => {
+        return <ControlButton
+            icon={EditIcon}
+            onClick={() => setEditableRow(true)}
+        />
+    }
 
+    const rowButtons = props.controlButtons ? [...props.controlButtons, DeleteButton(), EditButton()] : [DeleteButton(), EditButton()]
 
-        if (onDeleteRow) {
-            setRowButtons(prevButtons => [...prevButtons, DeleteButton()])
-        }
-    }, [onDeleteRow, DeleteButton])
+    if (isEditableRow) {
+        return <tr id={props.rowId} className="hover:bg-gray-100">
+            {props.items.map((item) => (
+                <td className="border-b border-gray-300 px-6 py-4">
+                    {item.isEditable ? 
+                        <InputBox 
+                            type={item.type} 
+                            step={item.step} 
+                            defaultValue={item.value} 
+                        /> 
+                        : <span className="overflow-ellipsis">{item.value}</span>}
+                </td>))
+            }
+        </tr>
+    }
 
-
-    return (
-        <tr id={rowId} className="hover:bg-gray-100">
-            {items.map((item) => (<td className="border-b border-gray-300 px-6 py-4">{item.value}</td>))}
+    return <tr id={props.rowId} className="hover:bg-gray-100">
+            {props.items.map((item) => (
+                <td className="border-b border-gray-300 px-6 py-4">
+                    <span className="overflow-ellipsis"> {item.value} </span>
+                </td>))
+            }
             {rowButtons ? <td className="flex flex-row gap-4 border-b border-gray-300  justify-center items-center py-4">{rowButtons}</td> : null}
         </tr>
-    )
 }
 

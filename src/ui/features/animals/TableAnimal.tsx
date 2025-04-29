@@ -1,44 +1,56 @@
 import { Animal, AnimalFilter } from "@/types/Animal";
 import { Page } from "@/types/Page";
 import { ControlButton } from "@/ui/components/common/ControlButtons";
-import { DetailsIcon, EditIcon } from "@/ui/components/common/SvgIcons";
-import { Table } from "@/ui/components/table/Table";
-import { JSX, useCallback } from "react";
+import { DetailsIcon } from "@/ui/components/common/SvgIcons";
+import { CellProps, ColumnProps, Table } from "@/ui/components/table/Table";
+import { HTMLInputTypeAttribute, JSX, useCallback } from "react";
 import { findPage } from "./api/AnimalController";
 
-const getCellValues = (row: Animal, columnIndex: number) => {
+const getCellValues = (row: Animal, columnName: string): CellProps => {
     let value: any = null
-    switch (columnIndex) {
-        case 0:
+    let type: HTMLInputTypeAttribute = 'text'
+    let isEditable: boolean = false
+    let step: string | undefined
+
+    switch (columnName) {
+        case "ringNumber":
             value = row.ringNumber
+            isEditable = true
             break
-        case 1:
+        case "name":
             value = row.name
+            isEditable = true
             break
-        case 2:
+        case "birthDate":
             value = !row.birthDate ? null : row.birthDate.toString().substring(0,10)
+            type = 'date'
+            isEditable = true
             break
-        case 3:
+        case "deathDate":
             value = !row.deathDate ? null : row.deathDate.toString().substring(0,10)
+            type = 'date'
+            isEditable = true
             break
-        case 4:
+        case "averageBirthInterval":
             value = row.averageBirthInterval
+            type = 'number'
+            isEditable = true
+            step = ".5"
             break
     }
-    return value
+    return { columnName: columnName, value: value, isEditable: isEditable, type: type, step: step}
 }
 
 export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
-    const columns: string[] = [
-        "Brinco",
-        "Nome",
-        "Data de Nascimento",
-        "Data de Morte",
-        "Intervalo de Parição Médio"
+    const columns: ColumnProps[] = [
+        { title: "Brinco", name: "ringNumber" },
+        { title: "Nome", name: "name" },
+        { title: "Data de Nascimento", name: "birthDate" },
+        { title: "Data de Morte", name: "deathDate" },
+        { title: "Intervalo de Parição Médio", name: "averageBirthInterval" }
     ]
 
     const controlButtons = [
-        <ControlButton icon={EditIcon} />,
         <ControlButton icon={DetailsIcon} />,
     ]
 
