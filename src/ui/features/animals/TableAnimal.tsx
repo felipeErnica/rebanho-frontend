@@ -1,7 +1,5 @@
 import { Animal, AnimalFilter } from "@/types/Animal";
 import { Page } from "@/types/Page";
-import { ControlButton } from "@/ui/components/common/ControlButtons";
-import { DetailsIcon } from "@/ui/components/common/SvgIcons";
 import { CellProps, ColumnProps, Table } from "@/ui/components/table/Table";
 import { HTMLInputTypeAttribute, JSX, useCallback } from "react";
 import { findPage } from "./api/AnimalController";
@@ -50,10 +48,6 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
         { title: "Intervalo de Parição Médio", name: "averageBirthInterval" }
     ]
 
-    const controlButtons = [
-        <ControlButton icon={DetailsIcon} />,
-    ]
-
     const onDeleteRow = (id: string) => {
         console.log(`Deleted Row: ${id}`)
     }
@@ -72,7 +66,6 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
             getCellValue={getCellValues} 
             fetchPage={fetchNextPage}
             onDeleteRow={onDeleteRow}
-            controlButtons={controlButtons}
         />
     )    
 }

@@ -274,3 +274,22 @@ export const DetailsIcon = (): JSX.Element => {
         </g>
     </svg>
 }
+
+export const OkIcon = (): JSX.Element => {
+    return <svg 
+        width="30px" 
+        height="30px" 
+        viewBox="0 0 24 24" 
+        role="img" 
+        xmlns="http://www.w3.org/2000/svg" 
+        aria-labelledby="okIconTitle" 
+        stroke="currentColor" 
+        stroke-width="1" 
+        stroke-linecap="square" 
+        stroke-linejoin="miter" 
+        fill="none" 
+        color="currentColor"> 
+        <title id="okIconTitle">Ok</title> 
+        <polyline points="4 13 9 18 20 7"/> 
+    </svg>
+}

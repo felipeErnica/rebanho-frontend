@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { ComponentRef, HTMLInputTypeAttribute, JSX, useCallback, useEffect, useRef, useState } from "react";
 import { TableRow } from "./TableRow";
 import { Page } from "../../../types/Page";
@@ -12,14 +11,12 @@ type TableProps<D> = {
     columns: ColumnProps[];
     getCellValue: (value: D, columnName: string) => CellProps;
     fetchPage: (cursor: string) => Promise<Page<D>>;
-    controlButtons?: JSX.Element[]
     onDeleteRow?: (id: string) => void
 }
 
 export type RowProps = {
     rowId: string;
     items: CellProps[];
-    controlButtons?: JSX.Element[]
     onDeleteRow?: (id: string) => void
 }
 
@@ -109,7 +106,7 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
         setList([...newPage.list, ...fillerList])
         putScrollAtBottom()
         setLoading(false)
-    }, [props, index, page, pageList])
+    }, [index, page, pageList])
 
     const fetchFromList = useCallback(() => {
         const newIndex = index + 1
@@ -122,7 +119,7 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
 
         setList([...fillerList, ...newPage.list])
         putScrollAtTop()
-    }, [props, index, pageList, page])
+    }, [index, pageList, page])
 
     const fetchData = useCallback(() => {
         if (!page) return
@@ -154,34 +151,27 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
                 setList([])
                 setLoading(false)
             })
-    }, [props, page, pageList, fetchFromList, index, isLoading])
+    }, [page, isLoading, index, pageList.length, props, fetchFromList])
 
-    useEffect(() => {
+    const handleScroll = useCallback(() => {
         const scrollContainer = scrollRef.current
 
         if (!scrollContainer) return
+        const scrollHeight = scrollContainer.scrollHeight
+        const scrollTopPos = scrollContainer.scrollTop
+        const scrollBottomPos = scrollContainer.scrollTop + scrollContainer.clientHeight
 
-        const handleScroll = () => {
-            const scrollHeight = scrollContainer.scrollHeight
-            const scrollTopPos = scrollContainer.scrollTop
-            const scrollBottomPos = scrollContainer.scrollTop + scrollContainer.clientHeight
-
-            if (scrollTopPos == 0) {
-                if (isLoading || index === 0) return
-                fetchPreviousData()
-                return
-            }
-
-            if (scrollBottomPos == scrollHeight) {
-                if (isLoading) return
-                fetchData()
-                return
-            }
+        if (scrollTopPos == 0) {
+            if (isLoading || index === 0) return
+            fetchPreviousData()
+            return
         }
 
-        scrollContainer.addEventListener('scroll', handleScroll)
-        return () => scrollContainer.removeEventListener('scroll', handleScroll)
-    }, [props, isLoading, index, fetchData, fetchPreviousData])
+        if (scrollBottomPos >= scrollHeight) {
+            if (isLoading) return
+            fetchData()
+        }
+    }, [fetchData, fetchPreviousData, index, isLoading])
 
     const EmptyPanel = () => {
         return (
@@ -197,6 +187,7 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
         <div
             className="h-full relative overflow-auto flex flex-col"
             ref={scrollRef}
+            onScroll={handleScroll}
         >
             <table
                 className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm shadow-md rounded-xl"
@@ -204,18 +195,17 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
                 <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-sm font-semibold">
                     <tr className="border-y-black">
                         {props.columns.map((column, i) => {
-                            return <TableColumn isLast={props.controlButtons ? false : i == props.columns.length} column={column.title} />
+                            const isLast = i === props.columns.length - 1
+                            return <TableColumn isLast={isLast} column={column.title} />
                         })}
-                        {props.controlButtons ? <TableColumn isLast={true} column="" /> : null}
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                     {list.map((row) => {
                         const rowData: RowProps = getRowData(props.columns, row, props.getCellValue)
-                        return <TableRow 
-                            rowId={row.id} 
-                            items={rowData.items} 
-                            controlButtons={props.controlButtons} 
+                        return <TableRow
+                            rowId={row.id}
+                            items={rowData.items}
                             onDeleteRow={props.onDeleteRow}
                         />
                     })}
