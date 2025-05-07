@@ -5,14 +5,26 @@ import { CloseIcon, EditIcon, OkIcon, TrashIcon } from "../common/SvgIcons"
 import { CellProps, RowProps } from "./Table"
 import { InputBox } from "../common/InputBox"
 
+type EditedValues = {
+    [columnName: string]: any
+}
+
 export const TableRow = (props: RowProps) => {
 
     const [isEditableRow, setEditableRow] = useState(false)
     const [isControlsVisible, setControlsVisible] = useState(false)
+    const [newValues, setNewValues] = useState<EditedValues>([])
 
     useEffect(() => {
         setEditableRow(false)
         setControlsVisible(false)
+        
+        let editMap: EditedValues = newValues
+        props.items.forEach((item) => {
+            editMap = {...editMap, [item.columnName]: item.value}
+        })
+
+        setNewValues(editMap)
     }, [props])
 
     const DeleteButton = (): JSX.Element => {
@@ -31,13 +43,20 @@ export const TableRow = (props: RowProps) => {
         />
     }
 
+    const rowButtons = () => {
+        let rowButtons = []
+        if (props.onDeleteRow) rowButtons.push(DeleteButton())
+        if (props.onSaveRow) rowButtons.push(EditButton())
+        return rowButtons
+    }
+
     const ControlButtonsPanel = useCallback(() => {
-        const rowButtons = [DeleteButton(), EditButton()]
+        if (rowButtons().length == 0) return
         if (isControlsVisible) {
             return <div
                 className="grow flex flex-row justify-end gap-4 pr-4"
             >
-                {rowButtons}
+                {rowButtons()}
             </div>
         }
         return null
@@ -45,7 +64,14 @@ export const TableRow = (props: RowProps) => {
 
     const EditButtonsPanel = () => {
         return <div className="grow flex flex-row justify-end gap-4 pr-4">
-            <ControlButton icon={OkIcon} />
+            <ControlButton
+                icon={OkIcon}
+                onClick={() => {
+                    if (props.onSaveRow) props.onSaveRow(props.rowId)
+                    props.items.forEach(item => item.value = newValues[item.columnName])
+                    setEditableRow(false)
+                }}
+            />
             <ControlButton icon={CloseIcon} onClick={() => setEditableRow(false)} />
         </div>
     }
@@ -67,7 +93,16 @@ export const TableRow = (props: RowProps) => {
 
     const EditableCellContent = (item: CellProps) => {
         if (item.isEditable) {
-            return <InputBox type={item.type} step={item.step} defaultValue={item.value} />
+            return <InputBox 
+                type={item.type} 
+                step={item.step} 
+                defaultValue={item.value} 
+                onInput={(event) => {
+                    const editedValues = newValues
+                    editedValues[item.columnName] = event.currentTarget.value
+                    setNewValues(editedValues)
+                }}
+            />
         }
         return <span className="overflow-ellipsis">{item.value}</span>
     }

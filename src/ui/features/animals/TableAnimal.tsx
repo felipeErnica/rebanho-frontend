@@ -52,6 +52,9 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
         console.log(`Deleted Row: ${id}`)
     }
 
+    const onSaveRow = (id: string) => {
+        console.log(`Save Row: ${id}`)
+    }
 
     const fetchNextPage = useCallback(async (cursor: string): Promise<Page<Animal>> => {
         return findPage(props.sort, props.order, cursor, props.filter)
@@ -66,6 +69,7 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
             getCellValue={getCellValues} 
             fetchPage={fetchNextPage}
             onDeleteRow={onDeleteRow}
+            onSaveRow={onSaveRow}
         />
     )    
 }

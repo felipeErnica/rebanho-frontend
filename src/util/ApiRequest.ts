@@ -1,5 +1,5 @@
 const BASE_URL = "http://localhost:8080"
-const auth = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTAwMjY3YzAtYWVhOS00ZWYyLTk4YTAtNDFjNDg1NzA2MmQyIn0.ffVfdutX9FYcuhqk1pd5c11sTMBaOB8k4Y6S9Fzy9dY'
+const auth = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYzdkYjE3ZjQtZGFjYS00N2JlLThlNzAtNGNkMDRjZjkzM2ZjIn0.VKpoz_9QHcPNwqg7oJEWrY9cZ5yIlM-M25Mc5DdUe1E'
 
 const generateRequest = (): RequestInit => {
     const commonRequest: RequestInit = {

@@ -12,12 +12,14 @@ type TableProps<D> = {
     getCellValue: (value: D, columnName: string) => CellProps;
     fetchPage: (cursor: string) => Promise<Page<D>>;
     onDeleteRow?: (id: string) => void
+    onSaveRow?: (id: string) => void
 }
 
 export type RowProps = {
     rowId: string;
     items: CellProps[];
     onDeleteRow?: (id: string) => void
+    onSaveRow?: (id: string) => void
 }
 
 export type RowCells = {
@@ -207,6 +209,7 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
                             rowId={row.id}
                             items={rowData.items}
                             onDeleteRow={props.onDeleteRow}
+                            onSaveRow={props.onSaveRow}
                         />
                     })}
                 </tbody>
