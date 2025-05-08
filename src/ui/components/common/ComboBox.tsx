@@ -1,5 +1,4 @@
 import { ChangeEventHandler, JSX } from "react";
-
 export const ComboBox = (props: ComboBoxProps): JSX.Element => {
     return (
         <select

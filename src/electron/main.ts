@@ -1,17 +1,27 @@
-import { app, BrowserWindow } from 'electron'
-import path from "path"
+import { app, BrowserWindow, ipcMain } from 'electron'
+import path from 'path'
 
-const createWindow = () => {
-    const mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600
+const createLoginWindow = () => {
+    const loginWindow = new BrowserWindow({
+        width: 400,
+        height: 300,
+        titleBarStyle: 'hidden',
+        titleBarOverlay: true,
+        resizable: false,
+        maximizable: false,
+        minimizable: false,
+        webPreferences: {
+            preload: path.join(app.getAppPath(), "/dist-electron/preload.cjs"),
+       }
     })
+
+    ipcMain.on('close-login', () => loginWindow.close())
     //Menu.setApplicationMenu(null)
-    mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"))
+    loginWindow.loadURL(`file://${app.getAppPath()}/dist-react/index.html#/login`)
 }
 
 app.whenReady().then(() => {
-    createWindow()
+    createLoginWindow()
 })
 
 app.on('window-all-closed', () => {
