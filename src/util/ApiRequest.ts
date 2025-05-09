@@ -1,14 +1,31 @@
+import { User } from "@/types/User"
+
 const BASE_URL = "http://localhost:8080"
-const auth = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTAwMjY3YzAtYWVhOS00ZWYyLTk4YTAtNDFjNDg1NzA2MmQyIn0.ffVfdutX9FYcuhqk1pd5c11sTMBaOB8k4Y6S9Fzy9dY'
+var authToken: string
+
+export function setAuthToken(token: string) {
+    authToken = token
+}
 
 const generateRequest = (): RequestInit => {
     const commonRequest: RequestInit = {
         headers: {
-            'Authorization': `Bearer ${auth}`,
+            'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json'
         },
     }
     return commonRequest
+}
+
+export async function authUser(user: User): Promise<Response> {
+    const request: RequestInit = {
+        method: 'POST',
+        body: JSON.stringify(user),
+        headers: { 'Content-Type': 'application/json'}
+    }
+    const url = BASE_URL + "/login"
+    const response = await fetch(url, request)
+    return response
 }
 
 export async function apiPost<D>(apiCall: string, object: D): Promise<Response> {
