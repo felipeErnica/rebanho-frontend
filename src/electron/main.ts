@@ -1,19 +1,23 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 
-const mainWindow = new BrowserWindow({
-    fullscreen: true,
-    webPreferences: {
-        preload: path.join(app.getAppPath(), "/dist-electron/preload.cjs"),
-    }
-})
+const createMainWindow = () => {
+    const mainWindow = new BrowserWindow({
+        width: 1280,
+        height: 720,
+        webPreferences: {
+            preload: path.join(app.getAppPath(), "/dist-electron/preload.cjs"),
+        }
+    })
+    mainWindow.loadURL(`file://${app.getAppPath()}/dist-react/index.html#/home`)
+}
 
 const createLoginWindow = () => {
     const loginWindow = new BrowserWindow({
         width: 400,
-        height: 300,
+        height: 400,
         titleBarStyle: 'hidden',
-        // titleBarOverlay: true,
+        autoHideMenuBar: true,
         resizable: false,
         maximizable: false,
         minimizable: false,
@@ -22,14 +26,20 @@ const createLoginWindow = () => {
         }
     })
 
-    ipcMain.on('close-login', () => loginWindow.close())
-    ipcMain.on('open-main', () => mainWindow.loadURL(`file://${app.getAppPath()}/dist-react/index.html#/home`))
     //Menu.setApplicationMenu(null)
+    ipcMain.on('close-login', () => loginWindow.close())
+    ipcMain.on('open-main', () => {
+        createMainWindow()
+        loginWindow.close()
+    })
     loginWindow.loadURL(`file://${app.getAppPath()}/dist-react/index.html#/login`)
 }
 
 app.whenReady().then(() => {
+    let authToken: string | undefined
     createLoginWindow()
+    ipcMain.handle('get-token', () => authToken)
+    ipcMain.on('set-token', (_, token) => authToken = token)
 })
 
 app.on('window-all-closed', () => {

@@ -1,8 +1,8 @@
 import { Animal, AnimalFilter } from "@/types/Animal";
-import { Page } from "@/types/Page";
 import { CellProps, ColumnProps, Table } from "@/ui/components/table/Table";
 import { HTMLInputTypeAttribute, JSX, useCallback } from "react";
 import { findPage } from "./api/AnimalController";
+import { ApiResponse } from "@/types/ApiResponse";
 
 const getCellValues = (row: Animal, columnName: string): CellProps => {
     let value: any = null
@@ -56,7 +56,7 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
         console.log(`Save Row: ${id}`)
     }
 
-    const fetchNextPage = useCallback(async (cursor: string): Promise<Page<Animal>> => {
+    const fetchNextPage = useCallback(async (cursor: string): Promise<ApiResponse> => {
         return findPage(props.sort, props.order, cursor, props.filter)
     }, [props])
 

@@ -3,6 +3,7 @@ import { TableRow } from "./TableRow";
 import { Page } from "../../../types/Page";
 import { TableColumn } from "./TableColumn";
 import { IData, IFilters } from "@/interfaces/Filter";
+import { ApiResponse } from "@/types/ApiResponse";
 
 type TableProps<D> = {
     filter: IFilters
@@ -10,7 +11,7 @@ type TableProps<D> = {
     sort: string
     columns: ColumnProps[];
     getCellValue: (value: D, columnName: string) => CellProps;
-    fetchPage: (cursor: string) => Promise<Page<D>>;
+    fetchPage: (cursor: string) => Promise<ApiResponse>;
     onDeleteRow?: (id: string) => void
     onSaveRow?: (id: string) => void
 }
@@ -66,9 +67,10 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage("")
             .then((result) => {
-                setList(result.list)
-                setPage(result)
-                setPageList([result])
+                const page: Page<D> = result.json
+                setList(page.list)
+                setPage(page)
+                setPageList([page])
                 setIndex(0)
                 setLoading(false)
             })
@@ -140,10 +142,11 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage(page.nextCursor)
             .then((result) => {
-                setPage(result)
-                setPageList(list => [...list, result])
+                const page: Page<D> = result.json
+                setPage(page)
+                setPageList(list => [...list, page])
                 setIndex(index + 1)
-                setList([...fillerList, ...result.list])
+                setList([...fillerList, ...page.list])
                 putScrollAtTop()
                 setLoading(false)
             })
