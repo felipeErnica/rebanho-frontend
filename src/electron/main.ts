@@ -15,7 +15,7 @@ const createMainWindow = () => {
 const createLoginWindow = () => {
     const loginWindow = new BrowserWindow({
         width: 400,
-        height: 400,
+        height: 500,
         titleBarStyle: 'hidden',
         autoHideMenuBar: true,
         resizable: false,

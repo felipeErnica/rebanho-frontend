@@ -1,31 +1,54 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { User } from "@/types/User"
-import { Button } from "@/ui/components/common/Button"
-import { InputBox } from "@/ui/components/common/InputBox"
 import { JSX, useState } from "react"
 import { authenticateUser } from "./api/user-authentication"
+import { Button, IconButton, InputAdornment, TextField, Typography } from "@mui/material"
+import { Close, Visibility, VisibilityOff } from "@mui/icons-material"
 
 export const LoginDisplay = (): JSX.Element => {
 
     const [user, setUser] = useState<User>({})
+    const [showPassword, setShowPassword] = useState(false)
 
-    return <div className="h-screen w-screen flex flex-col gap-8 px-10 py-20" >
+    return <div className="h-screen w-screen flex flex-col gap-8 px-10 py-10" >
+        <div className="flex flex-row-reverse">
+            <IconButton
+                onClick={() => {
+                    //@ts-ignore
+                    window.electronEvents.closeLogin()
+                }}
+            >
+                <Close />
+            </IconButton>
+        </div>
         <div className="grid grid-cols-1 gap-6">
-            <InputBox
-                type="text"
-                placeholder="Usuário..."
-                className="border-gray-700"
-                onInput={(event) => {
+            <Typography variant="h4">Entrar</Typography>
+            <TextField
+                variant="outlined"
+                label="Usuário"
+                onChange={(event) => {
                     const currentUser = user
                     currentUser.name = event.currentTarget.value
                     setUser(currentUser)
                 }}
             />
-            <InputBox
-                type="password"
-                className="border-gray-700"
-                placeholder="Senha..."
-                onInput={(event) => {
+            <TextField
+                type={showPassword ? 'text' : 'password'}
+                variant="outlined"
+                label="Senha"
+                slotProps={{
+                    input: {
+                        endAdornment: <InputAdornment position="end">
+                            <IconButton
+                                tabIndex={-1}
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                }}
+                onChange={(event) => {
                     const currentUser = user
                     currentUser.password = event.currentTarget.value
                     setUser(currentUser)
@@ -34,7 +57,9 @@ export const LoginDisplay = (): JSX.Element => {
         </div>
         <div className="grid grid-rows-2 gap-4">
             <Button
-                className="bg-gray-700 focus:bg-gray-400 text-white hover:bg-gray-400"
+                variant="contained"
+                className="bg-gray-700"
+                disableElevation
                 onClick={() => {
                     authenticateUser(user)
                         .then((jwt) => {
@@ -50,7 +75,7 @@ export const LoginDisplay = (): JSX.Element => {
                 Entrar
             </Button>
             <Button
-                //className="focus:bg-gray-400 text-white hover:bg-gray-400"
+                variant="outlined"
                 onClick={() => {
                     //@ts-ignore
                     window.electronEvents.closeLogin()
