@@ -2,8 +2,8 @@ import { IFilters } from "@/interfaces/Filter"
 import { AnimalFilter } from "@/types/Animal"
 import { ComboBox } from "@/ui/components/common/ComboBox"
 import { AbstractFilterDiv, DateFilterDiv, NumberFilterDiv } from "@/ui/components/common/CommonFilterDivs"
-import { InputBox } from "@/ui/components/common/InputBox"
 import { activateFilter } from "@/util/Filter"
+import TextField from "@mui/material/TextField"
 import { JSX } from "react"
 
 type FilterProps<T extends IFilters> = {
@@ -15,23 +15,29 @@ export const AnimalFilterElement = ({ setFilter, filter }: FilterProps<AnimalFil
     return <div className="grid grid-cols-1 grid-rows-[auto] gap-16">
 
         <AbstractFilterDiv mainTitle="Informações principais">
-            <div className="grid grid-cols-1 grid-rows-3 gap-2">
-                <InputBox
+            <div className="grid grid-cols-1 grid-rows-3 gap-4">
+                <TextField
+                    variant="outlined"
+                    size="small"
                     type="search"
-                    placeholder="Pesquisar brinco..."
+                    label="Brinco"
                 />
-                <InputBox
-                    onInput={(event) => {
+                <TextField
+                    size="small"
+                    variant="outlined"
+                    onChange={(event) => {
                         const newFilter = activateFilter(filter)
                         newFilter.name = event.currentTarget.value
                         setFilter(newFilter)
                     }}
                     type="search"
-                    placeholder="Pesquisar nome..."
+                    label="Nome"
                 />
-                <ComboBox 
-                    placeholder="Selecionar sexo..." 
-                    items={[{ name: "M" }, { name: "F" }]} 
+                <ComboBox
+                    size="small"
+                    label="Sexo"
+                    emptyValue="Nenhum"
+                    items={[{name: 'M'}, {name: 'F'}]}
                 />
             </div>
         </AbstractFilterDiv>

@@ -2,8 +2,15 @@
 import { User } from "@/types/User"
 import { JSX, useState } from "react"
 import { authenticateUser } from "./api/user-authentication"
-import { Button, IconButton, InputAdornment, TextField, Typography } from "@mui/material"
-import { Close, Visibility, VisibilityOff } from "@mui/icons-material"
+import Button from "@mui/material/Button"
+import IconButton from "@mui/material/IconButton"
+import InputAdornment from "@mui/material/InputAdornment"
+import Link from "@mui/material/Link"
+import TextField from "@mui/material/TextField"
+import Typography from "@mui/material/Typography"
+import Close from "@mui/icons-material/Close"
+import Visibility from "@mui/icons-material/Visibility"
+import VisibilityOff from "@mui/icons-material/VisibilityOff"
 
 export const LoginDisplay = (): JSX.Element => {
 
@@ -20,9 +27,13 @@ export const LoginDisplay = (): JSX.Element => {
             >
                 <Close />
             </IconButton>
+            <Typography className='grow' variant="h4">Entrar</Typography>
         </div>
         <div className="grid grid-cols-1 gap-6">
-            <Typography variant="h4">Entrar</Typography>
+            <div className="flex flex-row gap-1">
+                <Typography variant="body1">Não tem uma conta?</Typography>
+                <Link className="text-blue-400 cursor-pointer" variant="body1" underline="hover">Cadastre-se!</Link>
+            </div>
             <TextField
                 variant="outlined"
                 label="Usuário"
