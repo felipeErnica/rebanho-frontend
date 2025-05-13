@@ -1,4 +1,4 @@
-import 'dayjs/locale/pt'
+import 'dayjs/locale/pt-br';
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
@@ -19,7 +19,7 @@ createRoot(document.getElementById('root')!).render(
         <StyledEngineProvider enableCssLayer >
             <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
             <ThemeProvider theme={theme} >
-            <LocalizationProvider dateAdapter={AdapterDayjs} >
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='pt-br'>
                 <App />
             </LocalizationProvider>
             </ThemeProvider>
