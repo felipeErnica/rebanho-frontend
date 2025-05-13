@@ -15,12 +15,12 @@ export const AnimalFilterElement = ({ setFilter, filter }: FilterProps<AnimalFil
     return <div className="grid grid-cols-1 grid-rows-[auto] gap-16">
 
         <AbstractFilterDiv mainTitle="Informações principais">
-            <div className="grid grid-cols-1 grid-rows-3 gap-4">
+            <div className="grid grid-cols-1 grid-rows-3 gap-2">
                 <TextField
                     variant="outlined"
                     size="small"
                     type="search"
-                    label="Brinco"
+                    label="Brinco:"
                 />
                 <TextField
                     size="small"
@@ -31,12 +31,11 @@ export const AnimalFilterElement = ({ setFilter, filter }: FilterProps<AnimalFil
                         setFilter(newFilter)
                     }}
                     type="search"
-                    label="Nome"
+                    label="Nome:"
                 />
                 <ComboBox
                     size="small"
-                    label="Sexo"
-                    emptyValue="Nenhum"
+                    label="Sexo:"
                     items={[{name: 'M'}, {name: 'F'}]}
                 />
             </div>

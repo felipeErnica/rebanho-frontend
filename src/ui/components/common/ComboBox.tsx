@@ -1,42 +1,55 @@
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import { JSX } from "react";
-import MenuItem from "@mui/material/MenuItem";
+import { JSX, SyntheticEvent, useState } from "react";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
 
 export type ComboSize = 'small' | 'medium'
 
 export const ComboBox = (props: ComboBoxProps): JSX.Element => {
-    return (
-        <FormControl size={props.size ? props.size : 'medium'} variant="outlined">
-            {props.label ? <InputLabel>{props.label}</InputLabel> : null}
-            <Select
+
+    const [value, setValue] = useState<ComboBoxItem>()
+    const [inputValue, setInputValue] = useState<string>()
+
+    return <Autocomplete
+        inputValue={inputValue}
+        value={value}
+        options={props.items}
+        noOptionsText='Nenhum resultado encontrado'
+        renderInput={(params) => {
+            return <TextField
+                {...params}
+                size={props.size ? props.size : 'small'}
+                variant="outlined"
                 label={props.label}
-                defaultValue={props.defaultValue}
-                onChange={props.onChange}
-            >
-                {props.emptyValue ? <MenuItem><i>{props.emptyValue}</i></MenuItem> : null}
-                {props.items.map(item => {
-                    return <MenuItem value={item.value ? item.value : item.name} >
-                        {item.name}
-                    </MenuItem>
-                })}
-            </Select>
-        </FormControl>
-    )
+            />
+        }}
+        getOptionLabel={(option) => option ? option.name : ''}
+        clearOnEscape
+        clearOnBlur
+        autoHighlight
+        openOnFocus
+        autoSelect
+        defaultValue={props.defaultValue}
+        onInputChange={(_, value: string) => setInputValue(value)}
+        onChange={(_event: SyntheticEvent, value: ComboBoxItem | undefined | null) => {
+            if (!value) return
+            setValue(value)
+            setInputValue(value.value ? value.value : value.name)
+            if (props.onChange) props.onChange(value.value ? value.value : value.name)
+        }}
+    >
+    </Autocomplete>
 }
 
 interface ComboBoxProps {
     size?: ComboSize
     label?: string;
-    defaultValue?: string;
-    emptyValue?: string;
-    items: ComboBoxItem[];
-    onChange?: (event: SelectChangeEvent) => void
+    defaultValue?: ComboBoxItem;
+    items: readonly ComboBoxItem[];
+    onChange?: (value: string) => void
     id?: string;
 }
 
-export interface ComboBoxItem {
+export type ComboBoxItem = {
     name: string;
     value?: string;
 }

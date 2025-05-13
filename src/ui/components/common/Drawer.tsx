@@ -1,5 +1,8 @@
 import { JSX } from "react";
-import { CloseIcon } from "./SvgIcons";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import Close from "@mui/icons-material/Close";
+import AppBar from "@mui/material/AppBar";
 
 interface AbstractDrawerProps {
     title: string;
@@ -20,19 +23,17 @@ const Drawer = (props: AbstractDrawerProps): JSX.Element => {
         className={`h-full grid grid-rows-[auto_1fr] transition-all duration-500 ease-in-out overflow-auto
         ${props.isOpen ? 'max-w-96' : 'max-w-0'}`}
     >
-        <div className="sticky top-0 grid bg-gray-700 grid-cols-[auto_1fr] gap-4 p-4">
-            <button 
-                className="text-white" 
-                onClick={() => props.setOpen(false)} 
-            >
-                <CloseIcon />
-            </button>
-            <span 
-                className="block whitespace-nowrap text-2xl px-4 overflow-clip justify-center text-white text-left"
+        <AppBar className="sticky bg-gray-700 top-0 grid grid-cols-[auto_1fr] gap-2 items-center p-4">
+            <IconButton onClick={() => props.setOpen(false)}>
+                <Close className="text-white" />
+            </IconButton>
+            <Typography
+                variant="h5"
+                className="overflow-clip whitespace-nowrap text-white"
             >
                 {props.title}
-            </span>
-        </div>
+            </Typography>
+        </AppBar>
         <div className="p-4">
             {props.childPanel()}
         </div>
@@ -41,9 +42,9 @@ const Drawer = (props: AbstractDrawerProps): JSX.Element => {
 
 export const FilterDrawer = (props: DrawerProps) => {
     return <Drawer
-        title="Controle de Filtros"
+        title="CONTROLES DE FILTRO"
         childPanel={props.childPanel}
         isOpen={props.isOpen}
-        setOpen={props.setOpen} 
+        setOpen={props.setOpen}
     />
 }

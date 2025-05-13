@@ -1,9 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { JSX, useCallback, useEffect, useState } from "react"
-import { ControlButton } from "../common/ControlButtons"
-import { CloseIcon, EditIcon, OkIcon, TrashIcon } from "../common/SvgIcons"
 import { CellProps, RowProps } from "./Table"
-import { InputBox } from "../common/InputBox"
+import TextField from "@mui/material/TextField"
+import IconButton from "@mui/material/IconButton"
+import Delete from "@mui/icons-material/Delete"
+import Edit from "@mui/icons-material/Edit"
+import Check from "@mui/icons-material/Check"
+import Close from "@mui/icons-material/Close"
 
 type EditedValues = {
     [columnName: string]: any
@@ -18,33 +21,35 @@ export const TableRow = (props: RowProps) => {
     useEffect(() => {
         setEditableRow(false)
         setControlsVisible(false)
-        
+
         let editMap: EditedValues = newValues
         props.items.forEach((item) => {
-            editMap = {...editMap, [item.columnName]: item.value}
+            editMap = { ...editMap, [item.columnName]: item.value }
         })
 
         setNewValues(editMap)
     }, [props])
 
     const DeleteButton = (): JSX.Element => {
-        return <ControlButton
-            icon={TrashIcon}
+        return <IconButton
             onClick={() => {
                 if (props.onDeleteRow) props.onDeleteRow(props.rowId)
             }}
-        />
+        >
+            <Delete />
+        </IconButton>
     }
 
     const EditButton = (): JSX.Element => {
-        return <ControlButton
-            icon={EditIcon}
+        return <IconButton
             onClick={() => setEditableRow(true)}
-        />
+        >
+            <Edit />
+        </IconButton>
     }
 
     const rowButtons = () => {
-        let rowButtons = []
+        const rowButtons = []
         if (props.onDeleteRow) rowButtons.push(DeleteButton())
         if (props.onSaveRow) rowButtons.push(EditButton())
         return rowButtons
@@ -64,15 +69,16 @@ export const TableRow = (props: RowProps) => {
 
     const EditButtonsPanel = () => {
         return <div className="grow flex flex-row justify-end gap-4 pr-4">
-            <ControlButton
-                icon={OkIcon}
+            <IconButton
                 onClick={() => {
                     if (props.onSaveRow) props.onSaveRow(props.rowId)
                     props.items.forEach(item => item.value = newValues[item.columnName])
                     setEditableRow(false)
                 }}
-            />
-            <ControlButton icon={CloseIcon} onClick={() => setEditableRow(false)} />
+            >
+                <Check/>
+            </IconButton>
+            <IconButton onClick={() => setEditableRow(false)} ><Close /></IconButton>
         </div>
     }
 
@@ -93,11 +99,16 @@ export const TableRow = (props: RowProps) => {
 
     const EditableCellContent = (item: CellProps) => {
         if (item.isEditable) {
-            return <InputBox 
-                type={item.type} 
-                step={item.step} 
-                defaultValue={item.value} 
-                onInput={(event) => {
+            return <TextField
+                size="small"
+                type={item.type}
+                slotProps={{
+                    htmlInput: {
+                        step: item.step
+                    }
+                }}
+                defaultValue={item.value}
+                onChange={(event) => {
                     const editedValues = newValues
                     editedValues[item.columnName] = event.currentTarget.value
                     setNewValues(editedValues)
