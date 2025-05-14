@@ -1,9 +1,15 @@
 import { ComponentRef, HTMLInputTypeAttribute, JSX, useCallback, useEffect, useRef, useState } from "react";
-import { TableRow } from "./TableRow";
 import { Page } from "../../../types/Page";
-import { TableColumn } from "./TableColumn";
 import { IData, IFilters } from "@/interfaces/Filter";
 import { ApiResponse } from "@/types/ApiResponse";
+import Table from "@mui/material/Table";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import TableBody from "@mui/material/TableBody";
+import { TableHeadComponent } from "./TableHeadComponent";
+import { ColumnProps } from "./Table";
+import { TestWidth } from "./TestWidth";
 
 type TableProps<D> = {
     filter: IFilters
@@ -35,28 +41,7 @@ export type CellProps = {
     step?: string
 }
 
-export type ColumnProps = {
-    title: string
-    name: string
-    width?: number
-    type: HTMLInputTypeAttribute;
-    isEditable: boolean
-    step?: string
-}
-
-function getRowData<D extends IData>(columns: ColumnProps[], row: D,
-    getCellValue: (row: D, columnName: string) => CellProps): RowProps {
-
-    const values: CellProps[] = []
-    for (const column of columns) {
-        const value: CellProps = getCellValue(row, column.name)
-        values.push(value)
-    }
-
-    return { rowId: row.id, items: values }
-}
-
-export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
+export function TableTest<D extends IData>(props: TableProps<D>): JSX.Element {
 
     const scrollRef = useRef<ComponentRef<'div'>>(null)
     const [page, setPage] = useState<Page<D> | null>(null)
@@ -64,9 +49,19 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
     const [index, setIndex] = useState<number>(0)
     const [list, setList] = useState<D[]>([])
     const [isLoading, setLoading] = useState(false)
+    const [templateColumn, setTemplateColumn] = useState('')
+    const [columnsWidth, setColumnsWidth] = useState<string[]>([])
+
 
     useEffect(() => {
         setLoading(true)
+
+        const columnsWidth = props.columns.map(column => column.width ? `${column.width}px` : '1fr')
+        setColumnsWidth(columnsWidth)
+
+        const templateColumn = columnsWidth.join(' ')
+        setTemplateColumn(templateColumn)
+        console.log(templateColumn)
 
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage("")
@@ -182,46 +177,51 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
         }
     }, [fetchData, fetchPreviousData, index, isLoading])
 
-    const EmptyPanel = () => {
-        return (
-            <div className="bg-gray-200 flex justify-center items-center h-full p-4">
-                <i className="text-gray-400 text-2xl">
-                    {"Nenhum resultado encontrado!"}
-                </i>
-            </div>
-        )
-    }
-
-    return (
+    return <div>
+        <div style={{ display: 'grid', gridTemplateColumns: templateColumn}} className={`w-full`}>
+            {props.columns.map((column, i) => {
+                return <TestWidth
+                    setColumnWidth={setColumnsWidth}
+                    setTemplateColumn={setTemplateColumn}
+                    columnsWidth={columnsWidth}
+                    index={i}
+                    column={column}
+                    isLast={i === props.columns.length - 1}
+                />
+            })}
+        </div>
         <div
-            className="h-full relative overflow-auto flex flex-col"
+            className={`h-full overflow-scroll`}
             ref={scrollRef}
             onScroll={handleScroll}
         >
-            <table
-                className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm shadow-md rounded-xl"
-            >
-                <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-sm font-semibold">
-                    <tr className="border-y-black">
+            <Table stickyHeader >
+                <TableHead >
+                    <TableRow>
                         {props.columns.map((column, i) => {
-                            const isLast = i === props.columns.length - 1
-                            return <TableColumn isLast={isLast} column={column.title} />
+                            return <TableHeadComponent
+                                tableRef={scrollRef.current}
+                                setColumnWidth={setColumnsWidth}
+                                setTemplateColumn={setTemplateColumn}
+                                columnsWidth={columnsWidth}
+                                index={i}
+                                column={column}
+                                isLast={i === props.columns.length - 1}
+                            />
                         })}
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
+                    </TableRow>
+                </TableHead>
+                <TableBody>
                     {list.map((row) => {
-                        const rowData: RowProps = getRowData(props.columns, row, props.getCellValue)
-                        return <TableRow
-                            rowId={row.id}
-                            items={rowData.items}
-                            onDeleteRow={props.onDeleteRow}
-                            onSaveRow={props.onSaveRow}
-                        />
+                        return <TableRow hover key={row.id}>
+                            {props.columns.map((column) => {
+                                const value: any = row[column.name]
+                                return <TableCell>{value}</TableCell>
+                            })}
+                        </TableRow>
                     })}
-                </tbody>
-            </table>
-            {!page ? <EmptyPanel /> : null}
+                </TableBody>
+            </Table>
         </div >
-    )
+    </div>
 }

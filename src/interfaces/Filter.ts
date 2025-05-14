@@ -4,4 +4,5 @@ export interface IFilters {
 
 export interface IData {
     id: string;
+    [key: string]: any
 }

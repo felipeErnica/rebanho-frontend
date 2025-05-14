@@ -18,12 +18,11 @@ interface DrawerProps {
 }
 
 const Drawer = (props: AbstractDrawerProps): JSX.Element => {
-
     return <div
         className={`h-full grid grid-rows-[auto_1fr] transition-all duration-500 ease-in-out overflow-auto
         ${props.isOpen ? 'max-w-96' : 'max-w-0'}`}
     >
-        <AppBar className="sticky bg-gray-700 top-0 grid grid-cols-[auto_1fr] gap-2 items-center p-4">
+        <AppBar className="sticky shadow-none bg-gray-700 top-0 grid grid-cols-[auto_1fr] gap-2 items-center p-4">
             <IconButton onClick={() => props.setOpen(false)}>
                 <Close className="text-white" />
             </IconButton>

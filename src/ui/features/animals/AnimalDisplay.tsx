@@ -1,10 +1,10 @@
 import { JSX, useState } from "react";
 import { AnimalFilter } from "@/types/Animal";
 import { TableTopBar } from "@/ui/components/table/TableTopBar";
-import { TableAnimal } from "./TableAnimal";
 import { FilterDrawer } from "@/ui/components/common/Drawer";
 import { ComboBoxItem } from "@/ui/components/common/ComboBox";
 import { AnimalFilterElement } from "./AnimalFilter";
+import { TableAnimal } from "./TableAnimal";
 
 export const AnimalDisplay = (): JSX.Element => {
     const [filter, setFilter] = useState<AnimalFilter>({isFiltered: false})
