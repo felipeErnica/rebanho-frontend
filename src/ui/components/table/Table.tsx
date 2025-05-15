@@ -194,14 +194,14 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
 
     return (
         <div
-            className="h-full relative overflow-auto flex flex-col"
+            className="h-full relative overflow-scroll flex flex-col"
             ref={scrollRef}
             onScroll={handleScroll}
         >
             <table
-                className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm shadow-md rounded-xl"
+                className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm"
             >
-                <thead className="sticky bg-gray-700 text-white uppercase tracking-wider top-0 text-sm font-semibold">
+                <thead className="sticky bg-gray-700 text-white tracking-wider top-0 text-sm font-semibold">
                     <tr className="border-y-black">
                         {props.columns.map((column, i) => {
                             const isLast = i === props.columns.length - 1
