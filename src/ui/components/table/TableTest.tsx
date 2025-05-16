@@ -6,9 +6,8 @@ import { TableHeadComponent } from "./TableHeadComponent";
 import { ColumnProps } from "./Table";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
 import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
+import { TableRowContent } from "./TableRowContent";
 
 type TableProps = {
     filter: IFilters
@@ -16,13 +15,6 @@ type TableProps = {
     sort: string
     columns: ColumnProps[];
     fetchPage: (cursor: string) => Promise<ApiResponse>;
-    onDeleteRow?: (id: string) => void
-    onSaveRow?: (id: string) => void
-}
-
-export type RowProps = {
-    rowId: string;
-    items: CellProps[];
     onDeleteRow?: (id: string) => void
     onSaveRow?: (id: string) => void
 }
@@ -166,26 +158,22 @@ export function TableTest<D extends IData>(props: TableProps): JSX.Element {
     }, [fetchData, fetchPreviousData, index, isLoading])
 
     return <div
-        className={`h-full overflow-scroll`}
+        className={`h-full flex flex-col overflow-auto`}
         ref={scrollRef}
         onScroll={handleScroll}
     >
-        <Table className="table-fixed" stickyHeader>
+        <Table className="table-fixed min-w-full w-max" stickyHeader>
             <TableHead>
-                <TableHeadComponent columns={props.columns}/>
+                <TableHeadComponent columns={props.columns} />
             </TableHead>
             <TableBody>
                 {list.map((row) => {
-                    return <TableRow hover key={row.id}>
-                        {props.columns.map((column) => {
-                            const value: any = row[column.name]
-                            return <TableCell
-                                className="text-nowrap overflow-hidden overflow-ellipsis"
-                            >
-                                {value}
-                            </TableCell>
-                        })}
-                    </TableRow>
+                    return <TableRowContent
+                        row={row}
+                        onSaveRow={props.onSaveRow}
+                        onDeleteRow={props.onDeleteRow}
+                        columns={props.columns}
+                    />
                 })}
             </TableBody>
         </Table>

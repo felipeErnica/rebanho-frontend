@@ -1,24 +1,15 @@
 import { ComponentRef, HTMLInputTypeAttribute, JSX, useCallback, useEffect, useRef, useState } from "react";
-import { TableRow } from "./TableRow";
 import { Page } from "../../../types/Page";
 import { TableColumn } from "./TableColumn";
 import { IData, IFilters } from "@/interfaces/Filter";
 import { ApiResponse } from "@/types/ApiResponse";
 
-type TableProps<D> = {
+type TableProps = {
     filter: IFilters
     order: string
     sort: string
     columns: ColumnProps[];
-    getCellValue: (value: D, columnName: string) => CellProps;
     fetchPage: (cursor: string) => Promise<ApiResponse>;
-    onDeleteRow?: (id: string) => void
-    onSaveRow?: (id: string) => void
-}
-
-export type RowProps = {
-    rowId: string;
-    items: CellProps[];
     onDeleteRow?: (id: string) => void
     onSaveRow?: (id: string) => void
 }
@@ -44,19 +35,7 @@ export type ColumnProps = {
     step?: string
 }
 
-function getRowData<D extends IData>(columns: ColumnProps[], row: D,
-    getCellValue: (row: D, columnName: string) => CellProps): RowProps {
-
-    const values: CellProps[] = []
-    for (const column of columns) {
-        const value: CellProps = getCellValue(row, column.name)
-        values.push(value)
-    }
-
-    return { rowId: row.id, items: values }
-}
-
-export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
+export function Table<D extends IData>(props: TableProps): JSX.Element {
 
     const scrollRef = useRef<ComponentRef<'div'>>(null)
     const [page, setPage] = useState<Page<D> | null>(null)
@@ -67,6 +46,7 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
 
     useEffect(() => {
         setLoading(true)
+        console.log(list)
 
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage("")
@@ -199,7 +179,7 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
             onScroll={handleScroll}
         >
             <table
-                className="min-w-full flex-none border-spacing-0 border-separate table-auto text-left text-sm"
+                className="w-full border-spacing-0 border-separate table-fixed text-left text-sm"
             >
                 <thead className="sticky bg-gray-700 text-white tracking-wider top-0 text-sm font-semibold">
                     <tr className="border-y-black">
@@ -210,15 +190,6 @@ export function Table<D extends IData>(props: TableProps<D>): JSX.Element {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                    {list.map((row) => {
-                        const rowData: RowProps = getRowData(props.columns, row, props.getCellValue)
-                        return <TableRow
-                            rowId={row.id}
-                            items={rowData.items}
-                            onDeleteRow={props.onDeleteRow}
-                            onSaveRow={props.onSaveRow}
-                        />
-                    })}
                 </tbody>
             </table>
             {!page ? <EmptyPanel /> : null}

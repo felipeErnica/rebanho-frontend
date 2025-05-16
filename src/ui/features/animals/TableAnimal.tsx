@@ -13,7 +13,7 @@ type TableAnimalProps = {
 
 export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
     const columns: ColumnProps[] = [
-        { title: "Brinco", name: "ringNumber", type: 'text', isEditable: true },
+        { title: "Brinco", name: "ringNumber", type: 'text', isEditable: true, width: 500 },
         { title: "Nome", name: "name", type: 'text', isEditable: true },
         { title: "Data de Nascimento", name: "birthDate", type: 'date', isEditable: true },
         { title: "Data de Morte", name: "deathDate", type: 'date', isEditable: true },
