@@ -67,7 +67,7 @@ export const TableHeadComponent = ({ columns }: HeadComponentProps) => {
             return <TableCell 
                 sx={{ minWidth: `${DEFAULT_MIN_WIDTH}px`, width: `${columnWidths[i]}px` }}
                 className={
-                    `relative select-none bg-gray-700 text-white text-nowrap 
+                    `bg-gray-700 text-white text-nowrap 
                     overflow-hidden overflow-ellipsis`
                 }
             >

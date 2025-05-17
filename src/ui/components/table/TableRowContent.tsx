@@ -26,13 +26,18 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
 
     const [isEditableRow, setEditableRow] = useState(false)
     const [isControlsVisible, setControlsVisible] = useState(false)
-    const [rowValues, setRowValues] = useState<RowValues>(columns.map(column => row[column.name]))
+    const [rowValues, setRowValues] = useState<RowValues>({})
 
     useEffect(() => {
-        setRowValues(columns.map(column => row[column.name]))
+        console.log(rowValues)
+        let values: RowValues = rowValues
+        columns.forEach(column => {
+            values = { ...values, [column.name]: row[column.name] }
+        })
+        setRowValues(values)
         setEditableRow(false)
         setControlsVisible(false)
-    }, [])
+    }, [columns, row])
 
     const DeleteButton = (): JSX.Element => {
         return <IconButton
@@ -45,9 +50,7 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
     }
 
     const EditButton = (): JSX.Element => {
-        return <IconButton
-            onClick={() => setEditableRow(true)}
-        >
+        return <IconButton onClick={() => setEditableRow(true)} >
             <Edit />
         </IconButton>
     }
@@ -64,14 +67,18 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
         if (isControlsVisible) {
             return <div className="grow flex flex-row justify-end gap-4 pr-4" >
                 {rowButtons()}
-            </div> }
+            </div>
+        }
         return null
     }, [isControlsVisible])
 
     const EditButtonsPanel = () => {
         return <div className="grow flex flex-row justify-end gap-4 pr-4">
             <IconButton
-                onClick={() => { if (onSaveRow) onSaveRow(row.id) }}
+                onClick={() => {
+                    if (onSaveRow) onSaveRow(row.id)
+                    setEditableRow(false)
+                }}
             >
                 <Check />
             </IconButton>
@@ -95,7 +102,7 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
     const EditableCellContent = (value: any, props: ColumnProps): JSX.Element => {
         if (props.isEditable) {
             return <TextField
-                size="small"
+                className="w-full"
                 type={props.type}
                 slotProps={{
                     htmlInput: {
@@ -127,16 +134,18 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
     }
 
     if (isEditableRow) {
-        return <TableRow id={row.id} hover>
+        return <TableRow key={row.id} hover>
             {columns.map((column, i) => EditableCellBody(i === columns.length - 1, rowValues[column.name], column))}
         </TableRow>
     }
 
     return <TableRow
-        id={row.id}
+        key={row.id}
         onMouseOver={() => setControlsVisible(true)}
         onMouseLeave={() => setControlsVisible(false)}
     >
-        {columns.map((column, i) => CellBody(i === columns.length - 1, rowValues[column.name]))}
+        {columns.map((column, i) => {
+            return CellBody(i === columns.length - 1, rowValues[column.name])
+        })}
     </TableRow>
 }

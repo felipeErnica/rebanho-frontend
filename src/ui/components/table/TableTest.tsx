@@ -158,11 +158,11 @@ export function TableTest<D extends IData>(props: TableProps): JSX.Element {
     }, [fetchData, fetchPreviousData, index, isLoading])
 
     return <div
-        className={`h-full flex flex-col overflow-auto`}
+        className="h-full overflow-scroll"
         ref={scrollRef}
         onScroll={handleScroll}
     >
-        <Table className="table-fixed min-w-full w-max" stickyHeader>
+        <Table stickyHeader className="min-w-full w-max">
             <TableHead>
                 <TableHeadComponent columns={props.columns} />
             </TableHead>
@@ -177,5 +177,5 @@ export function TableTest<D extends IData>(props: TableProps): JSX.Element {
                 })}
             </TableBody>
         </Table>
-    </div >
+    </div>
 }
