@@ -10,6 +10,8 @@ import Close from "@mui/icons-material/Close"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import { IData } from "@/interfaces/Filter"
+import { DatePicker } from "@mui/x-date-pickers/DatePicker"
+import dayjs from "dayjs"
 
 export type RowProps<D extends IData> = {
     row: D
@@ -29,7 +31,6 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
     const [rowValues, setRowValues] = useState<RowValues>({})
 
     useEffect(() => {
-        console.log(rowValues)
         let values: RowValues = rowValues
         columns.forEach(column => {
             values = { ...values, [column.name]: row[column.name] }
@@ -88,9 +89,11 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
 
     const CellBody = (isLast: boolean, value: any): JSX.Element => {
         if (isLast) {
-            return <TableCell className="flex flex-row overflow-hidden text-nowrap overflow-ellipsis">
-                <span> {value} </span>
-                {ControlButtonsPanel()}
+            return <TableCell className="overflow-hidden text-nowrap overflow-ellipsis">
+                <div className="flex flex-row gap-4 items-center">
+                    <span> {value} </span>
+                    {ControlButtonsPanel()}
+                </div>
             </TableCell>
         }
 
@@ -99,32 +102,54 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
         </TableCell>
     }
 
-    const EditableCellContent = (value: any, props: ColumnProps): JSX.Element => {
-        if (props.isEditable) {
-            return <TextField
-                className="w-full"
-                type={props.type}
-                slotProps={{
-                    htmlInput: {
-                        step: props.step
-                    }
+    const EditableComponent = (value: any, props: ColumnProps): JSX.Element => {
+        if (props.type === 'date' || props.type === 'datetime-local') {
+            return <DatePicker
+                defaultValue={dayjs(value)}
+                views={['year', 'month', 'day']}
+                localeText={{
+                    fieldDayPlaceholder: ()  => 'dd',
+                    fieldMonthPlaceholder: ()  => 'mm',
+                    fieldYearPlaceholder: ()  => 'aaaa',
                 }}
-                defaultValue={value}
                 onChange={(event) => {
+                    if (!event) return
                     const editedValues = rowValues
-                    editedValues[props.name] = event.currentTarget.value
+                    editedValues[props.name] = event.toDate
                     setRowValues(editedValues)
                 }}
             />
         }
+
+        return <TextField
+            className="w-full"
+            type={props.type}
+            slotProps={{
+                htmlInput: {
+                    step: props.step
+                }
+            }}
+            defaultValue={value}
+            onChange={(event) => {
+                const editedValues = rowValues
+                editedValues[props.name] = event.currentTarget.value
+                setRowValues(editedValues)
+            }}
+        />
+    }
+
+    const EditableCellContent = (value: any, props: ColumnProps): JSX.Element => {
+        if (props.isEditable) return EditableComponent(value, props)
         return <span>{value}</span>
     }
 
     const EditableCellBody = (isLast: boolean, value: any, props: ColumnProps): JSX.Element => {
         if (isLast) {
-            return <TableCell className="flex flex-row gap-8 overflow-hidden text-nowrap overflow-ellipsis">
-                {EditableCellContent(value, props)}
-                {EditButtonsPanel()}
+            return <TableCell className="overflow-hidden text-nowrap overflow-ellipsis">
+                <div className="flex flex-row gap-4 items-center">
+                    {EditableCellContent(value, props)}
+                    {EditButtonsPanel()}
+                </div>
             </TableCell>
         }
 
