@@ -13,8 +13,8 @@ import { IData } from "@/interfaces/Filter"
 import { DatePicker } from "@mui/x-date-pickers/DatePicker"
 import dayjs from "dayjs"
 
-export type RowProps<D extends IData> = {
-    row: D
+export type RowProps = {
+    row: IData
     columns: ColumnProps[]
     onDeleteRow?: (id: string) => void
     onSaveRow?: (id: string) => void
@@ -24,18 +24,18 @@ type RowValues = {
     [colName: string]: any
 }
 
-export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, onSaveRow }: RowProps<D>) {
+export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
 
     const [isEditableRow, setEditableRow] = useState(false)
     const [isControlsVisible, setControlsVisible] = useState(false)
-    const [rowValues, setRowValues] = useState<RowValues>({})
+    const [editedValues, setEditedValues] = useState<RowValues>({})
 
     useEffect(() => {
-        let values: RowValues = rowValues
+        let values: RowValues = editedValues
         columns.forEach(column => {
             values = { ...values, [column.name]: row[column.name] }
         })
-        setRowValues(values)
+        setEditedValues(values)
         setEditableRow(false)
         setControlsVisible(false)
     }, [columns, row])
@@ -77,20 +77,26 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
         return <div className="grow flex flex-row justify-end gap-4 pr-4">
             <IconButton
                 onClick={() => {
+                    columns.forEach(column => row[column.name] = editedValues[column.name])
                     if (onSaveRow) onSaveRow(row.id)
                     setEditableRow(false)
                 }}
             >
                 <Check />
             </IconButton>
-            <IconButton onClick={() => setEditableRow(false)} ><Close /></IconButton>
+            <IconButton onClick={() => {
+                columns.forEach(column => editedValues[column.name] = row[column.name])
+                setEditableRow(false)
+            }}>
+                <Close />
+            </IconButton>
         </div>
     }
 
     const CellBody = (isLast: boolean, value: any): JSX.Element => {
         if (isLast) {
             return <TableCell className="overflow-hidden text-nowrap overflow-ellipsis">
-                <div className="flex flex-row gap-4 items-center">
+                <div className="flex flex-row items-center">
                     <span> {value} </span>
                     {ControlButtonsPanel()}
                 </div>
@@ -108,15 +114,15 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
                 defaultValue={dayjs(value)}
                 views={['year', 'month', 'day']}
                 localeText={{
-                    fieldDayPlaceholder: ()  => 'dd',
-                    fieldMonthPlaceholder: ()  => 'mm',
-                    fieldYearPlaceholder: ()  => 'aaaa',
+                    fieldDayPlaceholder: () => 'dd',
+                    fieldMonthPlaceholder: () => 'mm',
+                    fieldYearPlaceholder: () => 'aaaa',
                 }}
                 onChange={(event) => {
                     if (!event) return
-                    const editedValues = rowValues
-                    editedValues[props.name] = event.toDate
-                    setRowValues(editedValues)
+                    const newValues = editedValues
+                    newValues[props.name] = event.toDate
+                    setEditedValues(newValues)
                 }}
             />
         }
@@ -131,9 +137,9 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
             }}
             defaultValue={value}
             onChange={(event) => {
-                const editedValues = rowValues
-                editedValues[props.name] = event.currentTarget.value
-                setRowValues(editedValues)
+                const newValues = editedValues
+                newValues[props.name] = event.currentTarget.value
+                setEditedValues(newValues)
             }}
         />
     }
@@ -146,7 +152,7 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
     const EditableCellBody = (isLast: boolean, value: any, props: ColumnProps): JSX.Element => {
         if (isLast) {
             return <TableCell className="overflow-hidden text-nowrap overflow-ellipsis">
-                <div className="flex flex-row gap-4 items-center">
+                <div className="flex flex-row items-center">
                     {EditableCellContent(value, props)}
                     {EditButtonsPanel()}
                 </div>
@@ -160,7 +166,7 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
 
     if (isEditableRow) {
         return <TableRow key={row.id} hover>
-            {columns.map((column, i) => EditableCellBody(i === columns.length - 1, rowValues[column.name], column))}
+            {columns.map((column, i) => EditableCellBody(i === columns.length - 1, row[column.name], column))}
         </TableRow>
     }
 
@@ -170,7 +176,7 @@ export function TableRowContent<D extends IData>({ row, columns, onDeleteRow, on
         onMouseLeave={() => setControlsVisible(false)}
     >
         {columns.map((column, i) => {
-            return CellBody(i === columns.length - 1, rowValues[column.name])
+            return CellBody(i === columns.length - 1, row[column.name])
         })}
     </TableRow>
 }

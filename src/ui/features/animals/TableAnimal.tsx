@@ -1,9 +1,8 @@
 import { AnimalFilter } from "@/types/Animal";
-import { ColumnProps } from "@/ui/components/table/Table";
+import { ColumnProps, TableCustom } from "@/ui/components/table/Table";
 import { JSX, useCallback } from "react";
 import { findPage } from "./api/AnimalController";
 import { ApiResponse } from "@/types/ApiResponse";
-import { TableTest } from "@/ui/components/table/TableTest";
 
 type TableAnimalProps = {
     filter: AnimalFilter
@@ -32,7 +31,7 @@ export const TableAnimal = (props: TableAnimalProps): JSX.Element => {
         return findPage(props.sort, props.order, cursor, props.filter)
     }, [props])
 
-    return <TableTest
+    return <TableCustom
         order={props.order}
         sort={props.sort}
         columns={columns}

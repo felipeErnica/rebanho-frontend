@@ -1,8 +1,21 @@
 import { ComponentRef, HTMLInputTypeAttribute, JSX, useCallback, useEffect, useRef, useState } from "react";
 import { Page } from "../../../types/Page";
-import { TableColumn } from "./TableColumn";
 import { IData, IFilters } from "@/interfaces/Filter";
 import { ApiResponse } from "@/types/ApiResponse";
+import { TableHeadComponent } from "./TableHeadComponent";
+import TableHead from "@mui/material/TableHead";
+import TableBody from "@mui/material/TableBody";
+import { TableRows } from "./TableRows";
+import Table from "@mui/material/Table";
+
+export type ColumnProps = {
+    title: string
+    name: string
+    width?: number
+    type: HTMLInputTypeAttribute;
+    isEditable: boolean
+    step?: string
+}
 
 type TableProps = {
     filter: IFilters
@@ -26,16 +39,7 @@ export type CellProps = {
     step?: string
 }
 
-export type ColumnProps = {
-    title: string
-    name: string
-    width?: number
-    type: HTMLInputTypeAttribute;
-    isEditable: boolean
-    step?: string
-}
-
-export function Table<D extends IData>(props: TableProps): JSX.Element {
+export function TableCustom<D extends IData>(props: TableProps): JSX.Element {
 
     const scrollRef = useRef<ComponentRef<'div'>>(null)
     const [page, setPage] = useState<Page<D> | null>(null)
@@ -44,9 +48,18 @@ export function Table<D extends IData>(props: TableProps): JSX.Element {
     const [list, setList] = useState<D[]>([])
     const [isLoading, setLoading] = useState(false)
 
+    const heightRef = useRef(0)
+
+    const calculateRef = () => {
+        const scrollContainer = scrollRef.current
+
+        if (!scrollContainer) return
+        heightRef.current = scrollContainer.scrollHeight
+    }
+
     useEffect(() => {
         setLoading(true)
-        console.log(list)
+        calculateRef()
 
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage("")
@@ -76,7 +89,7 @@ export function Table<D extends IData>(props: TableProps): JSX.Element {
     const putScrollAtBottom = () => {
         const scrollContainer = scrollRef.current
         if (!scrollContainer) return
-        const scrollHeight = scrollContainer.scrollHeight
+        const scrollHeight = heightRef.current
         scrollContainer.scrollTo({ top: (scrollHeight * 0.99) - scrollContainer.clientHeight })
     }
 
@@ -144,11 +157,10 @@ export function Table<D extends IData>(props: TableProps): JSX.Element {
 
     const handleScroll = useCallback(() => {
         const scrollContainer = scrollRef.current
-
         if (!scrollContainer) return
-        const scrollHeight = scrollContainer.scrollHeight
         const scrollTopPos = scrollContainer.scrollTop
         const scrollBottomPos = scrollContainer.scrollTop + scrollContainer.clientHeight
+        const scrollHeight = heightRef.current
 
         if (scrollTopPos == 0) {
             if (isLoading || index === 0) return
@@ -162,37 +174,26 @@ export function Table<D extends IData>(props: TableProps): JSX.Element {
         }
     }, [fetchData, fetchPreviousData, index, isLoading])
 
-    const EmptyPanel = () => {
-        return (
-            <div className="bg-gray-200 flex justify-center items-center h-full p-4">
-                <i className="text-gray-400 text-2xl">
-                    {"Nenhum resultado encontrado!"}
-                </i>
-            </div>
-        )
-    }
-
-    return (
-        <div
-            className="h-full relative overflow-scroll flex flex-col"
-            ref={scrollRef}
-            onScroll={handleScroll}
-        >
-            <table
-                className="w-full border-spacing-0 border-separate table-fixed text-left text-sm"
-            >
-                <thead className="sticky bg-gray-700 text-white tracking-wider top-0 text-sm font-semibold">
-                    <tr className="border-y-black">
-                        {props.columns.map((column, i) => {
-                            const isLast = i === props.columns.length - 1
-                            return <TableColumn isLast={isLast} column={column.title} />
-                        })}
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                </tbody>
-            </table>
-            {!page ? <EmptyPanel /> : null}
-        </div >
-    )
+    return <div
+        className="h-full overflow-auto"
+        ref={scrollRef}
+        onScroll={handleScroll}
+        onResize={() => calculateRef()}
+    >
+        <Table stickyHeader className="min-w-full w-max">
+            <TableHead>
+                <TableHeadComponent columns={props.columns} />
+            </TableHead>
+            <TableBody>
+                {list.map((row) => {
+                    return <TableRows
+                        row={row}
+                        onSaveRow={props.onSaveRow}
+                        onDeleteRow={props.onDeleteRow}
+                        columns={props.columns}
+                    />
+                })}
+            </TableBody>
+        </Table>
+    </div>
 }

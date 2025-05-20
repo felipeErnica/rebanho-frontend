@@ -6,7 +6,6 @@ import FilterAltOff  from "@mui/icons-material/FilterAltOff";
 import FilterAlt from "@mui/icons-material/FilterAlt";
 
 interface TableTopBarProps {
-    title: string;
     sortableColumns: ComboBoxItem[];
     isDrawerOpen: boolean;
     setOpenDrawer: (isDrawerOpen: boolean) => void;
@@ -17,8 +16,8 @@ interface TableTopBarProps {
 }
 
 export const TableTopBar = (props: TableTopBarProps): JSX.Element => {
-    return <div className="grid grid-cols-[2fr_1fr_auto] gap-2 p-4">
-        <label className="text-2xl justify-center text-gray-700 text-center uppercase">{props.title}</label>
+    return <div className="grid grid-cols-[1fr_1fr_auto] gap-2 p-4">
+        <div />
         <div className="flex flex-rox gap-2">
             <Autocomplete
                 className="grow"

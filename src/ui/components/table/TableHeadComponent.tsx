@@ -74,8 +74,8 @@ export const TableHeadComponent = ({ columns }: HeadComponentProps) => {
                 <span>{column.title}</span>
                 {i < columns.length - 1 ? <div ref={handlerRefs[i]}
                     onMouseDown={(e) => handleMouseDown(e, i) } 
-                    className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[2px]
-                    hover:bg-gray-300"
+                    className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[3px]
+                    hover:bg-gray-200"
                 /> : null}
             </TableCell>
         })}
