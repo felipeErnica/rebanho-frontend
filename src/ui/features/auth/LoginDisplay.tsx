@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { User } from "@/types/User"
 import { JSX, useState } from "react"
 import { authenticateUser } from "./api/user-authentication"
@@ -20,10 +19,7 @@ export const LoginDisplay = (): JSX.Element => {
     return <div className="h-screen w-screen flex flex-col gap-8 px-10 py-10" >
         <div className="flex flex-row-reverse">
             <IconButton
-                onClick={() => {
-                    //@ts-ignore
-                    window.electronEvents.closeLogin()
-                }}
+                onClick={() => window.electronEvents.closeLogin()}
             >
                 <Close />
             </IconButton>
@@ -75,9 +71,7 @@ export const LoginDisplay = (): JSX.Element => {
                     authenticateUser(user)
                         .then((jwt) => {
                             const token = jwt.token
-                            //@ts-ignore
                             window.electronEvents.setAuthToken(token)
-                            //@ts-ignore
                             window.electronEvents.openMain()
                         })
                         .catch((err) => console.log(`falha: ${err}`))
@@ -87,10 +81,7 @@ export const LoginDisplay = (): JSX.Element => {
             </Button>
             <Button
                 variant="outlined"
-                onClick={() => {
-                    //@ts-ignore
-                    window.electronEvents.closeLogin()
-                }}>
+                onClick={() => window.electronEvents.closeLogin()}>
                 Cancelar
             </Button>
         </div>

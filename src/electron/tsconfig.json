@@ -4,6 +4,7 @@
     "module": "NodeNext",
     "skipLibCheck": true,
     "outDir": "../../dist-electron",
+    "types": ["../../types"],
 
     /* Linting */
     "strict": true

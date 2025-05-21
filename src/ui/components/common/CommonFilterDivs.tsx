@@ -1,23 +1,56 @@
-import { JSX, ReactNode, useState } from "react";
+import { ChangeEventHandler, JSX, ReactNode, useState } from "react";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { ComboBox, ComboBoxItem } from "./ComboBox";
 
-interface NumberDateFilterProps {
+type NumberDateFilterProps = {
     mainTitle: string;
     step?: string;
 }
 
-interface AbstractFilterDivProps {
+type TextFilterProps = {
+    label: string
+    onChange?: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
+}
+
+type ComboBoxFilterProps = {
+    label: string
+    onChange?: (value: string) => void
+    items: ComboBoxItem[]
+}
+
+type AbstractFilterDivProps = {
     mainTitle: string;
     children: ReactNode | ReactNode[]
 }
 
 export const AbstractFilterDiv = (props: AbstractFilterDivProps): JSX.Element => {
-    return <div className="grid grid-cols-1 grid-rows-[auto_1fr]">
+    return <div className="flex flex-col gap-2">
         <Typography variant="subtitle1">{`${props.mainTitle}:`}</Typography>
-        {props.children}
-    </div>
+        <div className="flex flex-col gap-1">
+            {props.children}
+        </div>
+    </div >
+}
+
+export const TextFilterDiv = (props: TextFilterProps): JSX.Element => {
+    return <TextField
+        size="small"
+        variant="outlined"
+        type="search"
+        label={props.label}
+        onChange={props.onChange}
+    />
+}
+
+export const ComboBoxFilterDiv = (props: ComboBoxFilterProps) => {
+    return <ComboBox
+        size="small"
+        label={props.label}
+        onChange={props.onChange}
+        items={props.items}
+    />
 }
 
 export const NumberFilterDiv = (props: NumberDateFilterProps): JSX.Element => {
@@ -90,7 +123,7 @@ export const DateFilterDiv = (props: NumberDateFilterProps): JSX.Element => {
                     fieldYearPlaceholder: () => 'aaaa',
                 }}
                 slotProps={{
-                    textField: { 
+                    textField: {
                         size: "small",
                         helperText: minError ? 'Insira um valor de data válido' : null,
                     },
@@ -107,7 +140,7 @@ export const DateFilterDiv = (props: NumberDateFilterProps): JSX.Element => {
                     fieldYearPlaceholder: () => 'aaaa',
                 }}
                 slotProps={{
-                    textField: { 
+                    textField: {
                         size: "small",
                         helperText: maxError ? 'Insira um valor de data válido' : null,
                     },

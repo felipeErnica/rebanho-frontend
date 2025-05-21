@@ -5,9 +5,15 @@ const createMainWindow = () => {
     const mainWindow = new BrowserWindow({
         width: 1280,
         height: 720,
+        titleBarStyle: 'hidden',
         webPreferences: {
             preload: path.join(app.getAppPath(), "/dist-electron/preload.cjs"),
         }
+    })
+    ipcMain.on('close-main', () => mainWindow.close())
+    ipcMain.on('minimize-main', () => mainWindow.minimize())
+    ipcMain.on('maximize-main', () => {
+        mainWindow.maximize()
     })
     mainWindow.loadURL(`file://${app.getAppPath()}/dist-react/index.html#/home`)
 }
@@ -26,7 +32,6 @@ const createLoginWindow = () => {
         }
     })
 
-    //Menu.setApplicationMenu(null)
     ipcMain.on('close-login', () => loginWindow.close())
     ipcMain.on('open-main', () => {
         createMainWindow()

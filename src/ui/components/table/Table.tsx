@@ -17,7 +17,7 @@ export type ColumnProps = {
     step?: string
 }
 
-type TableProps = {
+export type TableProps = {
     filter: IFilters
     order: string
     sort: string
@@ -39,13 +39,12 @@ export type CellProps = {
     step?: string
 }
 
-export function TableCustom<D extends IData>(props: TableProps): JSX.Element {
-
+export function TableCustom(props: TableProps): JSX.Element {
     const scrollRef = useRef<ComponentRef<'div'>>(null)
-    const [page, setPage] = useState<Page<D> | null>(null)
-    const [pageList, setPageList] = useState<Page<D>[]>([])
+    const [page, setPage] = useState<Page | null>(null)
+    const [pageList, setPageList] = useState<Page[]>([])
     const [index, setIndex] = useState<number>(0)
-    const [list, setList] = useState<D[]>([])
+    const [list, setList] = useState<IData[]>([])
     const [isLoading, setLoading] = useState(false)
 
     const heightRef = useRef(0)
@@ -64,7 +63,7 @@ export function TableCustom<D extends IData>(props: TableProps): JSX.Element {
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage("")
             .then((result) => {
-                const page: Page<D> = result.json
+                const page: Page = result.json
                 setList(page.list)
                 setPage(page)
                 setPageList([page])
@@ -139,7 +138,7 @@ export function TableCustom<D extends IData>(props: TableProps): JSX.Element {
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage(page.nextCursor)
             .then((result) => {
-                const page: Page<D> = result.json
+                const page: Page = result.json
                 setPage(page)
                 setPageList(list => [...list, page])
                 setIndex(index + 1)
@@ -185,7 +184,7 @@ export function TableCustom<D extends IData>(props: TableProps): JSX.Element {
                 <TableHeadComponent columns={props.columns} />
             </TableHead>
             <TableBody>
-                {list.map((row) => {
+                {list && list.map((row) => {
                     return <TableRows
                         row={row}
                         onSaveRow={props.onSaveRow}

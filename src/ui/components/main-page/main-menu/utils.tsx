@@ -7,10 +7,17 @@ import {
     CowIcon, 
     EmbryoIcon, 
     InseminationIcon, 
+    LactationIcon, 
+    LactationHistIcon, 
     PregnancyLossIcon, 
     ReproductionIcon, 
     SlaughterhouseIcon, 
-    SlaughterIcon } from "@/ui/components/common/OtherIcons"
+    SlaughterIcon, 
+    MilkIcon,
+    FarmIcon,
+    FarmMainIcon,
+    FenceIcon,
+    BullIcon} from "@/ui/components/common/OtherIcons"
 import Scale from "@mui/icons-material/Scale"
 import Vaccines from "@mui/icons-material/Vaccines"
 
@@ -33,6 +40,11 @@ export const buildList = () => {
             key: 'insemination',
             title: 'Inseminação',
             icon: <InseminationIcon />
+        },
+        {
+        key: 'natural-reproduction',
+            title: 'Monta Natural',
+            icon: <BullIcon />
         },
         {
             key: 'embryo-transfer',
@@ -69,6 +81,32 @@ export const buildList = () => {
         },
     ]
 
+    const lactationSubMenu: MenuItem[] = [
+        {
+            key: 'lactation',
+            title: 'Histórico de Lactações',
+            icon: <LactationHistIcon />
+        },
+        {
+            key: 'milk-entries',
+            title: 'Marcação de Leite',
+            icon: <MilkIcon />
+        },
+    ]
+
+    const pasturesSubMenu: MenuItem[] = [
+        {
+            key: 'farms',
+            title: 'Fazendas',
+            icon: <FarmIcon />
+        },
+        {
+            key: 'pastures',
+            title: 'Pastos',
+            icon: <FenceIcon />
+        },
+    ]
+
     const mainList: MenuItem[] = [
         {
             key: 'home',
@@ -81,6 +119,12 @@ export const buildList = () => {
             icon: <CowHeadIcon />,
         },
         {
+            key: 'farm-pastures',
+            title: 'Fazendas e Pastos',
+            icon: <FarmMainIcon />,
+            collapsedList: pasturesSubMenu
+        },
+        {
             key: 'reproduction',
             title: 'Reprodução e Inseminação',
             icon: <ReproductionIcon />,
@@ -91,6 +135,12 @@ export const buildList = () => {
             title: 'Pesagem e Abate',
             icon: <CowIcon />,
             collapsedList: slaughterSubMenu
+        },
+        {
+            key: 'lactation-area',
+            title: 'Lactação',
+            icon: <LactationIcon />,
+            collapsedList: lactationSubMenu
         },
         {
             key: 'vacines',

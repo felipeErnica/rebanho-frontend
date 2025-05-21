@@ -1,16 +1,16 @@
 import { JSX, useState } from "react";
 import { AnimalFilter } from "@/types/Animal";
-import { TableTopBar } from "@/ui/components/table/TableTopBar";
-import { FilterDrawer } from "@/ui/components/common/FilterDrawer";
 import { ComboBoxItem } from "@/ui/components/common/ComboBox";
+import { Display } from "@/ui/components/display/Display";
+import { buildTable } from "./TableAnimal";
 import { AnimalFilterElement } from "./AnimalFilter";
-import { TableAnimal } from "./TableAnimal";
 
 export const AnimalDisplay = (): JSX.Element => {
     const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
-    const [isDrawerOpen, setOpenDrawer] = useState(false)
     const [order, setOrder] = useState('asc')
     const [sort, setSort] = useState('name')
+
+    const tableProps = buildTable({filter, sort, order})
 
     const sortableColumns: ComboBoxItem[] = [
         { name: "Nome", value: "name" },
@@ -18,22 +18,13 @@ export const AnimalDisplay = (): JSX.Element => {
         { name: "Brinco", value: "ring_order" },
     ]
 
-    return <div className="h-full grid grid-cols-[1fr_auto] overflow-hidden">
-        <div className="h-full grid grid-rows-[auto_1fr] overflow-hidden">
-            <TableTopBar
-                sortableColumns={sortableColumns}
-                order={order}
-                sort={sort}
-                setOrder={setOrder}
-                setSort={setSort}
-                isDrawerOpen={isDrawerOpen}
-                setOpenDrawer={setOpenDrawer}
-            />
-            <TableAnimal sort={sort} order={order} filter={filter} />
-        </div>
-        <FilterDrawer
-            childPanel={() => AnimalFilterElement({ filter: filter, setFilter: setFilter })}
-            isOpen={isDrawerOpen} setOpen={setOpenDrawer}
-        />
-    </div>
+    return <Display 
+        order={order}
+        setOrder={setOrder}
+        sort={sort}
+        setSort={setSort}
+        childPanel={<AnimalFilterElement filter={filter} setFilter={setFilter}/>}
+        sortableColumns={sortableColumns}
+        tableProps={tableProps}
+    />
 }

@@ -1,44 +1,24 @@
-import { IFilters } from "@/interfaces/Filter"
-import { AnimalFilter } from "@/types/Animal"
-import { ComboBox } from "@/ui/components/common/ComboBox"
-import { AbstractFilterDiv, DateFilterDiv, NumberFilterDiv } from "@/ui/components/common/CommonFilterDivs"
+import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, NumberFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
+import { FilterModelProps } from "@/ui/components/display/Display"
 import { activateFilter } from "@/util/Filter"
-import TextField from "@mui/material/TextField"
 import { JSX } from "react"
 
-type FilterProps<T extends IFilters> = {
-    filter: T
-    setFilter: (filter: T) => void
-}
-
-export const AnimalFilterElement = ({ setFilter, filter }: FilterProps<AnimalFilter>): JSX.Element => {
-    return <div className="grid grid-cols-1 grid-rows-[auto] gap-16">
-
+export const AnimalFilterElement = ({ setFilter, filter }: FilterModelProps): JSX.Element => {
+    return <>
         <AbstractFilterDiv mainTitle="Informações principais">
-            <div className="grid grid-cols-1 grid-rows-3 gap-2">
-                <TextField
-                    variant="outlined"
-                    size="small"
-                    type="search"
-                    label="Brinco:"
-                />
-                <TextField
-                    size="small"
-                    variant="outlined"
-                    onChange={(event) => {
-                        const newFilter = activateFilter(filter)
-                        newFilter.name = event.currentTarget.value
-                        setFilter(newFilter)
-                    }}
-                    type="search"
-                    label="Nome:"
-                />
-                <ComboBox
-                    size="small"
-                    label="Sexo:"
-                    items={[{name: 'M'}, {name: 'F'}]}
-                />
-            </div>
+            <TextFilterDiv label="Brinco:" />
+            <TextFilterDiv
+                label="Nome:"
+                onChange={(event) => {
+                    const newFilter = activateFilter(filter)
+                    newFilter['name'] = event.currentTarget.value
+                    setFilter(newFilter)
+                }}
+            />
+            <ComboBoxFilterDiv
+                label="Sexo:"
+                items={[{ name: 'M' }, { name: 'F' }]}
+            />
         </AbstractFilterDiv>
 
         <DateFilterDiv mainTitle="Data de Nascimento" />
@@ -48,5 +28,5 @@ export const AnimalFilterElement = ({ setFilter, filter }: FilterProps<AnimalFil
         <NumberFilterDiv mainTitle="I.S.R. Médio" step=".1" />
         <NumberFilterDiv mainTitle="Produção Média" step=".1" />
         <NumberFilterDiv mainTitle="Quantidade de Filho" />
-    </div>
+    </>
 }

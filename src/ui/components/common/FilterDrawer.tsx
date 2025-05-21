@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { JSX, ReactNode } from "react";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import Close from "@mui/icons-material/Close";
@@ -8,13 +8,13 @@ interface AbstractDrawerProps {
     title: string;
     isOpen: boolean;
     setOpen: (isOpen: boolean) => void;
-    childPanel: () => JSX.Element
+    childPanel: ReactNode | ReactNode[]
 }
 
 interface DrawerProps {
     isOpen: boolean;
     setOpen: (isOpen: boolean) => void;
-    childPanel: () => JSX.Element
+    childPanel: ReactNode | ReactNode[]
 }
 
 const Drawer = (props: AbstractDrawerProps): JSX.Element => {
@@ -33,8 +33,8 @@ const Drawer = (props: AbstractDrawerProps): JSX.Element => {
                 {props.title}
             </Typography>
         </AppBar>
-        <div className="p-4">
-            {props.childPanel()}
+        <div className="p-4 flex flex-col gap-12">
+            {props.childPanel}
         </div>
     </div>
 }

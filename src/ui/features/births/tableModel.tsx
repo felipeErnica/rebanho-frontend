@@ -1,15 +1,17 @@
 import { ColumnProps, TableProps } from "@/ui/components/table/Table";
-import { findPage } from "./api/AnimalController";
 import { ApiResponse } from "@/types/ApiResponse";
 import { TableModelProps } from "@/ui/components/display/Display";
 
 export const buildTable = ({ filter, sort, order }: TableModelProps): TableProps => {
+
     const columns: ColumnProps[] = [
-        { title: "Brinco", name: "ringNumber", type: 'text', isEditable: true, width: 500 },
-        { title: "Nome", name: "name", type: 'text', isEditable: true },
+        { title: "Brinco", name: "ringNumber", type: 'text', isEditable: true},
+        { title: "Nome da Vaca", name: "motherName", type: 'text', isEditable: true },
         { title: "Data de Nascimento", name: "birthDate", type: 'date', isEditable: true },
-        { title: "Data de Morte", name: "deathDate", type: 'date', isEditable: true },
-        { title: "Intervalo de Parição Médio", name: "averageBirthInterval", type: 'number', isEditable: false }
+        { title: "Sexo", name: "sex", type: 'text', isEditable: true },
+        { title: "Nome do Pai", name: "fatherName", type: 'text', isEditable: true },
+        { title: "Peso de Nascimento", name: "birthWeight", type: 'number', step:'.5', isEditable: true },
+        { title: "Observações", name: "observation", type: 'text', isEditable: true, width: 500 }
     ]
 
     const onDeleteRow = (id: string) => {
@@ -21,7 +23,12 @@ export const buildTable = ({ filter, sort, order }: TableModelProps): TableProps
     }
 
     const fetchNextPage = async (cursor: string): Promise<ApiResponse> => {
-        return findPage(sort, order, cursor, filter)
+        console.log(cursor)
+        return {
+            error: 'error',
+            json: '[]',
+            status: 200
+        }
     }
 
     return {

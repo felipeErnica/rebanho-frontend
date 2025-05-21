@@ -4,6 +4,9 @@
     "version": "0.0.0",
     "type": "module",
     "main": "dist-electron/main.js",
+    "preload": {
+        "js": "dist-electron/preload.ts"
+    },
     "scripts": {
         "dev:react": "vite",
         "build:react": "tsc -b && vite build",
