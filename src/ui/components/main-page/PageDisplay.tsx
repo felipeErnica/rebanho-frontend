@@ -4,8 +4,8 @@ import { AnimalDisplay } from "@/ui/features/animals/AnimalDisplay";
 import Box from "@mui/material/Box";
 import { MainMenu } from "./main-menu/MainMenu";
 import { TitleBar } from "./TitleBar";
-import { BirthDisplay } from "@/ui/features/births/BirthDisplay";
-import { InseminationDisplay } from "@/ui/features/insemination/InseminationDisplay";
+import { BirthDisplay } from "@/ui/features/reproduction/births/BirthDisplay";
+import { InseminationDisplay } from "@/ui/features/reproduction/insemination/InseminationDisplay";
 
 export const PageDisplay = (): JSX.Element => {
 
