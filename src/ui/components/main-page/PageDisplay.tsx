@@ -6,6 +6,10 @@ import { MainMenu } from "./main-menu/MainMenu";
 import { TitleBar } from "./TitleBar";
 import { BirthDisplay } from "@/ui/features/reproduction/births/BirthDisplay";
 import { InseminationDisplay } from "@/ui/features/reproduction/insemination/InseminationDisplay";
+import { NaturalMatingDisplay } from "@/ui/features/reproduction/natural-reproduction/NaturalMatingDisplay";
+import { EmbryoTransferDisplay } from "@/ui/features/reproduction/embryo-transfer/EmbryoTransferDisplay";
+import { BirthTestDisplay } from "@/ui/features/reproduction/birth-test/BirthTestDisplay";
+import { LossDisplay } from "@/ui/features/reproduction/pregnancy-loss/LossDisplay";
 
 export const PageDisplay = (): JSX.Element => {
 
@@ -23,6 +27,18 @@ export const PageDisplay = (): JSX.Element => {
                 break
             case 'insemination':
                 currentPage = <InseminationDisplay />
+                break
+            case 'mating':
+                currentPage = <NaturalMatingDisplay />
+                break
+            case 'embryo-transfer':
+                currentPage = <EmbryoTransferDisplay />
+                break
+            case 'birth-test':
+                currentPage = <BirthTestDisplay />
+                break
+            case 'pregnancy-loss':
+                currentPage = <LossDisplay />
                 break
         }
         return currentPage

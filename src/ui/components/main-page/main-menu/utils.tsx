@@ -42,7 +42,7 @@ export const buildList = () => {
             icon: <InseminationIcon />
         },
         {
-        key: 'natural-reproduction',
+        key: 'mating',
             title: 'Monta Natural',
             icon: <BullIcon />
         },

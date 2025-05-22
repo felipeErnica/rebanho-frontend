@@ -1,9 +1,10 @@
-export type NaturalReproduction = {
+export type NaturalMating = {
     id: string
     animalId: string
     animalNumber: string
-    animalOrder: string
     animalName: string
+    matingDate: Date
+    bullId: string
     bullName: string
     observation: string
     status: string
