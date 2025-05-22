@@ -23,7 +23,7 @@ export const AnimalDisplay = (): JSX.Element => {
         setOrder={setOrder}
         sort={sort}
         setSort={setSort}
-        childPanel={<AnimalFilterElement filter={filter} setFilter={setFilter}/>}
+        filterPanel={<AnimalFilterElement filter={filter} setFilter={setFilter}/>}
         sortableColumns={sortableColumns}
         tableProps={tableProps}
     />

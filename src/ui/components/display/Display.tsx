@@ -7,7 +7,7 @@ import { IFilters } from "@/interfaces/Filter";
 
 export type DisplayProps = {
     sortableColumns: ComboBoxItem[]
-    childPanel: ReactNode | ReactNode[]
+    filterPanel: ReactNode | ReactNode[]
     tableProps: TableProps
     order: string
     setOrder: (order: string) => void
@@ -43,7 +43,7 @@ export const Display = (props: DisplayProps): JSX.Element => {
             <TableCustom {...props.tableProps} />
         </div>
         <FilterDrawer
-            childPanel={props.childPanel}
+            childPanel={props.filterPanel}
             isOpen={isDrawerOpen} setOpen={setOpenDrawer}
         />
     </div>

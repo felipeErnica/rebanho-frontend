@@ -27,7 +27,7 @@ export const BirthDisplay = (): JSX.Element => {
         setOrder={setOrder}
         sort={sort}
         setSort={setSort}
-        childPanel={<BirthFilter filter={filter} setFilter={setFilter} />}
+        filterPanel={<BirthFilter filter={filter} setFilter={setFilter} />}
         sortableColumns={sortableColumns}
         tableProps={tableProps}
     />

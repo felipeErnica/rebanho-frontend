@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import { MainMenu } from "./main-menu/MainMenu";
 import { TitleBar } from "./TitleBar";
 import { BirthDisplay } from "@/ui/features/births/BirthDisplay";
+import { InseminationDisplay } from "@/ui/features/insemination/InseminationDisplay";
 
 export const PageDisplay = (): JSX.Element => {
 
@@ -19,6 +20,9 @@ export const PageDisplay = (): JSX.Element => {
                 break
             case 'births':
                 currentPage = <BirthDisplay />
+                break
+            case 'insemination':
+                currentPage = <InseminationDisplay />
                 break
         }
         return currentPage
