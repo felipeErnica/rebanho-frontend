@@ -1,4 +1,4 @@
-import { LossTypes } from "@/types/enums/LossType"
+import { LossTypes } from "@/types/enums"
 import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
 import { FilterModelProps } from "@/ui/components/display/Display"
 import { activateFilter } from "@/util/Filter"
@@ -17,7 +17,7 @@ export const LossFilter = ({ filter, setFilter }: FilterModelProps) => {
             />
             <ComboBoxFilterDiv
                 label="Tipo de Perda"
-                items={LossTypes.map(type => { return {name: type} })}
+                items={LossTypes}
             />
         </AbstractFilterDiv>
 

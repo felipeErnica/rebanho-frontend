@@ -1,5 +1,3 @@
-import { ReproductionStatus } from "./enums/ReproductionStatus"
-
 export type BirthTest = {
     id: string
     groupId: string
@@ -10,7 +8,7 @@ export type BirthTest = {
     isPregnant: boolean
     birthForecast: Date
     observation: string
-    status: ReproductionStatus
+    status: string
     lossId: string
     calfId: string
 }

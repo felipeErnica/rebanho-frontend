@@ -1,4 +1,4 @@
-import { ReproductionStatuses } from "@/types/enums/ReproductionStatus"
+import { ReproductionStatuses } from "@/types/enums"
 import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
 import { FilterModelProps } from "@/ui/components/display/Display"
 import { JSX } from "react"
@@ -17,7 +17,7 @@ export const BirthTestFilter = ({ filter, setFilter }: FilterModelProps): JSX.El
             <TextFilterDiv label="Nome do Pai:" />
             <ComboBoxFilterDiv
                 label="Status:"
-                items={ReproductionStatuses.flatMap(status => { return { name: status}}) }
+                items={ReproductionStatuses}
             />
         </AbstractFilterDiv>
 

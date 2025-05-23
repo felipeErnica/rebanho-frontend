@@ -1,14 +1,12 @@
-import { ReproductionStatuses } from "@/types/enums"
-import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
+import { AbstractFilterDiv, DateFilterDiv, NumberFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
 import { FilterModelProps } from "@/ui/components/display/Display"
 import { activateFilter } from "@/util/Filter"
 
-export const MatingFilter = ({ filter, setFilter }: FilterModelProps) => {
+export const MilkEntriesFilter = ({ filter, setFilter }: FilterModelProps) => {
     return <>
         <AbstractFilterDiv mainTitle="Informações principais">
-            <TextFilterDiv label="Brinco:" />
             <TextFilterDiv
-                label="Nome:"
+                label="Brinco"
                 onChange={(event) => {
                     const newFilter = activateFilter(filter)
                     newFilter['name'] = event.currentTarget.value
@@ -16,19 +14,24 @@ export const MatingFilter = ({ filter, setFilter }: FilterModelProps) => {
                 }}
             />
             <TextFilterDiv
-                label="Nome do Touro:"
+                label="Nome da Vaca:"
                 onChange={(event) => {
                     const newFilter = activateFilter(filter)
                     newFilter['name'] = event.currentTarget.value
                     setFilter(newFilter)
                 }}
             />
-            <ComboBoxFilterDiv
-                label="Status:"
-                items={ReproductionStatuses}
+            <TextFilterDiv
+                label="Pasto:"
+                onChange={(event) => {
+                    const newFilter = activateFilter(filter)
+                    newFilter['name'] = event.currentTarget.value
+                    setFilter(newFilter)
+                }}
             />
         </AbstractFilterDiv>
 
-        <DateFilterDiv mainTitle="Data de Monta" />
+        <DateFilterDiv mainTitle="Data de Marcação:" />
+        <NumberFilterDiv mainTitle="Marcação de Leite:" />
     </>
 }

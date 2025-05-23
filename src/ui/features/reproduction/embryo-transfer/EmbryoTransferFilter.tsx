@@ -1,3 +1,4 @@
+import { ReproductionStatuses } from "@/types/enums"
 import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
 import { FilterModelProps } from "@/ui/components/display/Display"
 import { JSX } from "react"
@@ -17,7 +18,7 @@ export const EmbryoTransferFilter = ({ filter, setFilter }: FilterModelProps): J
             <TextFilterDiv label="Nome do Touro:" />
             <ComboBoxFilterDiv
                 label="Staus:"
-                items={[{ name: 'Ativa' }, { name: 'Sucesso' }, { name: 'Perda'}]}
+                items={ReproductionStatuses}
             />
         </AbstractFilterDiv>
 

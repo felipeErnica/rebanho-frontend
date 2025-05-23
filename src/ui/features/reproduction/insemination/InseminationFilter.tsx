@@ -1,3 +1,4 @@
+import { ReproductionStatuses } from "@/types/enums"
 import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
 import { FilterModelProps } from "@/ui/components/display/Display"
 import { activateFilter } from "@/util/Filter"
@@ -24,7 +25,7 @@ export const InseminationFilter = ({ filter, setFilter }: FilterModelProps) => {
             />
             <ComboBoxFilterDiv
                 label="Status:"
-                items={[{ name: 'Ativa' }, { name: 'Sucesso' }, { name: 'Perda' }]}
+                items={ReproductionStatuses}
             />
         </AbstractFilterDiv>
 

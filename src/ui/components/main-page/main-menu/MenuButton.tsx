@@ -1,7 +1,7 @@
 import ListItemButton from "@mui/material/ListItemButton"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import ListItemText from "@mui/material/ListItemText"
-import { useState } from "react"
+import { ReactNode, useState } from "react"
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import { MenuItem } from "./utils"
 import List from "@mui/material/List"
@@ -9,14 +9,15 @@ import { Collapse } from "@mui/material";
 
 type MenuButtonProps = {
     item: MenuItem
-    setPage: (key: string) => void
+    setPage: (key: ReactNode | ReactNode[]) => void
 }
 
 const NormalButton = ({ item, setPage }: MenuButtonProps) => {
 
     return <ListItemButton
+        key={item.key}
         className="text-white py-4 hover:bg-gray-600"
-        onClick={() => setPage(item.key)}
+        onClick={() => setPage(item.page)}
     >
         <ListItemIcon className="text-white">{item.icon}</ListItemIcon>
         <ListItemText>{item.title}</ListItemText>
@@ -26,8 +27,9 @@ const NormalButton = ({ item, setPage }: MenuButtonProps) => {
 const NestedButton = ({ item, setPage }: MenuButtonProps) => {
 
     return <ListItemButton
+        key={item.key}
         className="text-white pl-10 py-4 hover:bg-gray-600"
-        onClick={() => setPage(item.key)}
+        onClick={() => setPage(item.page)}
     >
         <ListItemIcon className="text-white">{item.icon}</ListItemIcon>
         <ListItemText>{item.title}</ListItemText>
@@ -47,6 +49,7 @@ const CollapsedButton = ({ item, setPage }: MenuButtonProps) => {
 
     return <>
         <ListItemButton
+            key={item.key}
             className="text-white py-4 hover:bg-gray-600"
             onClick={() => setOpen(!open)}
         >

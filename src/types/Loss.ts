@@ -1,11 +1,9 @@
-import { LossType } from "./enums/LossType"
-
 export type PregnancyLoss = {
 	id:           string     
 	animalId:     string     
 	animalNumber: string     
 	animalName:   string     
-	lossType:     LossType     
+	lossType:     string     
 	lossDate:     Date
 	observation:  string     
 }

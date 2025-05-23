@@ -1,5 +1,5 @@
 import List from "@mui/material/List";
-import { JSX } from "react";
+import { JSX, ReactNode } from "react";
 import { MenuButton } from "./MenuButton";
 import { buildList } from "./utils";
 import IconButton from "@mui/material/IconButton";
@@ -8,7 +8,7 @@ import AppBar from "@mui/material/AppBar";
 import Divider from "@mui/material/Divider";
 
 type MenuProps = {
-    setPage: (page: string) => void
+    setPage: (page: ReactNode | ReactNode[]) => void
     setOpen: (open: boolean) => void
 }
 
