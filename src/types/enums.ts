@@ -42,4 +42,4 @@ export const LossTypes: ComboBoxItem[] = [
     { name: 'Natimorto', value: 'STILLBORN' },
 ]
 
-export const Sex: ComboBoxItem[] = [{ name: 'M' }, { name: 'F' }]
+export const SexValues: ComboBoxItem[] = [{ name: 'M' }, { name: 'F' }]

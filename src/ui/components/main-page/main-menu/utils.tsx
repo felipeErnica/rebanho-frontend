@@ -30,6 +30,8 @@ import { EmbryoTransferDisplay } from "@/ui/features/reproduction/embryo-transfe
 import { LossDisplay } from "@/ui/features/reproduction/pregnancy-loss/LossDisplay"
 import { SlaughterhouseDisplay } from "@/ui/features/slaughter-area/slaughterhouse/SlaughterhouseDisplay"
 import { WeightDisplay } from "@/ui/features/slaughter-area/weight/WeightDisplay"
+import { MilkDisplay } from "@/ui/features/lactation/milk-entries/MilkEntryDisplay"
+import { LactationDisplay } from "@/ui/features/lactation/lactation-hist/LactationHistDisplay"
 
 export type MenuItem = {
     key: string
@@ -105,12 +107,14 @@ export const buildList = () => {
         {
             key: 'lactation',
             title: 'Histórico de Lactações',
-            icon: <LactationHistIcon />
+            icon: <LactationHistIcon />,
+            page: <LactationDisplay />
         },
         {
             key: 'milk-entries',
             title: 'Marcação de Leite',
-            icon: <MilkIcon />
+            icon: <MilkIcon />,
+            page: <MilkDisplay />
         },
     ]
 

@@ -13,7 +13,12 @@ const createMainWindow = () => {
     ipcMain.on('close-main', () => mainWindow.close())
     ipcMain.on('minimize-main', () => mainWindow.minimize())
     ipcMain.on('maximize-main', () => {
+        if (mainWindow.isMaximized()) {
+            mainWindow.unmaximize()
+            return
+        }
         mainWindow.maximize()
+        //mainWindow.setSize(1280, 720)
     })
     mainWindow.loadURL(`file://${app.getAppPath()}/dist-react/index.html#/home`)
 }

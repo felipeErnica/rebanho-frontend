@@ -1,4 +1,4 @@
-import { Sex } from "@/types/enums"
+import { SexValues } from "@/types/enums"
 import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
 import { FilterModelProps } from "@/ui/components/display/Display"
 import { activateFilter } from "@/util/Filter"
@@ -24,7 +24,7 @@ export const WeightFilter = ({ filter, setFilter }: FilterModelProps) => {
             />
             <ComboBoxFilterDiv
                 label="Sexo:"
-                items={Sex}
+                items={SexValues}
             />
         </AbstractFilterDiv>
 
