@@ -18,7 +18,7 @@ export const PageDisplay = (): JSX.Element => {
         >
             <MainMenu setPage={setPage} setOpen={setOpen} />
         </Drawer>
-        <div className="grow overflow-hidden">
+        <div className="p-2 grow overflow-hidden bg-gray-100">
             {page}
         </div>
     </Box>

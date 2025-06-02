@@ -58,7 +58,6 @@ export function TableCustom(props: TableProps): JSX.Element {
 
     useEffect(() => {
         setLoading(true)
-        calculateRef()
 
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage("")
@@ -82,7 +81,8 @@ export function TableCustom(props: TableProps): JSX.Element {
     const putScrollAtTop = () => {
         const scrollContainer = scrollRef.current
         if (!scrollContainer) return
-        scrollContainer.scrollTo({ top: scrollContainer.scrollHeight * 0.01 })
+        const scrollHeight = heightRef.current
+        scrollContainer.scrollTo({ top: scrollHeight * 0.01 })
     }
 
     const putScrollAtBottom = () => {
@@ -156,6 +156,7 @@ export function TableCustom(props: TableProps): JSX.Element {
 
     const handleScroll = useCallback(() => {
         const scrollContainer = scrollRef.current
+        calculateRef()
         if (!scrollContainer) return
         const scrollTopPos = scrollContainer.scrollTop
         const scrollBottomPos = scrollContainer.scrollTop + scrollContainer.clientHeight

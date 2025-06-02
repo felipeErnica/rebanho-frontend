@@ -21,7 +21,6 @@ import {
 } from "@/ui/components/common/OtherIcons"
 import Scale from "@mui/icons-material/Scale"
 import Vaccines from "@mui/icons-material/Vaccines"
-import { AnimalDisplay } from "@/ui/features/animals/AnimalDisplay"
 import { SlaughterDisplay } from "@/ui/features/slaughter-area/slaughter/SlaughterDisplay"
 import { InseminationDisplay } from "@/ui/features/reproduction/insemination/InseminationDisplay"
 import { BirthDisplay } from "@/ui/features/reproduction/births/BirthDisplay"
@@ -32,6 +31,7 @@ import { SlaughterhouseDisplay } from "@/ui/features/slaughter-area/slaughterhou
 import { WeightDisplay } from "@/ui/features/slaughter-area/weight/WeightDisplay"
 import { MilkDisplay } from "@/ui/features/lactation/milk-entries/MilkEntryDisplay"
 import { LactationDisplay } from "@/ui/features/lactation/lactation-hist/LactationHistDisplay"
+import { AnimalsDashboard } from "@/ui/features/animals/dashboard/AnimalsDashboard"
 
 export type MenuItem = {
     key: string
@@ -141,7 +141,7 @@ export const buildList = () => {
             key: 'animals-table',
             title: 'Animais',
             icon: <CowHeadIcon />,
-            page: <AnimalDisplay />
+            page: <AnimalsDashboard />
         },
         {
             key: 'farm-pastures',
