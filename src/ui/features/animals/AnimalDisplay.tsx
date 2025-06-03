@@ -1,5 +1,5 @@
 import { JSX, useState } from "react";
-import { AnimalFilter } from "@/types/Animal";
+import { AnimalFilter } from "@/ui/features/animals/api/AnimalInfo";
 import { ComboBoxItem } from "@/ui/components/common/ComboBox";
 import { Display } from "@/ui/components/display/Display";
 import { buildTable as buildAnimalsTable } from "./TableAnimal";

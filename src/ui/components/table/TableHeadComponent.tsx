@@ -66,6 +66,7 @@ export const TableHeadComponent = ({ columns }: HeadComponentProps) => {
         {columns.map((column, i) => {
             return <TableCell 
                 sx={{ minWidth: `${DEFAULT_MIN_WIDTH}px`, width: `${columnWidths[i]}px` }}
+                align={column.align}
                 className={
                     `bg-gray-700 text-white text-nowrap 
                     overflow-hidden overflow-ellipsis`

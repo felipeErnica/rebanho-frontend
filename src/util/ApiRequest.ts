@@ -4,8 +4,6 @@ import { User } from "@/types/User"
 const BASE_URL = "http://localhost:8080"
 
 async function generateRequest(): Promise<RequestInit> {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
     const authToken = await window.electronEvents.getAuthToken()
     const commonRequest: RequestInit = {
         signal: AbortSignal.timeout(5000),

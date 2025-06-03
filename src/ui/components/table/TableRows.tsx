@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { JSX, useCallback, useEffect, useState } from "react"
-import { ColumnProps } from "./Table"
+import { ColumnAlign, ColumnProps } from "./Table"
 import TextField from "@mui/material/TextField"
 import IconButton from "@mui/material/IconButton"
 import Delete from "@mui/icons-material/Delete"
@@ -93,9 +93,9 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
         </div>
     }
 
-    const CellBody = (isLast: boolean, value: any): JSX.Element => {
+    const CellBody = (isLast: boolean, value: any, align?: ColumnAlign): JSX.Element => {
         if (isLast) {
-            return <TableCell className="overflow-hidden text-nowrap overflow-ellipsis">
+            return <TableCell align={align} className="overflow-hidden text-nowrap overflow-ellipsis">
                 <div className="flex flex-row items-center">
                     <span> {value} </span>
                     {ControlButtonsPanel()}
@@ -103,7 +103,7 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
             </TableCell>
         }
 
-        return <TableCell className="overflow-hidden text-nowrap overflow-ellipsis">
+        return <TableCell align={align} className="overflow-hidden text-nowrap overflow-ellipsis">
             <span>{value}</span>
         </TableCell>
     }
@@ -151,7 +151,7 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
 
     const EditableCellBody = (isLast: boolean, value: any, props: ColumnProps): JSX.Element => {
         if (isLast) {
-            return <TableCell className="overflow-hidden text-nowrap overflow-ellipsis">
+            return <TableCell align={props.align} className="overflow-hidden text-nowrap overflow-ellipsis">
                 <div className="flex flex-row items-center">
                     {EditableCellContent(value, props)}
                     {EditButtonsPanel()}
@@ -159,7 +159,7 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
             </TableCell>
         }
 
-        return <TableCell className="overflow-hidden text-nowrap overflow-ellipsis">
+        return <TableCell align={props.align} className="overflow-hidden text-nowrap overflow-ellipsis">
             {EditableCellContent(value, props)}
         </TableCell>
     }
@@ -176,7 +176,7 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
         onMouseLeave={() => setControlsVisible(false)}
     >
         {columns.map((column, i) => {
-            return CellBody(i === columns.length - 1, row[column.name])
+            return CellBody(i === columns.length - 1, row[column.name], column.align)
         })}
     </TableRow>
 }

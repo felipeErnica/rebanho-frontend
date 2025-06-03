@@ -7,3 +7,7 @@ export interface IData {
     id: string;
     [key: string]: any
 }
+
+export interface IDashboardData {
+    [key: string]: any
+}

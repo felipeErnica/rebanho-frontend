@@ -1,4 +1,4 @@
-import { Animal } from "./Animal"
+import { Animal } from "../ui/features/animals/api/AnimalInfo"
 
 export type Birth = {
     id: string

@@ -8,8 +8,11 @@ import TableBody from "@mui/material/TableBody";
 import { TableRows } from "./TableRows";
 import Table from "@mui/material/Table";
 
+export type ColumnAlign = 'left' | 'right' | 'center'
+
 export type ColumnProps = {
     title: string
+    align?: ColumnAlign
     name: string
     width?: number
     type: HTMLInputTypeAttribute;

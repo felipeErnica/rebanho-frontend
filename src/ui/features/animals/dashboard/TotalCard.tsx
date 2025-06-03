@@ -1,15 +1,33 @@
 import Card from "@mui/material/Card"
 import CardContent from "@mui/material/CardContent"
 import CardHeader from "@mui/material/CardHeader"
-import { Button, CardActions } from "@mui/material"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import Table from "@mui/material/Table"
 import TableBody from "@mui/material/TableBody"
 import TableCell from "@mui/material/TableCell"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
+import { useEffect, useState } from "react"
+import { TotalGeneral } from "../api/AnimalDashboard"
+import { getTotalAnimals } from "../api/AnimalController"
+import CardActions from "@mui/material/CardActions"
+import Button from "@mui/material/Button"
+import Collapse from "@mui/material/Collapse"
+import { TableInfoAge } from "./TableInfoAge"
 
 const TotalAnimalsTable = () => {
+
+    const [total, setTotal] = useState<TotalGeneral>({ totalAnimals: 0, totalFemales: 0, totalMales: 0 })
+
+    useEffect(() => {
+        getTotalAnimals({ isFiltered: false })
+            .then(response => {
+                const totals = response.json
+                setTotal(totals)
+            })
+            .catch()
+    }, [])
+
     return <Table>
         <TableHead>
             <TableRow>
@@ -20,27 +38,34 @@ const TotalAnimalsTable = () => {
         </TableHead>
         <TableBody>
             <TableRow>
-                <TableCell className="border-none">1500</TableCell>
-                <TableCell className="border-none">750</TableCell>
-                <TableCell className="border-none">750</TableCell>
+                <TableCell className="border-none">{total.totalAnimals}</TableCell>
+                <TableCell className="border-none">{total.totalMales}</TableCell>
+                <TableCell className="border-none">{total.totalFemales}</TableCell>
             </TableRow>
         </TableBody>
     </Table>
 }
 
 export const TotalCard = () => {
-    return <Card>
-            <CardHeader title="Animais" />
-            <CardContent>
-                <TotalAnimalsTable />
-            </CardContent>
-            <CardActions>
-                <Button 
-                    size="small" 
-                    endIcon={<ChevronRight />}
-                >
-                    Ver Mais
-                </Button>
-            </CardActions>
-        </Card>
+
+    const [isOpen, setOpen] = useState(false)
+
+    return <Card variant="outlined">
+        <CardHeader title="Animais" />
+        <CardContent>
+            <TotalAnimalsTable />
+        </CardContent>
+        <CardActions>
+            <Button
+                onClick={() => setOpen(!isOpen)}
+                size="small"
+                endIcon={<ChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />}
+            >
+                Ver Mais
+            </Button>
+        </CardActions>
+        <Collapse unmountOnExit in={isOpen}>
+            <TableInfoAge />
+        </Collapse>
+    </Card>
 }

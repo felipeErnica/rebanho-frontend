@@ -33,3 +33,4 @@ export type AnimalFilter = {
     minChildrenQuantity?: number,
     maxChildrenQuantity?: number
 }
+
