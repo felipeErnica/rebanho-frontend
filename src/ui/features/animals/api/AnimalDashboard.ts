@@ -22,9 +22,16 @@ export type AnimalsByAgeAndFarm = {
     totalFemale: number
 }
 
+export type AnimalsByAge = {
+    ageCategory: string
+    male: number
+    female: number
+}
+
 export type AnimalDashboardFilter = {
     isFiltered: boolean
     minBirthDate?: Date
     maxBirthDate?: Date
     farms?: string[]
+    isActive?: boolean
 }

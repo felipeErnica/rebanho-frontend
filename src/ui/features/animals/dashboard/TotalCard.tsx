@@ -50,22 +50,24 @@ export const TotalCard = () => {
 
     const [isOpen, setOpen] = useState(false)
 
-    return <Card variant="outlined">
-        <CardHeader title="Animais" />
-        <CardContent>
-            <TotalAnimalsTable />
-        </CardContent>
-        <CardActions>
-            <Button
-                onClick={() => setOpen(!isOpen)}
-                size="small"
-                endIcon={<ChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />}
-            >
-                Ver Mais
-            </Button>
-        </CardActions>
-        <Collapse unmountOnExit in={isOpen}>
-            <TableInfoAge />
-        </Collapse>
-    </Card>
+    return <div className={`${isOpen ? 'grow' : 'grow-0'}`}>
+        <Card variant="outlined">
+            <CardHeader title="Animais" />
+            <CardContent>
+                <TotalAnimalsTable />
+            </CardContent>
+            <CardActions>
+                <Button
+                    onClick={() => setOpen(!isOpen)}
+                    size="small"
+                    endIcon={<ChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />}
+                >
+                    Ver Mais
+                </Button>
+            </CardActions>
+            <Collapse unmountOnExit in={isOpen}>
+                <TableInfoAge />
+            </Collapse>
+        </Card>
+    </div>
 }

@@ -18,7 +18,15 @@ export async function getTotalAnimals(filter: AnimalDashboardFilter): Promise<Ap
     return response
 }
 
+export async function getGroupByAgeFarm(filter: AnimalDashboardFilter): Promise<ApiResponse> {
+    filter = {...filter, isFiltered: true, isActive: true}
+    const apiCall = BASE_DASHBOARD + "group-age-farm"
+    const response = await apiPost(apiCall, filter)
+    return response
+}
+
 export async function getGroupByAge(filter: AnimalDashboardFilter): Promise<ApiResponse> {
+    filter = {...filter, isFiltered: true, isActive: true}
     const apiCall = BASE_DASHBOARD + "group-age"
     const response = await apiPost(apiCall, filter)
     return response

@@ -5,7 +5,7 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import { useEffect, useState } from "react"
 import { AnimalsByAgeAndFarm } from "../api/AnimalDashboard"
-import { getGroupByAge } from "../api/AnimalController"
+import { getGroupByAgeFarm } from "../api/AnimalController"
 import TableBody from "@mui/material/TableBody"
 import { IDashboardData } from "@/interfaces/Filter"
 import Skeleton from "@mui/material/Skeleton"
@@ -70,9 +70,9 @@ export const TableInfoAge = () => {
 
     useEffect(() => {
         setLoading(true)
-        getGroupByAge({ isFiltered: false })
-            .then(response => { 
-                setList(response.json) 
+        getGroupByAgeFarm({ isFiltered: false })
+            .then(response => {
+                setList(response.json)
                 setLoading(false)
             })
             .catch(() => setLoading(true))
@@ -81,7 +81,13 @@ export const TableInfoAge = () => {
     return <Table size="small">
         <TableInfoHead />
         <TableBody>
-            {isLoading ? <Skeleton /> : list.map(value => TableInfoRow(value))}
+            {isLoading ?
+                <TableCell colSpan={columns.length}>
+                    <Skeleton animation='pulse' variant="rectangular" />
+                </TableCell>
+                :
+                list.map(value => TableInfoRow(value))
+            }
         </TableBody>
     </Table>
 }
