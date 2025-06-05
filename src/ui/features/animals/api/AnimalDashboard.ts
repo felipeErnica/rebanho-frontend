@@ -28,6 +28,13 @@ export type AnimalsByAge = {
     female: number
 }
 
+export type AnimalsByType = {
+    beefCattle: number
+    dairyCattle: number
+    reproductionAnimals: number
+    offspring: number
+}
+
 export type AnimalDashboardFilter = {
     isFiltered: boolean
     minBirthDate?: Date

@@ -37,7 +37,7 @@ const AgeChart = () => {
 }
 
 export const AgeCard = () => {
-    return <Card>
+    return <Card variant="outlined" className="grow">
         <CardHeader title="Animais por Idade" />
         <CardContent>
             <AgeChart />
