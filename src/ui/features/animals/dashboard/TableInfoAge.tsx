@@ -9,7 +9,112 @@ import { getGroupByAgeFarm } from "../api/AnimalController"
 import TableBody from "@mui/material/TableBody"
 import { IDashboardData } from "@/interfaces/Filter"
 import Skeleton from "@mui/material/Skeleton"
+import ChevronRight from "@mui/icons-material/ChevronRight"
+import IconButton from "@mui/material/IconButton"
+import { Collapse } from "@mui/material"
 
+type RowProps = {
+    row: IDashboardData
+    columns: ColumnProps[]
+    mainColumns: string[]
+}
+
+type PastureProps = {
+    columns: ColumnProps[]
+    mainColumns: string[]
+}
+
+
+const PastureTable = ({ columns, mainColumns }: PastureProps) => {
+
+    useEffect(() => {
+        columns[0].title = "Pastos"
+    }, [columns])
+
+    const values: IDashboardData[] = [
+        {
+            farmName: "Pasto 1",
+            newbornFemale: 0,
+            newbornMale: 0,
+            babyFemale: 0,
+            babyMale: 0,
+            childFemale: 0,
+            childMale: 0,
+            youngFemale: 0,
+            youngMale: 0,
+            adultFemale: 0,
+            adultMale: 0,
+            oldFemale: 0,
+            oldMale: 0,
+            totalFemale: 0,
+            totalMale: 0
+        },
+    ]
+
+    const TablePastureHead = () => {
+        return <TableHead>
+            <TableRow>
+                <TableCell />
+                {mainColumns.map(column => {
+                    return <TableCell align="center" colSpan={2} >
+                        {column}
+                    </TableCell>
+                })}
+            </TableRow>
+            <TableRow>
+                {columns.map(column => {
+                    return <TableCell align={column.align || 'center'} >
+                        {column.title}
+                    </TableCell>
+                })}
+            </TableRow>
+        </TableHead>
+    }
+
+    return <Table size="small">
+        <TablePastureHead />
+        <TableBody>
+            {values.map(value => {
+                return <TableRow>
+                    {columns.map(column => {
+                        return <TableCell align={column.align || 'center'} >
+                            {value[column.name]}
+                        </TableCell>
+                    })}
+                </TableRow>
+            })}
+        </TableBody>
+    </Table>
+}
+
+
+const TableInfoRow = ({ row, columns, mainColumns }: RowProps) => {
+
+    const [isOpen, setOpen] = useState(false)
+
+    return <>
+        <TableRow>
+            {columns.map((column, i) => {
+                if (i == 0) {
+                    return <TableCell>
+                        <IconButton onClick={() => setOpen(!isOpen)}>
+                            <ChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />
+                        </IconButton>
+                        {row[column.name]}
+                    </TableCell>
+                }
+                return <TableCell align={column.align || 'center'}>{row[column.name]}</TableCell>
+            })}
+        </TableRow>
+        <TableRow>
+            <TableCell colSpan={columns.length} className="p-0">
+                <Collapse in={isOpen}>
+                    <PastureTable {...{ columns, mainColumns }} />
+                </Collapse>
+            </TableCell>
+        </TableRow>
+    </>
+}
 
 export const TableInfoAge = () => {
 
@@ -49,24 +154,29 @@ export const TableInfoAge = () => {
             <TableRow>
                 <TableCell className="bg-gray-700" />
                 {mainColumns.map(column => {
-                    return <TableCell align="center" className="bg-gray-700 text-white" colSpan={2}>{column}</TableCell>
+                    return <TableCell
+                        align="center"
+                        className="bg-gray-700 text-white"
+                        colSpan={2}
+                    >
+                        {column}
+                    </TableCell>
                 })}
             </TableRow>
             <TableRow>
                 {columns.map(column => {
-                    return <TableCell align={column.align || 'center'} className="bg-gray-700 text-white">{column.title}</TableCell>
+                    return <TableCell
+                        align={column.align || 'center'}
+                        className="bg-gray-700 text-white"
+                        sx={{ width: column.width }}
+                    >
+                        {column.title}
+                    </TableCell>
                 })}
             </TableRow>
         </TableHead>
     }
 
-    const TableInfoRow = (row: IDashboardData) => {
-        return <TableRow>
-            {columns.map(column => {
-                return <TableCell align={column.align || 'center'}>{row[column.name]}</TableCell>
-            })}
-        </TableRow>
-    }
 
     useEffect(() => {
         setLoading(true)
@@ -86,7 +196,7 @@ export const TableInfoAge = () => {
                     <Skeleton animation='pulse' variant="rectangular" />
                 </TableCell>
                 :
-                list.map(value => TableInfoRow(value))
+                list.map(row => <TableInfoRow {...{ row, columns, mainColumns }} />)
             }
         </TableBody>
     </Table>

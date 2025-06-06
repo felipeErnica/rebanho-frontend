@@ -15,6 +15,11 @@ import Button from "@mui/material/Button"
 import Collapse from "@mui/material/Collapse"
 import { TableInfoAge } from "./TableInfoAge"
 
+type TotalCardProps = {
+    isTotalOpen: boolean
+    setTotalOpen: (setTotalOpen: boolean) => void
+}
+
 const TotalAnimalsTable = () => {
 
     const [total, setTotal] = useState<TotalGeneral>({ totalAnimals: 0, totalFemales: 0, totalMales: 0 })
@@ -46,28 +51,24 @@ const TotalAnimalsTable = () => {
     </Table>
 }
 
-export const TotalCard = () => {
+export const TotalCard = ({isTotalOpen, setTotalOpen}: TotalCardProps) => {
 
-    const [isOpen, setOpen] = useState(false)
-
-    return <div className={`${isOpen ? 'grow' : 'grow-0'}`}>
-        <Card variant="outlined">
+    return <Card className="grow" variant="outlined">
             <CardHeader title="Animais" />
             <CardContent>
                 <TotalAnimalsTable />
             </CardContent>
             <CardActions>
                 <Button
-                    onClick={() => setOpen(!isOpen)}
+                    onClick={() => setTotalOpen(!isTotalOpen)}
                     size="small"
-                    endIcon={<ChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />}
+                    endIcon={<ChevronRight className={`transition-transform duration-200 ${isTotalOpen ? 'rotate-90' : 'rotate-0'}`} />}
                 >
                     Ver Mais
                 </Button>
             </CardActions>
-            <Collapse unmountOnExit in={isOpen}>
+            <Collapse unmountOnExit in={isTotalOpen}>
                 <TableInfoAge />
             </Collapse>
         </Card>
-    </div>
 }
