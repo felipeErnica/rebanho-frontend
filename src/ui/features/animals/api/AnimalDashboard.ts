@@ -28,6 +28,11 @@ export type AnimalsByAge = {
     female: number
 }
 
+export type AnimalsByYear = {
+    year: number
+    totalAnimals: number
+}
+
 export type AnimalsByType = {
     beefCattle: number
     dairyCattle: number

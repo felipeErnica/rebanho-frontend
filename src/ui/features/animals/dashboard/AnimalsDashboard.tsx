@@ -8,9 +8,9 @@ export const AnimalsDashboard = () => {
 
     const [isTotalOpen, setTotalOpen] = useState(false)
 
-    return <div className="h-full overflow-auto flex flex-col gap-5">
-        <div className={`flex flex-row ${isTotalOpen ? 'grow' : 'grow-0'}`}>
-            <TotalCard {...{isTotalOpen, setTotalOpen}} />
+    return <div className="h-full w-full overflow-y-auto flex flex-col gap-5">
+        <div className={`${isTotalOpen ? '' : 'shrink'} flex flex-row gap-5`}>
+            <TotalCard {...{ isTotalOpen, setTotalOpen }} />
             <CattleGrowthCard />
         </div>
         <div className="grow flex flex-row gap-5">

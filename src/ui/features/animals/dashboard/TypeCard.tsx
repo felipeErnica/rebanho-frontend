@@ -1,12 +1,10 @@
-import Card from "@mui/material/Card"
-import CardContent from "@mui/material/CardContent"
-import CardHeader from "@mui/material/CardHeader"
 import { PieChart } from "@mui/x-charts/PieChart"
 import { useEffect, useState } from "react"
 import { getTotalByType } from "../api/AnimalController"
 import { AnimalsByType } from "../api/AnimalDashboard"
+import { ChartProps, GraphContainer } from "@/ui/components/chart/ChartContainer"
 
-const TypeGraph = () => {
+const TypeGraph = ({height}: ChartProps) => {
 
     const init: AnimalsByType = { beefCattle: 0, dairyCattle: 0, offspring: 0, reproductionAnimals: 0 }
     const [dataset, setDataset] = useState<AnimalsByType>(init)
@@ -22,7 +20,6 @@ const TypeGraph = () => {
     return <PieChart
         series={[{
             innerRadius: 80,
-            paddingAngle: 5,
             highlightScope: { fade: 'global', highlight: 'item' },
             data: [
                 { label: "Animais de Corte", value: dataset.beefCattle },
@@ -31,17 +28,15 @@ const TypeGraph = () => {
                 { label: "Animais Não Desmamados", value: dataset.offspring },
             ]
         }]}
-        height={350}
+        height={height}
     />
 
 }
 
 
 export const TypeCard = () => {
-    return <Card variant="outlined">
-        <CardHeader title="Tipo de Animais" />
-        <CardContent>
-            <TypeGraph />
-        </CardContent>
-    </Card>
+    return <GraphContainer
+        graph={TypeGraph}
+        title="Tipo de Animais"
+    />
 }

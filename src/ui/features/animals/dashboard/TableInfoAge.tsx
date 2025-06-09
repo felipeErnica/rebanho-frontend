@@ -28,7 +28,7 @@ type PastureProps = {
 const PastureTable = ({ columns, mainColumns }: PastureProps) => {
 
     useEffect(() => {
-        columns[0].title = "Pastos"
+        columns[0].title = ""
     }, [columns])
 
     const values: IDashboardData[] = [

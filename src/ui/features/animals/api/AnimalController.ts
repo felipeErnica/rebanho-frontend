@@ -32,6 +32,12 @@ export async function getGroupByAge(filter: AnimalDashboardFilter): Promise<ApiR
     return response
 }
 
+export async function getGroupByYear(filter: AnimalDashboardFilter, minYear: number, maxYear: number): Promise<ApiResponse> {
+    const apiCall = BASE_DASHBOARD + `group-year?from=${minYear}&to=${maxYear}`
+    const response = await apiPost(apiCall, filter)
+    return response
+}
+
 export async function getTotalByType(filter: AnimalDashboardFilter): Promise<ApiResponse> {
     filter = {...filter, isFiltered: true, isActive: true}
     const apiCall = BASE_DASHBOARD + "types"

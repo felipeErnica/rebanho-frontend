@@ -51,24 +51,23 @@ const TotalAnimalsTable = () => {
     </Table>
 }
 
-export const TotalCard = ({isTotalOpen, setTotalOpen}: TotalCardProps) => {
-
-    return <Card className="grow" variant="outlined">
-            <CardHeader title="Animais" />
-            <CardContent>
-                <TotalAnimalsTable />
-            </CardContent>
-            <CardActions>
-                <Button
-                    onClick={() => setTotalOpen(!isTotalOpen)}
-                    size="small"
-                    endIcon={<ChevronRight className={`transition-transform duration-200 ${isTotalOpen ? 'rotate-90' : 'rotate-0'}`} />}
-                >
-                    Ver Mais
-                </Button>
-            </CardActions>
-            <Collapse unmountOnExit in={isTotalOpen}>
-                <TableInfoAge />
-            </Collapse>
-        </Card>
+export const TotalCard = ({ isTotalOpen, setTotalOpen }: TotalCardProps) => {
+    return <Card className="grow-3" variant="outlined">
+        <CardHeader title="Animais" />
+        <CardContent>
+            <TotalAnimalsTable />
+        </CardContent>
+        <CardActions>
+            <Button
+                onClick={() => setTotalOpen(!isTotalOpen)}
+                size="small"
+                endIcon={<ChevronRight className={`transition-transform duration-200 ${isTotalOpen ? 'rotate-90' : 'rotate-0'}`} />}
+            >
+                {isTotalOpen ? 'Recolher Tabela' : 'Ver Mais'}
+            </Button>
+        </CardActions>
+        <Collapse unmountOnExit in={isTotalOpen}>
+            <TableInfoAge />
+        </Collapse>
+    </Card>
 }
