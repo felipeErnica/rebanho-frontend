@@ -10,7 +10,8 @@ export const AnimalDisplay = (): JSX.Element => {
     const [order, setOrder] = useState('asc')
     const [sort, setSort] = useState('name')
 
-    const tableProps = buildAnimalsTable({filter, sort, order})
+    const tableProps = buildAnimalsTable({ filter, sort, order })
+    const filterPanel = <AnimalFilterElement filter={filter} setFilter={setFilter} />
 
     const sortableColumns: ComboBoxItem[] = [
         { name: "Nome", value: "name" },
@@ -18,13 +19,13 @@ export const AnimalDisplay = (): JSX.Element => {
         { name: "Brinco", value: "ring_order" },
     ]
 
-    return <Display 
-        order={order}
-        setOrder={setOrder}
-        sort={sort}
-        setSort={setSort}
-        filterPanel={<AnimalFilterElement filter={filter} setFilter={setFilter}/>}
-        sortableColumns={sortableColumns}
-        tableProps={tableProps}
-    />
+    return <Display {...{
+        sort,
+        setSort,
+        order,
+        setOrder,
+        tableProps,
+        sortableColumns,
+        filterPanel
+    }} />
 }

@@ -11,7 +11,7 @@ import { IDashboardData } from "@/interfaces/Filter"
 import Skeleton from "@mui/material/Skeleton"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import IconButton from "@mui/material/IconButton"
-import { Collapse } from "@mui/material"
+import Collapse from "@mui/material/Collapse"
 
 type RowProps = {
     row: IDashboardData
@@ -96,14 +96,14 @@ const TableInfoRow = ({ row, columns, mainColumns }: RowProps) => {
         <TableRow>
             {columns.map((column, i) => {
                 if (i == 0) {
-                    return <TableCell>
+                    return <TableCell className="text-nowrap">
                         <IconButton onClick={() => setOpen(!isOpen)}>
                             <ChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />
                         </IconButton>
                         {row[column.name]}
                     </TableCell>
                 }
-                return <TableCell align={column.align || 'center'}>{row[column.name]}</TableCell>
+                return <TableCell className="text-nowrap" align={column.align || 'center'}>{row[column.name]}</TableCell>
             })}
         </TableRow>
         <TableRow>
