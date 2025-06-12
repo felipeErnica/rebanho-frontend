@@ -4,7 +4,7 @@ import TableCell from "@mui/material/TableCell"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import { useEffect, useState } from "react"
-import { AnimalsByAgeAndFarm } from "../api/AnimalDashboard"
+import { AnimalDashboardFilter, AnimalsByAgeAndFarm } from "../api/AnimalDashboard"
 import { getGroupByAgeFarm } from "../api/AnimalController"
 import TableBody from "@mui/material/TableBody"
 import { IDashboardData } from "@/interfaces/Filter"
@@ -17,11 +17,18 @@ type RowProps = {
     row: IDashboardData
     columns: ColumnProps[]
     mainColumns: string[]
+    filter: AnimalDashboardFilter
+    setFilter: (filter: AnimalDashboardFilter) => void
 }
 
 type PastureProps = {
     columns: ColumnProps[]
     mainColumns: string[]
+}
+
+type TableInfoAgeProps = {
+    filter: AnimalDashboardFilter
+    setFilter: (filter: AnimalDashboardFilter) => void
 }
 
 
@@ -88,22 +95,32 @@ const PastureTable = ({ columns, mainColumns }: PastureProps) => {
 }
 
 
-const TableInfoRow = ({ row, columns, mainColumns }: RowProps) => {
+const TableInfoRow = ({ row, columns, mainColumns, filter, setFilter }: RowProps) => {
 
     const [isOpen, setOpen] = useState(false)
+    const handleClick = (farmId: string) => setFilter({ ...filter, farmId })
 
     return <>
-        <TableRow>
+        <TableRow hover>
             {columns.map((column, i) => {
                 if (i == 0) {
-                    return <TableCell className="text-nowrap">
+                    return <TableCell
+                        onClick={() => handleClick(row['farmId'])}
+                        className="text-nowrap"
+                    >
                         <IconButton onClick={() => setOpen(!isOpen)}>
                             <ChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />
                         </IconButton>
                         {row[column.name]}
                     </TableCell>
                 }
-                return <TableCell className="text-nowrap" align={column.align || 'center'}>{row[column.name]}</TableCell>
+                return <TableCell
+                    onClick={() => handleClick(row['farmId'])}
+                    className="text-nowrap"
+                    align={column.align || 'center'}
+                >
+                    {row[column.name]}
+                </TableCell>
             })}
         </TableRow>
         <TableRow>
@@ -116,7 +133,7 @@ const TableInfoRow = ({ row, columns, mainColumns }: RowProps) => {
     </>
 }
 
-export const TableInfoAge = () => {
+export const TableInfoAge = ({ filter, setFilter }: TableInfoAgeProps) => {
 
     const [list, setList] = useState<AnimalsByAgeAndFarm[]>([])
     const [isLoading, setLoading] = useState(false)
@@ -179,14 +196,15 @@ export const TableInfoAge = () => {
 
 
     useEffect(() => {
+        const farmFilter: AnimalDashboardFilter = { ...filter, farmId: undefined }
         setLoading(true)
-        getGroupByAgeFarm({ isFiltered: false })
+        getGroupByAgeFarm(farmFilter)
             .then(response => {
                 setList(response.json)
                 setLoading(false)
             })
             .catch(() => setLoading(true))
-    }, [])
+    }, [filter])
 
     return <Table size="small">
         <TableInfoHead />
@@ -196,7 +214,7 @@ export const TableInfoAge = () => {
                     <Skeleton animation='pulse' variant="rectangular" />
                 </TableCell>
                 :
-                list.map(row => <TableInfoRow {...{ row, columns, mainColumns }} />)
+                list.map(row => <TableInfoRow {...{ row, columns, mainColumns, filter, setFilter }} />)
             }
         </TableBody>
     </Table>

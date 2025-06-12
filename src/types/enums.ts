@@ -31,6 +31,18 @@ export const BrazilStates: ComboBoxItem[] = [
     { name: 'Tocantins' }
 ]
 
+export const AnimalTypes: ComboBoxItem[] = [
+    { name: 'Animais de Corte', value: 'BEEF_CATTLE' },
+    { name: 'Animais de Ordenha', value: 'DAIRY_CATTLE' },
+    { name: 'Animais de Reprodução', value: 'REPRODUCTION_ANIMALS' },
+    { name: 'Crias de Vaca', value: 'OFFSPRING' },
+]
+
+export function getAnimalTypesValue(name: string): string | undefined {
+    const typeFound = AnimalTypes.find(value => value.name === name)
+    return typeFound?.value
+}
+
 export const ReproductionStatuses: ComboBoxItem[] = [
     { name: 'Em desenvolvimento', value: 'ACTIVE' },
     { name: 'Finalizado - Parição', value: 'SUCCESS' },

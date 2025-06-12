@@ -42,8 +42,10 @@ export type AnimalsByType = {
 
 export type AnimalDashboardFilter = {
     isFiltered: boolean
+    farmId?: string
+    pastureId?: string
+    animalType?: string
     minBirthDate?: Date
     maxBirthDate?: Date
-    farms?: string[]
     isActive?: boolean
 }

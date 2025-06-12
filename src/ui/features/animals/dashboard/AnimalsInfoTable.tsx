@@ -2,7 +2,7 @@ import Card from "@mui/material/Card"
 import CardContent from "@mui/material/CardContent"
 import CardHeader from "@mui/material/CardHeader"
 import { useEffect, useState } from "react"
-import { TotalGeneral } from "../api/AnimalDashboard"
+import { AnimalDashboardFilter, TotalGeneral } from "../api/AnimalDashboard"
 import { getTotalAnimals } from "../api/AnimalController"
 import CardActions from "@mui/material/CardActions"
 import Button from "@mui/material/Button"
@@ -17,19 +17,29 @@ import TableBody from "@mui/material/TableBody"
 import Collapse from "@mui/material/Collapse"
 import { TableInfoAge } from "./TableInfoAge"
 
-export const AnimalsInfoCards = () => {
+type AnimalsInfoTableProps = {
+    filter: AnimalDashboardFilter
+    setFilter: (filter: AnimalDashboardFilter) => void
+}
+
+export const AnimalsInfoTable = ({ filter, setFilter }: AnimalsInfoTableProps) => {
 
     const [total, setTotal] = useState<TotalGeneral>({ totalAnimals: 0, totalFemales: 0, totalMales: 0 })
     const [isOpen, setOpen] = useState(false)
 
     useEffect(() => {
-        getTotalAnimals({ isFiltered: false })
+        const tableFilter: AnimalDashboardFilter = {
+            ...filter,
+            farmId: undefined,
+            pastureId: undefined
+        }
+        getTotalAnimals(tableFilter)
             .then(response => {
                 const totals = response.json
                 setTotal(totals)
             })
             .catch()
-    }, [])
+    }, [filter])
 
     return <Card variant="outlined" className="col-span-3">
         <CardHeader title="Informações Gerais" />
@@ -62,7 +72,7 @@ export const AnimalsInfoCards = () => {
             <Button startIcon={<NavigateNext />}>Ver Tabela de Rebanho</Button>
         </CardActions>
         <Collapse in={isOpen} unmountOnExit>
-            <TableInfoAge />
+            <TableInfoAge {...{ filter, setFilter }} />
         </Collapse>
     </Card>
 }
