@@ -17,6 +17,7 @@ export const ComboBox = (props: ComboBoxProps): JSX.Element => {
         renderInput={(params) => {
             return <TextField
                 {...params}
+                name={props.name}
                 size={props.size ? props.size : 'small'}
                 variant="outlined"
                 label={props.label}
@@ -46,6 +47,7 @@ interface ComboBoxProps {
     defaultValue?: ComboBoxItem;
     items: readonly ComboBoxItem[];
     onChange?: (value: string) => void
+    name?: string;
     id?: string;
 }
 

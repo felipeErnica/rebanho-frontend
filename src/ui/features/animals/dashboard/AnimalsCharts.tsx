@@ -18,8 +18,7 @@ const AgeChart = ({ filter, setFilter }: AnimalChartsProps) => {
     const [dataset, setDataset] = useState<AnimalsByAgeAndFarm[]>([])
 
     useEffect(() => {
-        const ageFilter: AnimalDashboardFilter = { ...filter, minBirthDate: undefined, maxBirthDate: undefined }
-        getGroupByAge(ageFilter)
+        getGroupByAge(filter)
             .then(response => setDataset(response.json))
     }, [filter])
 
@@ -137,8 +136,7 @@ const TypeGraph = ({ filter, setFilter }: AnimalChartsProps) => {
     const [dataset, setDataset] = useState<PieValueType[]>([])
 
     useEffect(() => {
-        const typeFilter: AnimalDashboardFilter = { ...filter, animalType: undefined }
-        getTotalByType(typeFilter)
+        getTotalByType(filter)
             .then(response => {
                 const typeData: AnimalsByType = response.json
                 const newDataset: PieValueType[] = [

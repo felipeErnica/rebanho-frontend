@@ -31,7 +31,6 @@ type TableInfoAgeProps = {
     setFilter: (filter: AnimalDashboardFilter) => void
 }
 
-
 const PastureTable = ({ columns, mainColumns }: PastureProps) => {
 
     useEffect(() => {
@@ -102,18 +101,12 @@ const TableInfoRow = ({ row, columns, mainColumns, filter, setFilter }: RowProps
 
     return <>
         <TableRow hover>
-            {columns.map((column, i) => {
-                if (i == 0) {
-                    return <TableCell
-                        onClick={() => handleClick(row['farmId'])}
-                        className="text-nowrap"
-                    >
-                        <IconButton onClick={() => setOpen(!isOpen)}>
-                            <ChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />
-                        </IconButton>
-                        {row[column.name]}
-                    </TableCell>
-                }
+            <TableCell className="text-nowrap">
+                <IconButton onClick={() => setOpen(!isOpen)}>
+                    <ChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`} />
+                </IconButton>
+            </TableCell>
+            {columns.map((column) => {
                 return <TableCell
                     onClick={() => handleClick(row['farmId'])}
                     className="text-nowrap"
@@ -124,7 +117,7 @@ const TableInfoRow = ({ row, columns, mainColumns, filter, setFilter }: RowProps
             })}
         </TableRow>
         <TableRow>
-            <TableCell colSpan={columns.length} className="p-0">
+            <TableCell colSpan={columns.length + 1} className="p-0">
                 <Collapse in={isOpen}>
                     <PastureTable {...{ columns, mainColumns }} />
                 </Collapse>
@@ -169,7 +162,7 @@ export const TableInfoAge = ({ filter, setFilter }: TableInfoAgeProps) => {
     const TableInfoHead = () => {
         return <TableHead>
             <TableRow>
-                <TableCell className="bg-gray-700" />
+                <TableCell colSpan={2} className="bg-gray-700" />
                 {mainColumns.map(column => {
                     return <TableCell
                         align="center"
@@ -181,8 +174,9 @@ export const TableInfoAge = ({ filter, setFilter }: TableInfoAgeProps) => {
                 })}
             </TableRow>
             <TableRow>
-                {columns.map(column => {
+                {columns.map((column, i) => {
                     return <TableCell
+                        colSpan={i === 0 ? 2 : 1}
                         align={column.align || 'center'}
                         className="bg-gray-700 text-white"
                         sx={{ width: column.width }}
@@ -210,7 +204,7 @@ export const TableInfoAge = ({ filter, setFilter }: TableInfoAgeProps) => {
         <TableInfoHead />
         <TableBody>
             {isLoading ?
-                <TableCell colSpan={columns.length}>
+                <TableCell colSpan={columns.length + 1}>
                     <Skeleton animation='pulse' variant="rectangular" />
                 </TableCell>
                 :
