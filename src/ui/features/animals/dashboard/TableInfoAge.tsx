@@ -53,7 +53,8 @@ const PastureTable = ({ columns, mainColumns }: PastureProps) => {
             oldFemale: 0,
             oldMale: 0,
             totalFemale: 0,
-            totalMale: 0
+            totalMale: 0,
+            total: 0
         },
     ]
 
@@ -66,6 +67,7 @@ const PastureTable = ({ columns, mainColumns }: PastureProps) => {
                         {column}
                     </TableCell>
                 })}
+                <TableCell colSpan={3} align="center">Total</TableCell>
             </TableRow>
             <TableRow>
                 {columns.map(column => {
@@ -138,7 +140,6 @@ export const TableInfoAge = ({ filter, setFilter }: TableInfoAgeProps) => {
         "13-24 meses",
         "25-36 meses",
         "+36 meses",
-        "Total",
     ]
 
     const columns: ColumnProps[] = [
@@ -157,6 +158,7 @@ export const TableInfoAge = ({ filter, setFilter }: TableInfoAgeProps) => {
         { title: "F", name: "oldFemale", type: "text", isEditable: false },
         { title: "M", name: "totalMale", type: "text", isEditable: false },
         { title: "F", name: "totalFemale", type: "text", isEditable: false },
+        { title: "Total", name: "total", type: "text", isEditable: false },
     ]
 
     const TableInfoHead = () => {
@@ -172,6 +174,13 @@ export const TableInfoAge = ({ filter, setFilter }: TableInfoAgeProps) => {
                         {column}
                     </TableCell>
                 })}
+                <TableCell 
+                    colSpan={3} 
+                    align="center"
+                    className="bg-gray-700 text-white"
+                >
+                    Total
+                </TableCell>
             </TableRow>
             <TableRow>
                 {columns.map((column, i) => {

@@ -20,10 +20,13 @@ export type AnimalsByAgeAndFarm = {
     oldFemale: number
     totalMale: number
     totalFemale: number
+    total: number
 }
 
 export type AnimalsByAge = {
     ageCategory: string
+    minBirthDate: Date
+    maxBirthDate: Date
     male: number
     female: number
 }

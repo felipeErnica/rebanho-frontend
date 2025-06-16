@@ -2,7 +2,7 @@ import { GraphContainer } from "@/ui/components/chart/GraphContainer"
 import { useEffect, useState } from "react"
 import { getGroupByAge, getGroupByYear, getTotalByType } from "../api/AnimalController"
 import { BarChart } from "@mui/x-charts/BarChart"
-import { AnimalDashboardFilter, AnimalsByAgeAndFarm, AnimalsByType, AnimalsByYear } from "../api/AnimalDashboard"
+import { AnimalDashboardFilter, AnimalsByAge, AnimalsByType, AnimalsByYear } from "../api/AnimalDashboard"
 import { lightBlue, pink } from "@mui/material/colors"
 import { PieChart } from "@mui/x-charts/PieChart"
 import { PieValueType } from "@mui/x-charts"
@@ -15,62 +15,12 @@ type AnimalChartsProps = {
 
 const AgeChart = ({ filter, setFilter }: AnimalChartsProps) => {
 
-    const [dataset, setDataset] = useState<AnimalsByAgeAndFarm[]>([])
+    const [dataset, setDataset] = useState<AnimalsByAge[]>([])
 
     useEffect(() => {
         getGroupByAge(filter)
             .then(response => setDataset(response.json))
     }, [filter])
-
-    const setNewFilterValue = (ageCategory: string) => {
-        const newFilter: AnimalDashboardFilter = { ...filter, isFiltered: true }
-        switch (ageCategory) {
-            case '0-2 meses': {
-                const currentDate = new Date()
-                currentDate.setMonth(currentDate.getMonth() - 2)
-                setFilter({ ...newFilter, minBirthDate: currentDate, maxBirthDate: undefined })
-                break
-            }
-            case '3-8 meses': {
-                const minDate = new Date()
-                const maxDate = new Date()
-                maxDate.setMonth(maxDate.getMonth() - 3)
-                minDate.setMonth(minDate.getMonth() - 8)
-                setFilter({ ...newFilter, minBirthDate: minDate, maxBirthDate: maxDate })
-                break
-            }
-            case '9-12 meses': {
-                const minDate = new Date()
-                const maxDate = new Date()
-                maxDate.setMonth(maxDate.getMonth() - 9)
-                minDate.setMonth(minDate.getMonth() - 12)
-                setFilter({ ...newFilter, minBirthDate: minDate, maxBirthDate: maxDate })
-                break
-            }
-            case '13-24 meses': {
-                const minDate = new Date()
-                const maxDate = new Date()
-                maxDate.setMonth(maxDate.getMonth() - 13)
-                minDate.setMonth(minDate.getMonth() - 24)
-                setFilter({ ...newFilter, minBirthDate: minDate, maxBirthDate: maxDate })
-                break
-            }
-            case '25-36 meses': {
-                const minDate = new Date()
-                const maxDate = new Date()
-                maxDate.setMonth(maxDate.getMonth() - 25)
-                minDate.setMonth(minDate.getMonth() - 36)
-                setFilter({ ...newFilter, minBirthDate: minDate, maxBirthDate: maxDate })
-                break
-            }
-            case '+36 meses': {
-                const maxDate = new Date()
-                maxDate.setMonth(maxDate.getMonth() - 36)
-                setFilter({ ...newFilter, minBirthDate: undefined, maxBirthDate: maxDate })
-                break
-            }
-        }
-    }
 
     return <BarChart
         sx={{
@@ -79,7 +29,8 @@ const AgeChart = ({ filter, setFilter }: AnimalChartsProps) => {
         }}
         onAxisClick={(_, params) => {
             if (!params) return
-            setNewFilterValue(params.axisValue.toString())
+            const ageCategory: AnimalsByAge = dataset[params.dataIndex]
+            setFilter({ ...filter, maxBirthDate: ageCategory.maxBirthDate, minBirthDate: ageCategory.minBirthDate })
         }}
         hideLegend
         dataset={dataset}
