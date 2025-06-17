@@ -13,3 +13,8 @@ export type AnimalSave = {
     isDna: boolean
     isGenotipagem: boolean
 }
+
+export type AnimalParent = {
+    id: string
+    publicName: string
+}
