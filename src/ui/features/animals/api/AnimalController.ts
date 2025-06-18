@@ -1,4 +1,4 @@
-import { ApiResponse } from "@/types/ApiResponse";
+import { ApiResponse } from "@/shared/entities/ApiResponse";
 import { apiPost, basePageCall } from "@/util/ApiRequest";
 import { AnimalFilter } from "./AnimalInfo";
 import { AnimalDashboardFilter } from "./AnimalDashboard";

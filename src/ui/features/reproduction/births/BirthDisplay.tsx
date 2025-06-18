@@ -3,7 +3,7 @@ import { ComboBoxItem } from "@/ui/components/common/ComboBox";
 import { Display } from "@/ui/components/display/Display";
 import { BirthFilter } from "./BirthFilter";
 import { buildTable as buildBirthTable } from "./tableModel";
-import { IFilters } from "@/interfaces/Filter";
+import { IFilters } from "@/shared/interfaces/Filter";
 
 export const BirthDisplay = (): JSX.Element => {
     const [filter, setFilter] = useState<IFilters>({ isFiltered: false })

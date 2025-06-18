@@ -1,4 +1,4 @@
-import { User } from "@/types/User"
+import { User } from "@/shared/entities/User"
 import { JSX, useState } from "react"
 import { authenticateUser } from "./api/user-authentication"
 import Button from "@mui/material/Button"

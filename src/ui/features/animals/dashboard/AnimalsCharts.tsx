@@ -6,7 +6,7 @@ import { AnimalDashboardFilter, AnimalsByAge, AnimalsByType, AnimalsByYear } fro
 import { lightBlue, pink } from "@mui/material/colors"
 import { PieChart } from "@mui/x-charts/PieChart"
 import { PieValueType } from "@mui/x-charts"
-import { getAnimalTypesValue } from "@/types/enums"
+import { getAnimalTypesValue } from "@/shared/entities/enums"
 
 type AnimalChartsProps = {
     filter: AnimalDashboardFilter

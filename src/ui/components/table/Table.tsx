@@ -1,7 +1,7 @@
 import { ComponentRef, HTMLInputTypeAttribute, JSX, useCallback, useEffect, useRef, useState } from "react";
-import { Page } from "../../../types/Page";
-import { IData, IFilters } from "@/interfaces/Filter";
-import { ApiResponse } from "@/types/ApiResponse";
+import { Page } from "../../../shared/entities/Page";
+import { IData, IFilters } from "@/shared/interfaces/Filter";
+import { ApiResponse } from "@/shared/entities/ApiResponse";
 import { TableHeadComponent } from "./TableHeadComponent";
 import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";

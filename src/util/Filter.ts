@@ -1,4 +1,4 @@
-import { IFilters } from "../interfaces/Filter";
+import { IFilters } from "../shared/interfaces/Filter";
 
 export function activateFilter<F extends IFilters>(filter: F): F {
     if (!filter.isFiltered) {

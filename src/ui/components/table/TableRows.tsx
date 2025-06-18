@@ -9,7 +9,7 @@ import Check from "@mui/icons-material/Check"
 import Close from "@mui/icons-material/Close"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
-import { IData } from "@/interfaces/Filter"
+import { IData } from "@/shared/interfaces/Filter"
 import { DatePicker } from "@mui/x-date-pickers/DatePicker"
 import dayjs from "dayjs"
 

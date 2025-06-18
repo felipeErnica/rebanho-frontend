@@ -1,4 +1,4 @@
-import { ApiResponse } from "@/types/ApiResponse"
+import { ApiResponse } from "@/shared/entities/ApiResponse"
 import { TableModelProps } from "@/ui/components/display/Display"
 import { ColumnProps } from "@/ui/components/table/Table"
 

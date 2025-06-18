@@ -3,7 +3,7 @@ import { TableTopBar } from "@/ui/components/table/TableTopBar";
 import { FilterDrawer } from "@/ui/components/common/FilterDrawer";
 import { ComboBoxItem } from "@/ui/components/common/ComboBox";
 import { TableCustom, TableProps } from "@/ui/components/table/Table";
-import { IFilters } from "@/interfaces/Filter";
+import { IFilters } from "@/shared/interfaces/Filter";
 
 export type DisplayProps = {
     sortableColumns: ComboBoxItem[]

@@ -1,5 +1,5 @@
 import { apiGet } from "@/util/ApiRequest";
-import { ApiResponse } from "@/types/ApiResponse";
+import { ApiResponse } from "@/shared/entities/ApiResponse";
 
 
 const BASE = 'animals/info/search/'

@@ -1,4 +1,4 @@
-import { BrazilStates } from "@/types/enums"
+import { BrazilStates } from "@/shared/entities/enums"
 import { AbstractFilterDiv, ComboBoxFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
 import { FilterModelProps } from "@/ui/components/display/Display"
 import { activateFilter } from "@/util/Filter"

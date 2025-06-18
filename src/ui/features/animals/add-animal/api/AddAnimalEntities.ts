@@ -1,17 +1,17 @@
-export type AnimalSave = {
+export type AddAnimalForm = {
     name: string
-    color: string
-    weightBirth: number
+    color?: string
+    weightBirth?: number
     ringNumber: string
     sex: string
-    father: string
-    mother: string
-    birthDate: Date
+    fatherId: string
+    motherId: string
+    birthDate?: Date
+    entryDate: Date
     pastureId: string
+    farmId: string
     type: string
-    observation: string
-    isDna: boolean
-    isGenotipagem: boolean
+    observation?: string
 }
 
 export type AnimalParent = {

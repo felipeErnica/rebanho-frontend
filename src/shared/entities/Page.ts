@@ -1,4 +1,4 @@
-import { IData } from "@/interfaces/Filter";
+import { IData } from "@/shared/interfaces/Filter";
 
 export type Page = {
     hasNextPage: boolean;

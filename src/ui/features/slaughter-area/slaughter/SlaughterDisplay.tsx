@@ -1,7 +1,7 @@
 import { JSX, useState } from "react";
 import { ComboBoxItem } from "@/ui/components/common/ComboBox";
 import { Display } from "@/ui/components/display/Display";
-import { IFilters } from "@/interfaces/Filter";
+import { IFilters } from "@/shared/interfaces/Filter";
 import { buildSlaughterTable } from "./TableModel";
 import { SlaughterFilter } from "./SlaughterFilter";
 

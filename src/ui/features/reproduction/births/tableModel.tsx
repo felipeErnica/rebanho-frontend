@@ -1,5 +1,5 @@
 import { ColumnProps, TableProps } from "@/ui/components/table/Table";
-import { ApiResponse } from "@/types/ApiResponse";
+import { ApiResponse } from "@/shared/entities/ApiResponse";
 import { TableModelProps } from "@/ui/components/display/Display";
 
 export const buildTable = ({ filter, sort, order }: TableModelProps): TableProps => {

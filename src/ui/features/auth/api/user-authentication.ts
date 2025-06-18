@@ -1,4 +1,4 @@
-import { JwtToken, User } from "@/types/User";
+import { JwtToken, User } from "@/shared/entities/User";
 import { authUser } from "@/util/ApiRequest";
 
 export async function authenticateUser(user: User): Promise<JwtToken> {

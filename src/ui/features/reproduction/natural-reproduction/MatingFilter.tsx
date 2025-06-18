@@ -1,4 +1,4 @@
-import { ReproductionStatuses } from "@/types/enums"
+import { ReproductionStatuses } from "@/shared/entities/enums"
 import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
 import { FilterModelProps } from "@/ui/components/display/Display"
 import { activateFilter } from "@/util/Filter"

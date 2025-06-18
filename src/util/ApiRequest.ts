@@ -1,5 +1,5 @@
-import { ApiResponse } from "@/types/ApiResponse"
-import { User } from "@/types/User"
+import { ApiResponse } from "@/shared/entities/ApiResponse"
+import { User } from "@/shared/entities/User"
 
 const BASE_URL = "http://localhost:8080"
 

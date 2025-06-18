@@ -1,4 +1,4 @@
-import { SexValues as SexValues } from "@/types/enums"
+import { SexValues as SexValues } from "@/shared/entities/enums"
 import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, NumberFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
 import { FilterModelProps } from "@/ui/components/display/Display"
 import { JSX } from "react"

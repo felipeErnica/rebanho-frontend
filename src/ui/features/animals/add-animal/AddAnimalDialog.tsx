@@ -1,4 +1,4 @@
-import { Control, Controller, SubmitHandler, useForm, UseFormRegister } from "react-hook-form"
+import { Control, Controller, FieldErrors, SubmitHandler, useForm } from "react-hook-form"
 import Button from "@mui/material/Button"
 import Dialog from "@mui/material/Dialog"
 import DialogActions from "@mui/material/DialogActions"
@@ -10,12 +10,15 @@ import Radio from "@mui/material/Radio"
 import RadioGroup from "@mui/material/RadioGroup"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
-import { DatePicker } from "@mui/x-date-pickers/DatePicker"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { searchFather, searchMother } from "./api/AddAnimalController"
-import { ParentsSearchBox } from "./ParentSearchBox"
-import { AnimalSave } from "./api/AddAnimalEntities"
+import { FormSearchBox } from "../../../components/form-controls/FormSearchBox"
+import { AddAnimalForm } from "./api/AddAnimalEntities"
 import FormControl from "@mui/material/FormControl"
+import FormHelperText from "@mui/material/FormHelperText"
+import { FormTextField } from "@/ui/components/form-controls/FormTextField"
+import { FormDatePicker } from "@/ui/components/form-controls/FormDatePicker"
+import { FormRadioGroup, RadioControlProps } from "@/ui/components/form-controls/FormRadioGroup"
 
 type AddAnimalProps = {
     isAddOpen: boolean
@@ -23,111 +26,99 @@ type AddAnimalProps = {
 }
 
 interface FormStateProps {
-    control: Control<AnimalSave, any, AnimalSave>
+    control: Control<AddAnimalForm, any, AddAnimalForm>
 }
+
+const REQUIRED_FIELD_MSG = 'Este campo é obrigatório!'
 
 const MainControls = ({ control }: FormStateProps) => {
 
     const [sex, setSex] = useState('')
+    const [typeControls, setTypeControls] = useState<RadioControlProps[]>([])
+
+    useEffect(() => {
+        const typeControls: RadioControlProps[] = [
+            { value: "OFFSPRING", label: sex === 'M' ? 'Bezerro/Garrote' : 'Bezerra/Novilha' },
+            { value: "DAIRY_CATTLE", label: "Animal de Ordenha", disabled: sex === 'M' },
+            { value: "BEEF_CATTLE", label: "Animal de Corte" },
+            { value: "REPRODUCTION_ANIMALS", label: "Animal para Reprodução" }
+        ]
+        setTypeControls(typeControls)
+    }, [sex])
+
 
     return <div className="grid grid-cols-3 gap-y-3 gap-x-2">
         <Typography variant="h6" className="col-span-3">Informações Principais</Typography>
-        <Controller
-            name="ringNumber"
-            control={control}
-            rules={{ required: true }}
-            render={({ field }) => (
-                <TextField
-                    {...field}
-                    label="Brinco"
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                />
-            )}
+        <FormTextField
+            label="Brinco*"
+            formProps={{
+                control,
+                name: "ringNumber",
+                rules: { required: REQUIRED_FIELD_MSG }
+            }}
         />
-        <Controller
-            name="name"
-            control={control}
-            rules={{ required: true }}
-            render={({ field }) => (
-                <TextField
-                    {...field}
-                    size="small"
-                    required
-                    label="Nome do Animal"
-                    variant="outlined"
-                    className="col-span-2"
-                    fullWidth
-                />
-            )}
+        <FormTextField
+            label="Nome*"
+            classname="col-span-2"
+            formProps={{
+                control,
+                name: "name",
+                rules: { required: REQUIRED_FIELD_MSG }
+            }}
         />
         <Controller
             name="sex"
             control={control}
-            rules={{ required: true }}
-            render={({ field }) => (
-                <FormControl required className="my-4 col-span-3">
-                    <FormLabel>Sexo</FormLabel>
-                    <RadioGroup id="sex" name="sex" onChange={(event) => setSex(event.target.value)} row>
+            rules={{ required: REQUIRED_FIELD_MSG }}
+            render={({ field, fieldState: { error } }) => (
+                <FormControl error={!!error} className="my-4 col-span-3">
+                    <FormLabel>Sexo*</FormLabel>
+                    <FormHelperText>{error?.message}</FormHelperText>
+                    <RadioGroup
+                        {...field}
+                        onChange={(event) => {
+                            field.onChange(event.target.value)
+                            setSex(event.target.value)
+                        }}
+                        row
+                    >
                         <FormControlLabel value="M" label="Macho" control={<Radio />} />
                         <FormControlLabel value="F" label="Fêmea" control={<Radio />} />
                     </RadioGroup>
                 </FormControl>
             )}
         />
-        <FormControl required className="my-4 col-span-3">
-            <FormLabel>Tipo de Animal</FormLabel>
-            <RadioGroup id="type" name="type" row>
-                <FormControlLabel
-                    value="OFFSPRING"
-                    label={sex === 'M' ? 'Bezerro/Garrote' : 'Bezerra/Novilha'}
-                    control={<Radio />}
-                />
-                <FormControlLabel value="BEEF_CATTLE" label="Animal de Corte" control={<Radio />} />
-                <FormControlLabel
-                    value="DAIRY_CATTLE"
-                    label="Animal de Ordenha"
-                    control={<Radio />}
-                    disabled={sex === 'M'}
-                />
-                <FormControlLabel value="REPRODUCTION_ANIMALS" label="Animal para Reprodução" control={<Radio />} />
-            </RadioGroup>
-        </FormControl>
-        <TextField
-            id="color"
-            name="color"
-            size="small"
-            className="col-span-2"
-            label="Raça do Animal"
-            variant="outlined"
+        <FormRadioGroup
+            label="Tipo de Animal*"
+            classname="my-4 col-span-3"
+            formProps={{ control, name: "type", rules: { required: REQUIRED_FIELD_MSG } }}
+            controls={typeControls}
+            row
+            colNumbers={2}
         />
-        <DatePicker
+        <FormTextField
+            label="Raça do Animal"
+            classname="col-span-2"
+            formProps={{
+                control,
+                name: "color",
+            }}
+        />
+        <FormDatePicker
             label="Data de Nascimento"
             className="col-span-2"
-            views={['year', 'month', 'day']}
-            localeText={{
-                fieldDayPlaceholder: () => 'dd',
-                fieldMonthPlaceholder: () => 'mm',
-                fieldYearPlaceholder: () => 'aaaa',
-            }}
-            slotProps={{
-                textField: { size: "small", },
-                field: { clearable: true }
+            formProps={{
+                control,
+                name: "birthDate"
             }}
         />
-        <DatePicker
-            label="Chegada do Animal"
+        <FormDatePicker
+            label="Data de Chegada*"
             className="col-span-2"
-            views={['year', 'month', 'day']}
-            localeText={{
-                fieldDayPlaceholder: () => 'dd',
-                fieldMonthPlaceholder: () => 'mm',
-                fieldYearPlaceholder: () => 'aaaa',
-            }}
-            slotProps={{
-                textField: { size: "small", required: true },
-                field: { clearable: true }
+            formProps={{
+                control,
+                name: "entryDate",
+                rules: { required: REQUIRED_FIELD_MSG }
             }}
         />
     </div>
@@ -137,68 +128,92 @@ const OtherControls = ({ control }: FormStateProps) => {
 
     return <div className="mt-10 flex flex-col gap-3">
         <Typography variant="h6" className="col-span-3">Outras Informações</Typography>
-        <ParentsSearchBox
-            label="Pai"
+        <FormSearchBox
             name="fatherId"
+            control={control}
+            required={REQUIRED_FIELD_MSG}
+            label="Pai*"
             fetchOptions={searchFather}
         />
-        <ParentsSearchBox
-            label="Mãe"
+        <FormSearchBox
+            name="motherId"
+            control={control}
+            required={REQUIRED_FIELD_MSG}
+            label="Mãe*"
             fetchOptions={searchMother}
         />
-        <TextField
-            id="farm"
-            name="farm"
-            size="small"
-            className="col-span-3"
-            label="Fazenda"
-            variant="outlined"
-            required
+        <Controller
+            control={control}
+            name="farmId"
+            //rules={{ required: true }}
+            render={({ field }) => (
+                <TextField
+                    {...field}
+                    size="small"
+                    className="col-span-3"
+                    label="Fazenda"
+                    variant="outlined"
+                />
+            )}
         />
-        <TextField
-            id="pasture"
-            name="pasture"
-            required
-            size="small"
-            className="col-span-3"
-            label="Pasto"
-            variant="outlined"
+        <Controller
+            control={control}
+            name="pastureId"
+            //rules={{ required: true }}
+            render={({ field }) => (
+                <TextField
+                    {...field}
+                    size="small"
+                    className="col-span-3"
+                    label="Pasto"
+                    variant="outlined"
+                />
+            )}
         />
-        <TextField
-            id="observation"
-            name="observation"
-            className="col-span-3"
+        <FormTextField
             label="Observações"
             multiline
             rows={4}
             maxRows={6}
-            variant="outlined"
+            formProps={{
+                control,
+                name: "observation"
+            }}
         />
     </div>
-
 }
 
 const AnimalForm = ({ control }: FormStateProps) => {
     return <div className="flex flex-col p-3">
-        <MainControls {...{  control }} />
+        <MainControls {...{ control }} />
         <OtherControls {...{ control }} />
     </div>
 }
 
 export const AddAnimalDialog = ({ isAddOpen, setAddOpen }: AddAnimalProps) => {
 
-    const { control, handleSubmit } = useForm<AnimalSave>()
+    const { control, handleSubmit, reset } = useForm<AddAnimalForm>({ mode: 'onSubmit' })
 
-    const onSubmit: SubmitHandler<AnimalSave> = (data) => {
+    useEffect(() => {
+        if (isAddOpen) reset()
+    }, [isAddOpen, reset])
+
+    const onSubmit: SubmitHandler<AddAnimalForm> = (data) => {
         console.log(data)
+        setAddOpen(false)
     }
+
+    const onError = (errors: FieldErrors<AddAnimalForm>) => {
+        console.log('FORM ERRORS:', errors);
+    };
 
     return <Dialog
         open={isAddOpen}
+        onClose={() => setAddOpen(false)}
         slotProps={{
             paper: {
                 component: 'form',
-                onSubmit: handleSubmit(onSubmit)
+                onSubmit: handleSubmit(onSubmit, onError),
             }
         }}
     >
