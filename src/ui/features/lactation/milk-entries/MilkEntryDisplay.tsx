@@ -1,11 +1,12 @@
 import { JSX, useState } from "react";
-import { ComboBoxItem } from "@/ui/components/common/ComboBox";
-import { Display } from "@/ui/components/display/Display";
+import { ComboBoxItem } from "@/ui/shared/common/ComboBox";
+import { TableDisplay } from "@/ui/shared/display/Display";
 import { IFilters } from "@/shared/interfaces/Filter";
 import { buildMilkTable } from "./TableModel";
 import { MilkEntriesFilter } from "./MilkEntriesFilter";
 
-export const MilkDisplay = (): JSX.Element => {
+export const MilkTable = (): JSX.Element => {
+
     const [filter, setFilter] = useState<IFilters>({ isFiltered: false })
     const [order, setOrder] = useState('asc')
     const [sort, setSort] = useState('value')
@@ -19,7 +20,7 @@ export const MilkDisplay = (): JSX.Element => {
         { name: "Marcação de Leite", value: "milkQuantity" },
     ]
 
-    return <Display
+    return <TableDisplay
         order={order}
         setOrder={setOrder}
         sort={sort}

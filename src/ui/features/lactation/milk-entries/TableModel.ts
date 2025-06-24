@@ -1,6 +1,6 @@
-import { ColumnProps, TableProps } from "@/ui/components/table/Table";
+import { ColumnProps, TableProps } from "@/ui/shared/table/Table";
 import { ApiResponse } from "@/shared/entities/ApiResponse";
-import { TableModelProps } from "@/ui/components/display/Display";
+import { TableModelProps } from "@/ui/shared/display/Display";
 
 export const buildMilkTable = ({ filter, sort, order }: TableModelProps): TableProps => {
 

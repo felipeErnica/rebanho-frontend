@@ -1,6 +1,6 @@
 import { SexValues } from "@/shared/entities/enums"
-import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, NumberFilterDiv, TextFilterDiv } from "@/ui/components/common/CommonFilterDivs"
-import { FilterModelProps } from "@/ui/components/display/Display"
+import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, NumberFilterDiv, TextFilterDiv } from "@/ui/shared/common/CommonFilterDivs"
+import { FilterModelProps } from "@/ui/shared/display/Display"
 import { activateFilter } from "@/util/Filter"
 
 export const LactationFilter = ({ filter, setFilter }: FilterModelProps) => {

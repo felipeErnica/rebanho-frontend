@@ -1,24 +1,18 @@
-import { Control, Controller, FieldErrors, SubmitHandler, useForm } from "react-hook-form"
+import { Control, FieldErrors, SubmitHandler, useForm } from "react-hook-form"
 import Button from "@mui/material/Button"
 import Dialog from "@mui/material/Dialog"
 import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import FormLabel from "@mui/material/FormLabel"
-import Radio from "@mui/material/Radio"
-import RadioGroup from "@mui/material/RadioGroup"
-import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 import { useEffect, useState } from "react"
-import { searchFather, searchMother } from "./api/AddAnimalController"
-import { FormSearchBox } from "../../../components/form-controls/FormSearchBox"
+import { searchFarm, searchFather, searchMother } from "./api/AddAnimalController"
+import { FormSearchBox } from "../../../shared/form-controls/FormSearchBox"
 import { AddAnimalForm } from "./api/AddAnimalEntities"
-import FormControl from "@mui/material/FormControl"
-import FormHelperText from "@mui/material/FormHelperText"
-import { FormTextField } from "@/ui/components/form-controls/FormTextField"
-import { FormDatePicker } from "@/ui/components/form-controls/FormDatePicker"
-import { FormRadioGroup, RadioControlProps } from "@/ui/components/form-controls/FormRadioGroup"
+import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
+import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
+import { FormRadioGroup, RadioControlProps } from "@/ui/shared/form-controls/FormRadioGroup"
+import { PastureSearchBox } from "./PastureSearchBox"
 
 type AddAnimalProps = {
     isAddOpen: boolean
@@ -35,6 +29,11 @@ const MainControls = ({ control }: FormStateProps) => {
 
     const [sex, setSex] = useState('')
     const [typeControls, setTypeControls] = useState<RadioControlProps[]>([])
+
+    const sexOptions: RadioControlProps[] = [
+        { value: "M", label: "Macho" }, 
+        { value: "F", label: "Fêmea" }
+    ]
 
     useEffect(() => {
         const typeControls: RadioControlProps[] = [
@@ -66,27 +65,13 @@ const MainControls = ({ control }: FormStateProps) => {
                 rules: { required: REQUIRED_FIELD_MSG }
             }}
         />
-        <Controller
-            name="sex"
-            control={control}
-            rules={{ required: REQUIRED_FIELD_MSG }}
-            render={({ field, fieldState: { error } }) => (
-                <FormControl error={!!error} className="my-4 col-span-3">
-                    <FormLabel>Sexo*</FormLabel>
-                    <FormHelperText>{error?.message}</FormHelperText>
-                    <RadioGroup
-                        {...field}
-                        onChange={(event) => {
-                            field.onChange(event.target.value)
-                            setSex(event.target.value)
-                        }}
-                        row
-                    >
-                        <FormControlLabel value="M" label="Macho" control={<Radio />} />
-                        <FormControlLabel value="F" label="Fêmea" control={<Radio />} />
-                    </RadioGroup>
-                </FormControl>
-            )}
+        <FormRadioGroup
+            label="Sexo*"
+            classname="my-4 col-span-3"
+            controls={sexOptions}
+            onChange={(value) => setSex(value)}
+            formProps={{ control, name: 'sex', rules: { required: REQUIRED_FIELD_MSG } }}
+            row
         />
         <FormRadioGroup
             label="Tipo de Animal*"
@@ -94,7 +79,6 @@ const MainControls = ({ control }: FormStateProps) => {
             formProps={{ control, name: "type", rules: { required: REQUIRED_FIELD_MSG } }}
             controls={typeControls}
             row
-            colNumbers={2}
         />
         <FormTextField
             label="Raça do Animal"
@@ -126,49 +110,51 @@ const MainControls = ({ control }: FormStateProps) => {
 
 const OtherControls = ({ control }: FormStateProps) => {
 
+    const [farmId, setFarmId] = useState<string>()
+
     return <div className="mt-10 flex flex-col gap-3">
         <Typography variant="h6" className="col-span-3">Outras Informações</Typography>
         <FormSearchBox
-            name="fatherId"
-            control={control}
-            required={REQUIRED_FIELD_MSG}
+            formProps={{
+                control,
+                name: "fatherId",
+                rules: { required: REQUIRED_FIELD_MSG }
+            }}
             label="Pai*"
             fetchOptions={searchFather}
         />
         <FormSearchBox
-            name="motherId"
-            control={control}
-            required={REQUIRED_FIELD_MSG}
+            formProps={{
+                control,
+                name: "motherId",
+                rules: { required: REQUIRED_FIELD_MSG }
+            }}
             label="Mãe*"
             fetchOptions={searchMother}
         />
-        <Controller
-            control={control}
-            name="farmId"
-            //rules={{ required: true }}
-            render={({ field }) => (
-                <TextField
-                    {...field}
-                    size="small"
-                    className="col-span-3"
-                    label="Fazenda"
-                    variant="outlined"
-                />
-            )}
+        <FormSearchBox
+            formProps={{
+                control,
+                name: "farmId",
+                rules: { required: REQUIRED_FIELD_MSG }
+            }}
+            onChange={(value) => setFarmId(value?.id)}
+            label="Fazenda*"
+            fetchOptions={searchFarm}
+            className="col-span-3"
+
         />
-        <Controller
-            control={control}
-            name="pastureId"
-            //rules={{ required: true }}
-            render={({ field }) => (
-                <TextField
-                    {...field}
-                    size="small"
-                    className="col-span-3"
-                    label="Pasto"
-                    variant="outlined"
-                />
-            )}
+        <PastureSearchBox
+            disabled={!farmId}
+            farmId={farmId}
+            formProps={{
+                control,
+                name: "pastureId",
+                rules: { required: REQUIRED_FIELD_MSG }
+            }}
+            label="Pasto*"
+            className="col-span-3"
+
         />
         <FormTextField
             label="Observações"

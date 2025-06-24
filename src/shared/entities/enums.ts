@@ -1,4 +1,4 @@
-import { ComboBoxItem } from "@/ui/components/common/ComboBox"
+import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 
 //Página contendo matrizes de valores constantes para a utilização na lógica de negócio
 export const BrazilStates: ComboBoxItem[] = [

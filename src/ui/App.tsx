@@ -1,7 +1,7 @@
 import "./App.css"
 import { Routes, Route, HashRouter } from "react-router-dom";
 import { LoginDisplay } from "@/ui/features/auth/LoginDisplay";
-import { PageDisplay } from "@/ui/components/main-page/PageDisplay";
+import { PageDisplay } from "@/ui/shared/main-page/PageDisplay";
 
 export const App = () => {
 

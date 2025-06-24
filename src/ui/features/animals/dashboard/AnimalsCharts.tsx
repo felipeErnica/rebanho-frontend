@@ -1,12 +1,12 @@
-import { GraphContainer } from "@/ui/components/chart/GraphContainer"
+import { GraphContainer } from "@/ui/shared/chart/GraphContainer"
 import { useEffect, useState } from "react"
-import { getGroupByAge, getGroupByYear, getTotalByType } from "../api/AnimalController"
 import { BarChart } from "@mui/x-charts/BarChart"
-import { AnimalDashboardFilter, AnimalsByAge, AnimalsByType, AnimalsByYear } from "../api/AnimalDashboard"
+import { AnimalDashboardFilter, AnimalsByAge, AnimalsByType } from "./api/DashboardEntities"
 import { lightBlue, pink } from "@mui/material/colors"
 import { PieChart } from "@mui/x-charts/PieChart"
 import { PieValueType } from "@mui/x-charts"
 import { getAnimalTypesValue } from "@/shared/entities/enums"
+import { getGroupByAge, getTotalByType } from "./api/DashboardController"
 
 type AnimalChartsProps = {
     filter: AnimalDashboardFilter
@@ -30,7 +30,9 @@ const AgeChart = ({ filter, setFilter }: AnimalChartsProps) => {
         onAxisClick={(_, params) => {
             if (!params) return
             const ageCategory: AnimalsByAge = dataset[params.dataIndex]
-            setFilter({ ...filter, maxBirthDate: ageCategory.maxBirthDate, minBirthDate: ageCategory.minBirthDate })
+            const maxBirthDate = ageCategory.maxBirthDate
+            const minBirthDate = ageCategory.minBirthDate
+            setFilter({ ...filter, maxBirthDate, minBirthDate })
         }}
         hideLegend
         dataset={dataset}
@@ -45,40 +47,10 @@ const AgeChart = ({ filter, setFilter }: AnimalChartsProps) => {
         }}
         yAxis={[{ dataKey: "ageCategory", width: 85 }]}
         series={[
-            { dataKey: "male", label: "Macho", color: lightBlue[600] },
-            { dataKey: "female", label: "Fêmea", color: pink[600] },
+            { id: "male", dataKey: "male", label: "Macho", color: lightBlue[600] },
+            { id: "female", dataKey: "female", label: "Fêmea", color: pink[600] },
         ]}
         layout="horizontal"
-    />
-}
-
-const CattleGrowthGraph = ({ filter }: AnimalChartsProps) => {
-
-    const [dataset, setDataset] = useState<AnimalsByYear[]>([])
-
-    useEffect(() => {
-        getGroupByYear(filter, 2022, 2025)
-            .then(respose => setDataset(respose.json))
-    }, [filter])
-
-    return <BarChart
-        sx={{
-            height: '100%',
-            width: '100%'
-        }}
-        localeText={{
-            loading: "Carregando Dados...",
-            noData: "Não há dados disponíveis"
-        }}
-        dataset={dataset}
-        xAxis={[{ dataKey: 'year' }]}
-        yAxis={[{
-            width: 60,
-            valueFormatter: (value: any) => {
-                return value > 1000 ? `${value / 1000} mil` : value
-            },
-        }]}
-        series={[{ dataKey: 'totalAnimals' }]}
     />
 }
 
@@ -112,7 +84,7 @@ const TypeGraph = ({ filter, setFilter }: AnimalChartsProps) => {
             setFilter({ ...filter, isFiltered: true, animalType: type })
         }}
         series={[{
-            innerRadius: 40,
+            innerRadius: 90,
             highlightScope: { fade: 'global', highlight: 'item' },
             data: dataset
         }]}
@@ -122,18 +94,12 @@ const TypeGraph = ({ filter, setFilter }: AnimalChartsProps) => {
 
 export const AnimalCharts = ({ filter, setFilter }: AnimalChartsProps) => {
 
-    const CHART_HEIGHT = 150
+    const CHART_HEIGHT = 180
 
     return <>
         <GraphContainer
-            title="Evolução do Rebanho"
-            height={CHART_HEIGHT}
-        >
-            <CattleGrowthGraph {...{ filter, setFilter }} />
-        </GraphContainer>
-        <GraphContainer
             title="Animais por Idade"
-            className="row-span-2 col-span-2"
+            className="col-span-2"
             height={CHART_HEIGHT * 2}
         >
             <AgeChart {...{ filter, setFilter }} />

@@ -1,6 +1,9 @@
-import { AnimalDisplay } from "@/ui/features/animals/AnimalDisplay";
-import { JSX } from "react";
+import { PageProps } from "@/ui/shared/main-page/PageDisplay";
+import Home from "@mui/icons-material/Home"
+import { HomeDashboard } from "./HomeDash";
 
-export const HomePage = (): JSX.Element => {
-    return <AnimalDisplay />
+export const HomePage: PageProps = {
+    title: "Início",
+    crumbIcon: <Home />,
+    page: <HomeDashboard />
 }

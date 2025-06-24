@@ -1,9 +1,8 @@
 import Card from "@mui/material/Card"
 import CardContent from "@mui/material/CardContent"
 import CardHeader from "@mui/material/CardHeader"
-import { useEffect, useState } from "react"
-import { AnimalDashboardFilter, TotalGeneral } from "../api/AnimalDashboard"
-import { getTotalAnimals } from "../api/AnimalController"
+import { useContext, useEffect, useState } from "react"
+import { AnimalDashboardFilter, TotalGeneral } from "./api/DashboardEntities"
 import CardActions from "@mui/material/CardActions"
 import Button from "@mui/material/Button"
 import Add from "@mui/icons-material/Add"
@@ -18,6 +17,9 @@ import TableBody from "@mui/material/TableBody"
 import Collapse from "@mui/material/Collapse"
 import { TableInfoAge } from "./TableInfoAge"
 import { AddAnimalDialog } from "../add-animal/AddAnimalDialog"
+import { getTotalAnimals } from "./api/DashboardController"
+import { PageContext } from "@/ui/shared/main-page/PageContext"
+import { AnimalTablePage } from "../AnimalsPage"
 
 type AnimalsInfoTableProps = {
     filter: AnimalDashboardFilter
@@ -29,6 +31,7 @@ export const AnimalsInfoTable = ({ filter, setFilter }: AnimalsInfoTableProps) =
     const [total, setTotal] = useState<TotalGeneral>({ totalAnimals: 0, totalFemales: 0, totalMales: 0 })
     const [isOpen, setOpen] = useState(false)
     const [isAddOpen, setAddOpen] = useState(false)
+    const { setPageProps } = useContext(PageContext)
 
     useEffect(() => {
         const tableFilter: AnimalDashboardFilter = {
@@ -89,7 +92,12 @@ export const AnimalsInfoTable = ({ filter, setFilter }: AnimalsInfoTableProps) =
             >
                 Adicionar Animal
             </Button>
-            <Button startIcon={<NavigateNext />}>Ver Tabela de Rebanho</Button>
+            <Button
+                onClick={() => setPageProps && setPageProps(AnimalTablePage)}
+                startIcon={<NavigateNext />}
+            >
+                Ver Tabela de Rebanho
+            </Button>
         </CardActions>
         <Collapse in={isOpen} unmountOnExit>
             <TableInfoAge {...{ filter, setFilter }} />

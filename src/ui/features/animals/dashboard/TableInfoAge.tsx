@@ -1,17 +1,17 @@
-import { ColumnProps } from "@/ui/components/table/Table"
+import { ColumnProps } from "@/ui/shared/table/Table"
 import Table from "@mui/material/Table"
 import TableCell from "@mui/material/TableCell"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import { useEffect, useState } from "react"
-import { AnimalDashboardFilter, AnimalsByAgeAndFarm } from "../api/AnimalDashboard"
-import { getGroupByAgeFarm } from "../api/AnimalController"
+import { AnimalDashboardFilter, AnimalsByAgeAndFarm } from "./api/DashboardEntities"
 import TableBody from "@mui/material/TableBody"
 import { IDashboardData } from "@/shared/interfaces/Filter"
 import Skeleton from "@mui/material/Skeleton"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import IconButton from "@mui/material/IconButton"
 import Collapse from "@mui/material/Collapse"
+import { getGroupByAgeFarm, getGroupByAgePasture } from "./api/DashboardController"
 
 type RowProps = {
     row: IDashboardData
@@ -24,6 +24,9 @@ type RowProps = {
 type PastureProps = {
     columns: ColumnProps[]
     mainColumns: string[]
+    filter: AnimalDashboardFilter
+    setFilter: (filter: AnimalDashboardFilter) => void
+    farmId: string
 }
 
 type TableInfoAgeProps = {
@@ -31,32 +34,18 @@ type TableInfoAgeProps = {
     setFilter: (filter: AnimalDashboardFilter) => void
 }
 
-const PastureTable = ({ columns, mainColumns }: PastureProps) => {
+const PastureTable = ({ columns, mainColumns, filter, farmId, setFilter }: PastureProps) => {
+
+    const [values, setValues] = useState<IDashboardData[]>([])
 
     useEffect(() => {
         columns[0].title = ""
-    }, [columns])
+        getGroupByAgePasture(filter, farmId)
+            .then(response => setValues(response.json))
+            .catch(() => setValues([]))
+    }, [columns, farmId, filter])
 
-    const values: IDashboardData[] = [
-        {
-            farmName: "Pasto 1",
-            newbornFemale: 0,
-            newbornMale: 0,
-            babyFemale: 0,
-            babyMale: 0,
-            childFemale: 0,
-            childMale: 0,
-            youngFemale: 0,
-            youngMale: 0,
-            adultFemale: 0,
-            adultMale: 0,
-            oldFemale: 0,
-            oldMale: 0,
-            totalFemale: 0,
-            totalMale: 0,
-            total: 0
-        },
-    ]
+    const handleClick = (pastureId: string) => setFilter({ ...filter, pastureId })
 
     const TablePastureHead = () => {
         return <TableHead>
@@ -83,9 +72,12 @@ const PastureTable = ({ columns, mainColumns }: PastureProps) => {
         <TablePastureHead />
         <TableBody>
             {values.map(value => {
-                return <TableRow>
+                return <TableRow hover>
                     {columns.map(column => {
-                        return <TableCell align={column.align || 'center'} >
+                        return <TableCell
+                            align={column.align || 'center'}
+                            onClick={() => handleClick(value["farmId"])}
+                        >
                             {value[column.name]}
                         </TableCell>
                     })}
@@ -121,7 +113,7 @@ const TableInfoRow = ({ row, columns, mainColumns, filter, setFilter }: RowProps
         <TableRow>
             <TableCell colSpan={columns.length + 1} className="p-0">
                 <Collapse in={isOpen}>
-                    <PastureTable {...{ columns, mainColumns }} />
+                    <PastureTable {...{ columns, mainColumns, filter, setFilter, farmId: row["farmId"] }} />
                 </Collapse>
             </TableCell>
         </TableRow>
@@ -174,8 +166,8 @@ export const TableInfoAge = ({ filter, setFilter }: TableInfoAgeProps) => {
                         {column}
                     </TableCell>
                 })}
-                <TableCell 
-                    colSpan={3} 
+                <TableCell
+                    colSpan={3}
                     align="center"
                     className="bg-gray-700 text-white"
                 >
