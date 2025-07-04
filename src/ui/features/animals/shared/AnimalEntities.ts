@@ -8,9 +8,16 @@ export type AnimalSave = {
     motherId: string
     birthDate: Date
     pastureId: string
-    type: string
+    animalType: AnimalType
     observation: string
-    isDna: boolean
-    isGenotipagem: boolean
 }
 
+export enum AnimalType {
+    REPRODUCTION_ANIMAL = "REPRODUCTION_ANIMAL",
+    DAIRY_ANIMAL = "DAIRY_ANIMAL", 
+    BEEF_ANIMAL = "BEEF_ANIMAL",
+    OFFSPRING = "OFFSPRING",
+    DEAD_ANIMAL = "DEAD_ANIMAL",
+    SLAUGHTERED_ANIMAL = "SLAUGHTERED_ANIMAL",
+    OUTSIDE_ANIMAL = "OUTSIDE_ANIMAL",
+}

@@ -9,4 +9,3 @@ export async function findPage(sort: string, order: string, cursor: string, filt
     const response = await apiPost<AnimalFilter>(apiCall, filter)
     return response;
 }
-

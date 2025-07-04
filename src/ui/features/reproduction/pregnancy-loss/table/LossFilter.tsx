@@ -1,26 +1,24 @@
 import { LossTypes } from "@/shared/entities/enums"
-import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/shared/common/CommonFilterDivs"
-import { FilterModelProps } from "@/ui/shared/display/Display"
-import { activateFilter } from "@/util/Filter"
+import { IFilters } from "@/shared/interfaces/Filter"
+import { AbstractFilterDiv, OldComboBoxFilterDiv, OldDateFilterDiv, OldTextFilterDiv } from "@/ui/shared/filter-controls/CommonFilterDivs"
+import { OldFilterModelProps } from "@/ui/shared/display/Display"
 
-export const LossFilter = ({ filter, setFilter }: FilterModelProps) => {
+export const LossFilter = ({control}: OldFilterModelProps<IFilters>) => {
     return <>
         <AbstractFilterDiv mainTitle="Informações principais">
-            <TextFilterDiv label="Brinco:" />
-            <TextFilterDiv
+            <OldTextFilterDiv label="Brinco:" />
+            <OldTextFilterDiv
                 label="Nome:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
+                onChange={() => {
+                    console.log(control)
                 }}
             />
-            <ComboBoxFilterDiv
+            <OldComboBoxFilterDiv
                 label="Tipo de Perda"
                 items={LossTypes}
             />
         </AbstractFilterDiv>
 
-        <DateFilterDiv mainTitle="Data de Perda" />
+        <OldDateFilterDiv mainTitle="Data de Perda" />
     </>
 }

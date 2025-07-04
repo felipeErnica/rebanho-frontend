@@ -1,32 +1,152 @@
-import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, NumberFilterDiv, TextFilterDiv } from "@/ui/shared/common/CommonFilterDivs"
+import { SexValues } from "@/shared/entities/enums"
 import { FilterModelProps } from "@/ui/shared/display/Display"
-import { activateFilter } from "@/util/Filter"
-import { JSX } from "react"
+import { AbstractFilterGroup } from "@/ui/shared/filter-controls/AbstractFilterGroup"
+import { ComboBoxFilter } from "@/ui/shared/filter-controls/ComboBoxFilter"
+import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
+import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter"
+import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
+import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
+import { searchFarm, searchFather, searchMother, searchPasture } from "../shared/AnimalController"
+import { useEffect, useState } from "react"
 
-export const AnimalFilterElement = ({ setFilter, filter }: FilterModelProps): JSX.Element => {
+export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => {
+
+    const [farmsId, setFarmsId] = useState<string[]>([])
+
+    useEffect(() => console.log(farmsId.toString()), [farmsId])
+
     return <>
-        <AbstractFilterDiv mainTitle="Informações principais">
-            <TextFilterDiv label="Brinco:" />
-            <TextFilterDiv
-                label="Nome:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
-                }}
-            />
-            <ComboBoxFilterDiv
-                label="Sexo:"
-                items={[{ name: 'M' }, { name: 'F' }]}
-            />
-        </AbstractFilterDiv>
+        <AbstractFilterGroup mainTitle="Informações principais">
+            <div className="grid grid-cols-6 grid-flow-row gap-4">
+                <TextFilter
+                    label="Brinco"
+                    fieldName="ringNumber"
+                    className="col-span-2"
+                    filter={filter}
+                    setFilter={setFilter}
+                />
+                <TextFilter
+                    label="Nome"
+                    fieldName="name"
+                    filter={filter}
+                    setFilter={setFilter}
+                    className="col-span-4"
+                />
+                <ComboBoxFilter
+                    label="Sexo"
+                    className="col-span-2"
+                    items={SexValues}
+                    fieldName="sex"
+                    filter={filter}
+                    setFilter={setFilter}
+                />
+                <MultipleSearchBoxFilter
+                    label="Pais"
+                    limitTags={1}
+                    filter={filter}
+                    setFilter={setFilter}
+                    fetchOptions={searchFather}
+                    fieldName="fathers"
+                    className=" col-start-1 col-span-3"
+                />
+                <MultipleSearchBoxFilter
+                    label="Mães"
+                    limitTags={1}
+                    filter={filter}
+                    setFilter={setFilter}
+                    fetchOptions={searchMother}
+                    fieldName="mothers"
+                    className="col-span-3"
+                />
+                <MultipleSearchBoxFilter
+                    label="Fazendas"
+                    limitTags={2}
+                    filter={filter}
+                    setFilter={setFilter}
+                    fetchOptions={searchFarm}
+                    fieldName="farms"
+                    onChange={(value) => {
+                        if (!value) {
+                            setFarmsId([])
+                            return
+                        }
+                        setFarmsId(value.map(farm => farm.id))
+                    }}
+                    className="col-span-6"
+                />
+                <MultipleSearchBoxFilter
+                    label="Pastos"
+                    disabled={farmsId.length === 0}
+                    limitTags={2}
+                    filter={filter}
+                    setFilter={setFilter}
+                    fetchOptions={searchPasture}
+                    fieldName="pastures"
+                    className="col-span-6"
+                />
+            </div>
+        </AbstractFilterGroup>
 
-        <DateFilterDiv mainTitle="Data de Nascimento" />
-        <DateFilterDiv mainTitle="Data de Morte" />
-        <NumberFilterDiv mainTitle="Valor de Pico" step=".1" />
-        <NumberFilterDiv mainTitle="Intervalo entre Partos Médio" step=".1" />
-        <NumberFilterDiv mainTitle="I.S.R. Médio" step=".1" />
-        <NumberFilterDiv mainTitle="Produção Média" step=".1" />
-        <NumberFilterDiv mainTitle="Quantidade de Filho" />
+        <DateFilter
+            mainTitle="Data de Nascimento"
+            maxFieldName="maxBirthDate"
+            minFieldName="minBirthDate"
+            setFilter={setFilter}
+            filter={filter}
+        />
+        <DateFilter
+            mainTitle="Data de Morte"
+            maxFieldName="maxDeathDate"
+            minFieldName="minDeathDate"
+            setFilter={setFilter}
+            filter={filter}
+        />
+        <DateFilter
+            mainTitle="Data de Desmame"
+            maxFieldName="maxWeaningDate"
+            minFieldName="minWeaningDate"
+            setFilter={setFilter}
+            filter={filter}
+        />
+
+        <NumberFilter
+            mainTitle="Valor de Pico"
+            maxFieldName="maxPeak"
+            minFieldName="minPeak"
+            setFilter={setFilter}
+            filter={filter}
+            step=".1"
+        />
+        <NumberFilter
+            mainTitle="Intervalo entre Partos Médio"
+            maxFieldName="maxAverageBirthInterval"
+            minFieldName="minAverageBirthInterval"
+            setFilter={setFilter}
+            filter={filter}
+            step=".1"
+        />
+        <NumberFilter
+            mainTitle="I.S.R. Médio"
+            maxFieldName="maxIsr"
+            minFieldName="minIsr"
+            setFilter={setFilter}
+            filter={filter}
+            step=".1"
+        />
+        <NumberFilter
+            mainTitle="Produção Média"
+            maxFieldName="maxAverageProd"
+            minFieldName="minAverageProd"
+            setFilter={setFilter}
+            filter={filter}
+            step=".1"
+        />
+        <NumberFilter
+            mainTitle="Quantidade de Filho"
+            maxFieldName="maxChildrenQuantity"
+            minFieldName="minChildrenQuantity"
+            setFilter={setFilter}
+            filter={filter}
+        />
     </>
 }

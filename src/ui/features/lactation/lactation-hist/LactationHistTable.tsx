@@ -4,6 +4,7 @@ import { TableDisplay } from "@/ui/shared/display/Display";
 import { IFilters } from "@/shared/interfaces/Filter";
 import { buildLactationTable } from "./TableModel";
 import { LactationFilter } from "./LactationHistFilter";
+import { useFilterForm } from "@/ui/shared/common/FilterUtil";
 
 export const LactationHistTable = (): JSX.Element => {
     const [filter, setFilter] = useState<IFilters>({ isFiltered: false })
@@ -11,6 +12,8 @@ export const LactationHistTable = (): JSX.Element => {
     const [sort, setSort] = useState('value')
 
     const tableProps = buildLactationTable({ filter, sort, order })
+    const { control, handleSubmit } = useFilterForm<IFilters>()
+    const filterPanel = <LactationFilter {...{ control }} />
 
     const sortableColumns: ComboBoxItem[] = [
         { name: "Brinco", value: "cowNumber" },
@@ -25,13 +28,15 @@ export const LactationHistTable = (): JSX.Element => {
         { name: "I.S.R.", value: "isr" },
     ]
 
-    return <TableDisplay
-        order={order}
-        setOrder={setOrder}
-        sort={sort}
-        setSort={setSort}
-        filterPanel={<LactationFilter filter={filter} setFilter={setFilter} />}
-        sortableColumns={sortableColumns}
-        tableProps={tableProps}
-    />
+    return <TableDisplay {...{
+        order,
+        setOrder,
+        sort,
+        setSort,
+        sortableColumns,
+        filterPanel,
+        tableProps,
+        handleSubmit,
+        setFilter
+    }}/>
 }

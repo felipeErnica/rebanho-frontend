@@ -1,27 +1,27 @@
 import { ReproductionStatuses } from "@/shared/entities/enums"
-import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/shared/common/CommonFilterDivs"
-import { FilterModelProps } from "@/ui/shared/display/Display"
+import { IFilters } from "@/shared/interfaces/Filter"
+import { AbstractFilterDiv, OldComboBoxFilterDiv, OldDateFilterDiv, OldTextFilterDiv } from "@/ui/shared/filter-controls/CommonFilterDivs"
+import { OldFilterModelProps } from "@/ui/shared/display/Display"
 import { JSX } from "react"
 
-export const BirthTestFilter = ({ filter, setFilter }: FilterModelProps): JSX.Element => {
+export const BirthTestFilter = ({ control }: OldFilterModelProps<IFilters>): JSX.Element => {
     return <>
         <AbstractFilterDiv mainTitle="Informações principais">
-            <TextFilterDiv
+            <OldTextFilterDiv
                 label="Brinco:"
                 onChange={() => {
-                    console.log(filter)
-                    setFilter({ isFiltered: false })
+                    console.log(control)
                 }}
             />
-            <TextFilterDiv label="Nome da Vaca:" />
-            <TextFilterDiv label="Nome do Pai:" />
-            <ComboBoxFilterDiv
+            <OldTextFilterDiv label="Nome da Vaca:" />
+            <OldTextFilterDiv label="Nome do Pai:" />
+            <OldComboBoxFilterDiv
                 label="Status:"
                 items={ReproductionStatuses}
             />
         </AbstractFilterDiv>
 
-        <DateFilterDiv mainTitle="Data do Toque" />
-        <DateFilterDiv mainTitle="Data Prevista do Parto" />
+        <OldDateFilterDiv mainTitle="Data do Toque" />
+        <OldDateFilterDiv mainTitle="Data Prevista do Parto" />
     </>
 }

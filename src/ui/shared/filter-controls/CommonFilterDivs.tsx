@@ -1,22 +1,22 @@
-import { ChangeEventHandler, JSX, ReactNode, useState } from "react";
+import { JSX, ReactNode, useState } from "react";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { ComboBox, ComboBoxItem } from "./ComboBox";
+import { ComboBox, ComboBoxItem } from "../common/ComboBox";
 
-type NumberDateFilterProps = {
+type OldNumberDateFilterProps = {
     mainTitle: string;
     step?: string;
 }
 
-type TextFilterProps = {
+type OldTextFilterProps = {
     label: string
-    onChange?: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
+    onChange?: (value: any) => void
 }
 
-type ComboBoxFilterProps = {
+type OldComboBoxFilterProps = {
     label: string
-    onChange?: (value: string) => void
+    onChange?: (value: any) => void
     items: ComboBoxItem[]
 }
 
@@ -34,17 +34,22 @@ export const AbstractFilterDiv = (props: AbstractFilterDivProps): JSX.Element =>
     </div >
 }
 
-export const TextFilterDiv = (props: TextFilterProps): JSX.Element => {
+export const OldTextFilterDiv = ({ onChange, label }: OldTextFilterProps): JSX.Element => {
     return <TextField
         size="small"
         variant="outlined"
         type="search"
-        label={props.label}
-        onChange={props.onChange}
+        label={label}
+        onChange={(event) => {
+            if (!onChange) return
+            const value = event.currentTarget.value
+            onChange(value != '' ? value : undefined)
+        }}
     />
 }
 
-export const ComboBoxFilterDiv = (props: ComboBoxFilterProps) => {
+
+export const OldComboBoxFilterDiv = (props: OldComboBoxFilterProps) => {
     return <ComboBox
         size="small"
         label={props.label}
@@ -53,22 +58,23 @@ export const ComboBoxFilterDiv = (props: ComboBoxFilterProps) => {
     />
 }
 
-export const NumberFilterDiv = (props: NumberDateFilterProps): JSX.Element => {
+
+export const OldNumberFilterDiv = ({ mainTitle, step }: OldNumberDateFilterProps): JSX.Element => {
 
     const [minError, setMinError] = useState(false)
     const [maxError, setMaxError] = useState(false)
     const [minValue, setMinValue] = useState<number | undefined>()
     const [maxValue, setMaxValue] = useState<number | undefined>()
 
-    return <AbstractFilterDiv mainTitle={props.mainTitle}>
+    return <AbstractFilterDiv mainTitle={mainTitle}>
         <TextField
             type="number"
             error={minError}
-            label='De:'
+            label='De'
             helperText={minError ? 'Insira um valor menor que o do campo abaixo' : null}
             size="small"
             slotProps={{
-                htmlInput: { step: props.step },
+                htmlInput: { step },
             }}
             onChange={(event) => {
                 const newValue = Number(event.currentTarget.value)
@@ -85,9 +91,9 @@ export const NumberFilterDiv = (props: NumberDateFilterProps): JSX.Element => {
             type="number"
             error={maxError}
             helperText={maxError ? 'Insira um valor maior que o do campo acima' : null}
-            label='Até:'
+            label='Até'
             slotProps={{
-                htmlInput: { step: props.step },
+                htmlInput: { step },
             }}
             onChange={(event) => {
                 const newValue = Number(event.currentTarget.value)
@@ -104,7 +110,7 @@ export const NumberFilterDiv = (props: NumberDateFilterProps): JSX.Element => {
     </AbstractFilterDiv>
 }
 
-export const DateFilterDiv = (props: NumberDateFilterProps): JSX.Element => {
+export const OldDateFilterDiv = (props: OldNumberDateFilterProps): JSX.Element => {
 
     const [maxError, setMaxError] = useState(false)
     const [minError, setMinError] = useState(false)

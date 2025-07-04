@@ -4,6 +4,7 @@ import { TableDisplay } from "@/ui/shared/display/Display";
 import { IFilters } from "@/shared/interfaces/Filter";
 import { buildMilkTable } from "./TableModel";
 import { MilkEntriesFilter } from "./MilkEntriesFilter";
+import { useFilterForm } from "@/ui/shared/common/FilterUtil";
 
 export const MilkTable = (): JSX.Element => {
 
@@ -12,6 +13,8 @@ export const MilkTable = (): JSX.Element => {
     const [sort, setSort] = useState('value')
 
     const tableProps = buildMilkTable({ filter, sort, order })
+    const { handleSubmit, control } = useFilterForm()
+    const filterPanel = <MilkEntriesFilter {...{ control }} />
 
     const sortableColumns: ComboBoxItem[] = [
         { name: "Brinco", value: "animalNumber" },
@@ -20,13 +23,16 @@ export const MilkTable = (): JSX.Element => {
         { name: "Marcação de Leite", value: "milkQuantity" },
     ]
 
-    return <TableDisplay
-        order={order}
-        setOrder={setOrder}
-        sort={sort}
-        setSort={setSort}
-        filterPanel={<MilkEntriesFilter filter={filter} setFilter={setFilter} />}
-        sortableColumns={sortableColumns}
-        tableProps={tableProps}
+    return <TableDisplay {...{
+        order,
+        setOrder,
+        sort,
+        setSort,
+        sortableColumns,
+        tableProps,
+        filterPanel,
+        handleSubmit,
+        setFilter
+    }}
     />
 }

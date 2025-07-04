@@ -1,34 +1,27 @@
 import { SexValues as SexOptions } from "@/shared/entities/enums"
-import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, TextFilterDiv } from "@/ui/shared/common/CommonFilterDivs"
-import { FilterModelProps } from "@/ui/shared/display/Display"
-import { activateFilter } from "@/util/Filter"
+import { IFilters } from "@/shared/interfaces/Filter"
+import { AbstractFilterDiv, OldComboBoxFilterDiv, OldDateFilterDiv, OldTextFilterDiv } from "@/ui/shared/filter-controls/CommonFilterDivs"
+import { OldFilterModelProps } from "@/ui/shared/display/Display"
 
-export const SlaughterFilter = ({ filter, setFilter }: FilterModelProps) => {
+export const SlaughterFilter = ({control}: OldFilterModelProps<IFilters>) => {
     return <>
         <AbstractFilterDiv mainTitle="Informações principais">
-            <TextFilterDiv label="Brinco:" />
-            <TextFilterDiv
+            <OldTextFilterDiv label="Brinco:" />
+            <OldTextFilterDiv
                 label="Nome do Animal:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
+                onChange={() => {
+                    console.log(control)
                 }}
             />
-            <TextFilterDiv
+            <OldTextFilterDiv
                 label="Nome do Frigorífico:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
-                }}
             />
-            <ComboBoxFilterDiv
+            <OldComboBoxFilterDiv
                 label="Sexo:"
                 items={SexOptions}
             />
         </AbstractFilterDiv>
 
-        <DateFilterDiv mainTitle="Data de Abate" />
+        <OldDateFilterDiv mainTitle="Data de Abate" />
     </>
 }

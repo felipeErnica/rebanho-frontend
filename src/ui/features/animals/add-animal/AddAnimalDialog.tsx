@@ -5,14 +5,15 @@ import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import Typography from "@mui/material/Typography"
-import { useEffect, useState } from "react"
-import { searchFarm, searchFather, searchMother } from "./api/AddAnimalController"
+import { useCallback, useEffect, useState } from "react"
 import { FormSearchBox } from "../../../shared/form-controls/FormSearchBox"
 import { AddAnimalForm } from "./api/AddAnimalEntities"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormRadioGroup, RadioControlProps } from "@/ui/shared/form-controls/FormRadioGroup"
-import { PastureSearchBox } from "./PastureSearchBox"
+import { AnimalType } from "../shared/AnimalEntities"
+import { searchFarm, searchFather, searchMother, searchPasture } from "../shared/AnimalController"
+import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 
 type AddAnimalProps = {
     isAddOpen: boolean
@@ -23,7 +24,6 @@ interface FormStateProps {
     control: Control<AddAnimalForm, any, AddAnimalForm>
 }
 
-const REQUIRED_FIELD_MSG = 'Este campo é obrigatório!'
 
 const MainControls = ({ control }: FormStateProps) => {
 
@@ -37,10 +37,10 @@ const MainControls = ({ control }: FormStateProps) => {
 
     useEffect(() => {
         const typeControls: RadioControlProps[] = [
-            { value: "OFFSPRING", label: sex === 'M' ? 'Bezerro/Garrote' : 'Bezerra/Novilha' },
-            { value: "DAIRY_CATTLE", label: "Animal de Ordenha", disabled: sex === 'M' },
-            { value: "BEEF_CATTLE", label: "Animal de Corte" },
-            { value: "REPRODUCTION_ANIMALS", label: "Animal para Reprodução" }
+            { value: AnimalType.OFFSPRING, label: sex === 'M' ? 'Bezerro/Garrote' : 'Bezerra/Novilha' },
+            { value: AnimalType.DAIRY_ANIMAL, label: "Animal de Ordenha", disabled: sex === 'M' },
+            { value: AnimalType.BEEF_ANIMAL, label: "Animal de Corte" },
+            { value: AnimalType.REPRODUCTION_ANIMAL, label: "Animal para Reprodução" }
         ]
         setTypeControls(typeControls)
     }, [sex])
@@ -111,6 +111,7 @@ const MainControls = ({ control }: FormStateProps) => {
 const OtherControls = ({ control }: FormStateProps) => {
 
     const [farmId, setFarmId] = useState<string>()
+    const fetchPasture = useCallback((input: string) => searchPasture(input, farmId), [farmId])
 
     return <div className="mt-10 flex flex-col gap-3">
         <Typography variant="h6" className="col-span-3">Outras Informações</Typography>
@@ -144,9 +145,9 @@ const OtherControls = ({ control }: FormStateProps) => {
             className="col-span-3"
 
         />
-        <PastureSearchBox
+        <FormSearchBox
             disabled={!farmId}
-            farmId={farmId}
+            fetchOptions={fetchPasture}
             formProps={{
                 control,
                 name: "pastureId",

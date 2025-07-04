@@ -1,9 +1,10 @@
-import { JSX, ReactNode, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { TableTopBar } from "@/ui/shared/table/TableTopBar";
-import { FilterDrawer } from "@/ui/shared/common/FilterDrawer";
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox";
-import { TableCustom, TableProps } from "@/ui/shared/table/Table";
+import { TableCustom, TableProps } from "@/ui/shared/table/TableCustom";
 import { IFilters } from "@/shared/interfaces/Filter";
+import { Control, UseFormHandleSubmit } from "react-hook-form";
+import { FilterPopover } from "./FilterPopover";
 
 export type DisplayProps = {
     sortableColumns: ComboBoxItem[]
@@ -13,6 +14,9 @@ export type DisplayProps = {
     setOrder: (order: string) => void
     sort: string
     setSort: (sort: string) => void
+    handleSubmit?: UseFormHandleSubmit<IFilters>
+    setFilter?: (filter: IFilters) => void
+    otherActions?: ReactNode | ReactNode[]
 }
 
 export type TableModelProps = {
@@ -21,30 +25,42 @@ export type TableModelProps = {
     order: string
 }
 
+export type OldFilterModelProps<T extends IFilters> = {
+    control: Control<T>
+}
+
 export type FilterModelProps = {
     filter: IFilters
     setFilter: (filter: IFilters) => void
 }
 
-export const TableDisplay = (props: DisplayProps): JSX.Element => {
-    const [isDrawerOpen, setOpenDrawer] = useState(false)
+export const TableDisplay = (props: DisplayProps) => {
 
-    return <div className="h-full grid grid-cols-[1fr_auto] overflow-hidden">
-        <div className="h-full grid grid-rows-[auto_1fr] overflow-hidden">
+    const [isDrawerOpen, setOpenDrawer] = useState(false)
+    const filterButtonRef = useRef<HTMLButtonElement>(null)
+
+    return <div className="h-full overflow-hidden">
+        <div className="h-full flex flex-col overflow-hidden">
             <TableTopBar
+                buttonRef={filterButtonRef}
                 sortableColumns={props.sortableColumns}
+                setFilter={props.setFilter}
                 order={props.order}
                 sort={props.sort}
                 setOrder={props.setOrder}
                 setSort={props.setSort}
                 isDrawerOpen={isDrawerOpen}
                 setOpenDrawer={setOpenDrawer}
+                otherActions={props.otherActions}
             />
             <TableCustom {...props.tableProps} />
         </div>
-        <FilterDrawer
+        <FilterPopover
+            setOpen={setOpenDrawer}
+            isOpen={isDrawerOpen}
             childPanel={props.filterPanel}
-            isOpen={isDrawerOpen} setOpen={setOpenDrawer}
+            setFilter={props.setFilter}
+            anchorEl={filterButtonRef}
         />
     </div>
 }

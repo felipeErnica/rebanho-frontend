@@ -1,16 +1,10 @@
-import { ColumnProps, TableProps } from "@/ui/shared/table/Table";
-import { findPage } from "../api/AnimalController";
+import { TableProps } from "@/ui/shared/table/TableCustom";
+import { findPage } from "./api/AnimalController";
 import { ApiResponse } from "@/shared/entities/ApiResponse";
 import { TableModelProps } from "@/ui/shared/display/Display";
+import { columns } from "./api/AnimalInfo";
 
 export const buildTable = ({ filter, sort, order }: TableModelProps): TableProps => {
-    const columns: ColumnProps[] = [
-        { title: "Brinco", name: "ringNumber", type: 'text', isEditable: true },
-        { title: "Nome", name: "name", type: 'text', isEditable: true },
-        { title: "Data de Nascimento", name: "birthDate", type: 'date', isEditable: true },
-        { title: "Data de Morte", name: "deathDate", type: 'date', isEditable: true },
-        { title: "Intervalo de Parição Médio", name: "averageBirthInterval", type: 'number', isEditable: false }
-    ]
 
     const onDeleteRow = (id: string) => {
         console.log(`Deleted Row: ${id}`)
@@ -21,7 +15,8 @@ export const buildTable = ({ filter, sort, order }: TableModelProps): TableProps
     }
 
     const fetchNextPage = async (cursor: string): Promise<ApiResponse> => {
-        return findPage(sort, order, cursor, filter)
+        const resp = await findPage(sort, order, cursor, filter)
+        return resp
     }
 
     return {

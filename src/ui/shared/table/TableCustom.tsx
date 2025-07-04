@@ -16,8 +16,9 @@ export type ColumnProps = {
     name: string
     width?: number
     type: HTMLInputTypeAttribute;
-    isEditable: boolean
+    isEditable?: boolean
     step?: string
+    format?: (value: any) => any
 }
 
 export type TableProps = {
@@ -50,13 +51,13 @@ export function TableCustom(props: TableProps): JSX.Element {
     const [list, setList] = useState<IData[]>([])
     const [isLoading, setLoading] = useState(false)
 
-    const heightRef = useRef(0)
+    const heightRef = useRef<number>(0)
 
     const calculateRef = () => {
         const scrollContainer = scrollRef.current
 
         if (!scrollContainer) return
-        heightRef.current = scrollContainer.scrollHeight
+        heightRef.current = scrollContainer.scrollHeight - 1
     }
 
     useEffect(() => {
@@ -79,7 +80,7 @@ export function TableCustom(props: TableProps): JSX.Element {
                 setIndex(0)
                 setLoading(false)
             })
-    }, [props])
+    }, [props, props.filter])
 
     const putScrollAtTop = () => {
         const scrollContainer = scrollRef.current
@@ -141,11 +142,11 @@ export function TableCustom(props: TableProps): JSX.Element {
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage(page.nextCursor)
             .then((result) => {
-                const page: Page = result.json
-                setPage(page)
-                setPageList(list => [...list, page])
+                const newPage: Page = result.json
+                setPage(newPage)
+                setPageList(list => [...list, newPage])
                 setIndex(index + 1)
-                setList([...fillerList, ...page.list])
+                setList([...fillerList, ...newPage.list])
                 putScrollAtTop()
                 setLoading(false)
             })
@@ -177,26 +178,31 @@ export function TableCustom(props: TableProps): JSX.Element {
         }
     }, [fetchData, fetchPreviousData, index, isLoading])
 
-    return <div
-        className="h-full overflow-auto"
-        ref={scrollRef}
-        onScroll={handleScroll}
-        onResize={() => calculateRef()}
-    >
-        <Table stickyHeader className="min-w-full w-max">
-            <TableHead>
-                <TableHeadComponent columns={props.columns} />
-            </TableHead>
-            <TableBody>
-                {list && list.map((row) => {
-                    return <TableRows
-                        row={row}
-                        onSaveRow={props.onSaveRow}
-                        onDeleteRow={props.onDeleteRow}
-                        columns={props.columns}
-                    />
-                })}
-            </TableBody>
-        </Table>
+    return <div className="h-full flex flex-col overflow-hidden">
+        <div
+            className="grow overflow-auto"
+            ref={scrollRef}
+            onScroll={handleScroll}
+            onResize={calculateRef}
+        >
+            <Table stickyHeader size="small" className="min-w-full w-max">
+                <TableHead>
+                    <TableHeadComponent columns={props.columns} />
+                </TableHead>
+                <TableBody>
+                    {list && list.map((row) => {
+                        return <TableRows
+                            row={row}
+                            onSaveRow={props.onSaveRow}
+                            onDeleteRow={props.onDeleteRow}
+                            columns={props.columns}
+                        />
+                    })}
+                </TableBody>
+            </Table>
+        </div>
+        <div className="flex flex-row p-4">
+            <span>{page && `Total: ${page.total}`}</span>
+        </div>
     </div>
 }

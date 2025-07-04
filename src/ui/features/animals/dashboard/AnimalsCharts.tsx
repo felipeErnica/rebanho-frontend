@@ -5,8 +5,8 @@ import { AnimalDashboardFilter, AnimalsByAge, AnimalsByType } from "./api/Dashbo
 import { lightBlue, pink } from "@mui/material/colors"
 import { PieChart } from "@mui/x-charts/PieChart"
 import { PieValueType } from "@mui/x-charts"
-import { getAnimalTypesValue } from "@/shared/entities/enums"
 import { getGroupByAge, getTotalByType } from "./api/DashboardController"
+import { AnimalType } from "../shared/AnimalEntities"
 
 type AnimalChartsProps = {
     filter: AnimalDashboardFilter
@@ -16,6 +16,7 @@ type AnimalChartsProps = {
 const AgeChart = ({ filter, setFilter }: AnimalChartsProps) => {
 
     const [dataset, setDataset] = useState<AnimalsByAge[]>([])
+    const [sex, setSex] = useState<string>()
 
     useEffect(() => {
         getGroupByAge(filter)
@@ -27,12 +28,20 @@ const AgeChart = ({ filter, setFilter }: AnimalChartsProps) => {
             height: '100%',
             width: '100%'
         }}
+        onHighlightChange={(item) => {
+            if (!item) {
+                setSex(undefined)
+                return
+            }
+            const sex = item.seriesId === 'male' ? 'M' : 'F'
+            setSex(sex)
+        }}
         onAxisClick={(_, params) => {
             if (!params) return
             const ageCategory: AnimalsByAge = dataset[params.dataIndex]
             const maxBirthDate = ageCategory.maxBirthDate
             const minBirthDate = ageCategory.minBirthDate
-            setFilter({ ...filter, maxBirthDate, minBirthDate })
+            setFilter({ ...filter, maxBirthDate, minBirthDate, sex })
         }}
         hideLegend
         dataset={dataset}
@@ -47,8 +56,8 @@ const AgeChart = ({ filter, setFilter }: AnimalChartsProps) => {
         }}
         yAxis={[{ dataKey: "ageCategory", width: 85 }]}
         series={[
-            { id: "male", dataKey: "male", label: "Macho", color: lightBlue[600] },
-            { id: "female", dataKey: "female", label: "Fêmea", color: pink[600] },
+            { id: "male", dataKey: "male", label: "Macho", color: lightBlue[600], highlightScope: { highlight: 'item', fade: 'global' } },
+            { id: "female", dataKey: "female", label: "Fêmea", color: pink[600], highlightScope: { highlight: 'item', fade: 'global' } },
         ]}
         layout="horizontal"
     />
@@ -72,23 +81,33 @@ const TypeGraph = ({ filter, setFilter }: AnimalChartsProps) => {
             })
     }, [filter])
 
-    return <PieChart
-        sx={{
-            height: '100%',
-            width: '100%'
-        }}
-        onItemClick={(_, highlightItem) => {
-            const itemName = dataset[highlightItem.dataIndex].label
-            if (!itemName) return
-            const type = getAnimalTypesValue(itemName.toString())
-            setFilter({ ...filter, isFiltered: true, animalType: type })
-        }}
-        series={[{
-            innerRadius: 90,
-            highlightScope: { fade: 'global', highlight: 'item' },
-            data: dataset
-        }]}
-    />
+    function getAnimalTypesValue(label: string): string | undefined {
+        switch (label) {
+        case "Animais de Corte": return AnimalType.BEEF_ANIMAL
+        case "Animais de Ordenha": return AnimalType.DAIRY_ANIMAL
+        case "Animais de Reprodução": return AnimalType.REPRODUCTION_ANIMAL
+        case "Crias de Vaca": return AnimalType.OFFSPRING
+        default: return undefined
+    }
+}
+
+return <PieChart
+    sx={{
+        height: '100%',
+        width: '100%'
+    }}
+    onItemClick={(_, highlightItem) => {
+        const itemName = dataset[highlightItem.dataIndex].label
+        if (!itemName) return
+        const type = getAnimalTypesValue(itemName.toString())
+        setFilter({ ...filter, isFiltered: true, animalType: type })
+    }}
+    series={[{
+        innerRadius: 90,
+        highlightScope: { fade: 'global', highlight: 'item' },
+        data: dataset
+    }]}
+/>
 
 }
 

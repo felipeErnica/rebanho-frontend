@@ -1,52 +1,42 @@
 import { SexValues } from "@/shared/entities/enums"
-import { AbstractFilterDiv, ComboBoxFilterDiv, DateFilterDiv, NumberFilterDiv, TextFilterDiv } from "@/ui/shared/common/CommonFilterDivs"
-import { FilterModelProps } from "@/ui/shared/display/Display"
-import { activateFilter } from "@/util/Filter"
+import { IFilters } from "@/shared/interfaces/Filter"
+import { AbstractFilterDiv, OldComboBoxFilterDiv, OldDateFilterDiv, OldNumberFilterDiv, OldTextFilterDiv } from "@/ui/shared/filter-controls/CommonFilterDivs"
+import { OldFilterModelProps } from "@/ui/shared/display/Display"
+import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 
-export const LactationFilter = ({ filter, setFilter }: FilterModelProps) => {
+export const LactationFilter = ({ control }: OldFilterModelProps<IFilters>) => {
     return <>
         <AbstractFilterDiv mainTitle="Informações principais">
-            <TextFilterDiv
+            <FormTextField
                 label="Brinco"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
+                formProps={{
+                    control,
+                    name: 'name'
                 }}
             />
-            <TextFilterDiv
+            <OldTextFilterDiv
                 label="Nome da Vaca:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
-                }}
             />
-            <TextFilterDiv
+            <OldTextFilterDiv
                 label="Pasto:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
-                }}
             />
         </AbstractFilterDiv>
 
         <AbstractFilterDiv mainTitle="Informações do Bezerro">
-            <ComboBoxFilterDiv
+            <OldComboBoxFilterDiv
                 label="Sexo do Bezerro"
                 items={SexValues}
             />
-            <TextFilterDiv label="Pai de Bezerro:" />
+            <OldTextFilterDiv label="Pai de Bezerro:" />
         </AbstractFilterDiv>
 
-        <DateFilterDiv mainTitle="Data de Parição:" />
-        <DateFilterDiv mainTitle="Data de Início:" />
-        <DateFilterDiv mainTitle="Data de Fim:" />
-        <NumberFilterDiv mainTitle="Período de Produção" step=".5" />
-        <NumberFilterDiv mainTitle="Produçao Total" step=".5" />
-        <NumberFilterDiv mainTitle="Produção Média" step=".5" />
-        <NumberFilterDiv mainTitle="Pico de Produção" step=".5" />
-        <NumberFilterDiv mainTitle="I.S.R." step=".5" />
+        <OldDateFilterDiv mainTitle="Data de Parição:" />
+        <OldDateFilterDiv mainTitle="Data de Início:" />
+        <OldDateFilterDiv mainTitle="Data de Fim:" />
+        <OldNumberFilterDiv mainTitle="Período de Produção" step=".5" />
+        <OldNumberFilterDiv mainTitle="Produçao Total" step=".5" />
+        <OldNumberFilterDiv mainTitle="Produção Média" step=".5" />
+        <OldNumberFilterDiv mainTitle="Pico de Produção" step=".5" />
+        <OldNumberFilterDiv mainTitle="I.S.R." step=".5" />
     </>
 }

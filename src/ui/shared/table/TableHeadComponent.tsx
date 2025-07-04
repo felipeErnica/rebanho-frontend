@@ -1,5 +1,5 @@
 import { ComponentRef, createRef, useCallback, useEffect, useRef, useState } from "react";
-import { ColumnProps } from "./Table";
+import { ColumnProps } from "./TableCustom";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 
@@ -62,22 +62,18 @@ export const TableHeadComponent = ({ columns }: HeadComponentProps) => {
         return () => removeListeners()
     }, [columns, handleMouseMove, handleMouseUp, removeListeners])
 
-    return <TableRow >
+    return <TableRow>
         {columns.map((column, i) => {
-            return <TableCell 
+            return <TableCell
                 sx={{ minWidth: `${DEFAULT_MIN_WIDTH}px`, width: `${columnWidths[i]}px` }}
-                align={column.align}
-                className={
-                    `bg-gray-700 text-white text-nowrap 
-                    overflow-hidden overflow-ellipsis`
-                }
+                className="bg-gray-700 text-white text-nowrap overflow-hidden overflow-ellipsis"
             >
                 <span>{column.title}</span>
-                {i < columns.length - 1 ? <div ref={handlerRefs[i]}
-                    onMouseDown={(e) => handleMouseDown(e, i) } 
+                {i < columns.length - 1 && <div ref={handlerRefs[i]}
+                    onMouseDown={(e) => handleMouseDown(e, i)}
                     className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[3px]
                     hover:bg-gray-200"
-                /> : null}
+                />}
             </TableCell>
         })}
     </TableRow>

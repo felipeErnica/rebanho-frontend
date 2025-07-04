@@ -1,4 +1,4 @@
-import { ColumnProps } from "@/ui/shared/table/Table"
+import { ColumnProps } from "@/ui/shared/table/TableCustom"
 import Table from "@mui/material/Table"
 import TableCell from "@mui/material/TableCell"
 import TableHead from "@mui/material/TableHead"

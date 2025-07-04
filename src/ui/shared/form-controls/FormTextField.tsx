@@ -1,4 +1,5 @@
 import TextField from "@mui/material/TextField"
+import { HTMLInputTypeAttribute } from "react"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 
 type FormTextFieldProps<T extends FieldValues> = {
@@ -7,6 +8,7 @@ type FormTextFieldProps<T extends FieldValues> = {
     formProps: UseControllerProps<T>
     multiline?: boolean
     rows?: number
+    type?:HTMLInputTypeAttribute
     maxRows?: number
 }
 
@@ -16,6 +18,7 @@ export const FormTextField = <T extends FieldValues>({
     classname,
     rows,
     maxRows,
+    type,
     multiline
 }: FormTextFieldProps<T>) => {
     return <Controller
@@ -23,6 +26,7 @@ export const FormTextField = <T extends FieldValues>({
         render={({ field, fieldState }) => (
             <TextField
                 {...field}
+                type={type}
                 className={classname}
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}

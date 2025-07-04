@@ -1,28 +1,21 @@
 import { BrazilStates } from "@/shared/entities/enums"
-import { AbstractFilterDiv, ComboBoxFilterDiv, TextFilterDiv } from "@/ui/shared/common/CommonFilterDivs"
-import { FilterModelProps } from "@/ui/shared/display/Display"
-import { activateFilter } from "@/util/Filter"
+import { IFilters } from "@/shared/interfaces/Filter"
+import { AbstractFilterDiv, OldComboBoxFilterDiv, OldTextFilterDiv } from "@/ui/shared/filter-controls/CommonFilterDivs"
+import { OldFilterModelProps } from "@/ui/shared/display/Display"
 
-export const SlaughterhouseFilter = ({ filter, setFilter }: FilterModelProps) => {
+export const SlaughterhouseFilter = ({control}: OldFilterModelProps<IFilters>) => {
     return <>
         <AbstractFilterDiv mainTitle="Informações principais">
-            <TextFilterDiv
+            <OldTextFilterDiv
                 label="Nome do Frigorífico:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
+                onChange={() => {
+                    console.log(control)
                 }}
             />
-            <TextFilterDiv
+            <OldTextFilterDiv
                 label="Cidade:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
-                }}
             />
-            <ComboBoxFilterDiv
+            <OldComboBoxFilterDiv
                 label="Estado:"
                 items={BrazilStates}
             />

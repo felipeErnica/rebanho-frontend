@@ -2,8 +2,8 @@ import Autocomplete from "@mui/material/Autocomplete"
 import { useCallback, useEffect, useState } from "react"
 import TextField from "@mui/material/TextField"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
-import { searchPasture } from "./api/AddAnimalController"
 import { SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
+import { searchPasture } from "../shared/AnimalController"
 
 type FormSearchBoxProps<T extends FieldValues> = {
     label: string

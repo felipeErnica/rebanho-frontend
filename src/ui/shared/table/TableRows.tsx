@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { JSX, useCallback, useEffect, useState } from "react"
-import { ColumnAlign, ColumnProps } from "./Table"
+import { JSX, useEffect, useState } from "react"
+import { ColumnProps } from "./TableCustom"
 import TextField from "@mui/material/TextField"
 import IconButton from "@mui/material/IconButton"
 import Delete from "@mui/icons-material/Delete"
@@ -27,7 +27,6 @@ type RowValues = {
 export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
 
     const [isEditableRow, setEditableRow] = useState(false)
-    const [isControlsVisible, setControlsVisible] = useState(false)
     const [editedValues, setEditedValues] = useState<RowValues>({})
 
     useEffect(() => {
@@ -37,11 +36,11 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
         })
         setEditedValues(values)
         setEditableRow(false)
-        setControlsVisible(false)
     }, [columns, row])
 
     const DeleteButton = (): JSX.Element => {
         return <IconButton
+            size="small"
             onClick={() => {
                 if (onDeleteRow) onDeleteRow(row.id)
             }}
@@ -51,7 +50,7 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
     }
 
     const EditButton = (): JSX.Element => {
-        return <IconButton onClick={() => setEditableRow(true)} >
+        return <IconButton size="small" onClick={() => setEditableRow(true)} >
             <Edit />
         </IconButton>
     }
@@ -63,18 +62,15 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
         return rowButtons
     }
 
-    const ControlButtonsPanel = useCallback(() => {
+    const ControlButtonsPanel = () => {
         if (rowButtons().length == 0) return
-        if (isControlsVisible) {
-            return <div className="grow flex flex-row justify-end gap-4 pr-4" >
-                {rowButtons()}
-            </div>
-        }
-        return null
-    }, [isControlsVisible])
+        return <div className="flex flex-row gap-4">
+            {rowButtons()}
+        </div>
+    }
 
     const EditButtonsPanel = () => {
-        return <div className="grow flex flex-row justify-end gap-4 pr-4">
+        return <div className="flex flex-row gap-4">
             <IconButton
                 onClick={() => {
                     columns.forEach(column => row[column.name] = editedValues[column.name])
@@ -93,20 +89,6 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
         </div>
     }
 
-    const CellBody = (isLast: boolean, value: any, align?: ColumnAlign): JSX.Element => {
-        if (isLast) {
-            return <TableCell align={align} className="overflow-hidden text-nowrap overflow-ellipsis">
-                <div className="flex flex-row items-center">
-                    <span> {value} </span>
-                    {ControlButtonsPanel()}
-                </div>
-            </TableCell>
-        }
-
-        return <TableCell align={align} className="overflow-hidden text-nowrap overflow-ellipsis">
-            <span>{value}</span>
-        </TableCell>
-    }
 
     const EditableComponent = (value: any, props: ColumnProps): JSX.Element => {
         if (props.type === 'date' || props.type === 'datetime-local') {
@@ -149,34 +131,33 @@ export function TableRows({ row, columns, onDeleteRow, onSaveRow }: RowProps) {
         return <span>{value}</span>
     }
 
-    const EditableCellBody = (isLast: boolean, value: any, props: ColumnProps): JSX.Element => {
-        if (isLast) {
-            return <TableCell align={props.align} className="overflow-hidden text-nowrap overflow-ellipsis">
-                <div className="flex flex-row items-center">
-                    {EditableCellContent(value, props)}
-                    {EditButtonsPanel()}
-                </div>
-            </TableCell>
-        }
+    const ButtonPanel = () => {
+        return isEditableRow ? <EditButtonsPanel /> : <ControlButtonsPanel />
+    }
 
-        return <TableCell align={props.align} className="overflow-hidden text-nowrap overflow-ellipsis">
-            {EditableCellContent(value, props)}
+    const CellContent = (index: number, value: any, props: ColumnProps) => {
+        if (index == 0) {
+            return <div className="flex flex-row gap-6 items-center">
+                <ButtonPanel />
+                {isEditableRow ? EditableCellContent(value, props) : <span>{value}</span>}
+            </div>
+        }
+        return isEditableRow ? EditableCellContent(value, props) : <span>{value}</span>
+    }
+
+    const CellBody = (index: number, value: any, props: ColumnProps): JSX.Element => {
+        return <TableCell
+            align={props.align}
+            className="overflow-hidden text-nowrap overflow-ellipsis"
+        >
+            {CellContent(index, value, props)}
         </TableCell>
     }
 
-    if (isEditableRow) {
-        return <TableRow key={row.id} hover>
-            {columns.map((column, i) => EditableCellBody(i === columns.length - 1, row[column.name], column))}
-        </TableRow>
-    }
-
-    return <TableRow
-        key={row.id}
-        onMouseOver={() => setControlsVisible(true)}
-        onMouseLeave={() => setControlsVisible(false)}
-    >
-        {columns.map((column, i) => {
-            return CellBody(i === columns.length - 1, row[column.name], column.align)
+    return <TableRow key={row.id} hover>
+        {columns.map((column, index) => {
+            const value = column.format ? column.format(row[column.name]) : row[column.name]
+            return CellBody(index, value, column)
         })}
     </TableRow>
 }

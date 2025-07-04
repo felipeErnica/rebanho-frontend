@@ -4,28 +4,37 @@ import { TableDisplay } from "@/ui/shared/display/Display";
 import { IFilters } from "@/shared/interfaces/Filter";
 import { buildWeightTable } from "./TableModel";
 import { WeightFilter } from "./WeightFilter";
+import { useFilterForm } from "@/ui/shared/common/FilterUtil";
 
 export const WeightTable = (): JSX.Element => {
-    const [filter, setFilter] = useState<IFilters>({ isFiltered: false })
-    const [order, setOrder] = useState('asc')
-    const [sort, setSort] = useState('value')
+    const [filter, setFilter] = useState<IFilters>({ isFiltered: false });
+    const [order, setOrder] = useState("asc");
+    const [sort, setSort] = useState("value");
 
-    const tableProps = buildWeightTable({ filter, sort, order })
+    const tableProps = buildWeightTable({ filter, sort, order });
+
+    const { handleSubmit, control } = useFilterForm<IFilters>();
+    const filterPanel = <WeightFilter {...{ control }} />;
 
     const sortableColumns: ComboBoxItem[] = [
         { name: "Brinco", value: "animalNumber" },
         { name: "Nome do Animal", value: "animalName" },
         { name: "Data da Pesagem", value: "groupDate" },
         { name: "Peso", value: "weight" },
-    ]
+    ];
 
-    return <TableDisplay
-        order={order}
-        setOrder={setOrder}
-        sort={sort}
-        setSort={setSort}
-        filterPanel={<WeightFilter filter={filter} setFilter={setFilter} />}
-        sortableColumns={sortableColumns}
-        tableProps={tableProps}
-    />
-}
+    return (
+        <TableDisplay
+            order={order}
+            setOrder={setOrder}
+            sort={sort}
+            setSort={setSort}
+            filterPanel={filterPanel}
+            sortableColumns={sortableColumns}
+            tableProps={tableProps}
+            handleSubmit={handleSubmit}
+            setFilter={setFilter}
+        />
+    );
+};
+

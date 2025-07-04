@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import Autocomplete from "@mui/material/Autocomplete"
 import { useEffect, useState } from "react"
 import TextField from "@mui/material/TextField"
@@ -8,6 +9,7 @@ type FormSearchBoxProps<T extends FieldValues> = {
     label: string
     formProps: UseControllerProps<T>
     fetchOptions: (input: string) => Promise<ApiResponse>
+    args?: any[]
     className?: string
     disabled?: boolean
     onChange?: (newValue: SearchBoxItem | null) => void 
@@ -48,7 +50,7 @@ export function FormSearchBox<T extends FieldValues>({
         }
         fetchOptions(inputValue).then(response => setOptions(response.json))
             .catch(() => setOptions([]))
-    }, [inputValue, fetchOptions])
+    }, [inputValue])
 
     return <Controller
         {...formProps}
@@ -63,7 +65,6 @@ export function FormSearchBox<T extends FieldValues>({
                 onInputChange={(_, input) => setInputValue(input)}
                 open={open}
                 options={options}
-                value={field.value ? options.find(option => field.value === option.id) : null}
                 onChange={(_, newValue) => {
                     if (!newValue) {
                         field.onChange(null)

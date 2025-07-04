@@ -1,6 +1,6 @@
 import { ApiResponse } from "@/shared/entities/ApiResponse";
 import { TableModelProps } from "@/ui/shared/display/Display";
-import { ColumnProps } from "@/ui/shared/table/Table";
+import { ColumnProps } from "@/ui/shared/table/TableCustom";
 
 export function buildInseminationTable({ filter, order, sort }: TableModelProps) {
 

@@ -1,37 +1,25 @@
-import { AbstractFilterDiv, DateFilterDiv, NumberFilterDiv, TextFilterDiv } from "@/ui/shared/common/CommonFilterDivs"
-import { FilterModelProps } from "@/ui/shared/display/Display"
-import { activateFilter } from "@/util/Filter"
+import { IFilters } from "@/shared/interfaces/Filter"
+import { AbstractFilterDiv, OldDateFilterDiv, OldNumberFilterDiv, OldTextFilterDiv } from "@/ui/shared/filter-controls/CommonFilterDivs"
+import { OldFilterModelProps } from "@/ui/shared/display/Display"
 
-export const MilkEntriesFilter = ({ filter, setFilter }: FilterModelProps) => {
+export const MilkEntriesFilter = ({control}: OldFilterModelProps<IFilters>) => {
     return <>
         <AbstractFilterDiv mainTitle="Informações principais">
-            <TextFilterDiv
+            <OldTextFilterDiv
                 label="Brinco"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
+                onChange={() => {
+                    console.log(control)
                 }}
             />
-            <TextFilterDiv
+            <OldTextFilterDiv
                 label="Nome da Vaca:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
-                }}
             />
-            <TextFilterDiv
+            <OldTextFilterDiv
                 label="Pasto:"
-                onChange={(event) => {
-                    const newFilter = activateFilter(filter)
-                    newFilter['name'] = event.currentTarget.value
-                    setFilter(newFilter)
-                }}
             />
         </AbstractFilterDiv>
 
-        <DateFilterDiv mainTitle="Data de Marcação:" />
-        <NumberFilterDiv mainTitle="Marcação de Leite:" />
+        <OldDateFilterDiv mainTitle="Data de Marcação:" />
+        <OldNumberFilterDiv mainTitle="Marcação de Leite:" />
     </>
 }

@@ -1,5 +1,5 @@
 export interface IFilters {
-    isFiltered: boolean;
+    isFiltered: boolean
     [key: string]: any
 }
 

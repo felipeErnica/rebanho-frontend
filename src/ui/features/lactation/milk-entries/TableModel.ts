@@ -1,4 +1,4 @@
-import { ColumnProps, TableProps } from "@/ui/shared/table/Table";
+import { ColumnProps, TableProps } from "@/ui/shared/table/TableCustom";
 import { ApiResponse } from "@/shared/entities/ApiResponse";
 import { TableModelProps } from "@/ui/shared/display/Display";
 

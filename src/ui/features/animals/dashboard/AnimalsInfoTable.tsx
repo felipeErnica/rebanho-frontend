@@ -34,16 +34,8 @@ export const AnimalsInfoTable = ({ filter, setFilter }: AnimalsInfoTableProps) =
     const { setPageProps } = useContext(PageContext)
 
     useEffect(() => {
-        const tableFilter: AnimalDashboardFilter = {
-            ...filter,
-            farmId: undefined,
-            pastureId: undefined
-        }
-        getTotalAnimals(tableFilter)
-            .then(response => {
-                const totals = response.json
-                setTotal(totals)
-            })
+        getTotalAnimals(filter)
+            .then(response => setTotal(response.json))
             .catch()
     }, [filter])
 
