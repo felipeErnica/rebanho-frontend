@@ -1,13 +1,13 @@
-import { JSX, useState } from "react";
+import { useState } from "react";
 import { AnimalFilter } from "@/ui/features/animals/table/api/AnimalInfo";
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox";
 import { TableDisplay } from "@/ui/shared/display/Display";
-import { buildTable as buildAnimalsTable } from "./TableModel";
+import { useTableAnimals as buildAnimalsTable } from "./TableModel";
 import { AnimalFilterElement } from "./AnimalFilter";
 import { ListItemIcon, ListItemText, MenuItem } from "@mui/material";
 import Add from "@mui/icons-material/Add";
 
-export const AnimalsTable = (): JSX.Element => {
+export const AnimalsTable = () => {
 
     const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
     const [order, setOrder] = useState('asc')

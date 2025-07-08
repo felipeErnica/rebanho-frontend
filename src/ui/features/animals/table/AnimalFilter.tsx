@@ -7,13 +7,12 @@ import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
 import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
 import { searchFarm, searchFather, searchMother, searchPasture } from "../shared/AnimalController"
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 
 export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => {
 
     const [farmsId, setFarmsId] = useState<string[]>([])
-
-    useEffect(() => console.log(farmsId.toString()), [farmsId])
+    const handlePastureSearch = useCallback((input: string) => searchPasture(input, farmsId), [farmsId])
 
     return <>
         <AbstractFilterGroup mainTitle="Informações principais">
@@ -47,7 +46,7 @@ export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => 
                     setFilter={setFilter}
                     fetchOptions={searchFather}
                     fieldName="fathers"
-                    className=" col-start-1 col-span-3"
+                    className="col-start-1 col-span-3"
                 />
                 <MultipleSearchBoxFilter
                     label="Mães"
@@ -80,7 +79,7 @@ export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => 
                     limitTags={2}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={searchPasture}
+                    fetchOptions={handlePastureSearch}
                     fieldName="pastures"
                     className="col-span-6"
                 />

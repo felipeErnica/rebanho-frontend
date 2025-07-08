@@ -1,14 +1,15 @@
-import TextField from "@mui/material/TextField"
+import TextField, { TextFieldVariants } from "@mui/material/TextField"
 import { HTMLInputTypeAttribute } from "react"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 
 type FormTextFieldProps<T extends FieldValues> = {
-    label: string
+    label?: string
     classname?: string
     formProps: UseControllerProps<T>
     multiline?: boolean
     rows?: number
     type?:HTMLInputTypeAttribute
+    variant?: TextFieldVariants
     maxRows?: number
 }
 
@@ -19,6 +20,7 @@ export const FormTextField = <T extends FieldValues>({
     rows,
     maxRows,
     type,
+    variant,
     multiline
 }: FormTextFieldProps<T>) => {
     return <Controller
@@ -31,7 +33,7 @@ export const FormTextField = <T extends FieldValues>({
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}
                 label={label}
-                variant="outlined"
+                variant={variant || 'outlined'}
                 size="small"
                 multiline={multiline}
                 rows={rows}

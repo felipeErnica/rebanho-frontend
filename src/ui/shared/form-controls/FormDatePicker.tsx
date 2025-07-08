@@ -1,14 +1,16 @@
+import { TextFieldVariants } from "@mui/material"
 import { DatePicker } from "@mui/x-date-pickers/DatePicker"
 import dayjs from "dayjs"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 
 type FormDatePickerProps<T extends FieldValues> = {
-    label: string
+    label?: string
     className?: string
+    variant?: TextFieldVariants
     formProps: UseControllerProps<T>
 }
 
-export const FormDatePicker = <T extends FieldValues>({ label, className, formProps }: FormDatePickerProps<T>) => {
+export const FormDatePicker = <T extends FieldValues>({ label, className, variant, formProps }: FormDatePickerProps<T>) => {
     return <Controller
         {...formProps}
         render={({ field, fieldState: { error } }) => (
@@ -25,7 +27,11 @@ export const FormDatePicker = <T extends FieldValues>({ label, className, formPr
                     fieldYearPlaceholder: () => 'aaaa',
                 }}
                 slotProps={{
-                    textField: { size: "small", error: !!error, helperText: error?.message },
+                    textField: { 
+                        size: "small", 
+                        error: !!error, 
+                        variant: variant || 'outlined',
+                        helperText: error?.message },
                     field: { clearable: true }
                 }}
             />

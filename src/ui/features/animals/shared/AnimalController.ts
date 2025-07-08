@@ -15,6 +15,6 @@ export function searchFarm(input?: string): Promise<ApiResponse> {
     return apiGet(`farm-area/farms/search?input=${input}`)
 }
 
-export function searchPasture(input?: string, farmId?: string): Promise<ApiResponse> {
-    return apiGet(`farm-area/pastures/search?input=${input}&farmId=${farmId}`)
+export function searchPasture(input?: string, farmIds?: string[]): Promise<ApiResponse> {
+    return apiGet(`farm-area/pastures/search?input=${input}&farmId=${farmIds?.toString()}`)
 }

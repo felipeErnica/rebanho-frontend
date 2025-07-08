@@ -189,7 +189,6 @@ export const TableInfoAge = ({ filter, setFilter }: TableInfoAgeProps) => {
         </TableHead>
     }
 
-
     useEffect(() => {
         const farmFilter: AnimalDashboardFilter = { ...filter, farmId: undefined }
         setLoading(true)

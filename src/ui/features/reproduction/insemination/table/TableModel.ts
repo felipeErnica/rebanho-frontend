@@ -1,4 +1,5 @@
 import { ApiResponse } from "@/shared/entities/ApiResponse";
+import { IData } from "@/shared/interfaces/Filter";
 import { TableModelProps } from "@/ui/shared/display/Display";
 import { ColumnProps } from "@/ui/shared/table/TableCustom";
 
@@ -17,8 +18,8 @@ export function buildInseminationTable({ filter, order, sort }: TableModelProps)
         console.log(`Deleted Row: ${id}`)
     }
 
-    const onSaveRow = (id: string) => {
-        console.log(`Save Row: ${id}`)
+    const onSaveRow = (data: IData) => {
+        console.log(`Save Row: ${data}`)
     }
 
     const fetchNextPage = async (cursor: string): Promise<ApiResponse> => {

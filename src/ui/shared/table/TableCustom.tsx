@@ -1,4 +1,4 @@
-import { ComponentRef, HTMLInputTypeAttribute, JSX, useCallback, useEffect, useRef, useState } from "react";
+import { ComponentRef, HTMLInputTypeAttribute, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Page } from "../../../shared/entities/Page";
 import { IData, IFilters } from "@/shared/interfaces/Filter";
 import { ApiResponse } from "@/shared/entities/ApiResponse";
@@ -7,16 +7,21 @@ import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import { TableRows } from "./TableRows";
 import Table from "@mui/material/Table";
+import { ComboBoxItem } from "../common/ComboBox";
+import { Control, UseFormSetValue } from "react-hook-form";
 
 export type ColumnAlign = 'left' | 'right' | 'center'
+export type ColumnType = HTMLInputTypeAttribute | 'combobox' 
 
 export type ColumnProps = {
     title: string
     align?: ColumnAlign
     name: string
     width?: number
-    type: HTMLInputTypeAttribute;
+    type?: ColumnType;
     isEditable?: boolean
+    items?: ComboBoxItem[]
+    editComponent?: (control: Control<IData>, setValue: UseFormSetValue<IData>) => ReactNode | ReactNode[]
     step?: string
     format?: (value: any) => any
 }
@@ -28,7 +33,7 @@ export type TableProps = {
     columns: ColumnProps[];
     fetchPage: (cursor: string) => Promise<ApiResponse>;
     onDeleteRow?: (id: string) => void
-    onSaveRow?: (id: string) => void
+    onSaveRow?: (data: IData) => void
 }
 
 export type RowCells = {
@@ -43,10 +48,10 @@ export type CellProps = {
     step?: string
 }
 
-export function TableCustom(props: TableProps): JSX.Element {
+export function TableCustom(props: TableProps) {
     const scrollRef = useRef<ComponentRef<'div'>>(null)
     const [page, setPage] = useState<Page | null>(null)
-    const [pageList, setPageList] = useState<Page[]>([])
+    const [pageList, setPageList] = useState<Page []>([])
     const [index, setIndex] = useState<number>(0)
     const [list, setList] = useState<IData[]>([])
     const [isLoading, setLoading] = useState(false)
@@ -185,7 +190,7 @@ export function TableCustom(props: TableProps): JSX.Element {
             onScroll={handleScroll}
             onResize={calculateRef}
         >
-            <Table stickyHeader size="small" className="min-w-full w-max">
+            <Table stickyHeader className="min-w-full w-max">
                 <TableHead>
                     <TableHeadComponent columns={props.columns} />
                 </TableHead>

@@ -24,7 +24,6 @@ interface FormStateProps {
     control: Control<AddAnimalForm, any, AddAnimalForm>
 }
 
-
 const MainControls = ({ control }: FormStateProps) => {
 
     const [sex, setSex] = useState('')
@@ -110,7 +109,7 @@ const MainControls = ({ control }: FormStateProps) => {
 
 const OtherControls = ({ control }: FormStateProps) => {
 
-    const [farmId, setFarmId] = useState<string>()
+    const [farmId, setFarmId] = useState<string[]>()
     const fetchPasture = useCallback((input: string) => searchPasture(input, farmId), [farmId])
 
     return <div className="mt-10 flex flex-col gap-3">
@@ -139,7 +138,7 @@ const OtherControls = ({ control }: FormStateProps) => {
                 name: "farmId",
                 rules: { required: REQUIRED_FIELD_MSG }
             }}
-            onChange={(value) => setFarmId(value?.id)}
+            onChange={(value) => value && setFarmId([value.id])}
             label="Fazenda*"
             fetchOptions={searchFarm}
             className="col-span-3"

@@ -1,18 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import Autocomplete from "@mui/material/Autocomplete"
 import { useEffect, useState } from "react"
-import TextField from "@mui/material/TextField"
+import TextField, { TextFieldVariants } from "@mui/material/TextField"
 import { ApiResponse } from "@/shared/entities/ApiResponse"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 
 type FormSearchBoxProps<T extends FieldValues> = {
-    label: string
+    label?: string
+    variant?: TextFieldVariants
     formProps: UseControllerProps<T>
     fetchOptions: (input: string) => Promise<ApiResponse>
     args?: any[]
     className?: string
     disabled?: boolean
-    onChange?: (newValue: SearchBoxItem | null) => void 
+    onChange?: (newValue?: SearchBoxItem) => void 
 }
 
 export type SearchBoxItem = {
@@ -26,6 +27,7 @@ export function FormSearchBox<T extends FieldValues>({
     formProps, 
     className, 
     disabled, 
+    variant,
     onChange,
 }: FormSearchBoxProps<T>) {
 
@@ -35,7 +37,8 @@ export function FormSearchBox<T extends FieldValues>({
 
     const handleOpen = () => {
         setOpen(true)
-        fetchOptions(inputValue).then(response => setOptions(response.json))
+        fetchOptions(inputValue)
+            .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
     }
 
@@ -48,7 +51,8 @@ export function FormSearchBox<T extends FieldValues>({
         if (inputValue === '') {
             return
         }
-        fetchOptions(inputValue).then(response => setOptions(response.json))
+        fetchOptions(inputValue)
+            .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
     }, [inputValue])
 
@@ -58,6 +62,7 @@ export function FormSearchBox<T extends FieldValues>({
             <Autocomplete
                 {...field}
                 multiple={false}
+                value={options.find(option => option.id === field.value)}
                 onClose={handleClose}
                 onOpen={handleOpen}
                 filterOptions={(x) => x}
@@ -67,7 +72,7 @@ export function FormSearchBox<T extends FieldValues>({
                 options={options}
                 onChange={(_, newValue) => {
                     if (!newValue) {
-                        field.onChange(null)
+                        field.onChange(undefined)
                         return
                     }
                     field.onChange(newValue.id)
@@ -75,6 +80,7 @@ export function FormSearchBox<T extends FieldValues>({
                 }}
                 noOptionsText="Nenhum resultado encontrado!"
                 disabled={disabled}
+                fullWidth
                 renderInput={(params) => <TextField
                     {...params}
                     error={!!error}
@@ -82,7 +88,7 @@ export function FormSearchBox<T extends FieldValues>({
                     size="small"
                     className={className}
                     label={label}
-                    variant="outlined"
+                    variant={variant || 'outlined'}
                 />}
             />
         )}

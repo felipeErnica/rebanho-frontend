@@ -5,6 +5,7 @@ export type TotalGeneral = {
 }
 
 export type AnimalsByAgeAndFarm = {
+    id: string
     farmId: string
     farmName: string
     newbornMale: number

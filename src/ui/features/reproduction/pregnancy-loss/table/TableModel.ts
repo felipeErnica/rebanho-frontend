@@ -1,6 +1,7 @@
 import { ColumnProps, TableProps } from "@/ui/shared/table/TableCustom";
 import { ApiResponse } from "@/shared/entities/ApiResponse";
 import { TableModelProps } from "@/ui/shared/display/Display";
+import { IData } from "@/shared/interfaces/Filter";
 
 export const buildLossTable = ({ filter, sort, order }: TableModelProps): TableProps => {
 
@@ -17,8 +18,8 @@ export const buildLossTable = ({ filter, sort, order }: TableModelProps): TableP
         console.log(`Deleted Row: ${id}`)
     }
 
-    const onSaveRow = (id: string) => {
-        console.log(`Save Row: ${id}`)
+    const onSaveRow = (data: IData) => {
+        console.log(`Save Row: ${data}`)
     }
 
     const fetchNextPage = async (cursor: string): Promise<ApiResponse> => {

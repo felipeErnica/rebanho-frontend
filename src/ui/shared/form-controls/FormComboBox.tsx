@@ -2,11 +2,12 @@ import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 import { ComboBoxItem } from "../common/ComboBox"
 import Autocomplete from "@mui/material/Autocomplete"
 import { useState } from "react"
-import TextField from "@mui/material/TextField"
+import TextField, { TextFieldVariants } from "@mui/material/TextField"
 
 type FormComboBox<T extends FieldValues> = {
-    label: string
+    label?: string
     className?: string
+    variant?: TextFieldVariants
     items: ComboBoxItem[]
     formProps: UseControllerProps<T>
 }
@@ -15,6 +16,7 @@ export const FormComboBox = <T extends FieldValues>({
     label,
     className,
     items,
+    variant,
     formProps
 }: FormComboBox<T>) => {
 
@@ -25,11 +27,14 @@ export const FormComboBox = <T extends FieldValues>({
         render={({ field, fieldState: { error } }) => (
             <Autocomplete
                 {...field}
-                value={items.find(item => item.value === field.value) || null}
+                value={items.find(item => {
+                    const itemValue = item.value || item.name
+                    return itemValue === field.value
+                })}
+                multiple={false}
                 inputValue={inputValue}
                 options={items}
                 noOptionsText='Nenhum resultado encontrado'
-                isOptionEqualToValue={(option, value) => option.value === value.value}
                 getOptionLabel={(option) => option?.name}
                 clearOnEscape
                 autoHighlight
@@ -41,7 +46,7 @@ export const FormComboBox = <T extends FieldValues>({
                         field.onChange('')
                         return
                     }
-                    field.onChange(value.value)
+                    field.onChange(value.value || value.name)
                 }}
                 renderInput={(params) => {
                     return <TextField
@@ -49,7 +54,7 @@ export const FormComboBox = <T extends FieldValues>({
                         error={!!error}
                         className={className}
                         size="small"
-                        variant='outlined'
+                        variant={variant || 'outlined'}
                         label={label}
                     />
                 }}
