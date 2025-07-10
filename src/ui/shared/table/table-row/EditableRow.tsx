@@ -24,7 +24,7 @@ type EditableControlsProps = {
 const EditableControls = ({ value, column, control, setValue }: EditableControlsProps) => {
 
     if (!column.isEditable) return <span>{value}</span>
-    if (column.editComponent) return column.editComponent(control, setValue)
+    if (column.editComponent) return column.editComponent(control, value, setValue)
     if (!column.type) return <span>{value}</span>
 
     if (column.type === 'date' || column.type === 'datetime-local') {

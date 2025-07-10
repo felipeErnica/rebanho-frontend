@@ -21,7 +21,7 @@ export type ColumnProps = {
     type?: ColumnType;
     isEditable?: boolean
     items?: ComboBoxItem[]
-    editComponent?: (control: Control<IData>, setValue: UseFormSetValue<IData>) => ReactNode | ReactNode[]
+    editComponent?: (control: Control<IData>, value: any, setValue: UseFormSetValue<IData>) => ReactNode | ReactNode[]
     step?: string
     format?: (value: any) => any
 }

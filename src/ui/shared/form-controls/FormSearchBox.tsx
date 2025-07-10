@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
 import { ApiResponse } from "@/shared/entities/ApiResponse"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
+import { CircularProgress, debounce } from "@mui/material"
 
 type FormSearchBoxProps<T extends FieldValues> = {
     label?: string
@@ -13,7 +14,8 @@ type FormSearchBoxProps<T extends FieldValues> = {
     args?: any[]
     className?: string
     disabled?: boolean
-    onChange?: (newValue?: SearchBoxItem) => void 
+    value?: string
+    onChange?: (newValue?: SearchBoxItem) => void
 }
 
 export type SearchBoxItem = {
@@ -21,62 +23,52 @@ export type SearchBoxItem = {
     label: string
 }
 
-export function FormSearchBox<T extends FieldValues>({ 
-    label, 
-    fetchOptions, 
-    formProps, 
-    className, 
-    disabled, 
+export function FormSearchBox<T extends FieldValues>({
+    label,
+    fetchOptions,
+    formProps,
+    className,
+    disabled,
     variant,
+    value,
     onChange,
 }: FormSearchBoxProps<T>) {
 
-    const [open, setOpen] = useState(false)
     const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [inputValue, setInputValue] = useState('')
+    const [inputValue, setInputValue] = useState(value ?? '')
+    const [loading, setLoading] = useState(false)
+    const debouncedSetInput = debounce(setInputValue, 300)
 
-    const handleOpen = () => {
-        setOpen(true)
+    const callFetchOptions = () => {
+        setLoading(true)
         fetchOptions(inputValue)
             .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
+            .finally(() => setLoading(false))
     }
 
-    const handleClose = () => {
-        setOpen(false)
-        setOptions([])
-    }
+    useEffect(() => { 
+        if (!disabled) callFetchOptions() 
+    }, [fetchOptions])
 
-    useEffect(() => {
-        if (inputValue === '') {
-            return
-        }
-        fetchOptions(inputValue)
-            .then(response => setOptions(response.json))
-            .catch(() => setOptions([]))
-    }, [inputValue])
+    useEffect(() => callFetchOptions(), [inputValue])
 
     return <Controller
         {...formProps}
-        render={({ field, fieldState: { error } }) => (
-            <Autocomplete
+        render={({ field, fieldState: { error } }) => {
+            return <Autocomplete
                 {...field}
                 multiple={false}
-                value={options.find(option => option.id === field.value)}
-                onClose={handleClose}
-                onOpen={handleOpen}
+                value={field.value ? options.find(opt => opt.id === field.value) ?? null : null}
+                loading={loading}
                 filterOptions={(x) => x}
                 getOptionLabel={(option) => option.label}
-                onInputChange={(_, input) => setInputValue(input)}
-                open={open}
+                onInputChange={(_, input) => debouncedSetInput(input)}
                 options={options}
+                isOptionEqualToValue={(opt, value) => opt.id === value.id}
                 onChange={(_, newValue) => {
-                    if (!newValue) {
-                        field.onChange(undefined)
-                        return
-                    }
-                    field.onChange(newValue.id)
-                    if (onChange) onChange(newValue)
+                    if (onChange) onChange(newValue ?? undefined)
+                    field.onChange(newValue ? newValue.id : undefined)
                 }}
                 noOptionsText="Nenhum resultado encontrado!"
                 disabled={disabled}
@@ -89,9 +81,20 @@ export function FormSearchBox<T extends FieldValues>({
                     className={className}
                     label={label}
                     variant={variant || 'outlined'}
+                    slotProps={{
+                        input: {
+                            ...params.InputProps,
+                            endAdornment: (
+                                <>
+                                    {loading && <CircularProgress />}
+                                    {params.InputProps.endAdornment}
+                                </>
+                            )
+                        }
+                    }}
                 />}
             />
-        )}
+        }}
     />
 
 }

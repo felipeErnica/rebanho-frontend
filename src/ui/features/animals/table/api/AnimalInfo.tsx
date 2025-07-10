@@ -1,6 +1,6 @@
 import { FormSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
 import { ColumnProps } from "@/ui/shared/table/TableCustom"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { searchFarm, searchFather, searchMother, searchPasture } from "../../shared/AnimalController"
 import { SexValues } from "@/shared/entities/enums"
 
@@ -81,9 +81,9 @@ export const useColumnsAnimals = (): ColumnProps[] => {
 
     const [farmId, setFarmId] = useState<string>('')
 
-    const handlePastureSearch = (input: string) => {
+    const handlePastureSearch = useCallback((input: string) => {
         return searchPasture(input, [farmId])
-    }
+    }, [farmId])
 
     return [
         {
@@ -110,9 +110,10 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Pai",
             name: "fatherName",
             isEditable: true,
-            editComponent: (control, setValue) => {
+            editComponent: (control, value, setValue) => {
                 return <FormSearchBox
                     fetchOptions={searchFather}
+                    value={value}
                     variant="standard"
                     onChange={(value) => setValue('fatherName', value?.label)}
                     formProps={{
@@ -126,9 +127,10 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Mãe",
             name: "motherName",
             isEditable: true,
-            editComponent: (control, setValue) => {
+            editComponent: (control, value, setValue) => {
                 return <FormSearchBox
                     fetchOptions={searchMother}
+                    value={value}
                     variant="standard"
                     onChange={(value) => setValue('motherName', value?.label)}
                     formProps={{
@@ -166,12 +168,13 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Fazenda",
             name: "farmName",
             isEditable: true,
-            editComponent: (control, setValue) => {
+            editComponent: (control, value, setValue) => {
                 return <FormSearchBox
                     variant="standard"
+                    value={value}
                     onChange={(value) => {
                         setValue('farmName', value?.label)
-                        if (value) setFarmId(value?.id)
+                        setFarmId(value?.id ?? '')
                     }}
                     fetchOptions={searchFarm}
                     formProps={{
@@ -186,9 +189,11 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Pasto",
             name: "pastureName",
             isEditable: true,
-            editComponent: (control, setValue) => {
+            editComponent: (control, value, setValue) => {
                 return <FormSearchBox
                     variant="standard"
+                    disabled={!farmId}
+                    value={value}
                     onChange={(value) => setValue('pastureName', value?.label)}
                     fetchOptions={handlePastureSearch}
                     formProps={{
