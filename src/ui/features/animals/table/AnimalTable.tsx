@@ -2,28 +2,29 @@ import { useState } from "react";
 import { AnimalFilter } from "@/ui/features/animals/table/api/AnimalInfo";
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox";
 import { TableDisplay } from "@/ui/shared/display/Display";
-import { useTableAnimals as buildAnimalsTable } from "./TableModel";
+import { useTableAnimals } from "./TableModel";
 import { AnimalFilterElement } from "./AnimalFilter";
-import { ListItemIcon, ListItemText, MenuItem } from "@mui/material";
+import { Button } from "@mui/material";
 import Add from "@mui/icons-material/Add";
+import { AddAnimalDialog } from "../add-animal/AddAnimalDialog";
 
 export const AnimalsTable = () => {
 
     const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
     const [order, setOrder] = useState('asc')
     const [sort, setSort] = useState('animal_order')
+    const [isAddOpen, setAddOpen] = useState(false)
 
     const filterPanel = <AnimalFilterElement {...{ filter, setFilter }} />
-    const tableProps = buildAnimalsTable({ filter, sort, order })
-    const otherActions = (
-        <>
-            <MenuItem>
-                <ListItemIcon>
-                    <Add fontSize="small" />
-                </ListItemIcon>
-                <ListItemText> Adicionar Animal </ListItemText>
-            </MenuItem>
-        </>
+    const tableProps = useTableAnimals({ filter, sort, order })
+    const otherButtons = (
+        <Button
+            variant="outlined"
+            onClick={() => setAddOpen(true)}
+            startIcon={<Add />}
+        >
+            Adicionar Animal
+        </Button>
     )
 
     const sortableColumns: ComboBoxItem[] = [
@@ -38,15 +39,18 @@ export const AnimalsTable = () => {
         { name: "Intervalo de Parição Médio", value: "average_birth_interval" },
     ]
 
-    return <TableDisplay {...{
-        sort,
-        setSort,
-        order,
-        setOrder,
-        tableProps,
-        sortableColumns,
-        filterPanel,
-        setFilter,
-        otherActions
-    }} />
+    return <>
+        <TableDisplay {...{
+            sort,
+            setSort,
+            order,
+            setOrder,
+            tableProps,
+            sortableColumns,
+            filterPanel,
+            setFilter,
+            otherButtons,
+        }} />
+        <AddAnimalDialog {...{ isAddOpen, setAddOpen }} />
+    </>
 }

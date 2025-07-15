@@ -1,11 +1,10 @@
-import { JSX, ReactNode, Ref, useEffect, useRef, useState } from "react";
+import { JSX, ReactNode, Ref, useEffect, useState } from "react";
 import { ComboBox, ComboBoxItem } from "../common/ComboBox";
-import { Button, IconButton, Menu } from "@mui/material";
+import { Button } from "@mui/material";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import FilterAlt from "@mui/icons-material/FilterAlt";
 import Refresh from "@mui/icons-material/Refresh";
 import { IFilters } from "@/shared/interfaces/Filter";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 interface TableTopBarProps {
     sortableColumns: ComboBoxItem[];
@@ -28,28 +27,6 @@ export const TableTopBar = (props: TableTopBarProps): JSX.Element => {
         const sortedColumns = props.sortableColumns.sort()
         setSortedColumns(sortedColumns)
     }, [props.sortableColumns])
-
-    const OtherActions = () => {
-        const menuButtonRef = useRef<HTMLButtonElement>(null)
-        const [isOpen, setOpen] = useState(false)
-
-        if (!props.otherActions) return
-        return <>
-            <IconButton
-                ref={menuButtonRef}
-                onClick={() => setOpen(true)}
-            >
-                <MoreVertIcon />
-            </IconButton>
-            <Menu
-                open={isOpen}
-                anchorEl={menuButtonRef.current}
-                onClose={() => setOpen(false)}
-            >
-                {props.otherActions}
-            </Menu>
-        </>
-    }
 
     return <div className="flex flex-row gap-2 p-4">
         <div className="grow">
@@ -88,7 +65,7 @@ export const TableTopBar = (props: TableTopBarProps): JSX.Element => {
             >
                 Mostrar Filtro
             </Button>
-            <OtherActions />
+            {props.otherActions}
         </div>
     </div>
 }

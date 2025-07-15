@@ -16,7 +16,7 @@ export type DisplayProps = {
     setSort: (sort: string) => void
     handleSubmit?: UseFormHandleSubmit<IFilters>
     setFilter?: (filter: IFilters) => void
-    otherActions?: ReactNode | ReactNode[]
+    otherButtons?: ReactNode | ReactNode[]
 }
 
 export type TableModelProps = {
@@ -51,7 +51,7 @@ export const TableDisplay = (props: DisplayProps) => {
                 setSort={props.setSort}
                 isDrawerOpen={isDrawerOpen}
                 setOpenDrawer={setOpenDrawer}
-                otherActions={props.otherActions}
+                otherActions={props.otherButtons}
             />
             <TableCustom {...props.tableProps} />
         </div>

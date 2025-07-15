@@ -79,10 +79,11 @@ export type AnimalFilter = {
 
 export const useColumnsAnimals = (): ColumnProps[] => {
 
-    const [farmId, setFarmId] = useState<string>('')
+    const [farmId, setFarmId] = useState<string>()
 
     const handlePastureSearch = useCallback((input: string) => {
-        return searchPasture(input, [farmId])
+        const farmArray = farmId ? [farmId] : undefined
+        return searchPasture(input, farmArray)
     }, [farmId])
 
     return [
@@ -113,7 +114,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             editComponent: (control, value, setValue) => {
                 return <FormSearchBox
                     fetchOptions={searchFather}
-                    value={value}
+                    valueLabel={value}
                     variant="standard"
                     onChange={(value) => setValue('fatherName', value?.label)}
                     formProps={{
@@ -130,7 +131,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             editComponent: (control, value, setValue) => {
                 return <FormSearchBox
                     fetchOptions={searchMother}
-                    value={value}
+                    valueLabel={value}
                     variant="standard"
                     onChange={(value) => setValue('motherName', value?.label)}
                     formProps={{
@@ -171,10 +172,17 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             editComponent: (control, value, setValue) => {
                 return <FormSearchBox
                     variant="standard"
-                    value={value}
+                    valueLabel={value}
                     onChange={(value) => {
-                        setValue('farmName', value?.label)
-                        setFarmId(value?.id ?? '')
+                        if (!value) {
+                            setValue('pastureName', undefined)
+                            setValue('pastureId', undefined)
+                            setValue('farmName', undefined)
+                            setFarmId(undefined)
+                            return
+                        }
+                        setValue('farmName', value.label)
+                        setFarmId(value.id)
                     }}
                     fetchOptions={searchFarm}
                     formProps={{
@@ -193,7 +201,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
                 return <FormSearchBox
                     variant="standard"
                     disabled={!farmId}
-                    value={value}
+                    valueLabel={value}
                     onChange={(value) => setValue('pastureName', value?.label)}
                     fetchOptions={handlePastureSearch}
                     formProps={{

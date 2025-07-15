@@ -14,8 +14,8 @@ type FormSearchBoxProps<T extends FieldValues> = {
     args?: any[]
     className?: string
     disabled?: boolean
-    value?: string
-    onChange?: (newValue?: SearchBoxItem) => void
+    valueLabel?: string
+    onChange?: (newValue?: SearchBoxItem | null) => void
 }
 
 export type SearchBoxItem = {
@@ -30,28 +30,43 @@ export function FormSearchBox<T extends FieldValues>({
     className,
     disabled,
     variant,
-    value,
+    valueLabel,
     onChange,
 }: FormSearchBoxProps<T>) {
 
+    const [open, setOpen] = useState(false)
     const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [inputValue, setInputValue] = useState(value ?? '')
+    const [inputValue, setInputValue] = useState(valueLabel)
+    const [value, setValue] = useState<SearchBoxItem | null>(null)
     const [loading, setLoading] = useState(false)
-    const debouncedSetInput = debounce(setInputValue, 300)
+    const debounceInputValue = debounce(setInputValue, 300)
 
     const callFetchOptions = () => {
         setLoading(true)
-        fetchOptions(inputValue)
+        fetchOptions(inputValue ?? '')
             .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
             .finally(() => setLoading(false))
     }
 
-    useEffect(() => { 
-        if (!disabled) callFetchOptions() 
-    }, [fetchOptions])
-
     useEffect(() => callFetchOptions(), [inputValue])
+
+    const handleClose = () => {
+        setOptions([])
+        setOpen(false)
+    }
+
+    const handleOpen = () => {
+        callFetchOptions()
+        setOpen(true)
+    }
+
+    const findValue = (id?: string) => {
+        if (!id) return null
+        const selected = options.find(opt => opt.id === id) ?? null
+        setValue(selected)
+        return selected
+    }
 
     return <Controller
         {...formProps}
@@ -59,16 +74,18 @@ export function FormSearchBox<T extends FieldValues>({
             return <Autocomplete
                 {...field}
                 multiple={false}
-                value={field.value ? options.find(opt => opt.id === field.value) ?? null : null}
+                value={value ?? findValue(field.value)}
+                open={open}
+                onOpen={handleOpen}
+                onClose={handleClose}
                 loading={loading}
                 filterOptions={(x) => x}
-                getOptionLabel={(option) => option.label}
-                onInputChange={(_, input) => debouncedSetInput(input)}
+                onInputChange={(_, input) => debounceInputValue(input)}
                 options={options}
-                isOptionEqualToValue={(opt, value) => opt.id === value.id}
                 onChange={(_, newValue) => {
-                    if (onChange) onChange(newValue ?? undefined)
-                    field.onChange(newValue ? newValue.id : undefined)
+                    if (onChange) onChange(newValue)
+                    setValue(newValue)
+                    field.onChange(newValue?.id ?? undefined)
                 }}
                 noOptionsText="Nenhum resultado encontrado!"
                 disabled={disabled}
@@ -86,7 +103,7 @@ export function FormSearchBox<T extends FieldValues>({
                             ...params.InputProps,
                             endAdornment: (
                                 <>
-                                    {loading && <CircularProgress />}
+                                    {loading && <CircularProgress size={20} />}
                                     {params.InputProps.endAdornment}
                                 </>
                             )

@@ -14,9 +14,7 @@ import {
     SlaughterhouseIcon,
     SlaughterIcon,
     MilkIcon,
-    FarmIcon,
     FarmMainIcon,
-    FenceIcon,
     BullIcon
 } from "@/ui/shared/common/OtherIcons"
 import Scale from "@mui/icons-material/Scale"
@@ -34,6 +32,7 @@ import { WeightTablePage } from "@/ui/features/slaughter-area/weight/WeightPages
 import { HomePage } from "@/ui/features/home/HomePage"
 import { LactationHistTablePage, MilkTablePage } from "@/ui/features/lactation/LactationPages"
 import { AnimalDashboardPage } from "@/ui/features/animals/AnimalsPage"
+import { FarmPage } from "@/ui/features/farm-area/FarmPage"
 
 export type MenuItem = {
     key: string
@@ -120,19 +119,6 @@ export const buildList = () => {
         },
     ]
 
-    const pasturesSubMenu: MenuItem[] = [
-        {
-            key: 'farms',
-            title: 'Fazendas',
-            icon: <FarmIcon />
-        },
-        {
-            key: 'pastures',
-            title: 'Pastos',
-            icon: <FenceIcon />
-        },
-    ]
-
     const mainList: MenuItem[] = [
         {
             key: 'home',
@@ -150,7 +136,7 @@ export const buildList = () => {
             key: 'farm-pastures',
             title: 'Fazendas e Pastos',
             icon: <FarmMainIcon />,
-            collapsedList: pasturesSubMenu
+            page: FarmPage
         },
         {
             key: 'reproduction',
