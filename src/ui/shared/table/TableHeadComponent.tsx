@@ -1,4 +1,4 @@
-import { ComponentRef, createRef, useCallback, useEffect, useRef, useState } from "react";
+import { ComponentRef, createRef, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { ColumnProps } from "./TableCustom";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
@@ -77,4 +77,18 @@ export const TableHeadComponent = ({ columns }: HeadComponentProps) => {
             </TableCell>
         })}
     </TableRow>
+}
+
+type CommonTableHeadProps = {
+    children: ReactNode
+    colSpan?: number
+}
+
+export const TableHeadCell = ({ children, colSpan }: CommonTableHeadProps) => {
+    return <TableCell 
+        className="bg-gray-700 text-white"
+        colSpan={colSpan}
+    >
+        {children}
+    </TableCell>
 }

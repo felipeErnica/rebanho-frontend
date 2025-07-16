@@ -6,8 +6,9 @@ import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
 import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
 import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
-import { searchFarm, searchFather, searchMother, searchPasture } from "../shared/AnimalController"
+import { searchFather, searchMother, searchPasture } from "../shared/AnimalController"
 import { useCallback, useState } from "react"
+import { searchFarm } from "@/shared/GlobalApiCalls"
 
 export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => {
 

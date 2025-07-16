@@ -1,3 +1,28 @@
+export type Animal = {
+    id: string
+    name?: string
+    ringNumber?: string
+    weightBirth: number
+    sex: string
+    weaningDate?: Date
+    fatherName?: string
+    fatherId?: string
+    motherName?: string
+    motherId?: string
+    birthDate?: Date
+    deathDate?: Date
+    pastureName?: string
+    pastureId?: string
+    farmId?: string
+    farmName?: string
+    animalType: string
+    isr?: number
+    averageProd?: number
+    averageProdInterval?: number
+    averageBirthInterval?: number
+    averagePeak?: number
+}
+
 export type AnimalSave = {
     name: string
     color: string

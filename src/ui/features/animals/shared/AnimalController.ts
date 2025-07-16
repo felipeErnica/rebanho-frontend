@@ -2,7 +2,6 @@ import { apiGet } from "@/util/ApiRequest";
 import { ApiResponse } from "@/shared/entities/ApiResponse";
 
 const ANIMAL_BASE = 'animals/info/'
-const FARM_BASE = 'farm-area/farms/'
 const PASTURE_BASE = 'farm-area/pastures/'
 const ANIMAL_SEARCH_BASE = ANIMAL_BASE + 'search/'
 
@@ -12,10 +11,6 @@ export function searchFather(input?: string): Promise<ApiResponse> {
 
 export function searchMother(input?: string): Promise<ApiResponse> {
     return apiGet(ANIMAL_SEARCH_BASE + `mother?input=${input}`)
-}
-
-export function searchFarm(input?: string): Promise<ApiResponse> {
-    return apiGet(FARM_BASE + `search?input=${input}`)
 }
 
 export function searchPasture(input?: string, farmIds?: string[]): Promise<ApiResponse> {

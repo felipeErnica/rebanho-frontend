@@ -1,49 +1,10 @@
 import { FormSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
 import { ColumnProps } from "@/ui/shared/table/TableCustom"
 import { useCallback, useState } from "react"
-import { searchFarm, searchFather, searchMother, searchPasture } from "../../shared/AnimalController"
+import {  searchFather, searchMother, searchPasture } from "../../shared/AnimalController"
 import { SexValues } from "@/shared/entities/enums"
-
-export type Animal = {
-    id: string
-    name?: string
-    ringNumber?: string
-    animalOrder: number
-    weightBirth: number
-    sex: string
-    weaningDate?: Date
-    fatherName?: string
-    fatherId?: string
-    motherName?: string
-    motherId?: string
-    birthDate?: Date
-    deathDate?: Date
-    pastureName?: string
-    pastureId?: string
-    farmId?: string
-    farmName?: string
-    animalType: string
-    isr?: number
-    averageProd?: number
-    averageProdInterval?: number
-    averageBirthInterval?: number
-    averagePeak?: number
-}
-
-const decimalTransform = (value: number) => {
-    if (!value) return value
-    const formatter = new Intl.NumberFormat("pt-BR", {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-    })
-    return formatter.format(value)
-}
-
-const dateTransform = (value: string) => {
-    if (!value) return value
-    const date = new Date(value)
-    return date.toLocaleDateString("pt-BR", { dateStyle: 'short' })
-}
+import { searchFarm } from "@/shared/GlobalApiCalls"
+import { dateTransformFromString, decimalTransform } from "@/util/Transformations"
 
 export type AnimalFilter = {
     isFiltered: boolean,
@@ -116,7 +77,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
                     fetchOptions={searchFather}
                     valueLabel={value}
                     variant="standard"
-                    onChange={(value) => setValue('fatherName', value?.label)}
+                    onChange={(_, label) => setValue('fatherName', label)}
                     formProps={{
                         control,
                         name: 'fatherId'
@@ -133,7 +94,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
                     fetchOptions={searchMother}
                     valueLabel={value}
                     variant="standard"
-                    onChange={(value) => setValue('motherName', value?.label)}
+                    onChange={(_, label) => setValue('motherName', label)}
                     formProps={{
                         control,
                         name: 'motherId'
@@ -145,7 +106,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Data de Desmame",
             name: "weaningDate",
             align: 'center',
-            format: dateTransform,
+            format: dateTransformFromString,
             type: 'date',
             isEditable: true,
         },
@@ -153,7 +114,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Data de Nascimento",
             name: "birthDate",
             align: 'center',
-            format: dateTransform,
+            format: dateTransformFromString,
             type: 'date',
             isEditable: true,
         },
@@ -161,7 +122,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Data de Morte",
             name: "deathDate",
             align: 'center',
-            format: dateTransform,
+            format: dateTransformFromString,
             type: 'date',
             isEditable: true,
         },
@@ -173,16 +134,16 @@ export const useColumnsAnimals = (): ColumnProps[] => {
                 return <FormSearchBox
                     variant="standard"
                     valueLabel={value}
-                    onChange={(value) => {
-                        if (!value) {
+                    onChange={(id, label) => {
+                        if (!id) {
                             setValue('pastureName', undefined)
                             setValue('pastureId', undefined)
                             setValue('farmName', undefined)
                             setFarmId(undefined)
                             return
                         }
-                        setValue('farmName', value.label)
-                        setFarmId(value.id)
+                        setValue('farmName', label)
+                        setFarmId(id)
                     }}
                     fetchOptions={searchFarm}
                     formProps={{
@@ -202,7 +163,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
                     variant="standard"
                     disabled={!farmId}
                     valueLabel={value}
-                    onChange={(value) => setValue('pastureName', value?.label)}
+                    onChange={(_ ,label) => setValue('pastureName', label)}
                     fetchOptions={handlePastureSearch}
                     formProps={{
                         control,

@@ -1,0 +1,19 @@
+export const decimalTransform = (value: number) => {
+    if (!value) return value
+    const formatter = new Intl.NumberFormat("pt-BR", {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+    })
+    return formatter.format(value)
+}
+
+export const dateTransformFromString = (value: string) => {
+    if (!value) return value
+    const date = new Date(value)
+    return date.toLocaleDateString("pt-BR", { dateStyle: 'short' })
+}
+
+export const dateTransform = (value?: Date) => {
+    if (!value) return value
+    return value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
+}

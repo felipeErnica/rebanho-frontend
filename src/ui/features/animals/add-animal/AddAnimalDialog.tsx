@@ -12,8 +12,9 @@ import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormRadioGroup, RadioControlProps } from "@/ui/shared/form-controls/FormRadioGroup"
 import { AnimalType } from "../shared/AnimalEntities"
-import { searchFarm, searchFather, searchMother, searchPasture } from "../shared/AnimalController"
+import {  searchFather, searchMother, searchPasture } from "../shared/AnimalController"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { searchFarm } from "@/shared/GlobalApiCalls"
 
 type AddAnimalProps = {
     isAddOpen: boolean
@@ -138,7 +139,7 @@ const OtherControls = ({ control }: FormStateProps) => {
                 name: "farmId",
                 rules: { required: REQUIRED_FIELD_MSG }
             }}
-            onChange={(value) => value && setFarmId([value.id])}
+            onChange={(id) => id && setFarmId([id])}
             label="Fazenda*"
             fetchOptions={searchFarm}
             className="col-span-3"
