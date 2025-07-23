@@ -10,6 +10,7 @@ type DateFilterProps = {
     maxFieldName: string
     filter: IFilters
     setFilter: (filter: IFilters) => void
+    className?: string
 }
 
 export const DateFilter = ({
@@ -17,6 +18,7 @@ export const DateFilter = ({
     maxFieldName,
     minFieldName,
     setFilter,
+    className,
     filter
 }: DateFilterProps) => {
 
@@ -40,7 +42,7 @@ export const DateFilter = ({
     }, [minError, minErrorDate])
 
     return <AbstractFilterGroup mainTitle={mainTitle}>
-        <div className="flex flex-row gap-2">
+        <div className={`flex flex-row gap-2 ${className}`}>
             <DatePicker
                 label='De'
                 onError={(error) => setMinError(!!error)}

@@ -1,6 +1,6 @@
 import { AnimalType } from "../../animals/shared/AnimalEntities"
 
-export type AnimalFarm = {
+export type PastureAnimal = {
     id?: string
     name?: string
     ringNumber?: string
@@ -11,8 +11,6 @@ export type AnimalFarm = {
     motherId?: string
     birthDate?: string
     deathDate?: string
-    pastureName?: string
-    pastureId?: string
     farmId?: string
     farmName?: string
     animalType: AnimalType

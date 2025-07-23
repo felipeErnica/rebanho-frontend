@@ -1,25 +1,32 @@
+
 import { Skeleton, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import { useState } from "react"
-import { AnimalFarm } from "./Entities"
 import { EditRow, NormalRow } from "@/ui/shared/table/Entities"
 import { dateTransformToLocale } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { useForm } from "react-hook-form"
 import { animalTypeToComboBox, transformAnimalType } from "../../animals/shared/AnimalEntities"
-import { ResizableTableHeadCell, TableBodyCell, TableBodyRow, TableHeadCell, TableHeadRow } from "@/ui/shared/table/TableComponents"
+import { 
+    ResizableTableHeadCell, 
+    TableBodyCell, 
+    TableBodyRow, 
+    TableHeadCell, 
+    TableHeadRow 
+} from "@/ui/shared/table/TableComponents"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 import { SexValues } from "@/shared/entities/enums"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { PastureAnimal } from "./Entities"
+import { searchFather, searchMother } from "@/shared/GlobalApiCalls"
 
-type FarmAnimalsTableProps = {
-    rows: AnimalFarm[]
+type PastureAnimalsTableProps = {
+    rows: PastureAnimal[]
     isLoading: boolean
 }
 
-export const FarmAnimalsTable = ({rows, isLoading }: FarmAnimalsTableProps) => {
+export const PastureAnimalsTable = ({ rows, isLoading }: PastureAnimalsTableProps) => {
     return <div className="h-full w-full overflow-auto">
         <Table stickyHeader className="w-max min-w-full">
             <TableHead className="bg-gray-700">
@@ -33,7 +40,6 @@ export const FarmAnimalsTable = ({rows, isLoading }: FarmAnimalsTableProps) => {
                     <ResizableTableHeadCell>Mãe</ResizableTableHeadCell>
                     <ResizableTableHeadCell>Pai</ResizableTableHeadCell>
                     <ResizableTableHeadCell>Tipo de Animal</ResizableTableHeadCell>
-                    <TableHeadCell>Pasto</TableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>
@@ -42,22 +48,22 @@ export const FarmAnimalsTable = ({rows, isLoading }: FarmAnimalsTableProps) => {
                         <Skeleton animation='pulse' variant="rectangular" />
                     </TableCell>
                 }
-                {!isLoading && rows.map(row => <AnimalFarmRow {...row} />)}
+                {!isLoading && rows.map(row => <PastureAnimalRow {...row} />)}
             </TableBody>
         </Table>
     </div>
 }
 
-const AnimalFarmRow = (row: AnimalFarm) => {
+const PastureAnimalRow = (row: PastureAnimal) => {
 
     const [isEditing, setEditing] = useState(false)
     const [rowValue, setRowValue] = useState(row)
 
-    if (isEditing) return <AnimalFarmEditRow {...{ setRowValue, setEditing, rowValue }} />
-    return <AnimalFarmNormalRow {...{ setEditing, rowValue }} />
+    if (isEditing) return <PastureAnimalEditRow {...{ setRowValue, setEditing, rowValue }} />
+    return <PastureAnimalNormalRow {...{ setEditing, rowValue }} />
 }
 
-const AnimalFarmNormalRow = ({ rowValue, setEditing }: NormalRow<AnimalFarm>) => {
+const PastureAnimalNormalRow = ({ rowValue, setEditing }: NormalRow<PastureAnimal>) => {
     return <TableBodyRow>
         <TableBodyCell>
             <EditControlButtons
@@ -73,15 +79,14 @@ const AnimalFarmNormalRow = ({ rowValue, setEditing }: NormalRow<AnimalFarm>) =>
         <TableBodyCell>{rowValue.motherName}</TableBodyCell>
         <TableBodyCell>{rowValue.fatherName}</TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowValue.animalType, rowValue.sex)}</TableBodyCell>
-        <TableBodyCell>{rowValue.pastureName}</TableBodyCell>
     </TableBodyRow>
 }
 
-const AnimalFarmEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<AnimalFarm>) => {
+const PastureAnimalEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<PastureAnimal>) => {
 
     const { handleSubmit, control, setValue } = useForm({ defaultValues: rowValue })
 
-    const onSubmit = (data: AnimalFarm) => {
+    const onSubmit = (data: PastureAnimal) => {
         console.log("data", data)
         setRowValue(data)
     }
@@ -162,17 +167,6 @@ const AnimalFarmEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<Animal
                 formProps={{
                     control,
                     name: 'animalType'
-                }}
-            />
-        </TableBodyCell>
-        <TableBodyCell>
-            <FormSearchBox
-                fetchOptions={searchPasture}
-                valueLabel={rowValue.pastureName}
-                onChange={(_, label) => setValue('pastureName', label)}
-                formProps={{
-                    control,
-                    name: 'pastureId'
                 }}
             />
         </TableBodyCell>

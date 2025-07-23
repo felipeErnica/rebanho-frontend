@@ -30,8 +30,10 @@ export const FormDatePicker = <T extends FieldValues>({ label, className, varian
                     textField: { 
                         size: "small", 
                         error: !!error, 
-                        variant: variant || 'outlined',
-                        helperText: error?.message },
+                        variant: variant || 'standard',
+                        helperText: error?.message,
+                        fullWidth: true,
+                    },
                     field: { clearable: true }
                 }}
             />

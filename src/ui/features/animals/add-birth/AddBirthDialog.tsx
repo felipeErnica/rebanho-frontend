@@ -2,9 +2,9 @@ import { Dialog, DialogContent, DialogTitle } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { AnimalSave } from "../shared/AnimalEntities"
-import { searchMother } from "../shared/AnimalController"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { searchMother } from "@/shared/GlobalApiCalls"
 
 export type DialogProps = {
     isDialogOpen: boolean

@@ -11,39 +11,35 @@ type ControlButtonContainerProps = {
 }
 
 export const ControlButtonContainer = ({ children }: ControlButtonContainerProps) => {
-    return <div className="flex flex-row gap-2">
+    return <div className="px-2 flex flex-row gap-2">
         {children}
     </div>
 }
 
 type EditControlButtonProps = {
     setEditing: (isEditing: boolean) => void
+    onDelete?: () => void
+    onShow?: () => void
+    otherButtons?: ReactNode | ReactNode[]
 }
 
-export const EditControlButton = ({ setEditing }: EditControlButtonProps) => {
-    return <IconButton onClick={() => setEditing(true)}>
-        <Edit />
-    </IconButton>
-}
-
-type DeleteControlButtonProps = {
-    onDelete: () => void
-}
-
-export const DeleteControlButton = ({ onDelete }: DeleteControlButtonProps) => {
-    return <IconButton onClick={onDelete}>
-        <Delete />
-    </IconButton>
-}
-
-type ShowControlButtonProps = {
-    onShow: () => void
-}
-
-export const ShowControlButton = ({ onShow }: ShowControlButtonProps) => {
-    return <IconButton onClick={onShow}>
-        <Visibility />
-    </IconButton>
+export const EditControlButtons = ({ setEditing, onDelete, onShow, otherButtons }: EditControlButtonProps) => {
+    return <ControlButtonContainer>
+        <IconButton onClick={() => setEditing(true)}>
+            <Edit />
+        </IconButton>
+        {onDelete &&
+            <IconButton onClick={onDelete}>
+                <Delete />
+            </IconButton>
+        }
+        {onShow &&
+            <IconButton onClick={onShow}>
+                <Visibility />
+            </IconButton>
+        }
+        {otherButtons}
+    </ControlButtonContainer>
 }
 
 type EditingControlButtonProps = {
@@ -51,8 +47,8 @@ type EditingControlButtonProps = {
     onSave: () => void
 }
 
-export const EditingButtonControls = ({ setEditing, onSave }: EditingControlButtonProps) => {
-    return <div className="flex flex-row gap-2">
+export const EditingControlButtons = ({ setEditing, onSave }: EditingControlButtonProps) => {
+    return <ControlButtonContainer>
         <IconButton onClick={() => {
             onSave()
             setEditing(false)
@@ -62,5 +58,5 @@ export const EditingButtonControls = ({ setEditing, onSave }: EditingControlButt
         <IconButton onClick={() => setEditing(false)}>
             <Close />
         </IconButton>
-    </div >
+    </ControlButtonContainer>
 }

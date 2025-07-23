@@ -4,7 +4,7 @@ import { ComboBoxItem } from "@/ui/shared/common/ComboBox";
 import { TableCustom, TableProps } from "@/ui/shared/table/TableCustom";
 import { IFilters } from "@/shared/interfaces/Filter";
 import { Control, UseFormHandleSubmit } from "react-hook-form";
-import { FilterPopover } from "./FilterPopover";
+import { FilterPopover } from "../filter-controls/FilterPopover";
 
 export type DisplayProps = {
     sortableColumns: ComboBoxItem[]
@@ -56,9 +56,9 @@ export const TableDisplay = (props: DisplayProps) => {
             <TableCustom {...props.tableProps} />
         </div>
         <FilterPopover
-            setOpen={setOpenDrawer}
-            isOpen={isDrawerOpen}
-            childPanel={props.filterPanel}
+            setFilterOpen={setOpenDrawer}
+            isFilterOpen={isDrawerOpen}
+            children={props.filterPanel}
             setFilter={props.setFilter}
             anchorEl={filterButtonRef}
         />

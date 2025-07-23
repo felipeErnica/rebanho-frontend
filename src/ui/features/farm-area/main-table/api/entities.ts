@@ -11,6 +11,7 @@ export type Farm = {
 }
 
 export type PastureInfo = {
+    pastureId: string
     pastureName: string
     bullId?: string
     bullName?: string

@@ -41,6 +41,7 @@ export const FormComboBox = <T extends FieldValues>({
                 openOnFocus
                 autoSelect
                 onInputChange={(_, value: string) => setInputValue(value)}
+                fullWidth
                 onChange={(_, value) => {
                     if (!value) {
                         field.onChange('')
@@ -54,7 +55,7 @@ export const FormComboBox = <T extends FieldValues>({
                         error={!!error}
                         className={className}
                         size="small"
-                        variant={variant || 'outlined'}
+                        variant={variant || 'standard'}
                         label={label}
                     />
                 }}

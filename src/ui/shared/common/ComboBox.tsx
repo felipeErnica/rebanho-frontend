@@ -14,9 +14,9 @@ interface ComboBoxProps {
     defaultValue?: ComboBoxItem;
     items: readonly ComboBoxItem[];
     onChange?: (value?: string) => void
-    value?: ComboBoxItem | null
+    value?: string
     inputValue?: string
-    setInputValue?: (inputValue: string) => void
+    onInputChange?: (inputValue: string) => void
     error?: boolean
     className?: string
     name?: string;
@@ -25,7 +25,10 @@ interface ComboBoxProps {
 
 export const ComboBox = (props: ComboBoxProps) => {
     return <Autocomplete
-        value={props.value}
+        value={props.items.find(item => {
+            const itemValue = item.value ?? item.name
+            return itemValue === props.value
+        })}
         inputValue={props.inputValue}
         className={props.className}
         options={props.items}
@@ -45,8 +48,8 @@ export const ComboBox = (props: ComboBoxProps) => {
         autoHighlight
         openOnFocus
         defaultValue={props.defaultValue}
-        onInputChange={(_, value, reason) => {
-            if (props.setInputValue && reason == 'input') props.setInputValue(value)
+        onInputChange={(_, value) => {
+            if (props.onInputChange) props.onInputChange(value)
         }}
         onChange={(_, value) => {
             if (!value) {

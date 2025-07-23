@@ -22,7 +22,7 @@ export const ComboBoxFilter = ({
     fieldName 
 }: ComboBoxFilterProps) => {
 
-    const [value, setValue] = useState<ComboBoxItem | null>()
+    const [value, setValue] = useState<string>()
     const [inputValue, setInputValue] = useState('')
 
     useEffect(() => {
@@ -32,7 +32,7 @@ export const ComboBoxFilter = ({
             if (item.value) return filterValue == item.value
             return filterValue == item.name
         })
-        setValue(matchedItem)
+        setValue(matchedItem?.value ?? matchedItem?.name)
         setInputValue(matchedItem?.name ?? '')
     }, [fieldName, filter, items])
 
@@ -41,7 +41,7 @@ export const ComboBoxFilter = ({
         className={className}
         value={value}
         inputValue={inputValue}
-        setInputValue={setInputValue}
+        onInputChange={setInputValue}
         label={label}
         onChange={(value) => {
             if (!value) {

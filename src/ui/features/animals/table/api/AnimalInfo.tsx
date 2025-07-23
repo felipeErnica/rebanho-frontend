@@ -1,10 +1,9 @@
 import { FormSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
 import { ColumnProps } from "@/ui/shared/table/TableCustom"
 import { useCallback, useState } from "react"
-import {  searchFather, searchMother, searchPasture } from "../../shared/AnimalController"
 import { SexValues } from "@/shared/entities/enums"
-import { searchFarm } from "@/shared/GlobalApiCalls"
-import { dateTransformFromString, decimalTransform } from "@/util/Transformations"
+import { searchFarm, searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { dateTransformToLocale, decimalTransform } from "@/util/Transformations"
 
 export type AnimalFilter = {
     isFiltered: boolean,
@@ -42,11 +41,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
 
     const [farmId, setFarmId] = useState<string>()
 
-    const handlePastureSearch = useCallback((input: string) => {
-        const farmArray = farmId ? [farmId] : undefined
-        return searchPasture(input, farmArray)
-    }, [farmId])
-
+    const handlePastureSearch = useCallback((input: string) => searchPasture(input, farmId), [farmId])
     return [
         {
             title: "Brinco",
@@ -106,7 +101,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Data de Desmame",
             name: "weaningDate",
             align: 'center',
-            format: dateTransformFromString,
+            format: dateTransformToLocale,
             type: 'date',
             isEditable: true,
         },
@@ -114,7 +109,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Data de Nascimento",
             name: "birthDate",
             align: 'center',
-            format: dateTransformFromString,
+            format: dateTransformToLocale,
             type: 'date',
             isEditable: true,
         },
@@ -122,7 +117,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Data de Morte",
             name: "deathDate",
             align: 'center',
-            format: dateTransformFromString,
+            format: dateTransformToLocale,
             type: 'date',
             isEditable: true,
         },

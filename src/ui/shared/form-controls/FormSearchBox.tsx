@@ -35,7 +35,7 @@ export function FormSearchBox<T extends FieldValues>({
 }: FormSearchBoxProps<T>) {
 
     const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [inputValue, setInputValue] = useState('')
+    const [inputValue, setInputValue] = useState(valueLabel ?? '')
     const [loading, setLoading] = useState(false)
     const debounceInputValue = debounce(setInputValue, 300)
 
@@ -48,7 +48,6 @@ export function FormSearchBox<T extends FieldValues>({
     }
 
     useEffect(() => callFetchOptions(inputValue), [inputValue])
-    useEffect(() => callFetchOptions(valueLabel ?? ''), [])
 
     return <Controller
         {...formProps}

@@ -54,11 +54,7 @@ export const MultipleSearchBoxFilter = ({
     const handleOpen = () => {
         setOpen(true)
         fetchOptions(inputValue)
-            .then(response => {
-                const list: SearchBoxItem[] = response.json
-                const options = list.filter(item => !selected.includes(item))
-                setOptions(options)
-            })
+            .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
     }
 
@@ -72,11 +68,7 @@ export const MultipleSearchBoxFilter = ({
             return
         }
         fetchOptions(inputValue)
-            .then(response => {
-                const list: SearchBoxItem[] = response.json
-                const options = list.filter(item => !selected.some(selectedItem => selectedItem.id === item.id))
-                setOptions(options)
-            })
+            .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
     }, [inputValue])
 
@@ -96,6 +88,7 @@ export const MultipleSearchBoxFilter = ({
         filterOptions={(x) => x}
         getOptionLabel={(option) => option.label}
         onInputChange={(_, input) => setDebouncedInputValue(input)}
+        filterSelectedOptions
         open={open}
         options={options}
         onChange={(_, newValue) => {

@@ -12,9 +12,8 @@ import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormRadioGroup, RadioControlProps } from "@/ui/shared/form-controls/FormRadioGroup"
 import { AnimalType } from "../shared/AnimalEntities"
-import {  searchFather, searchMother, searchPasture } from "../shared/AnimalController"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
-import { searchFarm } from "@/shared/GlobalApiCalls"
+import { searchFarm, searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
 
 type AddAnimalProps = {
     isAddOpen: boolean

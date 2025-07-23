@@ -12,3 +12,4 @@ export const AbstractFilterGroup = (props: AbstractFilterDivProps) => {
         {props.children}
     </div >
 }
+
