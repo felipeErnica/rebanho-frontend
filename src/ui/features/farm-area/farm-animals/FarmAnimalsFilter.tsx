@@ -7,7 +7,7 @@ import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
 import { RefObject, useCallback } from "react"
 import { FilterPopover } from "@/ui/shared/filter-controls/FilterPopover"
 import { IFilters } from "@/shared/interfaces/Filter"
-import { searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { searchFather, searchFatherById, searchMother, searchMotherById, searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
 
 type FarmAnimalsFilterProps = {
     farmId: string
@@ -27,7 +27,8 @@ export const FarmAnimalsFilter = ({
     anchorEl,
 }: FarmAnimalsFilterProps) => {
 
-    const handlePastureSearch = useCallback((input: string) => searchPasture(input, farmId), [farmId])
+    const handlePastureSearch = useCallback((input?: string) => searchPasture(input, farmId), [farmId])
+    const handlePastureSearchById = useCallback((id?: string | string[]) => searchPastureById(id, farmId), [farmId])
 
     return <FilterPopover
         setFilter={setFilter}
@@ -64,7 +65,8 @@ export const FarmAnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={searchFather}
+                    searchByInput={searchFather}
+                    searchById={searchFatherById}
                     fieldName="fathers"
                     className="col-span-6"
                 />
@@ -73,7 +75,8 @@ export const FarmAnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={searchMother}
+                    searchByInput={searchMother}
+                    searchById={searchMotherById}
                     fieldName="mothers"
                     className="col-span-6"
                 />
@@ -82,7 +85,8 @@ export const FarmAnimalsFilter = ({
                     limitTags={2}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={handlePastureSearch}
+                    searchByInput={handlePastureSearch}
+                    searchById={handlePastureSearchById}
                     fieldName="pastures"
                     className="col-span-6"
                 />
@@ -93,13 +97,6 @@ export const FarmAnimalsFilter = ({
             mainTitle="Data de Nascimento"
             maxFieldName="maxBirthDate"
             minFieldName="minBirthDate"
-            setFilter={setFilter}
-            filter={filter}
-        />
-        <DateFilter
-            mainTitle="Data de Morte"
-            maxFieldName="maxDeathDate"
-            minFieldName="minDeathDate"
             setFilter={setFilter}
             filter={filter}
         />

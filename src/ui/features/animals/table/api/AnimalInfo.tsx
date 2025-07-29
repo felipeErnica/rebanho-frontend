@@ -2,7 +2,7 @@ import { FormSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSear
 import { ColumnProps } from "@/ui/shared/table/TableCustom"
 import { useCallback, useState } from "react"
 import { SexValues } from "@/shared/entities/enums"
-import { searchFarm, searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { searchFarm, searchFather, searchFatherById, searchMother, searchMotherById, searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
 import { dateTransformToLocale, decimalTransform } from "@/util/Transformations"
 
 export type AnimalFilter = {
@@ -41,7 +41,9 @@ export const useColumnsAnimals = (): ColumnProps[] => {
 
     const [farmId, setFarmId] = useState<string>()
 
-    const handlePastureSearch = useCallback((input: string) => searchPasture(input, farmId), [farmId])
+    const handlePastureSearchById = useCallback((id?: string) => searchPastureById(id, farmId), [farmId])
+    const handlePastureSearch = useCallback((input?: string) => searchPasture(input, farmId), [farmId])
+
     return [
         {
             title: "Brinco",
@@ -67,10 +69,10 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Pai",
             name: "fatherName",
             isEditable: true,
-            editComponent: (control, value, setValue) => {
+            editComponent: (control, _, setValue) => {
                 return <FormSearchBox
-                    fetchOptions={searchFather}
-                    valueLabel={value}
+                    searchByInput={searchFather}
+                    searchById={searchFatherById}
                     variant="standard"
                     onChange={(_, label) => setValue('fatherName', label)}
                     formProps={{
@@ -84,10 +86,10 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Mãe",
             name: "motherName",
             isEditable: true,
-            editComponent: (control, value, setValue) => {
+            editComponent: (control, _, setValue) => {
                 return <FormSearchBox
-                    fetchOptions={searchMother}
-                    valueLabel={value}
+                    searchByInput={searchMother}
+                    searchById={searchMotherById}
                     variant="standard"
                     onChange={(_, label) => setValue('motherName', label)}
                     formProps={{
@@ -125,10 +127,9 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Fazenda",
             name: "farmName",
             isEditable: true,
-            editComponent: (control, value, setValue) => {
+            editComponent: (control, _, setValue) => {
                 return <FormSearchBox
                     variant="standard"
-                    valueLabel={value}
                     onChange={(id, label) => {
                         if (!id) {
                             setValue('pastureName', undefined)
@@ -140,7 +141,8 @@ export const useColumnsAnimals = (): ColumnProps[] => {
                         setValue('farmName', label)
                         setFarmId(id)
                     }}
-                    fetchOptions={searchFarm}
+                    searchByInput={searchFarm}
+                    searchById={searchFatherById}
                     formProps={{
                         control,
                         name: 'farmId'
@@ -153,13 +155,13 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Pasto",
             name: "pastureName",
             isEditable: true,
-            editComponent: (control, value, setValue) => {
+            editComponent: (control, _, setValue) => {
                 return <FormSearchBox
                     variant="standard"
                     disabled={!farmId}
-                    valueLabel={value}
-                    onChange={(_ ,label) => setValue('pastureName', label)}
-                    fetchOptions={handlePastureSearch}
+                    onChange={(_, label) => setValue('pastureName', label)}
+                    searchByInput={handlePastureSearch}
+                    searchById={handlePastureSearchById}
                     formProps={{
                         control,
                         name: 'pastureId'

@@ -1,19 +1,17 @@
 import { AnimalType } from "../../animals/shared/AnimalEntities"
 
 export type AnimalFarm = {
-    id?: string
+    id: string
     name?: string
     ringNumber?: string
-    sex: string
+    sex?: string
     fatherName?: string
     fatherId?: string
     motherName?: string
     motherId?: string
     birthDate?: string
-    deathDate?: string
     pastureName?: string
     pastureId?: string
     farmId?: string
-    farmName?: string
-    animalType: AnimalType
+    animalType?: AnimalType
 }

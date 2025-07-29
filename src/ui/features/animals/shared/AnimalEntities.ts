@@ -65,7 +65,8 @@ export function animalTypeToComboBox(): ComboBoxItem[] {
     return comboBoxArray
 }
 
-export function transformAnimalType(type: string, sex?: string) {
+export function transformAnimalType(type?: string, sex?: string) {
+    if (!type) return
     let typeText = animalTypeMap.get(type)
     if (sex && type === 'REPRODUCTION_ANIMAL') {
         typeText = sex === 'M' ? 'Touro' : 'Matriz'

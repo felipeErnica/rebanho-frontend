@@ -7,7 +7,7 @@ import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
 import { RefObject } from "react"
 import { FilterPopover } from "@/ui/shared/filter-controls/FilterPopover"
 import { IFilters } from "@/shared/interfaces/Filter"
-import { searchFather, searchMother } from "@/shared/GlobalApiCalls"
+import { searchFather, searchFatherById, searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
 
 type PastureAnimalsFilterProps = {
     filter: IFilters
@@ -60,7 +60,8 @@ export const PastureAnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={searchFather}
+                    searchByInput={searchFather}
+                    searchById={searchFatherById}
                     fieldName="fathers"
                     className="col-span-6"
                 />
@@ -69,7 +70,8 @@ export const PastureAnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={searchMother}
+                    searchByInput={searchMother}
+                    searchById={searchMotherById}
                     fieldName="mothers"
                     className="col-span-6"
                 />
@@ -80,13 +82,6 @@ export const PastureAnimalsFilter = ({
             mainTitle="Data de Nascimento"
             maxFieldName="maxBirthDate"
             minFieldName="minBirthDate"
-            setFilter={setFilter}
-            filter={filter}
-        />
-        <DateFilter
-            mainTitle="Data de Morte"
-            maxFieldName="maxDeathDate"
-            minFieldName="minDeathDate"
             setFilter={setFilter}
             filter={filter}
         />

@@ -1,41 +1,52 @@
 import {
+    VirtuosoHeadCell,
     TableBodyCell,
-    TableHeadCell,
     TableHeadRow,
+    TableLoadingCells,
 } from "@/ui/shared/table/TableComponents"
 import { PastureEntries } from "./Entities"
-import { useEffect, useState } from "react"
+import { RefObject, useEffect, useRef, useState } from "react"
 import { dateTransformToLocale } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
-import { PaginationResponse, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
-import { TableVirtuoso } from 'react-virtuoso'
+import { VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { TableVirtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 type PastureEntriesTableProps = {
-    pagination: PaginationResponse
+    scrollRef: RefObject<VirtuosoHandle | null>
+    fetchNextPage: () => void
+    rows: PastureEntries[]
     isLoading: boolean
 }
 
-export const PastureEntriesTable = ({ pagination: { rows, handleScroll, scrollRef, calculateRef } }: PastureEntriesTableProps) => {
+export const PastureEntriesTable = ({ fetchNextPage, rows, isLoading, scrollRef }: PastureEntriesTableProps) => {
+
+    const tableRef = useRef<HTMLDivElement>(null)
 
     return <div className="h-full w-full">
         <TableVirtuoso
-            onResize={calculateRef}
-            onScroll={handleScroll}
-            scrollerRef={(ref) => scrollRef.current = ref as HTMLDivElement}
+            ref={scrollRef}
+            scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
             data={rows}
             components={VirtuosoTableComponents}
-            fixedHeaderContent={() => (
-                <TableHeadRow>
-                    <TableHeadCell />
-                    <TableHeadCell>Brinco</TableHeadCell>
-                    <TableHeadCell>Nome</TableHeadCell>
-                    <TableHeadCell>Data de Nascimento</TableHeadCell>
-                    <TableHeadCell>Data de Entrada</TableHeadCell>
+            endReached={fetchNextPage}
+            fixedHeaderContent={() => {
+                const table = tableRef.current
+                if (!table) return
+                const tableWidth = table.offsetWidth / 100
+
+                return <TableHeadRow>
+                    <VirtuosoHeadCell width={tableWidth * 10} />
+                    <VirtuosoHeadCell width={tableWidth * 10}>Brinco</VirtuosoHeadCell>
+                    <VirtuosoHeadCell width={tableWidth * 20}>Nome</VirtuosoHeadCell>
+                    <VirtuosoHeadCell width={tableWidth * 10}>Mãe</VirtuosoHeadCell>
+                    <VirtuosoHeadCell width={tableWidth * 10}>Pai</VirtuosoHeadCell>
+                    <VirtuosoHeadCell width={tableWidth * 20}>Data de Nascimento</VirtuosoHeadCell>
+                    <VirtuosoHeadCell width={tableWidth * 20}>Data de Entrada</VirtuosoHeadCell>
                 </TableHeadRow>
-            )}
-            itemContent={(_, row) => <PastureEntriesRow {...row} />}
+            }}
+            itemContent={(_, row) => isLoading ? <TableLoadingCells colSpan={7} /> : <PastureEntriesRow {...row} />}
         />
     </div>
 }
@@ -66,6 +77,8 @@ const PastureEntriesNormalRow = ({ rowValues, setEditing }: PastureEntriesNormal
         </TableBodyCell>
         <TableBodyCell>{rowValues.animalRingNumber}</TableBodyCell>
         <TableBodyCell>{rowValues.animalName}</TableBodyCell>
+        <TableBodyCell>{rowValues.animalMother}</TableBodyCell>
+        <TableBodyCell>{rowValues.animalFather}</TableBodyCell>
         <TableBodyCell>{dateTransformToLocale(rowValues.animalBirthDate)}</TableBodyCell>
         <TableBodyCell>{dateTransformToLocale(rowValues.entryDate)}</TableBodyCell>
     </>
@@ -91,6 +104,8 @@ const PastureEntriesEditRow = ({ rowValues, setRowValues, setEditing }: PastureE
         </TableBodyCell>
         <TableBodyCell>{rowValues.animalRingNumber}</TableBodyCell>
         <TableBodyCell>{rowValues.animalName}</TableBodyCell>
+        <TableBodyCell>{rowValues.animalMother}</TableBodyCell>
+        <TableBodyCell>{rowValues.animalFather}</TableBodyCell>
         <TableBodyCell>{dateTransformToLocale(rowValues.animalBirthDate)}</TableBodyCell>
         <TableBodyCell>
             <FormDatePicker

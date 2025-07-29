@@ -207,7 +207,7 @@ export function TableCustom(props: TableProps) {
             </Table>
         </div>
         <div className="flex flex-row p-4">
-            <span>{page && `Total: ${page.total}`}</span>
+            <span>{page && `Total: `}</span>
         </div>
     </div>
 }

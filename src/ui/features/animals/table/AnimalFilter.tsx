@@ -7,12 +7,22 @@ import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
 import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
 import { useCallback, useState } from "react"
-import { searchFarm, searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { 
+    searchFarm, 
+    searchFarmById, 
+    searchFather, 
+    searchFatherById, 
+    searchMother, 
+    searchMotherById, 
+    searchPasture, 
+    searchPastureById 
+} from "@/shared/GlobalApiCalls"
 
 export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => {
 
     const [farmsId, setFarmsId] = useState<string[]>([])
-    const handlePastureSearch = useCallback((input: string) => searchPasture(input, farmsId), [farmsId])
+    const handlePastureSearch = useCallback((input?: string) => searchPasture(input, farmsId), [farmsId])
+    const handlePastureSearchById = useCallback((id?: string | string[]) => searchPastureById(id, farmsId), [farmsId])
 
     return <>
         <AbstractFilterGroup mainTitle="Informações principais">
@@ -44,7 +54,8 @@ export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => 
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={searchFather}
+                    searchByInput={searchFather}
+                    searchById={searchFatherById}
                     fieldName="fathers"
                     className="col-start-1 col-span-3"
                 />
@@ -53,7 +64,8 @@ export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => 
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={searchMother}
+                    searchByInput={searchMother}
+                    searchById={searchMotherById}
                     fieldName="mothers"
                     className="col-span-3"
                 />
@@ -62,7 +74,8 @@ export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => 
                     limitTags={2}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={searchFarm}
+                    searchByInput={searchFarm}
+                    searchById={searchFarmById}
                     fieldName="farms"
                     onChange={(value) => {
                         if (!value) {
@@ -79,7 +92,8 @@ export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => 
                     limitTags={2}
                     filter={filter}
                     setFilter={setFilter}
-                    fetchOptions={handlePastureSearch}
+                    searchByInput={handlePastureSearch}
+                    searchById={handlePastureSearchById}
                     fieldName="pastures"
                     className="col-span-6"
                 />

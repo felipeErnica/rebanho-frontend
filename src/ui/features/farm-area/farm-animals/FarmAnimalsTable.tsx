@@ -1,51 +1,50 @@
-import { Skeleton, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
-import { useState } from "react"
+import { Ref, useState } from "react"
 import { AnimalFarm } from "./Entities"
 import { EditRow, NormalRow } from "@/ui/shared/table/Entities"
 import { dateTransformToLocale } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { useForm } from "react-hook-form"
-import { animalTypeToComboBox, transformAnimalType } from "../../animals/shared/AnimalEntities"
-import { ResizableTableHeadCell, TableBodyCell, TableBodyRow, TableHeadCell, TableHeadRow } from "@/ui/shared/table/TableComponents"
-import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
-import { SexValues } from "@/shared/entities/enums"
-import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
+import {
+    VirtuosoHeadCell,
+    TableBodyCell,
+    TableHeadCell,
+    TableHeadRow,
+    TableLoadingCells
+} from "@/ui/shared/table/TableComponents"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
+import { transformAnimalType } from "../../animals/shared/AnimalEntities"
+import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
+import { VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
 
 type FarmAnimalsTableProps = {
     rows: AnimalFarm[]
     isLoading: boolean
+    scrollRef: Ref<VirtuosoHandle>
+    fetchNextPage: () => void
 }
 
-export const FarmAnimalsTable = ({rows, isLoading }: FarmAnimalsTableProps) => {
-    return <div className="h-full w-full overflow-auto">
-        <Table stickyHeader className="w-max min-w-full">
-            <TableHead className="bg-gray-700">
-                <TableHeadRow>
-                    <TableHeadCell />
-                    <ResizableTableHeadCell>Brinco</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Nome</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Sexo</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Data de Nascimento</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Data de Morte</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Mãe</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Pai</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Tipo de Animal</ResizableTableHeadCell>
-                    <TableHeadCell>Pasto</TableHeadCell>
-                </TableHeadRow>
-            </TableHead>
-            <TableBody>
-                {isLoading &&
-                    <TableCell colSpan={10}>
-                        <Skeleton animation='pulse' variant="rectangular" />
-                    </TableCell>
-                }
-                {!isLoading && rows.map(row => <AnimalFarmRow {...row} />)}
-            </TableBody>
-        </Table>
-    </div>
+export const FarmAnimalsTable = ({ rows, isLoading, scrollRef, fetchNextPage }: FarmAnimalsTableProps) => {
+    return <TableVirtuoso
+        components={VirtuosoTableComponents}
+        ref={scrollRef}
+        data={rows}
+        endReached={fetchNextPage}
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <TableHeadCell />
+                <VirtuosoHeadCell>Brinco</VirtuosoHeadCell>
+                <VirtuosoHeadCell>Nome</VirtuosoHeadCell>
+                <VirtuosoHeadCell>Sexo</VirtuosoHeadCell>
+                <VirtuosoHeadCell>Data de Nascimento</VirtuosoHeadCell>
+                <VirtuosoHeadCell>Mãe</VirtuosoHeadCell>
+                <VirtuosoHeadCell>Pai</VirtuosoHeadCell>
+                <VirtuosoHeadCell>Tipo de Animal</VirtuosoHeadCell>
+                <VirtuosoHeadCell>Pasto</VirtuosoHeadCell>
+            </TableHeadRow>
+        )}
+        itemContent={(_, row) => isLoading ? <TableLoadingCells colSpan={9} /> : <AnimalFarmRow {...row} />}
+    />
 }
 
 const AnimalFarmRow = (row: AnimalFarm) => {
@@ -58,7 +57,7 @@ const AnimalFarmRow = (row: AnimalFarm) => {
 }
 
 const AnimalFarmNormalRow = ({ rowValue, setEditing }: NormalRow<AnimalFarm>) => {
-    return <TableBodyRow>
+    return <>
         <TableBodyCell>
             <EditControlButtons
                 setEditing={setEditing}
@@ -69,12 +68,11 @@ const AnimalFarmNormalRow = ({ rowValue, setEditing }: NormalRow<AnimalFarm>) =>
         <TableBodyCell>{rowValue.name}</TableBodyCell>
         <TableBodyCell>{rowValue.sex}</TableBodyCell>
         <TableBodyCell>{dateTransformToLocale(rowValue.birthDate)}</TableBodyCell>
-        <TableBodyCell>{dateTransformToLocale(rowValue.deathDate)}</TableBodyCell>
         <TableBodyCell>{rowValue.motherName}</TableBodyCell>
         <TableBodyCell>{rowValue.fatherName}</TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowValue.animalType, rowValue.sex)}</TableBodyCell>
         <TableBodyCell>{rowValue.pastureName}</TableBodyCell>
-    </TableBodyRow>
+    </>
 }
 
 const AnimalFarmEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<AnimalFarm>) => {
@@ -86,89 +84,27 @@ const AnimalFarmEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<Animal
         setRowValue(data)
     }
 
-    return <TableRow>
+    const handlePastureSearch = (input?: string) => searchPasture(input, rowValue.farmId)
+    const handlePastureSearchById = (id?: string) => searchPastureById(id, rowValue.farmId)
+
+    return <>
         <TableBodyCell>
             <EditingControlButtons
                 setEditing={setEditing}
                 onSave={handleSubmit(onSubmit)}
             />
         </TableBodyCell>
-        <TableBodyCell>
-            <FormTextField
-                formProps={{
-                    control,
-                    name: 'ringNumber'
-                }}
-            />
-        </TableBodyCell>
-        <TableBodyCell>
-            <FormTextField
-                formProps={{
-                    control,
-                    name: 'name'
-                }}
-            />
-        </TableBodyCell>
-        <TableBodyCell>
-            <FormComboBox
-                items={SexValues}
-                formProps={{
-                    control,
-                    name: 'sex'
-                }}
-            />
-        </TableBodyCell>
-        <TableBodyCell>
-            <FormDatePicker
-                formProps={{
-                    control,
-                    name: 'birthDate'
-                }}
-            />
-        </TableBodyCell>
-        <TableBodyCell>
-            <FormDatePicker
-                formProps={{
-                    control,
-                    name: 'deathDate'
-                }}
-            />
-        </TableBodyCell>
+        <TableBodyCell>{rowValue.ringNumber}</TableBodyCell>
+        <TableBodyCell>{rowValue.name}</TableBodyCell>
+        <TableBodyCell>{rowValue.sex}</TableBodyCell>
+        <TableBodyCell>{dateTransformToLocale(rowValue.birthDate)}</TableBodyCell>
+        <TableBodyCell>{rowValue.motherName}</TableBodyCell>
+        <TableBodyCell>{rowValue.fatherName}</TableBodyCell>
+        <TableBodyCell>{transformAnimalType(rowValue.animalType, rowValue.sex)}</TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
-                fetchOptions={searchMother}
-                valueLabel={rowValue.motherName}
-                onChange={(_, label) => setValue('motherName', label)}
-                formProps={{
-                    control,
-                    name: 'motherId'
-                }}
-            />
-        </TableBodyCell>
-        <TableBodyCell>
-            <FormSearchBox
-                fetchOptions={searchFather}
-                valueLabel={rowValue.fatherName}
-                onChange={(_, label) => setValue('fatherName', label)}
-                formProps={{
-                    control,
-                    name: 'fatherId'
-                }}
-            />
-        </TableBodyCell>
-        <TableBodyCell>
-            <FormComboBox
-                items={animalTypeToComboBox()}
-                formProps={{
-                    control,
-                    name: 'animalType'
-                }}
-            />
-        </TableBodyCell>
-        <TableBodyCell>
-            <FormSearchBox
-                fetchOptions={searchPasture}
-                valueLabel={rowValue.pastureName}
+                searchByInput={handlePastureSearch}
+                searchById={handlePastureSearchById}
                 onChange={(_, label) => setValue('pastureName', label)}
                 formProps={{
                     control,
@@ -176,5 +112,5 @@ const AnimalFarmEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<Animal
                 }}
             />
         </TableBodyCell>
-    </TableRow>
+    </>
 }

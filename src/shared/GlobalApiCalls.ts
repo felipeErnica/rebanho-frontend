@@ -11,22 +11,60 @@ export function findAnimalById(id: string): Promise<ApiResponse> {
 }
 
 export function searchFarm(input?: string): Promise<ApiResponse> {
-    return apiGet(FARM_BASE + `search?input=${input}`)
+    const inputQuery = input ? `search?input=${input}` : 'search'
+    return apiGet(FARM_BASE + inputQuery)
+}
+
+export function searchFarmById(id?: string | string[]): Promise<ApiResponse> {
+    const inputQuery = id ? `search?id=${id}` : 'search'
+    return apiGet(FARM_BASE + inputQuery)
 }
 
 export function searchFather(input?: string): Promise<ApiResponse> {
-    return apiGet(ANIMAL_SEARCH_BASE + `father?input=${input}`)
+    const inputString = input ? `father?input=${input}` : "father"
+    const query = ANIMAL_SEARCH_BASE + inputString
+    return apiGet(query)
+}
+
+export function searchFatherById(id?: string | string[]): Promise<ApiResponse> {
+    const inputString = id ? `father?id=${id}` : "father"
+    const query = ANIMAL_SEARCH_BASE + inputString
+    return apiGet(query)
 }
 
 export function searchMother(input?: string): Promise<ApiResponse> {
-    return apiGet(ANIMAL_SEARCH_BASE + `mother?input=${input}`)
+    const inputQuery = input ? `mother?input=${input}` : 'mother'
+    return apiGet(ANIMAL_SEARCH_BASE + inputQuery)
+}
+
+export function searchMotherById(id?: string | string[]): Promise<ApiResponse> {
+    const inputString = id ? `mother?id=${id}` : "mother"
+    const query = ANIMAL_SEARCH_BASE + inputString
+    return apiGet(query)
 }
 
 export async function searchAnimal(input: string) {
-    return apiGet(ANIMAL_SEARCH_BASE + `animal?input=${input}`)
+    const inputQuery = input ? `animal?input=${input}` : 'animal'
+    return apiGet(ANIMAL_SEARCH_BASE + inputQuery)
+}
+
+export async function searchAnimalById(id?: string | string[]) {
+    const inputQuery = id ? `animal?id=${id}` : 'animal'
+    return apiGet(ANIMAL_SEARCH_BASE + inputQuery)
 }
 
 export function searchPasture(input?: string, farmIds?: string | string[]): Promise<ApiResponse> {
-    const farmKey = farmIds ? `&farmsId=${farmIds}` : ''
-    return apiGet(PASTURE_BASE + `search?input=${input}` + farmKey)
+    let apiQuery = input ? `search?input=${input}` : 'search'
+    if (!farmIds) {
+        apiQuery += input ? `&farmId=${farmIds}` : `?farmId=${farmIds}` 
+    }
+    return apiGet(PASTURE_BASE + apiQuery)
+}
+
+export function searchPastureById(id?: string | string[], farmIds?: string | string[]): Promise<ApiResponse> {
+    let apiQuery = id ? `search?id=${id}` : 'search'
+    if (!farmIds) {
+        apiQuery += apiQuery ? `&farmId=${farmIds}` : `&farmId=${farmIds}` 
+    }
+    return apiGet(PASTURE_BASE + apiQuery)
 }

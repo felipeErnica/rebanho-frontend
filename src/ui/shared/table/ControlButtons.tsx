@@ -17,7 +17,7 @@ export const ControlButtonContainer = ({ children }: ControlButtonContainerProps
 }
 
 type EditControlButtonProps = {
-    setEditing: (isEditing: boolean) => void
+    setEditing?: (isEditing: boolean) => void
     onDelete?: () => void
     onShow?: () => void
     otherButtons?: ReactNode | ReactNode[]
@@ -25,9 +25,11 @@ type EditControlButtonProps = {
 
 export const EditControlButtons = ({ setEditing, onDelete, onShow, otherButtons }: EditControlButtonProps) => {
     return <ControlButtonContainer>
-        <IconButton onClick={() => setEditing(true)}>
-            <Edit />
-        </IconButton>
+        {setEditing &&
+            <IconButton onClick={() => setEditing(true)}>
+                <Edit />
+            </IconButton>
+        }
         {onDelete &&
             <IconButton onClick={onDelete}>
                 <Delete />

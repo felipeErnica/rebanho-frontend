@@ -4,6 +4,8 @@ import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
 import { AbstractFilterGroup } from "@/ui/shared/filter-controls/AbstractFilterGroup"
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
 import { PastureEntriesFilter } from "./Entities"
+import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
+import { searchFather, searchFatherById, searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
 
 type PastureEntriesFilterProps = {
     filter: PastureEntriesFilter
@@ -36,16 +38,32 @@ export const PastureEntriesFilterPopover = ({
                     filter={filter}
                     setFilter={setFilter}
                 />
-                <DateFilter
-                    mainTitle="Data de Nascimento"
-                    className='col-span-3'
-                    maxFieldName="maxAnimalBirthDate"
-                    minFieldName="minAnimalBirthDate"
+                <MultipleSearchBoxFilter
+                    label="Mães"
+                    fieldName="mothers"
+                    searchByInput={searchMother}
+                    searchById={searchMotherById}
+                    filter={filter}
+                    setFilter={setFilter}
+                />
+                <MultipleSearchBoxFilter
+                    label="Pais"
+                    fieldName="fathers"
+                    searchByInput={searchFather}
+                    searchById={searchFatherById}
                     filter={filter}
                     setFilter={setFilter}
                 />
             </div>
         </AbstractFilterGroup>
+        <DateFilter
+            mainTitle="Data de Nascimento"
+            className='col-span-3'
+            maxFieldName="maxAnimalBirthDate"
+            minFieldName="minAnimalBirthDate"
+            filter={filter}
+            setFilter={setFilter}
+        />
         <DateFilter
             mainTitle="Data de Entrada"
             maxFieldName="maxEntryDate"

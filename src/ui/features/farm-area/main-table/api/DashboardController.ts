@@ -12,6 +12,12 @@ export async function getPasturesInfo(farmId: string) {
     return apiGet(url)
 }   
 
-export async function searchBull(input: string) {
-    return apiGet(`animals/info/search/bull?input=${input}`)
+export async function searchBull(input?: string) {
+    const apiQuery = input ? `bull?input=${input}` : 'bull'
+    return apiGet("animals/info/search/" + apiQuery)
+}
+
+export async function searchBullById(id?: string | string[]) {
+    const apiQuery = id ? `bull?id=${id}` : 'bull'
+    return apiGet("animals/info/search/" + apiQuery)
 }

@@ -4,7 +4,7 @@ import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { AnimalSave } from "../shared/AnimalEntities"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
-import { searchMother } from "@/shared/GlobalApiCalls"
+import { searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
 
 export type DialogProps = {
     isDialogOpen: boolean
@@ -31,7 +31,8 @@ export const AddBirthDialog = ({ isDialogOpen, setDialogOpen }: DialogProps) => 
                         name: 'motherId',
                         rules: { required: REQUIRED_FIELD_MSG }
                     }}
-                    fetchOptions={searchMother}
+                    searchByInput={searchMother}
+                    searchById={searchMotherById}
                 />
                 <FormDatePicker
                     label="Data de Nascimento*"

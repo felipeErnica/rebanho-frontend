@@ -6,6 +6,9 @@ import { findAnimalsByPasture } from "./Controller"
 import { PastureAnimalsTable } from "./PastureAnimalsTable"
 import { PastureAnimalsFilter } from "./PastureAnimalsFilter"
 import { AnimalFilter } from "../../animals/table/api/AnimalInfo"
+import { Button } from "@mui/material"
+import { AddAnimalToPasture } from "./AddAnimalToPasture"
+import Add from "@mui/icons-material/Add"
 
 type PastureAnimalsPageProps = {
     pastureId: string
@@ -19,6 +22,7 @@ export const PastureAnimalsPage = ({ pastureId }: PastureAnimalsPageProps) => {
     const [isLoading, setLoading] = useState(false)
     const [isFilterOpen, setFilterOpen] = useState(false)
     const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
+    const [isAddAnimalOpen, setAddAnimalOpen] = useState(false)
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const onReload = useCallback(() => {
@@ -38,19 +42,33 @@ export const PastureAnimalsPage = ({ pastureId }: PastureAnimalsPageProps) => {
         { name: 'Data de Morte', value: 'death_date' },
     ]
 
+    const otherActions = (
+        <>
+            <Button 
+                onClick={() => setAddAnimalOpen(true)}
+                startIcon={<Add />}
+                variant="outlined"
+            >
+                Adicionar Animais
+            </Button>
+            <AddAnimalToPasture {...{ pastureId, isAddAnimalOpen, setAddAnimalOpen }} />
+        </>
+    )
+
     return <div className="h-full w-full flex flex-col">
         <TableTopBar
             orderProps={{ order, setOrder }}
             sortProps={{ sort, setSort, sortColumns, defaultSort: 'ring_number' }}
             reloadProps={{ onReload, isLoading }}
             filterProps={{ setFilterOpen, anchorEl }}
+            otherProps={otherActions}
         />
         <PastureAnimalsTable {...{ rows, isLoading }} />
-        <PastureAnimalsFilter {...{ 
-            isFilterOpen, 
-            setFilterOpen, 
-            filter, 
-            setFilter, 
+        <PastureAnimalsFilter {...{
+            isFilterOpen,
+            setFilterOpen,
+            filter,
+            setFilter,
             anchorEl,
         }} />
     </div>

@@ -9,20 +9,10 @@ import Checkbox from "@mui/material/Checkbox"
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { IFilters } from "@/shared/interfaces/Filter"
 
-type SearchBoxProps = {
-    label: string
-    fetchOptions: (input: string) => Promise<ApiResponse>
-    className?: string
-    disabled?: boolean
-    onChange?: (newValue: SearchBoxItem | null) => void
-    filter: IFilters
-    setFilter: (filter: IFilters) => void
-    fieldName: string
-}
-
 export type MultipleSearchBoxFilterProps = {
     label: string
-    fetchOptions: (input: string) => Promise<ApiResponse>
+    searchByInput: (input?: string) => Promise<ApiResponse>
+    searchById: (id?: string) => Promise<ApiResponse>
     className?: string
     disabled?: boolean
     limitTags?: number
@@ -33,7 +23,8 @@ export type MultipleSearchBoxFilterProps = {
 }
 
 export const MultipleSearchBoxFilter = ({
-    fetchOptions,
+    searchByInput,
+    searchById,
     onChange,
     label,
     disabled,
@@ -44,66 +35,64 @@ export const MultipleSearchBoxFilter = ({
     fieldName,
 }: MultipleSearchBoxFilterProps) => {
 
-    const [open, setOpen] = useState(false)
     const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [selected, setSelected] = useState<SearchBoxItem[]>(filter[fieldName + "Item"] || [])
+    const [value, setValue] = useState<SearchBoxItem[]>([])
     const [inputValue, setInputValue] = useState('')
 
-    const setDebouncedInputValue = useMemo(() => debounce(setInputValue, 300), [setInputValue])
-
-    const handleOpen = () => {
-        setOpen(true)
-        fetchOptions(inputValue)
+    const searchValue = (search: string) => {
+        searchByInput(search)
             .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
     }
-
-    const handleClose = () => {
-        setOpen(false)
-        setOptions([])
-    }
+    const setDebouncedSearch = useMemo(() => debounce(searchValue, 300), [searchValue])
 
     useEffect(() => {
-        if (inputValue === '') {
-            return
-        }
-        fetchOptions(inputValue)
-            .then(response => setOptions(response.json))
+        searchById(filter[fieldName])
+            .then(response => {
+                const options: SearchBoxItem[] = response.json
+                setOptions(options)
+                const selected: string[] = filter[fieldName]
+                if (!selected) {
+                    setValue([])
+                    return
+                }
+                const values = options.filter(item => selected.includes(item.id))
+                setValue(values)
+            })
             .catch(() => setOptions([]))
-    }, [inputValue])
+    }, [filter, fieldName])
 
-    useEffect(() => {
-        if (!filter[fieldName + "Item"]) setSelected([])
-    }, [filter])
 
     return <Autocomplete
         multiple
+        value={value}
+        inputValue={inputValue}
         disableCloseOnSelect
         className={className}
         forcePopupIcon={false}
-        value={selected}
         limitTags={limitTags}
-        onClose={handleClose}
-        onOpen={handleOpen}
         filterOptions={(x) => x}
         getOptionLabel={(option) => option.label}
-        onInputChange={(_, input) => setDebouncedInputValue(input)}
+        onInputChange={(_, input) => {
+            setInputValue(input)
+            setDebouncedSearch(input)
+        }}
         filterSelectedOptions
-        open={open}
         options={options}
         onChange={(_, newValue) => {
             if (!newValue) {
-                setFilter({ ...filter, [fieldName]: undefined, [fieldName + "Item"]: undefined })
+                setFilter({ ...filter, [fieldName]: undefined })
+                setValue([])
                 return
             }
             const values = Array.isArray(newValue) ? [...newValue] : [newValue]
-            setSelected(values)
+            setValue(values)
             if (values.length == 0) {
                 setFilter({ ...filter, [fieldName]: undefined })
                 return
             }
             const idList = values.map(option => option.id)
-            setFilter({ ...filter, isFiltered: true, [fieldName]: idList, [fieldName + "Item"]: values })
+            setFilter({ ...filter, isFiltered: true, [fieldName]: idList })
             if (onChange) onChange(newValue)
         }}
         noOptionsText="Nenhum resultado encontrado!"
@@ -130,8 +119,21 @@ export const MultipleSearchBoxFilter = ({
 
 }
 
+type SearchBoxProps = {
+    label: string
+    searchByInput: (input?: string) => Promise<ApiResponse>
+    searchById: (id?: string) => Promise<ApiResponse>
+    className?: string
+    disabled?: boolean
+    onChange?: (newValue: SearchBoxItem | null) => void
+    filter: IFilters
+    setFilter: (filter: IFilters) => void
+    fieldName: string
+}
+
 export const SearchBoxFilter = ({
-    fetchOptions,
+    searchByInput,
+    searchById,
     onChange,
     label,
     disabled,
@@ -141,47 +143,42 @@ export const SearchBoxFilter = ({
     fieldName,
 }: SearchBoxProps) => {
 
-    const [open, setOpen] = useState(false)
     const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [selected, setSelected] = useState<SearchBoxItem | null>(filter[fieldName + "Item"] || null)
+    const [selected, setSelected] = useState<SearchBoxItem | null>()
     const [inputValue, setInputValue] = useState('')
 
-    const setDebouncedInputValue = useMemo(() => debounce(setInputValue, 300), [setInputValue])
-
-    const handleOpen = () => {
-        setOpen(true)
-        fetchOptions(inputValue)
-            .then(response => setOptions(response.json))
+    const searchInput = (search: string) => {
+        searchByInput(search)
+            .then(response => { setOptions(response.json) })
             .catch(() => setOptions([]))
     }
-
-    const handleClose = () => {
-        setOpen(false)
-        setOptions([])
-    }
+    const setDebouncedSearch = useMemo(() => debounce(searchInput, 300), [searchInput])
 
     useEffect(() => {
-        if (!filter[fieldName + "Item"]) setSelected(null)
-    }, [filter])
-
-    useEffect(() => {
-        if (inputValue === '') {
-            return
-        }
-        fetchOptions(inputValue)
-            .then(response => setOptions(response.json))
+        searchById(filter[fieldName])
+            .then(response => {
+                const options: SearchBoxItem[] = response.json
+                setOptions(options)
+                if (!filter[fieldName]) {
+                    setSelected(null)
+                    return
+                }
+                const value = options.find(option => option.id === filter[fieldName])
+                setSelected(value)
+            })
             .catch(() => setOptions([]))
-    }, [inputValue])
+    }, [])
 
     return <Autocomplete
-        onClose={handleClose}
         value={selected}
-        onOpen={handleOpen}
+        inputValue={inputValue}
         className={className}
         filterOptions={(x) => x}
         getOptionLabel={(option) => option.label}
-        onInputChange={(_, input) => setDebouncedInputValue(input)}
-        open={open}
+        onInputChange={(_, input) => {
+            setInputValue(input)
+            setDebouncedSearch(input)
+        }}
         options={options}
         onChange={(_, newValue) => {
             setSelected(newValue)
@@ -189,7 +186,7 @@ export const SearchBoxFilter = ({
                 setFilter({ ...filter, [fieldName]: undefined })
                 return
             }
-            setFilter({ ...filter, isFiltered: true, [fieldName]: newValue.id, [fieldName + "Item"]: newValue })
+            setFilter({ ...filter, isFiltered: true, [fieldName]: newValue.id })
             if (onChange) onChange(newValue)
         }}
         noOptionsText="Nenhum resultado encontrado!"

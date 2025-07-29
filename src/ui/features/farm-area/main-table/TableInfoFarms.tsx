@@ -14,7 +14,7 @@ import {
 } from "@mui/material"
 import { useContext, useEffect, useRef, useState } from "react"
 import { FarmInfo, PastureInfo } from "./api/entities"
-import { getFarmsInfo, getPasturesInfo, searchBull } from "./api/DashboardController"
+import { getFarmsInfo, getPasturesInfo, searchBull, searchBullById } from "./api/DashboardController"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { useForm } from "react-hook-form"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
@@ -320,9 +320,9 @@ const EditPastureRow = ({ rowValue, setRowValue, setEditing }: EditPastureRowPro
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
-                fetchOptions={searchBull}
+                searchByInput={searchBull}
+                searchById={searchBullById}
                 onChange={(_, label) => setValue('bullName', label)}
-                valueLabel={rowValue.bullName}
                 formProps={{
                     control,
                     name: 'bullId'

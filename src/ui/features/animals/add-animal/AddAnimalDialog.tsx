@@ -13,7 +13,7 @@ import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormRadioGroup, RadioControlProps } from "@/ui/shared/form-controls/FormRadioGroup"
 import { AnimalType } from "../shared/AnimalEntities"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
-import { searchFarm, searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { searchFarm, searchFarmById, searchFather, searchFatherById, searchMother, searchMotherById, searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
 
 type AddAnimalProps = {
     isAddOpen: boolean
@@ -110,7 +110,8 @@ const MainControls = ({ control }: FormStateProps) => {
 const OtherControls = ({ control }: FormStateProps) => {
 
     const [farmId, setFarmId] = useState<string[]>()
-    const fetchPasture = useCallback((input: string) => searchPasture(input, farmId), [farmId])
+    const fetchPastureById = useCallback((id?: string) => searchPastureById(id, farmId), [farmId])
+    const fetchPasture = useCallback((input?: string) => searchPasture(input, farmId), [farmId])
 
     return <div className="mt-10 flex flex-col gap-3">
         <Typography variant="h6" className="col-span-3">Outras Informações</Typography>
@@ -121,7 +122,8 @@ const OtherControls = ({ control }: FormStateProps) => {
                 rules: { required: REQUIRED_FIELD_MSG }
             }}
             label="Pai*"
-            fetchOptions={searchFather}
+            searchByInput={searchFather}
+            searchById={searchFatherById}
         />
         <FormSearchBox
             formProps={{
@@ -130,7 +132,8 @@ const OtherControls = ({ control }: FormStateProps) => {
                 rules: { required: REQUIRED_FIELD_MSG }
             }}
             label="Mãe*"
-            fetchOptions={searchMother}
+            searchByInput={searchMother}
+            searchById={searchMotherById}
         />
         <FormSearchBox
             formProps={{
@@ -140,13 +143,15 @@ const OtherControls = ({ control }: FormStateProps) => {
             }}
             onChange={(id) => id && setFarmId([id])}
             label="Fazenda*"
-            fetchOptions={searchFarm}
+            searchByInput={searchFarm}
+            searchById={searchFarmById}
             className="col-span-3"
 
         />
         <FormSearchBox
             disabled={!farmId}
-            fetchOptions={fetchPasture}
+            searchByInput={fetchPasture}
+            searchById={fetchPastureById}
             formProps={{
                 control,
                 name: "pastureId",

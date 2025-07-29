@@ -1,11 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { PastureEntriesFilter } from "./Entities"
 import { findPastureEntries } from "./Controller"
 import { PastureEntriesTable } from "./PastureEntriesTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { PastureEntriesFilterPopover } from "./PastureEntriesFilter"
+import { AddAnimalToPasture } from "../pasture-animals/AddAnimalToPasture"
+import Button from "@mui/material/Button"
+import Add from "@mui/icons-material/Add"
 import { usePagination } from "@/ui/shared/table/PageTable"
 
 type PastureEntriesPageProps = {
@@ -19,15 +22,17 @@ export const PastureEntriesPage = ({ pastureId }: PastureEntriesPageProps) => {
     const [sort, setSort] = useState(defaultSort)
     const [order, setOrder] = useState('asc')
     const [isLoading, setLoading] = useState(false)
+    const [isAddAnimalOpen, setAddAnimalOpen] = useState(false)
     const [isFilterOpen, setFilterOpen] = useState(false)
     const anchorEl = useRef<HTMLButtonElement>(null)
 
-    const fetchPage = (cursor?: string) => findPastureEntries(pastureId, filter, sort, order, cursor)
-    const pagination = usePagination(fetchPage)
-    const { isPageLoading, onReload } = pagination
+    const fetchPage = useCallback((cursor?: string) => {
+        return findPastureEntries(pastureId, filter, sort, order, cursor)
+    }, [filter, sort, order])
 
-    useEffect(() => setLoading(isPageLoading), [isPageLoading])
-    useEffect(onReload, [pastureId, filter, sort, order])
+    const { rows, fetchNextPage, scrollRef } = usePagination({ fetchPage, setLoading })
+
+    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco', value: defaultSort },
@@ -36,20 +41,28 @@ export const PastureEntriesPage = ({ pastureId }: PastureEntriesPageProps) => {
         { name: 'Data de Entrada', value: 'entry_date' },
     ]
 
+    const otherActions = (
+        <>
+            <Button
+                onClick={() => setAddAnimalOpen(true)}
+                startIcon={<Add />}
+                variant="outlined"
+            >
+                Adicionar Animais
+            </Button>
+            <AddAnimalToPasture {...{ pastureId, isAddAnimalOpen, setAddAnimalOpen }} />
+        </>
+    )
+
     return <div className="h-full w-full flex flex-col">
         <TableTopBar
             sortProps={{ sortColumns, sort, setSort, defaultSort }}
             orderProps={{ order, setOrder }}
             filterProps={{ setFilterOpen, anchorEl }}
-            reloadProps={{
-                isLoading, 
-                onReload: () => {
-                    setFilter({ isFiltered: false })
-                    onReload()
-                }
-            }}
+            otherProps={otherActions}
+            reloadProps={{ isLoading, onReload }}
         />
-        <PastureEntriesTable {...{ pagination, isLoading }} />
+        <PastureEntriesTable {...{ rows, fetchNextPage, isLoading, scrollRef }} />
         <PastureEntriesFilterPopover {...{
             filter,
             setFilter,
