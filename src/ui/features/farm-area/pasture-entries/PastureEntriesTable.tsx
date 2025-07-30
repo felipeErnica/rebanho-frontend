@@ -1,8 +1,12 @@
 import {
-    VirtuosoHeadCell,
+    VirtuosoResizeHeadCell,
     TableBodyCell,
     TableHeadRow,
     TableLoadingCells,
+    TableFooterRow,
+    VirtuosoHeadCell,
+    TableFooterTitleCell,
+    TableFooterCell,
 } from "@/ui/shared/table/TableComponents"
 import { PastureEntries } from "./Entities"
 import { RefObject, useEffect, useRef, useState } from "react"
@@ -17,12 +21,25 @@ type PastureEntriesTableProps = {
     scrollRef: RefObject<VirtuosoHandle | null>
     fetchNextPage: () => void
     rows: PastureEntries[]
+    total: number
     isLoading: boolean
 }
 
-export const PastureEntriesTable = ({ fetchNextPage, rows, isLoading, scrollRef }: PastureEntriesTableProps) => {
+export const PastureEntriesTable = ({ fetchNextPage, rows, isLoading, scrollRef, total }: PastureEntriesTableProps) => {
 
+    const [tableWidth, setTableWidth] = useState(0)
     const tableRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (!tableRef.current) return
+            const table = tableRef.current
+            setTableWidth(table.offsetWidth)
+        }
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     return <div className="h-full w-full">
         <TableVirtuoso
@@ -32,20 +49,23 @@ export const PastureEntriesTable = ({ fetchNextPage, rows, isLoading, scrollRef 
             components={VirtuosoTableComponents}
             endReached={fetchNextPage}
             fixedHeaderContent={() => {
-                const table = tableRef.current
-                if (!table) return
-                const tableWidth = table.offsetWidth / 100
-
+                const unit = tableWidth/100
                 return <TableHeadRow>
-                    <VirtuosoHeadCell width={tableWidth * 10} />
-                    <VirtuosoHeadCell width={tableWidth * 10}>Brinco</VirtuosoHeadCell>
-                    <VirtuosoHeadCell width={tableWidth * 20}>Nome</VirtuosoHeadCell>
-                    <VirtuosoHeadCell width={tableWidth * 10}>Mãe</VirtuosoHeadCell>
-                    <VirtuosoHeadCell width={tableWidth * 10}>Pai</VirtuosoHeadCell>
-                    <VirtuosoHeadCell width={tableWidth * 20}>Data de Nascimento</VirtuosoHeadCell>
-                    <VirtuosoHeadCell width={tableWidth * 20}>Data de Entrada</VirtuosoHeadCell>
+                    <VirtuosoHeadCell width={unit * 10} />
+                    <VirtuosoResizeHeadCell width={unit * 5}>Brinco</VirtuosoResizeHeadCell>
+                    <VirtuosoResizeHeadCell width={unit * 20}>Nome</VirtuosoResizeHeadCell>
+                    <VirtuosoResizeHeadCell width={unit * 15}>Mãe</VirtuosoResizeHeadCell>
+                    <VirtuosoResizeHeadCell width={unit * 10}>Pai</VirtuosoResizeHeadCell>
+                    <VirtuosoResizeHeadCell width={unit * 20}>Data de Nascimento</VirtuosoResizeHeadCell>
+                    <VirtuosoResizeHeadCell width={unit * 20}>Data de Entrada</VirtuosoResizeHeadCell>
                 </TableHeadRow>
             }}
+            fixedFooterContent={() => (
+                <TableFooterRow>
+                    <TableFooterTitleCell colSpan={2}>Total de Entradas</TableFooterTitleCell>
+                    <TableFooterCell colSpan={7}>{total}</TableFooterCell>
+                </TableFooterRow>
+            )}
             itemContent={(_, row) => isLoading ? <TableLoadingCells colSpan={7} /> : <PastureEntriesRow {...row} />}
         />
     </div>

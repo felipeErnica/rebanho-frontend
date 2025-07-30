@@ -97,6 +97,7 @@ export function FormSearchBox<T extends FieldValues>({
                 noOptionsText="Nenhum resultado encontrado!"
                 disabled={disabled}
                 fullWidth
+                filterSelectedOptions
                 renderInput={(params) => <TextField
                     {...params}
                     error={!!error}
@@ -132,10 +133,12 @@ type MultipleFormSearchBoxProps<T extends FieldValues> = {
     className?: string
     disabled?: boolean
     onChange?: (items: SearchBoxItem[]) => void
+    limitTags?: number
 }
 
 export function FormMultipleSearchBox<T extends FieldValues>({
     label,
+    limitTags,
     searchByInput,
     searchById,
     formProps,
@@ -188,6 +191,7 @@ export function FormMultipleSearchBox<T extends FieldValues>({
             return <Autocomplete
                 {...field}
                 multiple={true}
+                limitTags={limitTags}
                 value={value}
                 inputValue={inputValue}
                 className={className}
@@ -202,10 +206,12 @@ export function FormMultipleSearchBox<T extends FieldValues>({
                 getOptionLabel={(option) => option.label}
                 onChange={(_, newValue) => {
                     field.onChange(newValue)
+                    setValue(newValue)
                     if (onChange) onChange(newValue)
                 }}
                 noOptionsText="Nenhum resultado encontrado!"
                 disabled={disabled}
+                filterSelectedOptions
                 fullWidth
                 renderInput={(params) => <TextField
                     {...params}

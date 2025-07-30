@@ -34,7 +34,7 @@ type ResizableTableHeadCellProps = {
     colSpan?: number
 }
 
-export const ResizableTableHeadCell = ({ children, colSpan, className }: ResizableTableHeadCellProps) => {
+export const ResizableHeadCell = ({ children, colSpan, className }: ResizableTableHeadCellProps) => {
 
     const DEFAULT_MIN_WIDTH = 80
 
@@ -84,12 +84,22 @@ type VirtuosoHeadCellProps = {
     children?: ReactNode
     className?: string
     colSpan?: number
-    width?: number
+    width: number
 }
 
 export const VirtuosoHeadCell = ({ children, colSpan, className, width }: VirtuosoHeadCellProps) => {
+    return <TableCell
+        className={`bg-gray-700 border-none text-white text-nowrap ${className}`}
+        colSpan={colSpan}
+        sx={{minWidth: width, width }}
+    >
+        {children}
+    </TableCell>
+}
 
-    const DEFAULT_MIN_WIDTH = 80
+export const VirtuosoResizeHeadCell = ({ children, colSpan, className, width }: VirtuosoHeadCellProps) => {
+
+    const DEFAULT_MIN_WIDTH = width
 
     const handlerRef = useRef<HTMLDivElement>(null)
 
@@ -178,7 +188,7 @@ export const TableFooterRow = ({ children, className, style, ref }: TableBodyRow
 
 export const TableFooterTitleCell = ({ children, className, colSpan }: TableBodyCellProps) => {
     return <TableCell
-        className={`bg-gray-700 border-none font-bold text-white ${className}`}
+        className={`bg-gray-700 border-t border-gray-400 font-bold text-white ${className}`}
         colSpan={colSpan}
     >
         <Typography variant="body2">{children}</Typography>
@@ -187,7 +197,7 @@ export const TableFooterTitleCell = ({ children, className, colSpan }: TableBody
 
 export const TableFooterCell = ({ children, className, colSpan }: TableBodyCellProps) => {
     return <TableCell
-        className={`border-b border-b-gray-400 overflow-hidden text-nowrap overflow-ellipsis ${className}`}
+        className={`border-t border-gray-400 overflow-hidden text-nowrap overflow-ellipsis ${className}`}
         colSpan={colSpan}
     >
         <Typography color='textPrimary' variant="body2">{children}</Typography>

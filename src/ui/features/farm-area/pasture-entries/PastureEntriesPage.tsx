@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useRef, useState } from "react"
 import { PastureEntriesFilter } from "./Entities"
-import { findPastureEntries } from "./Controller"
+import { findPastureEntries, findPastureEntriesTotal } from "./Controller"
 import { PastureEntriesTable } from "./PastureEntriesTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
@@ -24,9 +24,13 @@ export const PastureEntriesPage = ({ pastureId }: PastureEntriesPageProps) => {
     const [isLoading, setLoading] = useState(false)
     const [isAddAnimalOpen, setAddAnimalOpen] = useState(false)
     const [isFilterOpen, setFilterOpen] = useState(false)
+    const [total, setTotal] = useState(0)
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
+        findPastureEntriesTotal(pastureId, filter)
+            .then(respose => setTotal(respose.json.total))
+            .catch(() => setTotal(0))
         return findPastureEntries(pastureId, filter, sort, order, cursor)
     }, [filter, sort, order])
 
@@ -62,7 +66,7 @@ export const PastureEntriesPage = ({ pastureId }: PastureEntriesPageProps) => {
             otherProps={otherActions}
             reloadProps={{ isLoading, onReload }}
         />
-        <PastureEntriesTable {...{ rows, fetchNextPage, isLoading, scrollRef }} />
+        <PastureEntriesTable {...{ rows, fetchNextPage, isLoading, scrollRef, total }} />
         <PastureEntriesFilterPopover {...{
             filter,
             setFilter,

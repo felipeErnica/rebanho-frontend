@@ -6,8 +6,12 @@ export async function findAnimalsByPasture(pastureId: string, sort: string, orde
     return apiGet(query)
 }
 
-export async function searchAnimalsByPasture(pastureId: string, input?: string) {
+export async function searchPastureAnimals(pastureId: string, input?: string) {
     const query = `farm-area/pastures/${pastureId}/search/animals${input ? `?input=${input}` : ''}`
-    console.log("url query: ", query)
+    return apiGet(query)
+}
+
+export async function searchPastureAnimalsById(pastureId: string, id?: string | string[]) {
+    const query = `farm-area/pastures/${pastureId}/search/animals${id ? `?id=${id}` : ''}`
     return apiGet(query)
 }

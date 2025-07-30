@@ -1,9 +1,11 @@
 import { PageProps } from "@/ui/shared/main-page/PageDisplay";
-import { BirthTable } from "./table/BirthTable";
 import { HomePage } from "../../home/HomePage";
+import { BirthDashboard } from "./BirthDashboard";
+import { CalfIcon } from "@/ui/shared/common/OtherIcons";
 
 export const BirthTablePage: PageProps = {
-    title: "Tabela de Parições",
-    page: <BirthTable />,
+    title: "Parições",
+    crumbIcon: <CalfIcon />,
+    page: <BirthDashboard />,
     previousPages: [HomePage]
 }

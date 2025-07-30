@@ -3,7 +3,7 @@ import { dateTransformToLocale } from "@/util/Transformations"
 import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
 import { transformAnimalType } from "../../animals/shared/AnimalEntities"
 import {
-    ResizableTableHeadCell,
+    ResizableHeadCell,
     TableBodyCell,
     TableBodyRow,
     TableFooterCell,
@@ -25,13 +25,13 @@ export const PastureAnimalsTable = ({ rows, isLoading }: PastureAnimalsTableProp
             <TableHead className="bg-gray-700">
                 <TableHeadRow>
                     <TableHeadCell />
-                    <ResizableTableHeadCell>Brinco</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Nome</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Sexo</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Data de Nascimento</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Mãe</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Pai</ResizableTableHeadCell>
-                    <ResizableTableHeadCell>Tipo de Animal</ResizableTableHeadCell>
+                    <ResizableHeadCell>Brinco</ResizableHeadCell>
+                    <ResizableHeadCell>Nome</ResizableHeadCell>
+                    <ResizableHeadCell>Sexo</ResizableHeadCell>
+                    <ResizableHeadCell>Data de Nascimento</ResizableHeadCell>
+                    <ResizableHeadCell>Mãe</ResizableHeadCell>
+                    <ResizableHeadCell>Pai</ResizableHeadCell>
+                    <ResizableHeadCell>Tipo de Animal</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>

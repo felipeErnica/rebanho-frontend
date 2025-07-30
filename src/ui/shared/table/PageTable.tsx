@@ -37,6 +37,24 @@ type PaginationProps = {
     setLoading: (isLoading: boolean) => void
 }
 
+export function useTableResizer(ref: HTMLDivElement | null) {
+
+    const [tableWidth, setTableWidth] = useState(0)
+    
+    useEffect(() => {
+        const handleResize = () => {
+            if (!ref) return
+            setTableWidth(ref.offsetWidth)
+        }
+
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+    return tableWidth
+}
+
 export function usePagination({ fetchPage, setLoading }: PaginationProps): PaginationResponse {
 
     const [page, setPage] = useState<Page>()

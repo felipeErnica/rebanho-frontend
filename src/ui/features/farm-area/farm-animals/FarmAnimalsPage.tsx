@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react"
 import { FarmAnimalsTable } from "./FarmAnimalsTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
-import { findAnimalsByFarm } from "./Controller"
+import { findAnimalsByFarm, findFarmAnimalsTotal } from "./Controller"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { FarmAnimalsFilter } from "./FarmAnimalsFilter"
 import { AnimalFilter } from "../../animals/table/api/AnimalInfo"
@@ -13,6 +13,7 @@ type FarmAnimalsPageProps = {
 
 export const FarmAnimalsPage = ({ farmId }: FarmAnimalsPageProps) => {
 
+    const [total, setTotal] = useState(0)
     const [order, setOrder] = useState('asc')
     const [sort, setSort] = useState('ring_order')
     const [isLoading, setLoading] = useState(false)
@@ -20,6 +21,9 @@ export const FarmAnimalsPage = ({ farmId }: FarmAnimalsPageProps) => {
     const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
 
     const fetchPage = useCallback((cursor?: string) => {
+        findFarmAnimalsTotal(farmId, filter)
+            .then((response) => setTotal(response.json.total))
+            .catch(() => setTotal(0))
         return findAnimalsByFarm(farmId, filter, sort, order, cursor)
     }, [farmId, filter, sort, order])
 
@@ -41,7 +45,7 @@ export const FarmAnimalsPage = ({ farmId }: FarmAnimalsPageProps) => {
             filterProps={{ anchorEl, setFilterOpen }}
             reloadProps={{ onReload, isLoading }}
         />
-        <FarmAnimalsTable {...{ rows, isLoading, fetchNextPage, scrollRef }} />
+        <FarmAnimalsTable {...{ rows, isLoading, fetchNextPage, scrollRef, total }} />
         <FarmAnimalsFilter {...{
             anchorEl,
             isFilterOpen,

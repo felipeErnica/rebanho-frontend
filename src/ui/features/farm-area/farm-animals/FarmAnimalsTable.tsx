@@ -1,15 +1,18 @@
-import { Ref, useState } from "react"
+import { Ref, useEffect, useRef, useState } from "react"
 import { AnimalFarm } from "./Entities"
 import { EditRow, NormalRow } from "@/ui/shared/table/Entities"
 import { dateTransformToLocale } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { useForm } from "react-hook-form"
 import {
-    VirtuosoHeadCell,
+    VirtuosoResizeHeadCell,
     TableBodyCell,
-    TableHeadCell,
     TableHeadRow,
-    TableLoadingCells
+    TableLoadingCells,
+    VirtuosoHeadCell,
+    TableFooterRow,
+    TableFooterTitleCell,
+    TableFooterCell
 } from "@/ui/shared/table/TableComponents"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
@@ -22,26 +25,57 @@ type FarmAnimalsTableProps = {
     isLoading: boolean
     scrollRef: Ref<VirtuosoHandle>
     fetchNextPage: () => void
+    total: number
 }
 
-export const FarmAnimalsTable = ({ rows, isLoading, scrollRef, fetchNextPage }: FarmAnimalsTableProps) => {
+export const FarmAnimalsTable = ({ 
+    rows, 
+    isLoading, 
+    scrollRef, 
+    fetchNextPage, 
+    total 
+}: FarmAnimalsTableProps) => {
+
+    const [tableWidth, setTableWidth] = useState(0)
+    const tableRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (!tableRef.current) return
+            const table = tableRef.current
+            setTableWidth(table.offsetWidth)
+        }
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+
     return <TableVirtuoso
         components={VirtuosoTableComponents}
         ref={scrollRef}
+        scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         data={rows}
         endReached={fetchNextPage}
-        fixedHeaderContent={() => (
-            <TableHeadRow>
-                <TableHeadCell />
-                <VirtuosoHeadCell>Brinco</VirtuosoHeadCell>
-                <VirtuosoHeadCell>Nome</VirtuosoHeadCell>
-                <VirtuosoHeadCell>Sexo</VirtuosoHeadCell>
-                <VirtuosoHeadCell>Data de Nascimento</VirtuosoHeadCell>
-                <VirtuosoHeadCell>Mãe</VirtuosoHeadCell>
-                <VirtuosoHeadCell>Pai</VirtuosoHeadCell>
-                <VirtuosoHeadCell>Tipo de Animal</VirtuosoHeadCell>
-                <VirtuosoHeadCell>Pasto</VirtuosoHeadCell>
+        fixedHeaderContent={() => {
+            const unit = tableWidth/100
+            return <TableHeadRow>
+                <VirtuosoHeadCell width={unit*10} />
+                <VirtuosoResizeHeadCell width={unit*5}>Brinco</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*15}>Nome</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*5}>Sexo</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*15}>Data de Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*15}>Mãe</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*10}>Pai</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*15}>Tipo de Animal</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*20}>Pasto</VirtuosoResizeHeadCell>
             </TableHeadRow>
+        }}
+        fixedFooterContent={() => (
+            <TableFooterRow>
+                <TableFooterTitleCell colSpan={2}>Total de Animais</TableFooterTitleCell>
+                <TableFooterCell colSpan={7}>{total}</TableFooterCell>
+            </TableFooterRow>
         )}
         itemContent={(_, row) => isLoading ? <TableLoadingCells colSpan={9} /> : <AnimalFarmRow {...row} />}
     />
