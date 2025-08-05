@@ -1,4 +1,4 @@
-import { GraphContainer } from "@/ui/shared/chart/GraphContainer"
+import { GraphContainer } from "@/ui/shared/dashboard/DashboardComponents"
 import { useEffect, useState } from "react"
 import { BarChart } from "@mui/x-charts/BarChart"
 import { AnimalDashboardFilter, AnimalsByAge, AnimalsByType } from "./api/DashboardEntities"

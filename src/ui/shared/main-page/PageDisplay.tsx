@@ -22,7 +22,7 @@ type BreadCrumbsToolbarProps = {
     setPageProps: (page?: PageProps) => void
 }
 
-const BreadCrumbsToolbar = ({pageProps: { previousPages, title, crumbIcon }, setPageProps}: BreadCrumbsToolbarProps) => {
+const BreadCrumbsToolbar = ({ pageProps: { previousPages, title, crumbIcon }, setPageProps }: BreadCrumbsToolbarProps) => {
 
     return <Toolbar className="border border-gray-200">
         <Breadcrumbs separator={<NavigateNext />}>
@@ -62,11 +62,9 @@ export const PageDisplay = (): JSX.Element => {
         >
             <MainMenu setPage={setPageProps} setOpen={setOpen} />
         </Drawer>
-        {pageProps && <BreadCrumbsToolbar {...{pageProps, setPageProps}} />}
+        {pageProps && <BreadCrumbsToolbar {...{ pageProps, setPageProps }} />}
         <PageContext value={{ pageProps, setPageProps }}>
-            <div className="grow overflow-hidden">
-                {pageProps?.page}
-            </div>
+            {pageProps?.page}
         </PageContext>
     </Box>
 }
