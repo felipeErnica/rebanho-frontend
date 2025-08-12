@@ -41,8 +41,8 @@ export const DateFilter = ({
         if (minErrorDate) return 'Insira uma data menor que a do campo abaixo'
     }, [minError, minErrorDate])
 
-    return <AbstractFilterGroup mainTitle={mainTitle}>
-        <div className={`flex flex-row gap-2 ${className}`}>
+    return <AbstractFilterGroup mainTitle={mainTitle} className={className}>
+        <div className={`flex flex-row gap-2`}>
             <DatePicker
                 label='De'
                 onError={(error) => setMinError(!!error)}

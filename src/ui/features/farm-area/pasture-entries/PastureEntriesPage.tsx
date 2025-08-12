@@ -64,7 +64,7 @@ export const PastureEntriesPage = ({ pastureId }: PastureEntriesPageProps) => {
             orderProps={{ order, setOrder }}
             filterProps={{ setFilterOpen, anchorEl }}
             otherProps={otherActions}
-            reloadProps={{ isLoading, onReload }}
+            reloadProps={{ loading: isLoading, onReload }}
         />
         <PastureEntriesTable {...{ rows, fetchNextPage, isLoading, scrollRef, total }} />
         <PastureEntriesFilterPopover {...{

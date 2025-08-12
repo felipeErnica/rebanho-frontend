@@ -1,4 +1,4 @@
-import { Skeleton, TableRow, Typography } from "@mui/material"
+import { Skeleton, TableFooter, TableRow, Typography } from "@mui/material"
 import TableCell from "@mui/material/TableCell"
 import { ForwardedRef, ReactNode, Ref, RefObject, useRef } from "react"
 
@@ -17,12 +17,14 @@ type CommonTableHeadProps = {
     children?: ReactNode
     className?: string
     colSpan?: number
+    width?: number | string
 }
 
-export const TableHeadCell = ({ children, colSpan, className }: CommonTableHeadProps) => {
+export const TableHeadCell = ({ children, colSpan, className, width }: CommonTableHeadProps) => {
     return <TableCell
-        className={`min-w-[100] bg-gray-700 border-none text-white ${className}`}
+        className={`bg-gray-700 border-none text-white ${className}`}
         colSpan={colSpan}
+        sx={{ width }}
     >
         {children}
     </TableCell>
@@ -32,11 +34,10 @@ type ResizableTableHeadCellProps = {
     children?: ReactNode
     className?: string
     colSpan?: number
+    width?: string | number
 }
 
-export const ResizableHeadCell = ({ children, colSpan, className }: ResizableTableHeadCellProps) => {
-
-    const DEFAULT_MIN_WIDTH = 80
+export const ResizableHeadCell = ({ children, colSpan, className, width }: ResizableTableHeadCellProps) => {
 
     const handlerRef = useRef<HTMLDivElement>(null)
 
@@ -47,10 +48,8 @@ export const ResizableHeadCell = ({ children, colSpan, className }: ResizableTab
         const parent = handler.parentElement
         if (!parent) return
         const width = e.clientX - parent.getBoundingClientRect().left
-        const newWidth = Math.max(DEFAULT_MIN_WIDTH, width)
-        parent.style.width = `${newWidth}px`
+        parent.style.width = `${width}px`
     }
-
 
     //Evento para liberação do mouse
     //Remove os observadores de evento e libera o mouse
@@ -69,6 +68,7 @@ export const ResizableHeadCell = ({ children, colSpan, className }: ResizableTab
         className={`bg-gray-700 border-none text-white text-nowrap 
           overflow-hidden overflow-ellipsis ${className}`
         }
+        sx={{ width, minWidth: width ?? 80 }}
         colSpan={colSpan}
     >
         <span>{children}</span>
@@ -91,7 +91,7 @@ export const VirtuosoHeadCell = ({ children, colSpan, className, width }: Virtuo
     return <TableCell
         className={`bg-gray-700 border-none text-white text-nowrap ${className}`}
         colSpan={colSpan}
-        sx={{minWidth: width, width }}
+        sx={{ minWidth: width, width }}
     >
         {children}
     </TableCell>
@@ -165,15 +165,28 @@ type TableBodyCellProps = {
     children?: ReactNode
     className?: string
     colSpan?: number
+    align?: 'left' | 'right' | 'center' | 'justify'
 }
 
-export const TableBodyCell = ({ children, className, colSpan }: TableBodyCellProps) => {
+export const TableBodyCell = ({ children, className, colSpan, align }: TableBodyCellProps) => {
     return <TableCell
         className={`border-b border-b-gray-400 overflow-hidden text-nowrap overflow-ellipsis ${className}`}
+        align={align}
         colSpan={colSpan}
     >
         {children}
     </TableCell>
+}
+
+type StickyTableFooterProps = {
+    children?: ReactNode | ReactNode[]
+    className?: string
+}
+
+export const StickyTableFooter = ({ className, children }: StickyTableFooterProps) => {
+    return <TableFooter className={`bottom-0 sticky ${className}`}>
+        {children}
+    </TableFooter>
 }
 
 export const TableFooterRow = ({ children, className, style, ref }: TableBodyRowProps) => {
@@ -197,11 +210,24 @@ export const TableFooterTitleCell = ({ children, className, colSpan }: TableBody
 
 export const TableFooterCell = ({ children, className, colSpan }: TableBodyCellProps) => {
     return <TableCell
+        size="small"
         className={`border-t border-gray-400 overflow-hidden text-nowrap overflow-ellipsis ${className}`}
         colSpan={colSpan}
     >
-        <Typography color='textPrimary' variant="body2">{children}</Typography>
+        {children}
     </TableCell>
+}
+
+type FooterContentProps = {
+    title: string
+    content: ReactNode
+}
+
+export const FooterContent = ({ title, content }: FooterContentProps) => {
+    return <div className="flex flex-col gap-2">
+        <Typography color='textPrimary' variant="body2">{title}</Typography>
+        <Typography fontSize={16} variant="h6">{content}</Typography>
+    </div>
 }
 
 type TableLoadingRowProps = {
@@ -217,7 +243,7 @@ export const TableLoadingRow = ({ colSpan }: TableLoadingRowProps) => {
 export const TableLoadingCells = ({ colSpan }: TableLoadingRowProps) => {
     return Array(colSpan).fill((
         <TableCell>
-            <Skeleton animation='pulse' variant="rounded" />
+            <Skeleton animation='wave' variant="rounded" />
         </TableCell>
     ))
 }

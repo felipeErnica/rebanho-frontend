@@ -1,44 +1,91 @@
-import { 
-    CardDefaultTitle, 
-    InfoCardWithChart, 
-    DashboardCard, 
-    GraphContainer, 
-    TrendComponent, 
-    CardDefaultText 
+import {
+    CardDefaultTitle,
+    CardChartContent,
+    DashboardCard,
+    GraphContainer,
+    TrendComponent,
+    CardDefaultText
 } from "@/ui/shared/dashboard/DashboardComponents"
 import { LineChart, SparkLineChart } from "@mui/x-charts"
 import { BirthBySex, BirthsByDate, BirthStats, IntervalAnimal } from "./Entities"
 import { getBestIntervals, getBirthsBySex, getBirthStats } from "./Controller"
-import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
+import { LOADING_MSG, NO_DATA_AVAILABLE, ReloadFunction } from "@/ui/shared/Globals"
 import { lightBlue, pink, red } from "@mui/material/colors"
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { decimalTransform } from "@/util/Transformations"
 import { Button, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import { TableLoadingRow } from "@/ui/shared/table/TableComponents"
 import dayjs from "dayjs"
 import Add from "@mui/icons-material/Add"
 import ChevronRight from "@mui/icons-material/ChevronRight"
+import Refresh from "@mui/icons-material/Refresh"
+import { PageProps } from "@/ui/shared/main-page/PageDisplay"
+import { BirthTablePage } from "./BirthTable"
+import { HomePage } from "../../home/HomePage"
+import { BirthPage } from "./BirthPages"
+import { PageContext } from "@/ui/shared/main-page/PageContext"
+import { AddBirthDialog } from "./BirthAddDialog"
+
 
 export const BirthDashboard = () => {
-    return <div className="w-full h-full overflow-y-auto bg-gray-100 p-4 flex flex-col gap-4">
-        <div className="flex flex-row-reverse gap-4">
-            <Button startIcon={<ChevronRight />}>
-                Ver Tabela de Parição
-            </Button>
-            <Button startIcon={<Add />}>
-                Adicionar Parição
-            </Button>
-        </div>
-        <DashboardInformations />
+
+    const reloadListener: ReloadFunction[] = []
+
+    return <div className="w-full h-full overflow-auto bg-gray-100 p-4 flex flex-col gap-4">
+        <DashboardToolbar  {...{ reloadListener }} />
+        <DashboardInformations {...{ reloadListener }} />
     </div>
 }
 
-const DashboardInformations = () => {
+type DashboardProps = {
+    reloadListener: ReloadFunction[]
+}
+
+export const DashboardToolbar = ({ reloadListener }: DashboardProps) => {
+
+    const { setPageProps } = useContext(PageContext)
+    const [isAddBirthOpen, setAddBirthOpen] = useState(false)
+
+    return <div className="flex flex-row">
+        <div className="grow">
+            <Button
+                startIcon={<Refresh />}
+                onClick={() => reloadListener.forEach(func => func())}
+            >
+                Recarregar Informações
+            </Button>
+        </div>
+        <div className="flex flex-row gap-4">
+            <Button
+                startIcon={<ChevronRight />}
+                onClick={() => {
+                    const tablePage: PageProps = {
+                        title: 'Tabela de Parição',
+                        page: <BirthTablePage />,
+                        previousPages: [HomePage, BirthPage]
+                    }
+                    if (setPageProps) setPageProps(tablePage)
+                }}
+            >
+                Ver Tabela de Parição
+            </Button>
+            <Button
+                startIcon={<Add />}
+                onClick={() => setAddBirthOpen(true)}
+            >
+                Adicionar Parição
+            </Button>
+        </div>
+        <AddBirthDialog {...{ isAddBirthOpen, setAddBirthOpen }} />
+    </div>
+}
+
+const DashboardInformations = ({ reloadListener }: DashboardProps) => {
 
     const [stats, setStats] = useState<BirthStats>()
     const [loading, setLoading] = useState(false)
 
-    useEffect(() => {
+    const handleLoad = () => {
         setLoading(true)
         getBirthStats()
             .then(response => {
@@ -51,130 +98,157 @@ const DashboardInformations = () => {
             })
             .catch(() => setStats(undefined))
             .finally(() => setLoading(false))
-    }, [])
+    }
+
+    useEffect(() => {
+        reloadListener.push(handleLoad)
+        handleLoad()
+    }, [reloadListener])
 
     return <div className="grid grid-flow-row gap-4">
-        <InfoCardWithChart
-            title="Índice de Mortalidade"
-            data={stats?.deathIndex}
-            chart={(
-                <SparkLineChart
-                    data={stats ? stats.deathIndexHist.map(item => item.deathIndex) : []}
-                    height={50}
-                    valueFormatter={(value) => decimalTransform(value ?? 0)}
-                    xAxis={{
-                        scaleType: 'time',
-                        data: stats?.deathIndexHist.map(item => item.month),
-                        valueFormatter: (value: Date) => {
-                            const year = value.getFullYear()
-                            const quarter = Math.ceil((value.getMonth() + 1) / 3)
-                            return `T${quarter} ${year}`
-                        }
-                    }}
-                    showTooltip
-                />
-            )}
-            trendProps={{ trend: stats?.deathTrend, inverse: true }}
-        />
-        <InfoCardWithChart
-            className="col-start-2"
-            title="Intervalo de Parição Médio"
-            data={stats?.currentInterval}
-            chart={(
-                <SparkLineChart
-                    data={stats ? stats.intervalHist.map(item => item.intervalAverage) : []}
-                    height={50}
-                    valueFormatter={(value) => decimalTransform(value ?? 0)}
-                    showTooltip
-                    xAxis={{
-                        scaleType: 'time',
-                        data: stats?.intervalHist.map(item => item.month),
-                        valueFormatter: (value: Date) => {
-                            return value.toLocaleDateString('pt-BR', {
-                                month: 'short',
-                                year: 'numeric'
-                            })
-                        }
-                    }}
-                />
-            )}
-            trendProps={{ trend: stats?.intervalTrend, inverse: true }}
-        />
-        <BestIntervalAnimals />
+        <DashboardCard>
+            <CardChartContent
+                title="Índice de Mortalidade"
+                loading={loading}
+                data={stats?.deathIndex}
+                chart={(
+                    <SparkLineChart
+                        data={stats ? stats.deathIndexHist.map(item => item.deathIndex) : []}
+                        color={red[600]}
+                        height={50}
+                        valueFormatter={(value) => decimalTransform(value ?? 0)}
+                        xAxis={{
+                            scaleType: 'time',
+                            data: stats?.deathIndexHist.map(item => item.month),
+                            valueFormatter: (value: Date) => {
+                                const year = value.getFullYear()
+                                const quarter = Math.ceil((value.getMonth() + 1) / 3)
+                                return `T${quarter} ${year}`
+                            }
+                        }}
+                        showTooltip
+                    />
+                )}
+                trendProps={{ trend: stats?.deathTrend, inverse: true }}
+            />
+            <div>
+                <Button startIcon={<Add />}>Registrar Morte</Button>
+            </div>
+        </DashboardCard>
+        <DashboardCard className="col-start-2">
+            <CardChartContent
+                title="Intervalo de Parição Médio"
+                loading={loading}
+                data={stats?.currentInterval}
+                chart={(
+                    <SparkLineChart
+                        data={stats ? stats.intervalHist.map(item => item.intervalAverage) : []}
+                        height={50}
+                        valueFormatter={(value) => decimalTransform(value ?? 0)}
+                        showTooltip
+                        xAxis={{
+                            scaleType: 'time',
+                            data: stats?.intervalHist.map(item => item.month),
+                            valueFormatter: (value: Date) => {
+                                return value.toLocaleDateString('pt-BR', {
+                                    month: 'short',
+                                    year: 'numeric'
+                                })
+                            }
+                        }}
+                    />
+                )}
+                trendProps={{ trend: stats?.intervalTrend, inverse: true }}
+            />
+        </DashboardCard>
+        <BestIntervalAnimals {...{ reloadListener }} />
         <GraphContainer className="col-span-2" title="Histórico de Nascimentos">
             <BirthByDateGraph {...{ birthDataset: stats?.birthHistory, loading }} />
         </GraphContainer>
-        <InfoCardWithChart
-            title="Nascimentos"
-            integer
-            data={stats?.currentBirthNumbers}
-            chart={(
-                <SparkLineChart
-                    data={stats
-                        ? stats.birthHistory
-                            .filter(item => {
-                                return dayjs(item.date).isAfter(dayjs().subtract(1, 'year'))
-                            })
-                            .map(item => item.birthTotal)
-                        : []
-                    }
-                    height={50}
-                    showTooltip
-                    xAxis={{
-                        scaleType: 'time',
-                        data: stats?.birthHistory
-                            .map(item => item.date)
-                            .filter(item => dayjs(item).isAfter(dayjs().subtract(1, 'year'))),
-                        valueFormatter: (value: Date) => {
-                            return value.toLocaleDateString('pt-BR', {
-                                month: 'short',
-                                year: 'numeric'
-                            })
+        <DashboardCard>
+            <CardChartContent
+                title="Nascimentos"
+                loading={loading}
+                data={stats?.currentBirthNumbers}
+                chart={(
+                    <SparkLineChart
+                        data={stats
+                            ? stats.birthHistory
+                                .filter(item => {
+                                    return dayjs(item.date).isAfter(dayjs().subtract(1, 'year'))
+                                })
+                                .map(item => item.birthTotal)
+                            : []
                         }
-                    }}
-                />
-            )}
-            trendProps={{ trend: stats?.lossTrend, inverse: true, noPercentage: true }}
-        />
+                        height={50}
+                        showTooltip
+                        xAxis={{
+                            scaleType: 'time',
+                            data: stats?.birthHistory
+                                .map(item => item.date)
+                                .filter(item => dayjs(item).isAfter(dayjs().subtract(1, 'year'))),
+                            valueFormatter: (value: Date) => {
+                                return value.toLocaleDateString('pt-BR', {
+                                    month: 'short',
+                                    year: 'numeric'
+                                })
+                            }
+                        }}
+                    />
+                )}
+                trendProps={{
+                    trend: stats?.birthNumbersTrend,
+                    noPercentage: true,
+                    integer: true,
+                }}
+            />
+        </DashboardCard>
         <GraphContainer className="col-start-2 col-span-2 row-span-3" title="Nascimentos por Sexo">
-            <BirthBySexGraph />
+            <BirthBySexGraph {...{ reloadListener }} />
         </GraphContainer>
-        <InfoCardWithChart
-            title="Parições Interrompidas"
-            integer
-            data={stats?.losses}
-            chart={(
-                <SparkLineChart
-                    data={stats ? stats.lossHist.map(item => item.losses) : []}
-                    height={50}
-                    showTooltip
-                    xAxis={{
-                        scaleType: 'time',
-                        data: stats?.lossHist.map(item => item.month),
-                        valueFormatter: (value: Date) => {
-                            return value.toLocaleDateString('pt-BR', {
-                                month: 'short',
-                                year: 'numeric'
-                            })
-                        }
-                    }}
-                />
-            )}
-            trendProps={{ trend: stats?.lossTrend, inverse: true, noPercentage: true }}
-        />
+        <DashboardCard>
+            <CardChartContent
+                title="Parições Interrompidas"
+                loading={loading}
+                data={stats?.losses}
+                chart={(
+                    <SparkLineChart
+                        data={stats ? stats.lossHist.map(item => item.losses) : []}
+                        height={50}
+                        showTooltip
+                        xAxis={{
+                            scaleType: 'time',
+                            data: stats?.lossHist.map(item => item.month),
+                            valueFormatter: (value: Date) => {
+                                return value.toLocaleDateString('pt-BR', {
+                                    month: 'short',
+                                    year: 'numeric'
+                                })
+                            }
+                        }}
+                    />
+                )}
+                trendProps={{
+                    trend: stats?.lossTrend,
+                    inverse: true,
+                    noPercentage: true,
+                    integer: true,
+                }}
+            />
+        </DashboardCard>
         <DashboardCard>
             <CardDefaultTitle text="Vacas Prenhas" />
-            <CardDefaultText>{stats?.pregnantsNumber}</CardDefaultText>
+            <CardDefaultText loading={loading}>{stats?.pregnantsNumber}</CardDefaultText>
         </DashboardCard>
     </div>
 }
 
-const BirthBySexGraph = () => {
+const BirthBySexGraph = ({ reloadListener }: DashboardProps) => {
 
     const [dataset, setDataset] = useState<BirthBySex[]>([])
     const [loading, setLoading] = useState(false)
 
-    useEffect(() => {
+    const handleLoad = () => {
         setLoading(true)
         getBirthsBySex()
             .then(response => {
@@ -184,7 +258,12 @@ const BirthBySexGraph = () => {
             })
             .catch(() => setDataset([]))
             .finally(() => setLoading(false))
-    }, [])
+    }
+
+    useEffect(() => {
+        reloadListener.push(handleLoad)
+        handleLoad()
+    }, [reloadListener])
 
     return <LineChart
         height={350}
@@ -230,7 +309,7 @@ const BirthByDateGraph = ({ birthDataset, loading }: BirthsByDateProps) => {
             loading: LOADING_MSG,
             noData: NO_DATA_AVAILABLE
         }}
-        height={320}
+        height={250}
         xAxis={[{
             dataKey: 'date',
             scaleType: 'time',
@@ -253,18 +332,23 @@ const BirthByDateGraph = ({ birthDataset, loading }: BirthsByDateProps) => {
 
 }
 
-const BestIntervalAnimals = () => {
+const BestIntervalAnimals = ({ reloadListener }: DashboardProps) => {
 
     const [data, setData] = useState<IntervalAnimal[]>([])
     const [loading, setLoading] = useState(false)
 
-    useEffect(() => {
+    const handleLoad = () => {
         setLoading(true)
         getBestIntervals()
             .then(response => setData(response.json))
             .catch(() => setData([]))
             .finally(() => setLoading(false))
-    }, [])
+    }
+
+    useEffect(() => {
+        reloadListener.push(handleLoad)
+        handleLoad()
+    }, [reloadListener])
 
     return <DashboardCard className="col-start-3 row-span-2">
         <CardDefaultTitle text="Melhores Matrizes" />

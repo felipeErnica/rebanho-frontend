@@ -12,6 +12,12 @@ export const decimalTransform = (value: number) => {
     return formatter.format(value)
 }
 
+export const percentageTransform = (value: number) => {
+    if (!value) return value.toString()
+    const formatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 })
+    return formatter.format(value) + '%'
+}
+
 export const dateTransformToLocale = (value?: string) => {
     if (!value) return value
     const date = new Date(value)

@@ -10,9 +10,11 @@ type NumberFilterProps = {
     filter: IFilters
     setFilter: (filter: IFilters) => void
     step?: string
+    className?: string
 }
 
 export const NumberFilter = ({
+    className,
     mainTitle,
     step,
     maxFieldName,
@@ -26,7 +28,7 @@ export const NumberFilter = ({
     const [minValue, setMinValue] = useState<number>()
     const [maxValue, setMaxValue] = useState<number>()
 
-    return <AbstractFilterGroup mainTitle={mainTitle}>
+    return <AbstractFilterGroup mainTitle={mainTitle} className={className}>
         <div className="flex flex-row gap-2">
             <TextField
                 type="number"

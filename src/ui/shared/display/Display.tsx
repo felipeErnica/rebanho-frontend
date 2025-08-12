@@ -1,5 +1,5 @@
 import { ReactNode, useRef, useState } from "react";
-import { TableTopBar } from "@/ui/shared/table/TableTopBar";
+import { TableTopBarOld } from "@/ui/shared/table/TableTopBar";
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox";
 import { TableCustom, TableProps } from "@/ui/shared/table/TableCustom";
 import { IFilters } from "@/shared/interfaces/Filter";
@@ -15,7 +15,7 @@ export type DisplayProps = {
     sort: string
     setSort: (sort: string) => void
     handleSubmit?: UseFormHandleSubmit<IFilters>
-    setFilter?: (filter: IFilters) => void
+    setFilter: (filter: IFilters) => void
     otherButtons?: ReactNode | ReactNode[]
 }
 
@@ -41,7 +41,7 @@ export const TableDisplay = (props: DisplayProps) => {
 
     return <div className="h-full overflow-hidden">
         <div className="h-full flex flex-col overflow-hidden">
-            <TableTopBar
+            <TableTopBarOld
                 buttonRef={filterButtonRef}
                 sortableColumns={props.sortableColumns}
                 setFilter={props.setFilter}

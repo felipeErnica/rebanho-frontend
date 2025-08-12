@@ -3,11 +3,12 @@ import { ReactNode } from "react";
 
 type AbstractFilterDivProps = {
     mainTitle: string;
+    className?: string
     children: ReactNode | ReactNode[]
 }
 
 export const AbstractFilterGroup = (props: AbstractFilterDivProps) => {
-    return <div className="flex flex-col gap-2">
+    return <div className={`flex flex-col gap-2 ${props.className}`}>
         <Typography variant="subtitle1">{`${props.mainTitle}:`}</Typography>
         {props.children}
     </div >

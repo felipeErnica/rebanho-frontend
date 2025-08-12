@@ -51,10 +51,7 @@ type EditingControlButtonProps = {
 
 export const EditingControlButtons = ({ setEditing, onSave }: EditingControlButtonProps) => {
     return <ControlButtonContainer>
-        <IconButton onClick={() => {
-            onSave()
-            setEditing(false)
-        }}>
+        <IconButton onClick={() => onSave()}>
             <Check />
         </IconButton >
         <IconButton onClick={() => setEditing(false)}>

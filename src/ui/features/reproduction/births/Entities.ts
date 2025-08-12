@@ -1,3 +1,35 @@
+
+export type BirthEntry = {
+    id: string
+    motherId?: string
+    motherName?: string
+    motherOrder?: number
+    calfId?: string
+    calfBirthDate?: string
+    calfSex?: string
+    calfFatherId?: string
+    calfFather?: string
+    calfName?: string
+    birthInterval?: number
+    observation?: string
+}
+
+export type BirthEntryFilter = {
+    isFiltered: boolean
+    mothers?: string[]
+    minBirthDate?: Date
+    maxBirthDate?: Date
+    sex?: string
+    fathers?: string[]
+    minBirthInterval?: number
+    maxBirthInterval?: number
+}
+
+export type BirthFooter = {
+    total: number
+    intervalAverage: number
+}
+
 export type BirthBySex = {
     birthMonth: Date
     males: number

@@ -19,7 +19,8 @@ interface TableTopBarProps {
     otherActions?: ReactNode | ReactNode[]
 }
 
-export const TableTopBar = (props: TableTopBarProps): JSX.Element => {
+
+export const TableTopBarOld = (props: TableTopBarProps): JSX.Element => {
 
     const [sortedColumns, setSortedColumns] = useState(props.sortableColumns)
 

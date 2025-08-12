@@ -44,7 +44,7 @@ const OrderButton = ({ order, setOrder }: OrderButtonProps) => {
 
     const arrowIcon = useMemo(() => (
         <ArrowUpward className={`transition-transform duration-500 ease-in-out ${rotationClass}`} />
-    ), [isAsc]);
+    ), [rotationClass]);
 
     return <Button
         variant="outlined"
@@ -73,16 +73,17 @@ const SortComboBox = ({ sort, setSort, sortColumns, defaultSort }: SortComboBoxP
 }
 
 type ReloadButtonProps = {
-    isLoading: boolean
+    loading?: boolean
     onReload: () => void
+    variant?: 'text' | 'outlined' | 'contained'
 }
 
-const ReloadButton = ({ onReload, isLoading }: ReloadButtonProps) => {
+export const ReloadButton = ({ onReload, loading, variant }: ReloadButtonProps) => {
     return <Button
-        variant="outlined"
-        loading={isLoading}
+        variant={variant ?? 'outlined'}
+        loading={loading}
         loadingPosition="start"
-        startIcon={!isLoading && <Refresh />}
+        startIcon={!loading && <Refresh />}
         onClick={onReload}
     >
         Recarregar Informações

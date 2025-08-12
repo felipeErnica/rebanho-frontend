@@ -8,7 +8,7 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { forwardRef, RefObject, useEffect, useRef, useState } from "react"
+import { forwardRef, RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { TableVirtuosoProps, VirtuosoHandle } from "react-virtuoso";
 
 export const VirtuosoTableComponents: TableVirtuosoProps<IData, any>['components'] = {
@@ -28,6 +28,7 @@ export type PaginationResponse = {
     rows: IData[]
     fetchNextPage: () => void
     scrollRef: RefObject<VirtuosoHandle | null>
+    onReload: () => void
 }
 
 type PageFetcher = (cursor?: string) => Promise<ApiResponse>
@@ -40,7 +41,7 @@ type PaginationProps = {
 export function useTableResizer(ref: HTMLDivElement | null) {
 
     const [tableWidth, setTableWidth] = useState(0)
-    
+
     useEffect(() => {
         const handleResize = () => {
             if (!ref) return
@@ -62,7 +63,7 @@ export function usePagination({ fetchPage, setLoading }: PaginationProps): Pagin
 
     const scrollRef = useRef<VirtuosoHandle>(null)
 
-    useEffect(() => {
+    const onReload = useCallback(() => {
         setLoading(true)
         fetchPage()
             .then((result) => {
@@ -77,6 +78,8 @@ export function usePagination({ fetchPage, setLoading }: PaginationProps): Pagin
             })
             .finally(() => setLoading(false))
     }, [fetchPage])
+
+    useEffect(onReload, [onReload])
 
     const fetchNextPage = () => {
         if (!page?.hasNextPage) return
@@ -100,5 +103,5 @@ export function usePagination({ fetchPage, setLoading }: PaginationProps): Pagin
         scrollContainer.scrollToIndex({ index: 0 })
     }
 
-    return { rows, fetchNextPage, scrollRef }
+    return { rows, fetchNextPage, scrollRef, onReload }
 }

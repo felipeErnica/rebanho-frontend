@@ -20,8 +20,8 @@ import {
 import Scale from "@mui/icons-material/Scale"
 import Vaccines from "@mui/icons-material/Vaccines"
 import { PageProps } from "../PageDisplay"
-import { BirthTablePage } from "@/ui/features/reproduction/births/BirthPages"
-import { InseminationTablePage } from "@/ui/features/reproduction/insemination/InseminationPages"
+import { BirthPage } from "@/ui/features/reproduction/births/BirthPages"
+import { InseminationPage } from "@/ui/features/reproduction/insemination/InseminationPages"
 import { NaturalMatingTablePage } from "@/ui/features/reproduction/natural-reproduction/NaturalReprodutionPages"
 import { EmbryoTablePage } from "@/ui/features/reproduction/embryo-transfer/EmbryoTransferPages"
 import { BirthTestTablePage } from "@/ui/features/reproduction/birth-test/BirthTestPages"
@@ -49,13 +49,13 @@ export const buildList = () => {
             key: 'births',
             title: 'Parição',
             icon: <CalfIcon />,
-            page: BirthTablePage
+            page: BirthPage
         },
         {
             key: 'insemination',
             title: 'Inseminação',
             icon: <InseminationIcon />,
-            page: InseminationTablePage
+            page: InseminationPage
         },
         {
             key: 'mating',

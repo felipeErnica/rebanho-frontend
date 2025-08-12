@@ -43,7 +43,7 @@ export const FarmAnimalsPage = ({ farmId }: FarmAnimalsPageProps) => {
             orderProps={{ order, setOrder }}
             sortProps={{ sort, setSort, sortColumns, defaultSort: 'ring_order' }}
             filterProps={{ anchorEl, setFilterOpen }}
-            reloadProps={{ onReload, isLoading }}
+            reloadProps={{ onReload, loading: isLoading }}
         />
         <FarmAnimalsTable {...{ rows, isLoading, fetchNextPage, scrollRef, total }} />
         <FarmAnimalsFilter {...{

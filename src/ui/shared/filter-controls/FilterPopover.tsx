@@ -3,12 +3,12 @@ import Refresh from "@mui/icons-material/Refresh"
 import { Button, Popover, Typography } from "@mui/material"
 import { ReactNode, RefObject } from "react"
 
-type PopoverProps = {
+export type FilterPopoverProps = {
     isFilterOpen: boolean
     setFilterOpen: (isOpen: boolean) => void
     anchorEl: RefObject<HTMLButtonElement | null>
-    children: ReactNode | ReactNode[]
-    setFilter?: (filter: IFilters) => void
+    children?: ReactNode | ReactNode[]
+    setFilter: (filter: IFilters) => void
 }
 
 export const FilterPopover = ({
@@ -17,7 +17,7 @@ export const FilterPopover = ({
     anchorEl,
     children,
     setFilter
-}: PopoverProps) => {
+}: FilterPopoverProps) => {
     return <Popover
         open={isFilterOpen}
         onClose={() => setFilterOpen(false)}

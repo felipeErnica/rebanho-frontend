@@ -6,6 +6,7 @@ import Card from "@mui/material/Card"
 import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 import { ReactNode } from "react"
+import { Skeleton } from "@mui/material"
 
 export type ChartContainerProps = {
     children: ReactNode | ReactNode[]
@@ -54,15 +55,19 @@ export const CardDefaultTitle = ({ text, className }: CardDefaultTitleProps) => 
 
 type CardDefaultTextProps = {
     children?: ReactNode
+    loading?: boolean
     className?: string
 }
 
-export const CardDefaultText = ({ children, className }: CardDefaultTextProps) => {
+export const CardDefaultText = ({ children, className, loading }: CardDefaultTextProps) => {
+
+    if (loading) return <Skeleton variant="text" animation='wave' width={50}/>
+
     return <Typography
         variant="h4"
         className={className}
     >
-        {children}
+        {children ?? 0}
     </Typography>
 }
 
@@ -72,16 +77,17 @@ export type TrendComponentProps = {
     inverse?: boolean
     noPercentage?: boolean
     integer?: boolean
+    loading?: boolean
 }
 
-export const TrendComponent = ({ trend, inverse, className, noPercentage, integer }: TrendComponentProps) => {
+export const TrendComponent = ({ trend, inverse, className, noPercentage, integer, loading }: TrendComponentProps) => {
 
-    if (!trend) return
+    if (trend == undefined) return
 
     const percentage = !noPercentage ? '%' : ''
     const plus = trend > 0 ? "+" : ''
     const number = integer ? trend.toString() : decimalTransform(trend)
-    const text = plus + number + percentage
+    const text = trend ? plus + number + percentage : ''
 
     let textColor: 'success' | 'error' | 'warning'
 
@@ -95,7 +101,7 @@ export const TrendComponent = ({ trend, inverse, className, noPercentage, intege
 
     const TrendIcon = () => {
         if (trend === 0) {
-            return <HorizontalRule color="warning" />
+            return <HorizontalRule color={textColor} />
         } else if (trend < 0) {
             return <TrendingDown color={textColor} />
         } else {
@@ -104,13 +110,16 @@ export const TrendComponent = ({ trend, inverse, className, noPercentage, intege
     }
 
     return <div className={`flex flex-row gap-2 ${className}`}>
-        <TrendIcon />
-        <Typography
-            variant="body1"
-            color={textColor}
-        >
-            {text}
-        </Typography>
+        {!loading ? <TrendIcon /> : <Skeleton width={20} animation='wave' variant="text" />}
+        {!loading
+           ? <Typography
+                variant="body1"
+                color={textColor}
+            >
+                {text}
+            </Typography>
+            : <Skeleton variant="text" animation='wave' width={50} />
+        }
     </div >
 }
 
@@ -119,22 +128,21 @@ export type CardWithGraphProps = {
     trendProps: TrendComponentProps
     chart: ReactNode
     data: number | undefined
-    integer?: boolean
-    className?: string
+    loading?: boolean
 }
 
-export const InfoCardWithChart = ({ title, trendProps, data, chart, className, integer }: CardWithGraphProps) => {
+export const CardChartContent = ({ trendProps, data, chart, title, loading }: CardWithGraphProps) => {
 
-    const transformedData = integer ? data?.toString() : decimalTransform(data ?? 0)
+    const transformedData = trendProps.integer ? data?.toString() : decimalTransform(data ?? 0)
 
-    return <DashboardCard className={className}>
+    return <>
         <CardDefaultTitle text={title} />
         <div className="grid grid-flow-row auto-cols-auto auto-rows-auto gap-2">
-            <CardDefaultText>{transformedData}</CardDefaultText>
-            <div className="row-start-1 col-start-2 row-span-2">
-                {chart}
+            <CardDefaultText loading={loading}>{transformedData}</CardDefaultText>
+            <div className="col-start-2 row-span-2">
+                {loading ? <Skeleton className="h-full w-full" animation='wave' variant="rounded" /> : chart}
             </div>
-            <TrendComponent {...{ ...trendProps, integer }} />
+            <TrendComponent {...{ ...trendProps, loading }} />
         </div>
-    </DashboardCard>
+    </>
 }

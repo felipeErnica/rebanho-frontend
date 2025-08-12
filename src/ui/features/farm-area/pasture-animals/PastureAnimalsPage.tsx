@@ -59,7 +59,7 @@ export const PastureAnimalsPage = ({ pastureId }: PastureAnimalsPageProps) => {
         <TableTopBar
             orderProps={{ order, setOrder }}
             sortProps={{ sort, setSort, sortColumns, defaultSort: 'ring_number' }}
-            reloadProps={{ onReload, isLoading }}
+            reloadProps={{ onReload, loading: isLoading }}
             filterProps={{ setFilterOpen, anchorEl }}
             otherProps={otherActions}
         />
