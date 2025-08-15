@@ -1,4 +1,4 @@
-import { decimalTransform } from "@/util/Transformations"
+import { decimalTransform, percentageTransform } from "@/util/Transformations"
 import TrendingDown from "@mui/icons-material/TrendingDown"
 import TrendingUp from "@mui/icons-material/TrendingUp"
 import HorizontalRule from "@mui/icons-material/HorizontalRule"
@@ -61,7 +61,7 @@ type CardDefaultTextProps = {
 
 export const CardDefaultText = ({ children, className, loading }: CardDefaultTextProps) => {
 
-    if (loading) return <Skeleton variant="text" animation='wave' width={50}/>
+    if (loading) return <Skeleton variant="text" animation='wave' width={50} />
 
     return <Typography
         variant="h4"
@@ -112,7 +112,7 @@ export const TrendComponent = ({ trend, inverse, className, noPercentage, intege
     return <div className={`flex flex-row gap-2 ${className}`}>
         {!loading ? <TrendIcon /> : <Skeleton width={20} animation='wave' variant="text" />}
         {!loading
-           ? <Typography
+            ? <Typography
                 variant="body1"
                 color={textColor}
             >
@@ -129,11 +129,17 @@ export type CardWithGraphProps = {
     chart: ReactNode
     data: number | undefined
     loading?: boolean
+    percentage?: boolean
 }
 
-export const CardChartContent = ({ trendProps, data, chart, title, loading }: CardWithGraphProps) => {
+export const CardChartContent = ({ trendProps, data, chart, title, loading, percentage }: CardWithGraphProps) => {
 
-    const transformedData = trendProps.integer ? data?.toString() : decimalTransform(data ?? 0)
+    let transformedData: string | undefined
+    if (!percentage) {
+        transformedData = trendProps.integer ? data?.toString() : decimalTransform(data ?? 0)
+    } else {
+        transformedData = percentageTransform(data ?? 0)
+    }
 
     return <>
         <CardDefaultTitle text={title} />

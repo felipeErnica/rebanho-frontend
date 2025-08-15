@@ -57,7 +57,7 @@ export const TableDisplay = (props: DisplayProps) => {
         </div>
         <FilterPopover
             setFilterOpen={setOpenDrawer}
-            isFilterOpen={isDrawerOpen}
+            filterOpen={isDrawerOpen}
             children={props.filterPanel}
             setFilter={props.setFilter}
             anchorEl={filterButtonRef}

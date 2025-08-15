@@ -4,7 +4,7 @@ import { Button, Popover, Typography } from "@mui/material"
 import { ReactNode, RefObject } from "react"
 
 export type FilterPopoverProps = {
-    isFilterOpen: boolean
+    filterOpen: boolean
     setFilterOpen: (isOpen: boolean) => void
     anchorEl: RefObject<HTMLButtonElement | null>
     children?: ReactNode | ReactNode[]
@@ -12,7 +12,7 @@ export type FilterPopoverProps = {
 }
 
 export const FilterPopover = ({
-    isFilterOpen,
+    filterOpen: isFilterOpen,
     setFilterOpen,
     anchorEl,
     children,

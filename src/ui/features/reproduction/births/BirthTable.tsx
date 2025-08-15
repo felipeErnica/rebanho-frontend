@@ -72,7 +72,7 @@ export const BirthTablePage = () => {
             otherProps={otherActions}
         />
         <BirthTable {...{ rows, scrollRef, fetchNextPage, isLoading, footerData }} />
-        <BirthFilter {...{ setFilterOpen, isFilterOpen, filter, setFilter, anchorEl }} />
+        <BirthFilter {...{ setFilterOpen, filterOpen: isFilterOpen, filter, setFilter, anchorEl }} />
     </div>
 }
 

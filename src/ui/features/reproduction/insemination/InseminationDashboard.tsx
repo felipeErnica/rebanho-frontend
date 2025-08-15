@@ -15,6 +15,7 @@ import {
     InseminationHist,
     InseminationStatusColorMap,
     InseminationStatusMap,
+    PregnancyRateStats,
     PregnantsNumber
 } from "./Entities"
 import {
@@ -34,6 +35,7 @@ import {
     getInseminationHist,
     getLastEntries,
     getLastGroups,
+    getPregnancyRateStats,
     getPregnantsNumber
 } from "./Controller"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
@@ -45,7 +47,7 @@ import {
     TableBody,
     TableCell,
     TableHead,
-    TableRow
+    TableRow,
 } from "@mui/material"
 import { TableLoadingRow } from "@/ui/shared/table/TableComponents"
 import { dateTransformToLocale, percentageTransform } from "@/util/Transformations"
@@ -58,6 +60,9 @@ import { HomePage } from "../../home/HomePage"
 import { GroupsTablePageProps, InseminationPage } from "./InseminationPages"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
+import { AddInseminationDialog } from "./AddInseminationDialog"
+import Add from "@mui/icons-material/Add"
+import { orange, yellow } from "@mui/material/colors"
 
 export const InseminationDasboard = () => {
 
@@ -80,6 +85,7 @@ type DashboardToolbarProps = {
 
 const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarProps) => {
 
+    const [addInseminationOpen, setAddInseminationOpen] = useState(false)
     const { setPageProps } = useContext(PageContext)
 
     return <div className="flex flex-row pb-4">
@@ -102,6 +108,13 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
             >
                 Ver Histórico de Inseminações
             </Button>
+            <Button
+                startIcon={<Add />}
+                onClick={() => setAddInseminationOpen(true)}
+            >
+                Adicionar Inseminação
+            </Button>
+            <AddInseminationDialog {...{ addInseminationOpen, setAddInseminationOpen }} />
         </div>
     </div>
 }
@@ -114,7 +127,10 @@ type DashboardInformationProps = {
 
 const DashboardInformation = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
     return <div className="grid grid-flow-row gap-4">
-        <BirthRateCard {...{ reloadFlag, stopLoading, startLoading }} />
+        <div className="grid grid-cols-2 gap-4">
+            <BirthRateCard {...{ reloadFlag, stopLoading, startLoading }} />
+            <PregnancyRateCard {...{ reloadFlag, stopLoading, startLoading }} />
+        </div>
         <PregnantNumbersCard {...{ reloadFlag, startLoading, stopLoading }} />
         <BestBullsTable {...{ reloadFlag, startLoading, stopLoading }} />
         <InseminationHistGraph {...{ reloadFlag, startLoading, stopLoading }} />
@@ -150,12 +166,65 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
         <CardChartContent
             title="Taxa de Natalidade"
             loading={loading}
+            percentage
             trendProps={{ trend: data.trend }}
             data={data.current}
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.birthRate)}
                     height={50}
+                    color={yellow[600]}
+                    showTooltip
+                    valueFormatter={(value: number | null) => percentageTransform(value ?? 0)}
+                    xAxis={{
+                        data: data.hist.map(item => new Date(item.dateMonth)),
+                        scaleType: 'time',
+                        valueFormatter: (value: Date) => value.toLocaleDateString('pt-BR', {
+                            month: 'short',
+                            year: 'numeric'
+                        })
+                    }}
+                />
+            )}
+        />
+    </DashboardCard>
+}
+
+const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInformationProps) => {
+
+    const defaultValues = useMemo((): PregnancyRateStats => ({
+        hist: [],
+        trend: 0,
+        current: 0
+    }), [])
+
+    const [data, setData] = useState<PregnancyRateStats>(defaultValues)
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getPregnancyRateStats()
+            .then(response => setData(response.json))
+            .catch(() => setData(defaultValues))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [defaultValues, reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard>
+        <CardChartContent
+            title="Taxa de Prenhez"
+            loading={loading}
+            percentage
+            trendProps={{ trend: data.trend }}
+            data={data.current}
+            chart={(
+                <SparkLineChart
+                    data={data.hist.map(item => item.pregnancyRate)}
+                    height={50}
+                    color={orange[600]}
                     showTooltip
                     valueFormatter={(value: number | null) => percentageTransform(value ?? 0)}
                     xAxis={{
@@ -223,8 +292,8 @@ const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInfo
                 <TableRow>
                     <TableCell>Touro</TableCell>
                     <TableCell>Nº de Inseminações</TableCell>
+                    <TableCell>Taxa de Prenhez</TableCell>
                     <TableCell>Taxa de Natalidade</TableCell>
-                    <TableCell>Taxa Comparativa</TableCell>
                 </TableRow>
             </TableHead>
             <TableBody>
@@ -234,9 +303,17 @@ const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInfo
                         return <TableRow>
                             <TableCell>{item.bullName}</TableCell>
                             <TableCell align="center">{item.total}</TableCell>
-                            <TableCell align="center">{percentageTransform(item.birthRate)}</TableCell>
                             <TableCell>
-                                <TrendComponent trend={item.comparisonRate} />
+                                <div className="flex flex-row items-center gap-2">
+                                    {percentageTransform(item.pregnancyRate)}
+                                    <TrendComponent trend={item.pregnancyComparisonRate} />
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-row items-center gap-2">
+                                    {percentageTransform(item.birthRate)}
+                                    <TrendComponent trend={item.birthComparisonRate} />
+                                </div>
                             </TableCell>
                         </TableRow>
                     })
@@ -269,21 +346,35 @@ const InseminationHistGraph = ({ reloadFlag, stopLoading, startLoading }: Dashbo
 
     return <GraphContainer title="Histórico de Inseminação" className="col-span-2">
         {loading
-            ? <CircularProgress />
+            ? <CircularProgress size={250} />
             : <ChartContainer
-                height={200}
+                height={250}
                 localeText={{
                     loading: LOADING_MSG,
                     noData: NO_DATA_AVAILABLE
                 }}
                 dataset={dataset}
                 series={[
-                    { id: 'total', label: 'Total de Inseminadas', type: 'bar', dataKey: 'total', yAxisId: 'totalAxis' },
+                    {
+                        id: 'total',
+                        label: 'Total de Inseminadas',
+                        type: 'bar',
+                        dataKey: 'total',
+                        yAxisId: 'totalAxis',
+                    },
                     {
                         id: 'birthRate',
                         label: 'Taxa de Natalidade',
                         type: 'line',
                         dataKey: 'birthRate',
+                        yAxisId: 'rateAxis',
+                        valueFormatter: (value: number | null) => percentageTransform(value ?? 0),
+                    },
+                    {
+                        id: 'pregnancyRate',
+                        label: 'Taxa de Prenhez',
+                        type: 'line',
+                        dataKey: 'pregnancyRate',
                         yAxisId: 'rateAxis',
                         valueFormatter: (value: number | null) => percentageTransform(value ?? 0),
                     }
@@ -310,10 +401,10 @@ const InseminationHistGraph = ({ reloadFlag, stopLoading, startLoading }: Dashbo
                 <ChartsYAxis axisId='totalAxis' />
                 <ChartsYAxis axisId='rateAxis' />
                 <ChartsTooltip />
-                <BarPlot />
-                <LinePlot />
                 <ChartsLegend />
                 <ChartsAxisHighlight x='line' />
+                <BarPlot />
+                <LinePlot />
             </ChartContainer>
         }
     </GraphContainer>
@@ -366,7 +457,8 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                         <TableCell>Vaca</TableCell>
                         <TableCell>Data de Inseminação</TableCell>
                         <TableCell>Touro</TableCell>
-                        <TableCell>Status</TableCell>
+                        <TableCell>Prenhez</TableCell>
+                        <TableCell>Nascimento</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -377,6 +469,14 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                                 <TableCell>{item.animalName}</TableCell>
                                 <TableCell>{dateTransformToLocale(item.inseminationDate?.toString())}</TableCell>
                                 <TableCell>{item.bullName}</TableCell>
+                                <TableCell>
+                                    {item.pregnancyStatus &&
+                                        <Chip
+                                            label={InseminationStatusMap.get(item.pregnancyStatus)}
+                                            color={InseminationStatusColorMap.get(item.pregnancyStatus)}
+                                        />
+                                    }
+                                </TableCell>
                                 <TableCell>
                                     {item.status &&
                                         <Chip
@@ -429,8 +529,8 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                     <TableCell colSpan={2}>Data de Inseminação</TableCell>
                     <TableCell>Touro</TableCell>
                     <TableCell>Total de Animais</TableCell>
+                    <TableCell>Taxa de Prenhez</TableCell>
                     <TableCell>Taxa de Natalidade</TableCell>
-                    <TableCell>Comparação c/ Média</TableCell>
                 </TableRow>
             </TableHead>
             <TableBody>
@@ -441,9 +541,14 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                             <TableCell>
                                 <EditControlButtons
                                     onShow={() => {
-                                        const date = dateTransformToLocale(item.inseminationDate.toString())
+                                        const bullId = item.bullId
+                                        const inseminationDate = new Date(item.inseminationDate)
+                                        const date = inseminationDate.toLocaleDateString('pt-BR', {
+                                            month: 'short',
+                                            year: 'numeric'
+                                        })
                                         const page: PageProps = {
-                                            page: <GroupEntriesTablePage {...{ groupId: item.id }} />,
+                                            page: <GroupEntriesTablePage {...{ inseminationDate, bullId }} />,
                                             title: `Inseminações - ${item.bullName} - ${date}`,
                                             previousPages: [HomePage, InseminationPage]
                                         }
@@ -454,9 +559,17 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                             <TableCell>{dateTransformToLocale(item.inseminationDate.toString())}</TableCell>
                             <TableCell>{item.bullName}</TableCell>
                             <TableCell align="center">{item.cowNumber}</TableCell>
-                            <TableCell align="center">{percentageTransform(item.birthRate)}</TableCell>
                             <TableCell>
-                                <TrendComponent trend={item.comparisonRate} />
+                                <div className="flex flex-row items-center gap-2">
+                                    {percentageTransform(item.pregnancyRate)}
+                                    <TrendComponent trend={item.pregnancyComparisonRate} />
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-row items-center gap-2">
+                                    {percentageTransform(item.birthRate)}
+                                    <TrendComponent trend={item.birthComparisonRate} />
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))

@@ -22,7 +22,7 @@ export const PastureEntriesFilterPopover = ({
     anchorEl,
     setFilterOpen
 }: PastureEntriesFilterProps) => {
-    return <FilterPopover {...{ isFilterOpen, setFilterOpen, anchorEl, setFilter }}>
+    return <FilterPopover {...{ filterOpen: isFilterOpen, setFilterOpen, anchorEl, setFilter }}>
         <AbstractFilterGroup mainTitle="Informações do Animal">
             <div className="grid grid-cols-3 gap-4">
                 <TextFilter

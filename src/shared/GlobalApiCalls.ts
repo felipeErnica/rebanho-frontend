@@ -43,7 +43,7 @@ export function searchMotherById(id?: string | string[]): Promise<ApiResponse> {
     return apiGet(query)
 }
 
-export async function searchAnimal(input: string) {
+export async function searchAnimal(input?: string) {
     const inputQuery = input ? `animal?input=${input}` : 'animal'
     return apiGet(ANIMAL_SEARCH_BASE + inputQuery)
 }

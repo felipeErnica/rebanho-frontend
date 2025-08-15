@@ -1,18 +1,18 @@
 import React, { useContext, useEffect, useRef, useState } from "react"
-import { GroupFooter, InseminationGroup } from "./Entities"
+import { InseminationFooter, InseminationGroup } from "./Entities"
 import { findGroups, getGroupsFooter } from "./Controller"
 import { Button, Table, TableBody, TableHead } from "@mui/material"
-import { 
-    FooterContent, 
-    ResizableHeadCell, 
-    StickyTableFooter, 
-    TableBodyCell, 
-    TableBodyRow, 
-    TableFooterCell, 
-    TableFooterRow, 
-    TableHeadCell, 
-    TableHeadRow, 
-    TableLoadingRow 
+import {
+    FooterContent,
+    ResizableHeadCell,
+    StickyTableFooter,
+    TableBodyCell,
+    TableBodyRow,
+    TableFooterCell,
+    TableFooterRow,
+    TableHeadCell,
+    TableHeadRow,
+    TableLoadingRow
 } from "@/ui/shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
@@ -67,9 +67,10 @@ type GroupsTableProps = {
 
 const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
 
-    const [foot, setFoot] = useState<GroupFooter>({ totals: 0, averageBirthRate: 0 })
+    const [foot, setFoot] = useState<InseminationFooter>({ totals: 0, averageBirthRate: 0, averagePregnancyRate: 0 })
     const [rows, setRows] = useState<InseminationGroup[]>([])
     const [unit, setUnit] = useState(0)
+
     const tableRef = useRef<HTMLDivElement>(null)
     const { setPageProps } = useContext(PageContext)
 
@@ -83,18 +84,18 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
         setLoading(true)
         getGroupsFooter()
             .then(response => setFoot(response.json))
-            .catch(() => setFoot({totals: 0, averageBirthRate: 0}))
+            .catch(() => setFoot({ totals: 0, averageBirthRate: 0, averagePregnancyRate: 0 }))
         findGroups()
             .then(response => setRows(response.json))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
-
         handleResize()
+
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
     }, [reload, setLoading])
 
-    return <div className="w-max min-w-full" ref={tableRef}>
+    return <div className="w-max min-w-full flex flex-col" ref={tableRef}>
         <Table stickyHeader>
             <TableHead>
                 <TableHeadRow>
@@ -142,10 +143,15 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
             <EditControlButtons
                 setEditing={setEditing}
                 onShow={() => {
-                    const date = dateTransformToLocale(rowData.inseminationDate.toString())
+                    const bullId = item.bullId
+                    const inseminationDate = new Date(item.inseminationDate)
+                    const dateString = inseminationDate.toLocaleDateString('pt-BR', {
+                        month: 'short',
+                        year: 'numeric'
+                    })
                     const page: PageProps = {
-                        page: <GroupEntriesTablePage {...{ groupId: rowData.id }} />,
-                        title: `Inseminações - ${rowData.bullName} - ${date}`,
+                        page: <GroupEntriesTablePage {...{ inseminationDate, bullId }} />,
+                        title: `Inseminações - ${rowData.bullName} - ${dateString}`,
                         previousPages: [HomePage, InseminationPage, GroupsTablePageProps]
                     }
                     if (setPageProps) setPageProps(page)
@@ -157,7 +163,7 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
         <TableBodyCell align="center">{rowData.cowNumber}</TableBodyCell>
         <TableBodyCell align="center">{percentageTransform(rowData.birthRate)}</TableBodyCell>
         <TableBodyCell>
-            <TrendComponent trend={rowData.comparisonRate} />
+            <TrendComponent trend={rowData.birthComparisonRate} />
         </TableBodyCell>
     </TableBodyRow>
 }
@@ -192,7 +198,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
         <TableBodyCell>{rowData.cowNumber}</TableBodyCell>
         <TableBodyCell>{percentageTransform(rowData.birthRate)}</TableBodyCell>
         <TableBodyCell>
-            <TrendComponent trend={rowData.comparisonRate} />
+            <TrendComponent trend={rowData.birthComparisonRate} />
         </TableBodyCell>
     </TableBodyRow>
 }

@@ -1,28 +1,62 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { RefObject, useCallback, useEffect, useRef, useState } from "react"
-import { findEntriesPage } from "./Controller"
-import { InseminationEntry, InseminationEntryFilter, InseminationStatusColorMap, InseminationStatusMap, statusMapToComboBox } from "./Entities"
+import { findEntriesPage, getEntriesPage } from "./Controller"
+import { 
+    InseminationFooter, 
+    InseminationEntry, 
+    InseminationEntryFilter, 
+    InseminationStatusColorMap, 
+    InseminationStatusMap, 
+    statusMapToComboBox 
+} from "./Entities"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
-import { TableBodyCell, TableHeadRow, TableLoadingCells, VirtuosoHeadCell, VirtuosoResizeHeadCell } from "@/ui/shared/table/TableComponents"
-import { Chip } from "@mui/material"
+import { 
+    FooterContent, 
+    TableBodyCell, 
+    TableFooterCell, 
+    TableFooterRow, 
+    TableHeadRow, 
+    TableLoadingCells, 
+    VirtuosoHeadCell, 
+    VirtuosoResizeHeadCell 
+} from "@/ui/shared/table/TableComponents"
+import { Button, Chip } from "@mui/material"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
-import { dateTransformToLocale } from "@/util/Transformations"
+import { dateTransformToLocale, percentageTransform } from "@/util/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
+import { InseminationFilter } from "./InseminationFilter"
+import Add from "@mui/icons-material/Add"
+import { AddInseminationDialog } from "./AddInseminationDialog"
 
 export const EntriesTablePage = () => {
 
     const defaultSort = 'insemination_date,animal_order'
 
+    const defaultFoot: InseminationFooter = {
+        totals: 0,
+        averageBirthRate: 0,
+        averagePregnancyRate: 0
+    }
+
     const [filter, setFilter] = useState<InseminationEntryFilter>({ isFiltered: false })
+    const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [sort, setSort] = useState(defaultSort)
     const [order, setOrder] = useState('asc')
+    const [foot, setFoot] = useState(defaultFoot)
+    const [addInseminationOpen, setAddInseminationOpen] = useState(false)
+
+    const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
+        getEntriesPage(filter)
+            .then(response => setFoot(response.json))
+            .catch(() => setFoot(defaultFoot))
         return findEntriesPage(filter, sort, order, cursor)
     }, [filter, order, sort])
 
@@ -41,19 +75,32 @@ export const EntriesTablePage = () => {
             reloadProps={{ onReload, loading }}
             sortProps={{ sort, setSort, sortColumns, defaultSort }}
             orderProps={{ order, setOrder }}
+            filterProps={{ setFilterOpen, anchorEl }}
+            otherProps={(
+                <Button
+                    variant="outlined"
+                    startIcon={<Add />}
+                    onClick={() => setAddInseminationOpen(true)}
+                >
+                    Adicionar Inseminação
+                </Button>
+            )}
         />
-        <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage }} />
+        <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
+        <InseminationFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
+        <AddInseminationDialog {...{ addInseminationOpen, setAddInseminationOpen }} />
     </div>
 }
 
 type EntriesTableProps = {
     rows: InseminationEntry[]
+    foot: InseminationFooter
     loading: boolean
     scrollRef: RefObject<VirtuosoHandle | null>
     fetchNextPage: () => void
 }
 
-const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage }: EntriesTableProps) => {
+const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTableProps) => {
 
     const [tableWidth, setTableWidth] = useState(0)
     const tableRef = useRef<HTMLDivElement>(null)
@@ -84,10 +131,24 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage }: EntriesTableP
                 <VirtuosoResizeHeadCell width={unit * 10}>Vaca</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 15}>Data de Inseminação</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 10}>Touro</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 20}>Status</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 35}>Observações</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Prenhez</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 25}>Observações</VirtuosoResizeHeadCell>
             </TableHeadRow>
         }}
+        fixedFooterContent={() => (
+            <TableFooterRow>
+                <TableFooterCell colSpan={4}>
+                    <FooterContent title="Total" content={foot.totals} />
+                </TableFooterCell>
+                <TableFooterCell colSpan={1}>
+                    <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.averagePregnancyRate)} />
+                </TableFooterCell>
+                <TableFooterCell colSpan={2}>
+                    <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.averageBirthRate)} />
+                </TableFooterCell>
+            </TableFooterRow>
+        )}
         itemContent={(_, item) => <EntriesRow {...{ item, loading }} />}
     />
 
@@ -115,6 +176,14 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell align="center">{dateTransformToLocale(rowData.inseminationDate?.toString())}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
+        <TableBodyCell>
+            {rowData.pregnancyStatus &&
+                <Chip
+                    label={InseminationStatusMap.get(rowData.pregnancyStatus)}
+                    color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+                />
+            }
+        </TableBodyCell>
         <TableBodyCell>
             {rowData.status &&
                 <Chip
@@ -151,6 +220,15 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell align="center">{dateTransformToLocale(rowData.inseminationDate?.toString())}</TableBodyCell>
         <TableBodyCell align="center">{rowData.bullName}</TableBodyCell>
+        <TableBodyCell align="center">
+            <FormComboBox
+                items={statusMapToComboBox()}
+                formProps={{
+                    control,
+                    name: 'pregnancyStatus'
+                }}
+            />
+        </TableBodyCell>
         <TableBodyCell align="center">
             <FormComboBox
                 items={statusMapToComboBox()}

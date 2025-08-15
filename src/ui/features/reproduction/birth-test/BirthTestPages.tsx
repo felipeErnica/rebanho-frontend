@@ -1,9 +1,11 @@
 import { PageProps } from "@/ui/shared/main-page/PageDisplay";
-import { BirthTestTable } from "./table/BirthTestTable";
 import { HomePage } from "@/ui/features/home/HomePage";
+import { BirthTestIcon } from "@/ui/shared/common/OtherIcons";
+import { BirthTestDashboard } from "./BirthTestDashboard";
 
 export const BirthTestTablePage: PageProps = {
-    title: "Histórico de Toques",
-    page: <BirthTestTable />,
+    title: "Painel de Toque",
+    crumbIcon: <BirthTestIcon />,
+    page: <BirthTestDashboard />,
     previousPages: [HomePage]
 }

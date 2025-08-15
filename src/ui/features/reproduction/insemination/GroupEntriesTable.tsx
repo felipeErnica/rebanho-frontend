@@ -1,42 +1,93 @@
-import { useEffect, useRef, useState } from "react"
-import { EntriesFooter, InseminationEntry, InseminationStatusColorMap, InseminationStatusMap, statusMapToComboBox } from "./Entities"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+    InseminationEntry,
+    InseminationFooter,
+    InseminationStatusColorMap,
+    InseminationStatusMap,
+    statusMapToComboBox
+} from "./Entities"
 import { findEntriesByGroup, getEntriesByGroupFoot } from "./Controller"
 import Table from "@mui/material/Table"
-import { 
-    FooterContent, 
-    ResizableHeadCell, 
-    StickyTableFooter, 
-    TableBodyCell, 
-    TableBodyRow, 
-    TableFooterCell, 
-    TableFooterRow, 
-    TableHeadCell, 
-    TableHeadRow, 
-    TableLoadingRow 
+import {
+    FooterContent,
+    ResizableHeadCell,
+    StickyTableFooter,
+    TableBodyCell,
+    TableBodyRow,
+    TableFooterCell,
+    TableFooterRow,
+    TableHeadCell,
+    TableHeadRow,
+    TableLoadingRow
 } from "@/ui/shared/table/TableComponents"
 import TableHead from "@mui/material/TableHead"
-import { Chip, TableBody } from "@mui/material"
+import { Button, Chip, TableBody } from "@mui/material"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { percentageTransform } from "@/util/Transformations"
+import { AddInseminationDialog } from "./AddInseminationDialog"
+import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
+import Add from "@mui/icons-material/Add"
 
 type GroupEntriesTablePageProps = {
-    groupId: string
+    bullId: string
+    inseminationDate: Date
 }
 
-export const GroupEntriesTablePage = ({ groupId }: GroupEntriesTablePageProps) => {
+export const GroupEntriesTablePage = ({ bullId, inseminationDate }: GroupEntriesTablePageProps) => {
+
+    const defaultValue: InseminationFooter = useMemo(() => ({
+        totals: 0,
+        averageBirthRate: 0,
+        averagePregnancyRate: 0
+    }), [])
+
+    const [loading, setLoading] = useState(false)
+    const [rows, setRows] = useState<InseminationEntry[]>([])
+    const [foot, setFoot] = useState<InseminationFooter>(defaultValue)
+    const [addInseminationOpen, setAddInseminationOpen] = useState(false)
+
+    const onReload = useCallback(() => {
+        setLoading(true)
+        getEntriesByGroupFoot(bullId, inseminationDate)
+            .then(response => setFoot(response.json))
+            .catch(() => setFoot(defaultValue))
+        findEntriesByGroup(bullId, inseminationDate)
+            .then(response => setRows(response.json))
+            .catch(() => setRows([]))
+            .finally(() => setLoading(false))
+    }, [bullId, defaultValue, inseminationDate])
+
+    useEffect(onReload, [onReload])
+
     return <div className="w-full h-full overflow-hidden flex flex-col">
-        <GroupEntriesTable {...{ groupId }} />
+        <AddInseminationDialog {...{ addInseminationOpen, setAddInseminationOpen }} />
+        <TableTopBar
+            reloadProps={{ onReload, loading }}
+            otherProps={(
+                <Button
+                    variant="outlined"
+                    startIcon={<Add />}
+                    onClick={() => setAddInseminationOpen(true)}
+                >
+                    Adicionar Inseminação
+                </Button>
+            )}
+        />
+        <GroupEntriesTable {...{ rows, foot, loading }} />
     </div>
 }
 
-const GroupEntriesTable = ({ groupId }: GroupEntriesTablePageProps) => {
+type GroupEntriesTableProps = {
+    rows: InseminationEntry[]
+    foot: InseminationFooter
+    loading: boolean
+}
 
-    const [rows, setRows] = useState<InseminationEntry[]>([])
-    const [foot, setFoot] = useState<EntriesFooter>({ totals: 0, birthRate: 0 })
-    const [loading, setLoading] = useState(false)
+const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
+
     const [tableUnit, setTableUnit] = useState(0)
     const tableRef = useRef<HTMLDivElement>(null)
 
@@ -51,16 +102,6 @@ const GroupEntriesTable = ({ groupId }: GroupEntriesTablePageProps) => {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    useEffect(() => {
-        setLoading(true)
-        getEntriesByGroupFoot(groupId)
-            .then(response => setFoot(response.json))
-            .catch(() => setFoot({ totals: 0, birthRate: 0 }))
-        findEntriesByGroup(groupId)
-            .then(response => setRows(response.json))
-            .catch(() => setRows([]))
-            .finally(() => setLoading(false))
-    }, [groupId])
 
     return <div className="h-full w-full overflow-auto" ref={tableRef}>
         <Table stickyHeader className="w-max min-w-full">
@@ -68,8 +109,9 @@ const GroupEntriesTable = ({ groupId }: GroupEntriesTablePageProps) => {
                 <TableHeadRow>
                     <TableHeadCell width={tableUnit * 10} />
                     <ResizableHeadCell width={tableUnit * 20}>Vaca</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 20}>Status</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 50}>Observações</ResizableHeadCell>
+                    <ResizableHeadCell width={tableUnit * 15}>Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell width={tableUnit * 15}>Nascimento</ResizableHeadCell>
+                    <ResizableHeadCell width={tableUnit * 40}>Observações</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>
@@ -80,8 +122,11 @@ const GroupEntriesTable = ({ groupId }: GroupEntriesTablePageProps) => {
                     <TableFooterCell colSpan={2}>
                         <FooterContent title="Total" content={foot.totals} />
                     </TableFooterCell>
+                    <TableFooterCell colSpan={1}>
+                        <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.averagePregnancyRate)} />
+                    </TableFooterCell>
                     <TableFooterCell colSpan={2}>
-                        <FooterContent title="Taxa de Nascimento" content={percentageTransform(foot.birthRate)} />
+                        <FooterContent title="Taxa de Nascimento" content={percentageTransform(foot.averageBirthRate)} />
                     </TableFooterCell>
                 </TableFooterRow>
             </StickyTableFooter>
@@ -109,6 +154,14 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>
+            {rowData.pregnancyStatus &&
+                <Chip
+                    label={InseminationStatusMap.get(rowData.pregnancyStatus)}
+                    color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+                />
+            }
+        </TableBodyCell>
         <TableBodyCell>
             {rowData.status &&
                 <Chip
@@ -143,6 +196,15 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell align="center">
+            <FormComboBox
+                items={statusMapToComboBox()}
+                formProps={{
+                    control,
+                    name: 'pregnancyStatus'
+                }}
+            />
+        </TableBodyCell>
         <TableBodyCell align="center">
             <FormComboBox
                 items={statusMapToComboBox()}

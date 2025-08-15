@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable react-hooks/exhaustive-deps */
 import Autocomplete from "@mui/material/Autocomplete"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
 import { ApiResponse } from "@/shared/entities/ApiResponse"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
@@ -33,51 +35,54 @@ export function FormSearchBox<T extends FieldValues>({
     onChange,
 }: FormSearchBoxProps<T>) {
 
-    const [firstRender, setFirstRender] = useState(true)
     const [options, setOptions] = useState<SearchBoxItem[]>([])
     const [value, setValue] = useState<SearchBoxItem | null>(null)
     const [inputValue, setInputValue] = useState('')
     const [loading, setLoading] = useState(false)
 
-    const searchInput = (input?: string) => {
+    const searchInput = useCallback((input?: string) => {
         setLoading(true)
         searchByInput(input)
             .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
             .finally(() => setLoading(false))
-    }
-    const debounceInputValue = debounce(searchInput, 300)
+    }, [])
 
-    const searchValue = (id?: string) => {
-        console.log("field id: ", id)
-        if (!firstRender) return
-        setLoading(true)
-        searchById(id)
-            .then(response => {
-                const options: SearchBoxItem[] = response.json
-                setOptions(options)
-                if (!id) {
-                    setValue(null)
-                    return
-                }
-                const value = options.find(option => option.id === id)
-                setValue(value ?? null)
-            })
-            .catch(() => setOptions([]))
-            .finally(() => {
-                setFirstRender(false)
-                setLoading(false)
-            })
-    }
-
+    const debounceInputValue = useCallback(debounce(searchInput, 300), [])
     return <Controller
         {...formProps}
         render={({ field, fieldState: { error } }) => {
-            searchValue(field.value)
+
+            useEffect(() => {
+                const id = field.value
+                if (id === undefined && value?.id === undefined) {
+                    setLoading(true)
+                    searchById()
+                        .then(response => setOptions(response.json))
+                        .catch(() => setOptions([]))
+                        .finally(() => setLoading(false))
+                }
+                if (id === value?.id) return
+                setLoading(true)
+                searchById(id)
+                    .then(response => {
+                        const options: SearchBoxItem[] = response.json
+                        setOptions(options)
+                        if (!id) {
+                            setValue(null)
+                            return
+                        }
+                        const value = options.find(option => option.id === id)
+                        setValue(value ?? null)
+                    })
+                    .catch(() => setOptions([]))
+                    .finally(() => setLoading(false))
+            }, [field.value])
+
             return <Autocomplete
-                {...field}
                 multiple={false}
                 value={value}
+                onBlur={field.onBlur}
                 inputValue={inputValue}
                 className={className}
                 loading={loading}
@@ -90,7 +95,7 @@ export function FormSearchBox<T extends FieldValues>({
                 options={options}
                 getOptionLabel={(option) => option.label}
                 onChange={(_, newValue) => {
-                    field.onChange(newValue)
+                    field.onChange(newValue?.id)
                     setValue(newValue)
                     if (onChange) onChange(newValue?.id, newValue?.label)
                 }}
@@ -100,7 +105,10 @@ export function FormSearchBox<T extends FieldValues>({
                 filterSelectedOptions
                 renderInput={(params) => <TextField
                     {...params}
+                    name={field.name}
+                    inputRef={field.ref}
                     error={!!error}
+                    disabled={field.disabled}
                     helperText={error?.message}
                     size="small"
                     label={label}
@@ -149,48 +157,62 @@ export function FormMultipleSearchBox<T extends FieldValues>({
 }: MultipleFormSearchBoxProps<T>) {
 
     const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [isFirstRender, setFirstRender] = useState(true)
     const [inputValue, setInputValue] = useState<string>('')
     const [value, setValue] = useState<SearchBoxItem[]>([])
     const [loading, setLoading] = useState(false)
 
-    const searchInput = (input?: string) => {
+    const searchInput = useCallback((input?: string) => {
         setLoading(true)
         searchByInput(input)
             .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
             .finally(() => setLoading(false))
-    }
-    const debouncedSearch = debounce(searchInput, 300)
+    }, [])
 
-    const findValue = useCallback((id?: string | string[]) => {
-        if (!isFirstRender) return
-        setLoading(true)
-        searchById(id)
-            .then(response => {
-                const options: SearchBoxItem[] = response.json
-                setOptions(options)
-                if (!id) {
-                    setValue([])
-                    return
-                }
-                const values = options.filter(option => id.includes(option.id))
-                setValue(values)
-            })
-            .catch(() => setOptions([]))
-            .finally(() => {
-                setLoading(false)
-                setFirstRender(false)
-            })
-    }, [searchById, isFirstRender])
+    const debouncedSearch = useCallback(debounce(searchInput, 300), [])
+
+    function allElementsEqual<T>(arr1: T[], arr2: T[]): boolean {
+        arr1.forEach(el => {
+            if (!arr2.includes(el)) {
+                return false
+            }
+        })
+        return true
+    }
 
     return <Controller
         {...formProps}
         render={({ field, fieldState: { error } }) => {
-            findValue(field.value)
+
+            useEffect(() => {
+                const id: string[] = field.value
+                if (value.length == 0 && id.length == 0) {
+                    searchById()
+                        .then(response => setOptions(response.json))
+                        .catch(() => setOptions([]))
+                        .finally(() => setLoading(false))
+                }
+                if (allElementsEqual(id, value.map(item => item.id))) return
+
+                setLoading(true)
+                searchById(id)
+                    .then(response => {
+                        const options: SearchBoxItem[] = response.json
+                        setOptions(options)
+                        if (!id) {
+                            setValue([])
+                            return
+                        }
+                        const values = options.filter(option => id.includes(option.id))
+                        setValue(values)
+                    })
+                    .catch(() => setOptions([]))
+                    .finally(() => setLoading(false))
+            }, [])
+
             return <Autocomplete
-                {...field}
                 multiple={true}
+                onBlur={field.onBlur}
                 limitTags={limitTags}
                 value={value}
                 inputValue={inputValue}
@@ -205,7 +227,7 @@ export function FormMultipleSearchBox<T extends FieldValues>({
                 options={options}
                 getOptionLabel={(option) => option.label}
                 onChange={(_, newValue) => {
-                    field.onChange(newValue)
+                    field.onChange(newValue.map(item => item.id))
                     setValue(newValue)
                     if (onChange) onChange(newValue)
                 }}
@@ -215,6 +237,9 @@ export function FormMultipleSearchBox<T extends FieldValues>({
                 fullWidth
                 renderInput={(params) => <TextField
                     {...params}
+                    name={field.name}
+                    ref={field.ref}
+                    disabled={field.disabled}
                     error={!!error}
                     helperText={error?.message}
                     size="small"

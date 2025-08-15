@@ -34,7 +34,7 @@ export const FarmAnimalsFilter = ({
         setFilter={setFilter}
         anchorEl={anchorEl}
         setFilterOpen={setFilterOpen}
-        isFilterOpen={isFilterOpen}
+        filterOpen={isFilterOpen}
     >
         <AbstractFilterGroup mainTitle="Informações principais">
             <div className="grid grid-cols-6 grid-flow-row gap-4">

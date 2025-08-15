@@ -5,24 +5,19 @@ export type InseminationEntry = {
     id: string
     animalId?: string
     animalName?: string
-    groupId?: string
     inseminationDate?: Date
+    bullId?: string
     bullName?: string
     observation?: string
+    pregnancyStatus?: string
     status?: string
     lossId?: string
     calfId?: string
 }
 
-export type EntriesFooter = {
-    totals: number
-    birthRate: number
-}
-
 export type InseminationEntryFilter = {
     isFiltered: boolean
     animals?: string[]
-    groups?: string[]
     minInseminationDate?: Date
     maxInseminationDate?: Date
     bulls?: string[]
@@ -30,17 +25,15 @@ export type InseminationEntryFilter = {
 }
 
 export const InseminationStatusMap: Map<string, string> = new Map([
-    ['FAILED', 'Inseminação Falhou'],
-    ['SUCCESS', 'Inseminação Bem Sucedida'],
+    ['FAILED', 'Falhou'],
+    ['SUCCESS', 'Confirmado'],
     ['STAND_BY', 'Aguardando Confirmação'],
-    ['PREGNANT', 'Vaca Prenha'],
 ])
 
 export const InseminationStatusColorMap: Map<string, ColorStrings> = new Map([
     ['FAILED', 'error'],
     ['SUCCESS', 'success'],
     ['STAND_BY', 'warning'],
-    ['PREGNANT', 'info'],
 ])
 
 export function statusMapToComboBox() {
@@ -50,25 +43,29 @@ export function statusMapToComboBox() {
 }
 
 export type InseminationGroup = {
-    id: string
     bullId: string
     bullName: string
     inseminationDate: Date
     cowNumber: number
     birthRate: number
-    comparisonRate: number
+    pregnancyRate: number
+    birthComparisonRate: number
+    pregnancyComparisonRate: number
 }
 
-export type GroupFooter = {
+export type InseminationFooter = {
     totals: number
     averageBirthRate: number
+    averagePregnancyRate: number
 }
 
 export type InseminationBulls = {
     bullName: string
     total: number
     birthRate: number
-    comparisonRate: number
+    pregnancyRate: number
+    birthComparisonRate: number
+    pregnancyComparisonRate: number
 }
 
 export type PregnantsNumber = {
@@ -79,6 +76,7 @@ export type InseminationHist = {
     dateMonth: Date
     total: number
     birthRate: number
+    pregnancyRate: number
 }
 
 export type BirthRateHist = {
@@ -86,8 +84,19 @@ export type BirthRateHist = {
     birthRate: number
 }
 
+export type PregnancyRateHist = {
+    dateMonth: Date
+    pregnancyRate: number
+}
+
 export type BirthRateStats = {
     hist: BirthRateHist[]
+    current: number
+    trend: number
+}
+
+export type PregnancyRateStats = {
+    hist: PregnancyRateHist[]
     current: number
     trend: number
 }
