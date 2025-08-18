@@ -13,3 +13,15 @@ export function getBirthRate() {
 export function getTestHist() {
     return apiGet(DASHBOARD_BASE + "test-hist")
 }
+
+export function getLastGroups() {
+    return apiGet(DASHBOARD_BASE + "last-groups")
+}
+
+export function getLastEntries() {
+    return apiGet(DASHBOARD_BASE + "last-entries")
+}
+
+export function getBestResults() {
+    return apiGet(DASHBOARD_BASE + "best-results")
+}
