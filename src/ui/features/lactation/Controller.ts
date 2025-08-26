@@ -23,6 +23,10 @@ export function getWorstAnimals() {
     return apiGet(DASHBOARD_BASE + "worst-animals")
 }
 
+export function getLastEntries() {
+    return apiGet(DASHBOARD_BASE + "last-entries")
+}
+
 export function getProductionHist() {
     return apiGet(DASHBOARD_BASE + "milk-production")
 }

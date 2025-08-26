@@ -1,7 +1,9 @@
-
-export type YearProductionHist = {
-  entryDate: Date
-  totalMilk: number
+export type MilkEntry = {
+  id: string
+  animalId?: string
+  animalName?: string
+  entryDate?: Date
+  quantity?: number
 }
 
 export type MonthMilkHist = {

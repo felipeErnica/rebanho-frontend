@@ -12,6 +12,7 @@
         "build:react": "tsc -b && vite build",
         "build:electron": "tsc --project src/electron/tsconfig.json && tsc -b && vite build && electron .",
         "dev:electron": "tsc -b && vite build && electron .",
+        "run:electron": "electron .",
         "lint": "eslint .",
         "preview": "vite preview"
     },

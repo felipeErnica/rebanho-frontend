@@ -14,7 +14,7 @@ type DashboardContainerProps = {
 }
 
 export const DashboardContainer = ({ className, children }: DashboardContainerProps) => {
-    return <div className={`w-full h-full bg-gray-100 p-4 flex flex-col gap-4 ${className}`}>
+    return <div className={`w-full h-full bg-gray-100 overflow-auto p-4 flex flex-col gap-4 ${className}`}>
         {children}
     </div>
 }
