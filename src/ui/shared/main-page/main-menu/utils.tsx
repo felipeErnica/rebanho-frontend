@@ -8,12 +8,10 @@ import {
     EmbryoIcon,
     InseminationIcon,
     LactationIcon,
-    LactationHistIcon,
     PregnancyLossIcon,
     ReproductionIcon,
     SlaughterhouseIcon,
     SlaughterIcon,
-    MilkIcon,
     FarmMainIcon,
     BullIcon
 } from "@/ui/shared/common/OtherIcons"
@@ -30,7 +28,7 @@ import { SlaughterTablePage } from "@/ui/features/slaughter-area/slaughter/Slaug
 import { SlaughterHouseTablePage } from "@/ui/features/slaughter-area/slaughterhouse/SlaughterHousePages"
 import { WeightTablePage } from "@/ui/features/slaughter-area/weight/WeightPages"
 import { HomePage } from "@/ui/features/home/HomePage"
-import { LactationHistTablePage, MilkTablePage } from "@/ui/features/lactation/LactationPages"
+import { MilkDashboardPage } from "@/ui/features/lactation/LactationPages"
 import { AnimalDashboardPage } from "@/ui/features/animals/AnimalsPage"
 import { FarmPage } from "@/ui/features/farm-area/FarmPage"
 
@@ -104,21 +102,6 @@ export const buildList = () => {
         },
     ]
 
-    const lactationSubMenu: MenuItem[] = [
-        {
-            key: 'lactation',
-            title: 'Histórico de Lactações',
-            icon: <LactationHistIcon />,
-            page: LactationHistTablePage
-        },
-        {
-            key: 'milk-entries',
-            title: 'Marcação de Leite',
-            icon: <MilkIcon />,
-            page: MilkTablePage
-        },
-    ]
-
     const mainList: MenuItem[] = [
         {
             key: 'home',
@@ -154,7 +137,7 @@ export const buildList = () => {
             key: 'lactation-area',
             title: 'Lactação',
             icon: <LactationIcon />,
-            collapsedList: lactationSubMenu
+            page: MilkDashboardPage
         },
         {
             key: 'vacines',
