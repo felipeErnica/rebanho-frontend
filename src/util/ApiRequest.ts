@@ -1,7 +1,7 @@
 import { ApiResponse } from "@/shared/entities/ApiResponse"
 import { User } from "@/shared/entities/User"
 
-const BASE_URL = "http://localhost:8080/"
+const BASE_URL = "http://192.168.0.169/24:8080/"
 
 async function generateRequest(): Promise<RequestInit> {
     const authToken = await window.electronEvents.getAuthToken()

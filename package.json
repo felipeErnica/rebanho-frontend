@@ -12,6 +12,7 @@
         "build:react": "tsc -b && vite build",
         "build:electron": "tsc --project src/electron/tsconfig.json && tsc -b && vite build && electron .",
         "dev:electron": "tsc -b && vite build && electron .",
+        "run:electron": "electron .",
         "lint": "eslint .",
         "preview": "vite preview"
     },
@@ -41,7 +42,7 @@
         "@types/react-dom": "^19.0.4",
         "@vitejs/plugin-react": "^4.3.4",
         "electron": "^35.1.4",
-        "eslint": "^9.21.0",
+        "eslint": "^9.34.0",
         "eslint-plugin-react-hooks": "^5.1.0",
         "eslint-plugin-react-refresh": "^0.4.19",
         "globals": "^15.15.0",
