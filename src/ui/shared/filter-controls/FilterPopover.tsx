@@ -7,19 +7,28 @@ export type FilterPopoverProps = {
     filterOpen: boolean
     setFilterOpen: (isOpen: boolean) => void
     anchorEl: RefObject<HTMLButtonElement | null>
+    setFilter: (filter: IFilters) => void
+    filter: IFilters
+}
+
+
+type InternalFilterPopoverProps = {
+    filterOpen: boolean
+    setFilterOpen: (isOpen: boolean) => void
+    anchorEl: RefObject<HTMLButtonElement | null>
     children?: ReactNode | ReactNode[]
     setFilter: (filter: IFilters) => void
 }
 
 export const FilterPopover = ({
-    filterOpen: isFilterOpen,
+    filterOpen,
     setFilterOpen,
     anchorEl,
     children,
     setFilter
-}: FilterPopoverProps) => {
+}: InternalFilterPopoverProps) => {
     return <Popover
-        open={isFilterOpen}
+        open={filterOpen}
         onClose={() => setFilterOpen(false)}
         anchorEl={anchorEl.current}
     >

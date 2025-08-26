@@ -1,6 +1,7 @@
 import { Skeleton, TableFooter, TableRow, Typography } from "@mui/material"
 import TableCell from "@mui/material/TableCell"
 import { ForwardedRef, ReactNode, Ref, RefObject, useRef } from "react"
+import { TrendComponent, TrendComponentProps } from "../dashboard/DashboardComponents"
 
 type TableHeadRowProps = {
     children?: ReactNode | ReactNode[]
@@ -246,4 +247,16 @@ export const TableLoadingCells = ({ colSpan }: TableLoadingRowProps) => {
             <Skeleton animation='wave' variant="rounded" />
         </TableCell>
     ))
+}
+
+type TrendValuesProps = {
+    value: string | number
+    trendProps: TrendComponentProps
+}
+
+export const TrendValues = ({ value, trendProps }: TrendValuesProps) => {
+    return <div className="flex flex-row items-center gap-2">
+        {value}
+        <TrendComponent {...trendProps} />
+    </div>
 }

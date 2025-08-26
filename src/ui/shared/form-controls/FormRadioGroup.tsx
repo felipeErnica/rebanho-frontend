@@ -43,20 +43,20 @@ export const FormRadioGroup = <T extends FieldValues>({
         render={({ field, fieldState: { error } }) => (
             <FormControl error={!!error} className={classname}>
                 <FormLabel>{label}</FormLabel>
-                <FormHelperText>{error?.message}</FormHelperText>
                 <RadioGroup
                     {...field}
-                    onChange={(event, value) => {
-                        if (onChange) {
-                            onChange(value)
-                            field.onChange(event.currentTarget.value)
-                        }
+                    value={field.value ?? null}
+                    onChange={(_, value) => {
+                        console.log("selected: ", value)
+                        if (onChange) onChange(value)
+                        field.onChange(value || null)
                     }}
                     row={row}
                     className="flex flex-wrap gap-2"
                 >
                     {controls.map(props => <RadioControl {...props} />)}
                 </RadioGroup>
+                <FormHelperText>{error?.message}</FormHelperText>
             </FormControl>
         )}
     />

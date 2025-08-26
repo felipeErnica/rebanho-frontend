@@ -21,6 +21,7 @@ interface ComboBoxProps {
     className?: string
     name?: string;
     id?: string;
+    variant?: 'outlined' | 'standard' | 'filled'
 }
 
 export const ComboBox = (props: ComboBoxProps) => {
@@ -39,7 +40,7 @@ export const ComboBox = (props: ComboBoxProps) => {
                 error={props.error}
                 name={props.name}
                 size={props.size ? props.size : 'small'}
-                variant='outlined'
+                variant={props.variant}
                 label={props.label}
             />
         }}

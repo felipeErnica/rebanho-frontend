@@ -18,8 +18,10 @@ export const percentageTransform = (value: number) => {
     return formatter.format(value) + '%'
 }
 
-export const dateTransformToLocale = (value?: string) => {
-    if (!value) return value
-    const date = new Date(value)
-    return date.toLocaleDateString("pt-BR", { dateStyle: 'short' })
+export const dateTransform = (value?: Date) => {
+    if (value === undefined) return ""
+    value = new Date(value)
+    const dateString = value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
+    if (dateString == 'Invalid Date') return ""
+    return dateString
 }

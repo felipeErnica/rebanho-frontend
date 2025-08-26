@@ -1,6 +1,14 @@
 import { CardChartContent, CardDefaultTitle, DashboardCard, TrendComponent } from "@/ui/shared/dashboard/DashboardComponents"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { getBestResults, getBirthRate, getLastEntries, getLastGroups, getPregnancyRate, getTestHist } from "./Controller"
+import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import {
+    getRankedResults,
+    getBirthRate,
+    getLastEntries,
+    getLastGroups,
+    getPregnancyRate,
+    getTestHist,
+    getNextBirths
+} from "./Controller"
 import {
     BarPlot,
     ChartContainer,
@@ -12,9 +20,17 @@ import {
     LinePlot,
     SparkLineChart
 } from "@mui/x-charts"
-import { dateTransformToLocale, percentageTransform } from "@/util/Transformations"
-import { BirthRateStats, PregnancyRateStats, PregnancyTestsHist, TestAnimal, TestEntry, TestGroups as TestGroup } from "./Entities"
-import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
+import { dateTransform, percentageTransform } from "@/util/Transformations"
+import {
+    BirthRateStats,
+    NextBirths,
+    PregnancyRateStats,
+    PregnancyTestsHist,
+    TestAnimal,
+    TestEntry,
+    TestGroup
+} from "./Entities"
+import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
 import Button from "@mui/material/Button"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import Table from "@mui/material/Table"
@@ -26,6 +42,15 @@ import { TableLoadingRow } from "@/ui/shared/table/TableComponents"
 import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
 import Chip from "@mui/material/Chip"
 import { InseminationStatusColorMap, InseminationStatusMap } from "../insemination/Entities"
+import { ComboBox, ComboBoxItem } from "@/ui/shared/common/ComboBox"
+import { PageContext } from "@/ui/shared/main-page/PageContext"
+import { BirthTestDashboardPage, BirthTestEntriesPage, BirthTestGroupPage } from "./BirthTestPages"
+import Add from "@mui/icons-material/Add"
+import { AddTestDialog } from "./AddTestDialog"
+import { PageProps } from "@/ui/shared/main-page/PageDisplay"
+import { GroupEntriesTablePage } from "./GroupEntriesTable"
+import { HomePage } from "../../home/HomePage"
+import IconButton from "@mui/material/IconButton"
 
 export const BirthTestDashboard = () => {
 
@@ -35,14 +60,42 @@ export const BirthTestDashboard = () => {
     const startLoading = useCallback(() => setActiveRequests(prev => prev + 1), [])
     const stopLoading = useCallback(() => setActiveRequests(prev => Math.min(prev - 1)), [])
 
-    return <div className="w-full h-full overflow-y-auto bg-gray-100 flex flex-col">
-        <TableTopBar
-            reloadProps={{
-                onReload: () => setReloadFlag(prev => prev + 1),
-                loading: activeRequests > 0
-            }}
-        />
+    return <div className="w-full h-full p-4 overflow-y-auto bg-gray-100 flex flex-col">
+        <DashboardTopBar {...{ setReloadFlag, activeRequests }} />
         <DashboardInformation {...{ startLoading, stopLoading, reloadFlag }} />
+    </div>
+}
+
+type DashboardTopBarProps = {
+    setReloadFlag: Dispatch<SetStateAction<number>>
+    activeRequests: number
+}
+
+const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps) => {
+
+    const [addTestOpen, setAddTestOpen] = useState(false)
+    const { setPageProps } = useContext(PageContext)
+
+    return <div className="p-4 flex flex-row">
+        <ReloadButton
+            variant="text"
+            onReload={() => setReloadFlag(prev => prev + 1)}
+            loading={activeRequests > 0}
+        />
+        <Button
+            startIcon={<Add />}
+            className="ml-auto"
+            onClick={() => setAddTestOpen(true)}
+        >
+            Adicionar Toque
+        </Button>
+        <Button
+            startIcon={<ChevronRight />}
+            onClick={() => setPageProps && setPageProps(BirthTestEntriesPage)}
+        >
+            Ver Histórico de Toques
+        </Button>
+        <AddTestDialog {...{ addTestOpen, setAddTestOpen }} />
     </div>
 }
 
@@ -53,13 +106,14 @@ type DashboardInformationProps = {
 }
 
 const DashboardInformation = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-    return <div className="p-4 grid grid-flow-row gap-4">
+    return <div className="grid grid-flow-row gap-4">
         <PregnancyCard {...{ stopLoading, startLoading, reloadFlag }} />
         <BirthCard {...{ startLoading, stopLoading, reloadFlag }} />
         <BestAnimalsTable {...{ stopLoading, startLoading, reloadFlag }} />
         <TestHistChart {...{ startLoading, stopLoading, reloadFlag }} />
-        <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
+        <NextBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
         <LastGroupTable {...{ stopLoading, startLoading, reloadFlag }} />
+        <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
     </div>
 }
 
@@ -90,8 +144,7 @@ const PregnancyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
         <CardChartContent
             title="Taxa de Prenhez"
             loading={loading}
-            data={stats.current}
-            percentage
+            data={percentageTransform(stats.current)}
             chart={(
                 <SparkLineChart
                     data={stats.hist.map(item => item.pregnancyRate)}
@@ -139,8 +192,7 @@ const BirthCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
         <CardChartContent
             title="Taxa de Natalidade"
             loading={loading}
-            data={stats.current}
-            percentage
+            data={percentageTransform(stats.current)}
             chart={(
                 <SparkLineChart
                     data={stats.hist.map(item => item.birthRate)}
@@ -165,22 +217,34 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
 
     const [data, setData] = useState<TestAnimal[]>([])
     const [loading, setLoading] = useState(false)
-    //const { setPageProps } = useContext(PageContext)
+    const [rankBy, setRankBy] = useState('worst-results')
+
+    const rankByValues: ComboBoxItem[] = [
+        { name: 'Os Melhores Resultados', value: 'best-results' },
+        { name: 'Os Piores Resultados', value: 'worst-results' },
+    ]
 
     useEffect(() => {
         startLoading()
         setLoading(true)
-        getBestResults()
+        getRankedResults(rankBy)
             .then(response => setData(response.json))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading, rankBy])
 
-    return <DashboardCard className="col-span-2 row-span-2">
-        <CardDefaultTitle text="Os Melhores Resultados" />
+    return <DashboardCard className="col-start-3 col-span-2 row-span-2">
+        <ComboBox
+            className="max-w-[300]"
+            variant="standard"
+            size="small"
+            value={rankBy}
+            onChange={(value) => setRankBy(value ?? 'worst-results')}
+            items={rankByValues}
+        />
         <Table size="small">
             <TableHead>
                 <TableRow>
@@ -296,20 +360,19 @@ const TestHistChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
 
 }
 
-const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+const NextBirthsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const [data, setData] = useState<TestEntry[]>([])
     const [loading, setLoading] = useState(false)
-    //const { setPageProps } = useContext(PageContext)
+    const [data, setData] = useState<NextBirths[]>([])
 
     useEffect(() => {
         startLoading()
         setLoading(true)
-        getLastEntries()
+        getNextBirths()
             .then(response => {
-                const json: TestEntry[] = response.json
-                json.forEach(item => item.testDate = new Date(item.testDate ?? ''))
-                setData(json)
+                const json: NextBirths[] = response.json
+                json.forEach(item => item.birthForecast = new Date(item.birthForecast))
+                setData(response.json)
             })
             .catch(() => setData([]))
             .finally(() => {
@@ -318,72 +381,43 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard className="col-span-2 h-[400] overflow-hidden">
-        <div className="flex flex-row">
-            <CardDefaultTitle text="Última Inseminação" />
-            <Button
-                className="ml-auto"
-                startIcon={<ChevronRight />}
-            //onClick={() => {
-            //    const page: PageProps = {
-            //        page: <EntriesTablePage />,
-            //        title: "Histórico de Inseminações",
-            //        previousPages: [HomePage, InseminationPage]
-            //    }
-            //    if (setPageProps) setPageProps(page)
-            //}}
-            >
-                Ver Histórico Completo
-            </Button>
-        </div>
-        <div className="overflow-auto">
-            <Table size="small" stickyHeader>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Vaca</TableCell>
-                        <TableCell>Data do Exame</TableCell>
-                        <TableCell>Teste de Prenhez</TableCell>
-                        <TableCell>Nascimento</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {loading
-                        ? Array(10).fill(<TableLoadingRow colSpan={4} />)
-                        : data.map(item => (
-                            <TableRow>
-                                <TableCell>{item.animalName}</TableCell>
-                                <TableCell>{dateTransformToLocale(item.testDate?.toString())}</TableCell>
-                                <TableCell>
-                                    {item.pregnancyStatus &&
-                                        <Chip
-                                            label={InseminationStatusMap.get(item.pregnancyStatus)}
-                                            color={InseminationStatusColorMap.get(item.pregnancyStatus)}
-                                        />
-                                    }
-                                </TableCell>
-                                <TableCell>
-                                    {item.birthStatus &&
-                                        <Chip
-                                            label={InseminationStatusMap.get(item.birthStatus)}
-                                            color={InseminationStatusColorMap.get(item.birthStatus)}
-                                        />
-                                    }
-                                </TableCell>
-                            </TableRow>
-                        ))
-                    }
-                </TableBody>
-            </Table>
-        </div>
+    return <DashboardCard>
+        <CardDefaultTitle text="Próximas Parições" />
+        <Table size="small">
+            <TableHead>
+                <TableRow>
+                    <TableCell>Mês</TableCell>
+                    <TableCell>Parições Previstas</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {loading
+                    ? Array(10).fill(<TableLoadingRow colSpan={10} />)
+                    : data.map(item => (
+                        <TableRow>
+                            <TableCell>
+                                {item.birthForecast.toLocaleString('pt-BR', {
+                                    month: 'short',
+                                    year: 'numeric'
+                                })}
+                            </TableCell>
+                            <TableCell>{item.birthNumbers}</TableCell>
+                        </TableRow>
+                    ))
+                }
+            </TableBody>
+        </Table>
     </DashboardCard>
 }
-
 
 const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
     const [data, setData] = useState<TestGroup[]>([])
     const [loading, setLoading] = useState(false)
-    //const { setPageProps } = useContext(PageContext)
+    const [addTestOpen, setAddTestOpen] = useState(false)
+    const [testDate, setTestDate] = useState<Date>()
+
+    const { setPageProps } = useContext(PageContext)
 
     useEffect(() => {
         startLoading()
@@ -397,22 +431,23 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
             })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard className="col-start-3 col-span-2 row-span-2">
+    return <DashboardCard className="col-start-2 col-span-3">
         <div className="flex flex-row">
             <CardDefaultTitle text="Últimos Grupos de Inseminação" />
             <Button
                 className="ml-auto"
                 startIcon={<ChevronRight />}
-            //onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+                onClick={() => setPageProps && setPageProps(BirthTestGroupPage)}
             >
-                Ver Todos
+                Ver Grupos
             </Button>
+            <AddTestDialog {...{ setAddTestOpen, addTestOpen, testDate }} />
         </div>
         <Table size="small">
             <TableHead>
                 <TableRow>
                     <TableCell colSpan={2}>Data do Exame</TableCell>
-                    <TableCell>Total de Animais</TableCell>
+                    <TableCell align="center">Total de Animais</TableCell>
                     <TableCell>Taxa de Prenhez</TableCell>
                     <TableCell>Taxa de Natalidade</TableCell>
                 </TableRow>
@@ -424,23 +459,26 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
                         <TableRow>
                             <TableCell>
                                 <EditControlButtons
-                                //onShow={() => {
-                                //    const bullId = item.bullId
-                                //    const inseminationDate = new Date(item.inseminationDate)
-                                //    const date = inseminationDate.toLocaleDateString('pt-BR', {
-                                //        month: 'short',
-                                //        year: 'numeric'
-                                //    })
-                                //    const page: PageProps = {
-                                //        page: <GroupEntriesTablePage {...{ inseminationDate, bullId }} />,
-                                //        title: `Inseminações - ${item.bullName} - ${date}`,
-                                //        previousPages: [HomePage, InseminationPage]
-                                //    }
-                                //    if (setPageProps) setPageProps(page)
-                                //}}
+                                    otherButtons={(
+                                        <IconButton onClick={() => {
+                                            setTestDate(item.testDate)
+                                            setAddTestOpen(true)
+                                        }}>
+                                            <Add />
+                                        </IconButton>
+                                    )}
+                                    onShow={() => {
+                                        const testDate = new Date(item.testDate)
+                                        const page: PageProps = {
+                                            page: <GroupEntriesTablePage {...{ testDate }} />,
+                                            title: `Toque - Dia ${dateTransform(item.testDate)}`,
+                                            previousPages: [HomePage, BirthTestDashboardPage]
+                                        }
+                                        if (setPageProps) setPageProps(page)
+                                    }}
                                 />
                             </TableCell>
-                            <TableCell>{dateTransformToLocale(item.testDate.toString())}</TableCell>
+                            <TableCell>{dateTransform(item.testDate)}</TableCell>
                             <TableCell align="center" >{item.animalsNumber}</TableCell>
                             <TableCell>
                                 <div className="flex flex-row items-center gap-2">
@@ -462,3 +500,87 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
     </DashboardCard>
 }
 
+const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+
+    const [data, setData] = useState<TestEntry[]>([])
+    const [testDate, setTestDate] = useState<Date>()
+    const [loading, setLoading] = useState(false)
+    const [addTestOpen, setAddTestOpen] = useState(false)
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getLastEntries()
+            .then(response => {
+                const json: TestEntry[] = response.json
+                setData(json)
+                const date = new Date(json[0].testDate ?? '')
+                setTestDate(date)
+            })
+            .catch(() => {
+                setData([])
+                setTestDate(undefined)
+            })
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard className="col-span-4 h-[600] overflow-hidden">
+        <div className="flex flex-row">
+            <CardDefaultTitle text="Último Exame de Toque" />
+            <Button
+                className="ml-auto"
+                startIcon={<Add />}
+                onClick={() => setAddTestOpen(true)}
+            >
+                Adicionar Toque
+            </Button>
+            <AddTestDialog {...{ addTestOpen, setAddTestOpen, testDate }} />
+        </div>
+        <div className="overflow-auto">
+            <Table size="small" stickyHeader>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Vaca</TableCell>
+                        <TableCell>Data do Exame</TableCell>
+                        <TableCell>Teste de Prenhez</TableCell>
+                        <TableCell>Nascimento</TableCell>
+                        <TableCell>Previsão de Parto</TableCell>
+                        <TableCell>Observações</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {loading
+                        ? Array(10).fill(<TableLoadingRow colSpan={4} />)
+                        : data.map(item => (
+                            <TableRow>
+                                <TableCell>{item.animalName}</TableCell>
+                                <TableCell>{dateTransform(item.testDate)}</TableCell>
+                                <TableCell>
+                                    {item.pregnancyStatus &&
+                                        <Chip
+                                            label={InseminationStatusMap.get(item.pregnancyStatus)}
+                                            color={InseminationStatusColorMap.get(item.pregnancyStatus)}
+                                        />
+                                    }
+                                </TableCell>
+                                <TableCell>
+                                    {item.birthStatus &&
+                                        <Chip
+                                            label={InseminationStatusMap.get(item.birthStatus)}
+                                            color={InseminationStatusColorMap.get(item.birthStatus)}
+                                        />
+                                    }
+                                </TableCell>
+                                <TableCell>{dateTransform(item.birthForecast)}</TableCell>
+                                <TableCell>{item.observation}</TableCell>
+                            </TableRow>
+                        ))
+                    }
+                </TableBody>
+            </Table>
+        </div>
+    </DashboardCard>
+}

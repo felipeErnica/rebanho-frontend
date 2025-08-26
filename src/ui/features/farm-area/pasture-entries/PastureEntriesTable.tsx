@@ -10,7 +10,7 @@ import {
 } from "@/ui/shared/table/TableComponents"
 import { PastureEntries } from "./Entities"
 import { RefObject, useEffect, useRef, useState } from "react"
-import { dateTransformToLocale } from "@/util/Transformations"
+import { dateTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
@@ -99,8 +99,8 @@ const PastureEntriesNormalRow = ({ rowValues, setEditing }: PastureEntriesNormal
         <TableBodyCell>{rowValues.animalName}</TableBodyCell>
         <TableBodyCell>{rowValues.animalMother}</TableBodyCell>
         <TableBodyCell>{rowValues.animalFather}</TableBodyCell>
-        <TableBodyCell>{dateTransformToLocale(rowValues.animalBirthDate)}</TableBodyCell>
-        <TableBodyCell>{dateTransformToLocale(rowValues.entryDate)}</TableBodyCell>
+        <TableBodyCell>{dateTransform(rowValues.animalBirthDate)}</TableBodyCell>
+        <TableBodyCell>{dateTransform(rowValues.entryDate)}</TableBodyCell>
     </>
 }
 
@@ -126,7 +126,7 @@ const PastureEntriesEditRow = ({ rowValues, setRowValues, setEditing }: PastureE
         <TableBodyCell>{rowValues.animalName}</TableBodyCell>
         <TableBodyCell>{rowValues.animalMother}</TableBodyCell>
         <TableBodyCell>{rowValues.animalFather}</TableBodyCell>
-        <TableBodyCell>{dateTransformToLocale(rowValues.animalBirthDate)}</TableBodyCell>
+        <TableBodyCell>{dateTransform(rowValues.animalBirthDate)}</TableBodyCell>
         <TableBodyCell>
             <FormDatePicker
                 formProps={{

@@ -16,7 +16,7 @@ import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { BirthEntry, BirthEntryFilter, BirthFooter } from "./Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
-import { dateTransformToLocale, decimalTransform } from "@/util/Transformations"
+import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
@@ -161,7 +161,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
             />
         </TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
-        <TableBodyCell align="center">{dateTransformToLocale(rowData.calfBirthDate)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.calfBirthDate)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.birthInterval ?? '1ª CRIA'}</TableBodyCell>
         <TableBodyCell align="center">{rowData.calfSex}</TableBodyCell>
         <TableBodyCell>{rowData.calfFather}</TableBodyCell>

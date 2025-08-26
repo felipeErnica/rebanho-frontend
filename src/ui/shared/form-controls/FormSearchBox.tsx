@@ -62,6 +62,7 @@ export function FormSearchBox<T extends FieldValues>({
                         .catch(() => setOptions([]))
                         .finally(() => setLoading(false))
                 }
+
                 if (id === value?.id) return
                 setLoading(true)
                 searchById(id)

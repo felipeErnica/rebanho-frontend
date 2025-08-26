@@ -9,7 +9,7 @@ export type AnimalFarm = {
     fatherId?: string
     motherName?: string
     motherId?: string
-    birthDate?: string
+    birthDate?: Date
     pastureName?: string
     pastureId?: string
     farmId?: string

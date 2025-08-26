@@ -2,11 +2,11 @@ export type PastureEntries = {
     id: string
     animalId?: string
     animalName?: string
-    animalBirthDate?: string
+    animalBirthDate?: Date
     animalRingNumber?: string
     animalFather?: string
     animalMother?: string
-    entryDate?: string
+    entryDate?: Date
 }
 
 export type PastureEntriesFilter = {

@@ -24,8 +24,8 @@ import { BirthPage } from "@/ui/features/reproduction/births/BirthPages"
 import { InseminationPage } from "@/ui/features/reproduction/insemination/InseminationPages"
 import { NaturalMatingTablePage } from "@/ui/features/reproduction/natural-reproduction/NaturalReprodutionPages"
 import { EmbryoTablePage } from "@/ui/features/reproduction/embryo-transfer/EmbryoTransferPages"
-import { BirthTestTablePage } from "@/ui/features/reproduction/birth-test/BirthTestPages"
-import { LossTablePage } from "@/ui/features/reproduction/pregnancy-loss/LossPages"
+import { BirthTestDashboardPage } from "@/ui/features/reproduction/birth-test/BirthTestPages"
+import { LossDashboardPage } from "@/ui/features/reproduction/pregnancy-loss/LossPages"
 import { SlaughterTablePage } from "@/ui/features/slaughter-area/slaughter/SlaughterPages"
 import { SlaughterHouseTablePage } from "@/ui/features/slaughter-area/slaughterhouse/SlaughterHousePages"
 import { WeightTablePage } from "@/ui/features/slaughter-area/weight/WeightPages"
@@ -73,13 +73,13 @@ export const buildList = () => {
             key: 'birth-test',
             title: 'Exames de Toque',
             icon: <BirthTestIcon />,
-            page: BirthTestTablePage
+            page: BirthTestDashboardPage
         },
         {
             key: 'pregnancy-loss',
             title: 'Perdas e Abortos',
             icon: <PregnancyLossIcon />,
-            page: LossTablePage
+            page: LossDashboardPage
         },
     ]
 

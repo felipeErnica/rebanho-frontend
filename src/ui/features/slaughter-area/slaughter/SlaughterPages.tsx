@@ -1,9 +1,9 @@
 import { PageProps } from "@/ui/shared/main-page/PageDisplay";
-import { LossTable } from "../../reproduction/pregnancy-loss/table/LossTable";
 import { HomePage } from "@/ui/features/home/HomePage";
+import { LossDashboard } from "../../reproduction/pregnancy-loss/LossDashboard";
 
 export const SlaughterTablePage: PageProps = {
     title: "Histórico de Abates",
-    page: <LossTable />,
+    page: <LossDashboard />,
     previousPages: [HomePage]
 }

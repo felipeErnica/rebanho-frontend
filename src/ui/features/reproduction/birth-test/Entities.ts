@@ -1,14 +1,31 @@
 export type TestEntry = {
     id: string
-    testDate: Date
-    animalId: string
-    animalName: string
-    birthForecast: Date
-    birthStatus: string
-    pregnancyStatus: string
-    observation: string
-    lossId: string
-    calfId: string
+    testDate?: Date
+    animalId?: string
+    animalName?: string
+    birthForecast?: Date
+    birthStatus?: string
+    pregnancyStatus?: string
+    observation?: string
+    lossId?: string
+    calfId?: string
+}
+
+export type TestEntryFilter = {
+    isFiltered: boolean
+    minTestDate?: Date
+    maxTestDate?: Date
+    animals?: string[]
+    minBirthForecast?: Date
+    maxBirthForecast?: Date
+    birthStatus?: string
+    pregnancyStatus?: string
+}
+
+export type TestEntryFooter = {
+    totals: number
+    pregnancyRate: number
+    birthRate: number
 }
 
 export type TestAnimal = {
@@ -42,6 +59,11 @@ export type BirthRateStats = {
     hist: BirthRateHist[]
 }
 
+export type NextBirths = {
+    birthForecast: Date
+    birthNumbers: number
+}
+
 export type PregnancyTestsHist = {
     testDate: Date
     totals: number
@@ -49,7 +71,7 @@ export type PregnancyTestsHist = {
     birthRate: number
 }
 
-export type TestGroups = {
+export type TestGroup = {
     testDate: Date
     animalsNumber: number
     pregnancyRate: number

@@ -17,7 +17,7 @@ import {
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
-import { dateTransformToLocale, percentageTransform } from "@/util/Transformations"
+import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { HomePage } from "../../home/HomePage"
 import { GroupsTablePageProps, InseminationPage } from "./InseminationPages"
@@ -159,7 +159,7 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
             />
         </TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
-        <TableBodyCell align="center">{dateTransformToLocale(rowData.inseminationDate.toString())}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.inseminationDate)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.cowNumber}</TableBodyCell>
         <TableBodyCell align="center">{percentageTransform(rowData.birthRate)}</TableBodyCell>
         <TableBodyCell>

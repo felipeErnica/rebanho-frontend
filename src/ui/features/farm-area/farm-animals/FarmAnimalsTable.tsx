@@ -1,7 +1,7 @@
 import { Ref, useEffect, useRef, useState } from "react"
 import { AnimalFarm } from "./Entities"
 import { EditRow, NormalRow } from "@/ui/shared/table/Entities"
-import { dateTransformToLocale } from "@/util/Transformations"
+import { dateTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { useForm } from "react-hook-form"
 import {
@@ -101,7 +101,7 @@ const AnimalFarmNormalRow = ({ rowValue, setEditing }: NormalRow<AnimalFarm>) =>
         <TableBodyCell>{rowValue.ringNumber}</TableBodyCell>
         <TableBodyCell>{rowValue.name}</TableBodyCell>
         <TableBodyCell>{rowValue.sex}</TableBodyCell>
-        <TableBodyCell>{dateTransformToLocale(rowValue.birthDate)}</TableBodyCell>
+        <TableBodyCell>{dateTransform(rowValue.birthDate)}</TableBodyCell>
         <TableBodyCell>{rowValue.motherName}</TableBodyCell>
         <TableBodyCell>{rowValue.fatherName}</TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowValue.animalType, rowValue.sex)}</TableBodyCell>
@@ -131,7 +131,7 @@ const AnimalFarmEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<Animal
         <TableBodyCell>{rowValue.ringNumber}</TableBodyCell>
         <TableBodyCell>{rowValue.name}</TableBodyCell>
         <TableBodyCell>{rowValue.sex}</TableBodyCell>
-        <TableBodyCell>{dateTransformToLocale(rowValue.birthDate)}</TableBodyCell>
+        <TableBodyCell>{dateTransform(rowValue.birthDate)}</TableBodyCell>
         <TableBodyCell>{rowValue.motherName}</TableBodyCell>
         <TableBodyCell>{rowValue.fatherName}</TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowValue.animalType, rowValue.sex)}</TableBodyCell>

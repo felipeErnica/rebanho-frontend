@@ -50,7 +50,7 @@ import {
     TableRow,
 } from "@mui/material"
 import { TableLoadingRow } from "@/ui/shared/table/TableComponents"
-import { dateTransformToLocale, percentageTransform } from "@/util/Transformations"
+import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
@@ -166,9 +166,8 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
         <CardChartContent
             title="Taxa de Natalidade"
             loading={loading}
-            percentage
             trendProps={{ trend: data.trend }}
-            data={data.current}
+            data={percentageTransform(data.current)}
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.birthRate)}
@@ -217,9 +216,8 @@ const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardI
         <CardChartContent
             title="Taxa de Prenhez"
             loading={loading}
-            percentage
             trendProps={{ trend: data.trend }}
-            data={data.current}
+            data={percentageTransform(data.current)}
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.pregnancyRate)}
@@ -467,7 +465,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                         : data.map(item => (
                             <TableRow>
                                 <TableCell>{item.animalName}</TableCell>
-                                <TableCell>{dateTransformToLocale(item.inseminationDate?.toString())}</TableCell>
+                                <TableCell>{dateTransform(item.inseminationDate)}</TableCell>
                                 <TableCell>{item.bullName}</TableCell>
                                 <TableCell>
                                     {item.pregnancyStatus &&
@@ -556,7 +554,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                                     }}
                                 />
                             </TableCell>
-                            <TableCell>{dateTransformToLocale(item.inseminationDate.toString())}</TableCell>
+                            <TableCell>{dateTransform(item.inseminationDate)}</TableCell>
                             <TableCell>{item.bullName}</TableCell>
                             <TableCell align="center">{item.cowNumber}</TableCell>
                             <TableCell>

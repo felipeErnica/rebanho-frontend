@@ -8,9 +8,10 @@ type FormDatePickerProps<T extends FieldValues> = {
     className?: string
     variant?: TextFieldVariants
     formProps: UseControllerProps<T>
+    disabled?: boolean
 }
 
-export const FormDatePicker = <T extends FieldValues>({ label, className, variant, formProps }: FormDatePickerProps<T>) => {
+export const FormDatePicker = <T extends FieldValues>({ label, className, variant, formProps, disabled }: FormDatePickerProps<T>) => {
     return <Controller
         {...formProps}
         render={({ field, fieldState: { error } }) => (
@@ -20,6 +21,7 @@ export const FormDatePicker = <T extends FieldValues>({ label, className, varian
                 onChange={(date) => field.onChange(date?.toDate())}
                 label={label}
                 className={className}
+                disabled={disabled}
                 views={['year', 'month', 'day']}
                 localeText={{
                     fieldDayPlaceholder: () => 'dd',
@@ -27,9 +29,9 @@ export const FormDatePicker = <T extends FieldValues>({ label, className, varian
                     fieldYearPlaceholder: () => 'aaaa',
                 }}
                 slotProps={{
-                    textField: { 
-                        size: "small", 
-                        error: !!error, 
+                    textField: {
+                        size: "small",
+                        error: !!error,
                         variant: variant || 'standard',
                         helperText: error?.message,
                         fullWidth: true,

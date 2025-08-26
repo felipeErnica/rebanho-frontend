@@ -3,7 +3,7 @@ import { ColumnProps } from "@/ui/shared/table/TableCustom"
 import { useCallback, useState } from "react"
 import { SexValues } from "@/shared/entities/enums"
 import { searchFarm, searchFather, searchFatherById, searchMother, searchMotherById, searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
-import { dateTransformToLocale, decimalTransform } from "@/util/Transformations"
+import { dateTransform, decimalTransform } from "@/util/Transformations"
 
 export type AnimalFilter = {
     isFiltered: boolean,
@@ -103,7 +103,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Data de Desmame",
             name: "weaningDate",
             align: 'center',
-            format: dateTransformToLocale,
+            format: dateTransform,
             type: 'date',
             isEditable: true,
         },
@@ -111,7 +111,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Data de Nascimento",
             name: "birthDate",
             align: 'center',
-            format: dateTransformToLocale,
+            format: dateTransform,
             type: 'date',
             isEditable: true,
         },
@@ -119,7 +119,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             title: "Data de Morte",
             name: "deathDate",
             align: 'center',
-            format: dateTransformToLocale,
+            format: dateTransform,
             type: 'date',
             isEditable: true,
         },

@@ -1,5 +1,5 @@
 import { Table, TableBody, TableFooter, TableHead, TableRow } from "@mui/material"
-import { dateTransformToLocale } from "@/util/Transformations"
+import { dateTransform } from "@/util/Transformations"
 import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
 import { transformAnimalType } from "../../animals/shared/AnimalEntities"
 import {
@@ -60,7 +60,7 @@ const PastureAnimalRow = (row: PastureAnimal) => {
         <TableBodyCell>{row.ringNumber}</TableBodyCell>
         <TableBodyCell>{row.name}</TableBodyCell>
         <TableBodyCell>{row.sex}</TableBodyCell>
-        <TableBodyCell>{dateTransformToLocale(row.birthDate)}</TableBodyCell>
+        <TableBodyCell>{dateTransform(row.birthDate)}</TableBodyCell>
         <TableBodyCell>{row.motherName}</TableBodyCell>
         <TableBodyCell>{row.fatherName}</TableBodyCell>
         <TableBodyCell>{transformAnimalType(row.animalType, row.sex)}</TableBodyCell>

@@ -1,4 +1,4 @@
-import { decimalTransform, percentageTransform } from "@/util/Transformations"
+import { decimalTransform } from "@/util/Transformations"
 import TrendingDown from "@mui/icons-material/TrendingDown"
 import TrendingUp from "@mui/icons-material/TrendingUp"
 import HorizontalRule from "@mui/icons-material/HorizontalRule"
@@ -7,6 +7,17 @@ import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 import { ReactNode } from "react"
 import { Skeleton } from "@mui/material"
+
+type DashboardContainerProps = {
+    className?: string
+    children?: ReactNode | ReactNode[]
+}
+
+export const DashboardContainer = ({ className, children }: DashboardContainerProps) => {
+    return <div className={`w-full h-full bg-gray-100 p-4 flex flex-col gap-4 ${className}`}>
+        {children}
+    </div>
+}
 
 export type ChartContainerProps = {
     children: ReactNode | ReactNode[]
@@ -127,24 +138,15 @@ export type CardWithGraphProps = {
     title: string
     trendProps: TrendComponentProps
     chart: ReactNode
-    data: number | undefined
+    data: string | number | undefined
     loading?: boolean
-    percentage?: boolean
 }
 
-export const CardChartContent = ({ trendProps, data, chart, title, loading, percentage }: CardWithGraphProps) => {
-
-    let transformedData: string | undefined
-    if (!percentage) {
-        transformedData = trendProps.integer ? data?.toString() : decimalTransform(data ?? 0)
-    } else {
-        transformedData = percentageTransform(data ?? 0)
-    }
-
+export const CardChartContent = ({ trendProps, data, chart, title, loading }: CardWithGraphProps) => {
     return <>
         <CardDefaultTitle text={title} />
         <div className="grid grid-flow-row auto-cols-auto auto-rows-auto gap-2">
-            <CardDefaultText loading={loading}>{transformedData}</CardDefaultText>
+            <CardDefaultText loading={loading}>{data}</CardDefaultText>
             <div className="col-start-2 row-span-2">
                 {loading ? <Skeleton className="h-full w-full" animation='wave' variant="rounded" /> : chart}
             </div>

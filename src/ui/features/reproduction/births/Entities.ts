@@ -5,7 +5,7 @@ export type BirthEntry = {
     motherName?: string
     motherOrder?: number
     calfId?: string
-    calfBirthDate?: string
+    calfBirthDate?: Date
     calfSex?: string
     calfFatherId?: string
     calfFather?: string
