@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useRef, useState } from "react"
-import { PastureEntriesFilter } from "./Entities"
+import { PastureEntry, PastureEntriesFilter } from "./Entities"
 import { findPastureEntries, findPastureEntriesTotal } from "./Controller"
 import { PastureEntriesTable } from "./PastureEntriesTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
@@ -34,7 +34,7 @@ export const PastureEntriesPage = ({ pastureId }: PastureEntriesPageProps) => {
         return findPastureEntries(pastureId, filter, sort, order, cursor)
     }, [filter, sort, order])
 
-    const { rows, fetchNextPage, scrollRef } = usePagination({ fetchPage, setLoading })
+    const { rows, fetchNextPage, scrollRef } = usePagination<PastureEntry>({ fetchPage, setLoading })
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 

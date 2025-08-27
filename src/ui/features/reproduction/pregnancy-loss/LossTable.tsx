@@ -54,7 +54,7 @@ export const LossTablePage = () => {
         { name: 'Data da Perda', value: "loss_date,animal_order" }
     ]
 
-    const { rows, scrollRef, fetchNextPage } = usePagination({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage } = usePagination<Loss>({ setLoading, fetchPage })
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar

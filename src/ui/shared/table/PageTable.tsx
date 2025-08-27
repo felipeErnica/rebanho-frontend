@@ -24,8 +24,8 @@ export const VirtuosoTableComponents: TableVirtuosoProps<IData, any>['components
     TableBody: forwardRef((props, ref) => <TableBody {...props} ref={ref} />),
 }
 
-export type PaginationResponse = {
-    rows: IData[]
+export type PaginationResponse<T> = {
+    rows: T[]
     fetchNextPage: () => void
     scrollRef: RefObject<VirtuosoHandle | null>
     onReload: () => void
@@ -56,10 +56,10 @@ export function useTableResizer(ref: HTMLDivElement | null) {
     return tableWidth
 }
 
-export function usePagination({ fetchPage, setLoading }: PaginationProps): PaginationResponse {
+export function usePagination<T>({ fetchPage, setLoading }: PaginationProps): PaginationResponse<T> {
 
-    const [page, setPage] = useState<Page>()
-    const [rows, setRows] = useState<IData[]>([])
+    const [page, setPage] = useState<Page<T>>()
+    const [rows, setRows] = useState<T[]>([])
 
     const scrollRef = useRef<VirtuosoHandle>(null)
 
@@ -67,9 +67,9 @@ export function usePagination({ fetchPage, setLoading }: PaginationProps): Pagin
         setLoading(true)
         fetchPage()
             .then((result) => {
-                const newPage: Page = result.json
+                const newPage: Page<T> = result.json
                 setPage(newPage)
-                setRows(newPage.list)
+                setRows(newPage.list) 
                 putScrollAtTop()
             })
             .catch(() => {
@@ -86,7 +86,7 @@ export function usePagination({ fetchPage, setLoading }: PaginationProps): Pagin
         setLoading(true)
         fetchPage(page?.nextCursor)
             .then(response => {
-                const newPage: Page = response.json
+                const newPage: Page<T> = response.json
                 setPage(newPage)
                 setRows(prev => [...prev, ...newPage.list])
             })

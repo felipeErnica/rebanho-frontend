@@ -8,7 +8,7 @@ import {
     TableFooterTitleCell,
     TableFooterCell,
 } from "@/ui/shared/table/TableComponents"
-import { PastureEntries } from "./Entities"
+import { PastureEntry } from "./Entities"
 import { RefObject, useEffect, useRef, useState } from "react"
 import { dateTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
@@ -20,7 +20,7 @@ import { TableVirtuoso, VirtuosoHandle } from 'react-virtuoso'
 type PastureEntriesTableProps = {
     scrollRef: RefObject<VirtuosoHandle | null>
     fetchNextPage: () => void
-    rows: PastureEntries[]
+    rows: PastureEntry[]
     total: number
     isLoading: boolean
 }
@@ -71,10 +71,10 @@ export const PastureEntriesTable = ({ fetchNextPage, rows, isLoading, scrollRef,
     </div>
 }
 
-const PastureEntriesRow = (row: PastureEntries) => {
+const PastureEntriesRow = (row: PastureEntry) => {
 
     const [isEditing, setEditing] = useState(false)
-    const [rowValues, setRowValues] = useState<PastureEntries>(row)
+    const [rowValues, setRowValues] = useState<PastureEntry>(row)
 
     useEffect(() => setRowValues(row), [row])
 
@@ -83,7 +83,7 @@ const PastureEntriesRow = (row: PastureEntries) => {
 }
 
 type PastureEntriesNormalRowProps = {
-    rowValues: PastureEntries
+    rowValues: PastureEntry
     setEditing: (isEditing: boolean) => void
 }
 
@@ -105,15 +105,15 @@ const PastureEntriesNormalRow = ({ rowValues, setEditing }: PastureEntriesNormal
 }
 
 type PastureEntriesEditRowProps = {
-    rowValues: PastureEntries
-    setRowValues: (rowValues: PastureEntries) => void
+    rowValues: PastureEntry
+    setRowValues: (rowValues: PastureEntry) => void
     setEditing: (isEditing: boolean) => void
 }
 
 const PastureEntriesEditRow = ({ rowValues, setRowValues, setEditing }: PastureEntriesEditRowProps) => {
 
-    const { handleSubmit, control } = useForm<PastureEntries>({ defaultValues: rowValues })
-    const onSubmit = (data: PastureEntries) => {
+    const { handleSubmit, control } = useForm<PastureEntry>({ defaultValues: rowValues })
+    const onSubmit = (data: PastureEntry) => {
         setRowValues(data)
         console.log("entry save: ", data)
     }

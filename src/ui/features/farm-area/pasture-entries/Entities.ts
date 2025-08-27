@@ -1,4 +1,4 @@
-export type PastureEntries = {
+export type PastureEntry = {
     id: string
     animalId?: string
     animalName?: string

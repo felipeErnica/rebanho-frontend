@@ -6,6 +6,7 @@ import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { FarmAnimalsFilter } from "./FarmAnimalsFilter"
 import { AnimalFilter } from "../../animals/table/api/AnimalInfo"
 import { usePagination } from "@/ui/shared/table/PageTable"
+import { AnimalFarm } from "./Entities"
 
 type FarmAnimalsPageProps = {
     farmId: string
@@ -28,7 +29,7 @@ export const FarmAnimalsPage = ({ farmId }: FarmAnimalsPageProps) => {
     }, [farmId, filter, sort, order])
 
     const anchorEl = useRef<HTMLButtonElement>(null)
-    const { rows, fetchNextPage, scrollRef } = usePagination({ fetchPage, setLoading })
+    const { rows, fetchNextPage, scrollRef } = usePagination<AnimalFarm>({ fetchPage, setLoading })
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 

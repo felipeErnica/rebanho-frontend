@@ -1,9 +1,22 @@
-import { CardChartContent, CardDefaultTitle, DashboardCard, DashboardContainer, TrendComponent } from "@/ui/shared/dashboard/DashboardComponents"
+import {
+    CardChartContent,
+    CardDefaultTitle,
+    DashboardCard,
+    DashboardContainer,
+    TrendComponent
+} from "@/ui/shared/dashboard/DashboardComponents"
 import { DashboardInformationProps, DashboardTopBarProps } from "@/ui/shared/dashboard/Entities"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { AnimalsAverage, AnimalsRating, MilkEntry, MilkProductionHist, MonthMilkCard } from "./Entities"
-import { getAnimalsAverage, getLastEntries, getMonthMilk, getProductionHist, getRankedAnimals } from "./Controller"
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { AnimalsAverage, AnimalsRating, LactationGroup, MilkEntry, MilkProductionHist, MonthMilkCard } from "./Entities"
+import {
+    getAnimalsAverage,
+    getLastEntries,
+    getLastGroups,
+    getMonthMilk,
+    getProductionHist,
+    getRankedAnimals
+} from "./Controller"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { ComboBox, ComboBoxItem } from "@/ui/shared/common/ComboBox"
@@ -12,7 +25,7 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
-import { TableLoadingRow } from "@/ui/shared/table/TableComponents"
+import { TableLoadingRow, TrendValues } from "@/ui/shared/table/TableComponents"
 import { ChartContainer } from "@mui/x-charts/ChartContainer"
 import { BarPlot } from "@mui/x-charts/BarChart"
 import { LinePlot } from "@mui/x-charts/LineChart"
@@ -24,6 +37,12 @@ import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight"
 import { Button } from "@mui/material"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import Add from "@mui/icons-material/Add"
+import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
+import { PageProps } from "@/ui/shared/main-page/PageDisplay"
+import { GroupTablePage } from "./MilkGroupTable"
+import { HomePage } from "../home/HomePage"
+import { MilkDashboardPage } from "./LactationPages"
+import { PageContext } from "@/ui/shared/main-page/PageContext"
 
 export const LactationDashboard = () => {
 
@@ -62,12 +81,17 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
 }
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-    return <div className="grid grid-flow-row gap-4">
-        <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
-        <AnimalsAverageCard {...{ stopLoading, startLoading, reloadFlag }} />
-        <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
-        <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
-        <BestAnimalsTable {...{ startLoading, stopLoading, reloadFlag }} />
+    return <div className="flex flex-col gap-4">
+        <div className="grid grid-flow-row gap-4">
+            <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
+            <AnimalsAverageCard {...{ stopLoading, startLoading, reloadFlag }} />
+            <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
+        </div>
+        <div className="grid grid-flow-col gap-4">
+            <BestAnimalsTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
+        </div>
     </div>
 }
 
@@ -103,7 +127,7 @@ const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: Dashboard
                 <SparkLineChart
                     data={stats.hist.map(item => item.totalMilk)}
                     valueFormatter={(value) => decimalTransform(value ?? 0)}
-                    height={50}
+                    height={80}
                     showTooltip
                     xAxis={{
                         data: stats.hist.map(item => new Date(item.entryDate)),
@@ -150,7 +174,7 @@ const AnimalsAverageCard = ({ stopLoading, startLoading, reloadFlag }: Dashboard
             chart={(
                 <SparkLineChart
                     data={stats.hist.map(item => item.animalsNumber)}
-                    height={50}
+                    height={80}
                     showTooltip
                     xAxis={{
                         data: stats.hist.map(item => new Date(item.entryDate)),
@@ -191,17 +215,11 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard className="col-start-3 col-span-2 row-span-2 h-[600] overflow-hidden">
+    return <DashboardCard className="col-start-3 row-span-2 h-[600] overflow-hidden">
         <div className="flex flex-row gap-4">
-            <CardDefaultTitle text={`Últimas Marcações${lastDate && ' - ' + dateTransform(lastDate)}`} />
+            <CardDefaultTitle text={`Última Marcação${lastDate && ' - ' + dateTransform(lastDate)}`} />
             <Button
                 className="ml-auto"
-                variant="text"
-                startIcon={<Add />}
-            >
-                Adicionar Marcação
-            </Button>
-            <Button
                 variant="text"
                 startIcon={<ChevronRight />}
             >
@@ -229,6 +247,13 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                 </TableBody>
             </Table>
         </div>
+        <Button
+            className="ml-auto"
+            variant="text"
+            startIcon={<Add />}
+        >
+            Adicionar Marcação
+        </Button>
     </DashboardCard>
 }
 
@@ -321,15 +346,24 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             })
     }, [reloadFlag, startLoading, stopLoading, rankBy])
 
-    return <DashboardCard className="col-span-3">
-        <ComboBox
-            className="max-w-[300]"
-            variant="standard"
-            size="small"
-            value={rankBy}
-            onChange={(value) => setRankBy(value ?? 'worst')}
-            items={rankByValues}
-        />
+    return <DashboardCard>
+        <div className="flex flex-row gap-4">
+            <ComboBox
+                className="w-[300]"
+                variant="standard"
+                size="small"
+                value={rankBy}
+                onChange={(value) => setRankBy(value ?? 'worst')}
+                items={rankByValues}
+            />
+            <Button
+                className="ml-auto"
+                variant="text"
+                startIcon={<ChevronRight />}
+            >
+                Ver Histórico de Lactação
+            </Button>
+        </div>
         <Table size="small">
             <TableHead>
                 <TableRow>
@@ -338,6 +372,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                     <TableCell>Média de Leite por Dia</TableCell>
                     <TableCell>Periodo de Lactação Médio</TableCell>
                     <TableCell>Produção Total Média</TableCell>
+                    <TableCell>Intervalo entre Lactações Médio</TableCell>
                 </TableRow>
             </TableHead>
             <TableBody>
@@ -364,6 +399,103 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                                     {decimalTransform(item.avgTotal)}
                                     <TrendComponent trend={item.totalRate} />
                                 </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-row items-center gap-2">
+                                    {decimalTransform(item.avgInterval)}
+                                    <TrendComponent trend={item.intervalRate} inverse />
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))
+                }
+            </TableBody>
+        </Table>
+    </DashboardCard>
+}
+
+const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+
+    const [data, setData] = useState<LactationGroup[]>([])
+    const [loading, setLoading] = useState(false)
+    const { setPageProps } = useContext(PageContext)
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getLastGroups()
+            .then(response => setData(response.json))
+            .catch(() => setData([]))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard>
+        <div className="flex flex-row gap-4">
+            <CardDefaultTitle text="Últimas Marcações" />
+            <Button
+                className="ml-auto"
+                variant="text"
+                startIcon={<ChevronRight />}
+                onClick={() => {
+                    const pageProps: PageProps = {
+                        title: "Histórico de Marcações",
+                        page: <GroupTablePage />,
+                        previousPages: [HomePage, MilkDashboardPage]
+                    }
+                    if (setPageProps) setPageProps(pageProps)
+                }}
+            >
+                Ver Todas
+            </Button>
+        </div>
+        <Table size="small" stickyHeader>
+            <TableHead>
+                <TableRow>
+                    <TableCell />
+                    <TableCell>Data da Marcação</TableCell>
+                    <TableCell>Nº de Animais</TableCell>
+                    <TableCell>Leite Produzido</TableCell>
+                    <TableCell>Média de Produção</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {loading
+                    ? Array(10).fill(<TableLoadingRow colSpan={4} />)
+                    : data.map(item => (
+                        <TableRow>
+                            <TableCell>
+                                <EditControlButtons
+                                    onShow={() => {
+                                        // const pageProps: PageProps = {
+                                        //     title: `Marcação - ${dateTransform(item.entryDate)}`,
+                                        //     // page: <GroupTablePage />,
+                                        //     previousPages: [HomePage, MilkDashboardPage]
+                                        // }
+                                        // if (setPageProps) setPageProps(pageProps)
+                                    }}
+                                />
+                            </TableCell>
+                            <TableCell>{dateTransform(item.entryDate)}</TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={item.animalsNumber}
+                                    trendProps={{ trend: item.numberDifference, noPercentage: true, integer: true }}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={decimalTransform(item.totalMilk, 1)}
+                                    trendProps={{ trend: item.totalRate }}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={decimalTransform(item.averageMilk)}
+                                    trendProps={{ trend: item.averageRate }}
+                                />
                             </TableCell>
                         </TableRow>
                     ))

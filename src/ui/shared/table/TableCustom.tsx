@@ -50,8 +50,8 @@ export type CellProps = {
 
 export function TableCustom(props: TableProps) {
     const scrollRef = useRef<ComponentRef<'div'>>(null)
-    const [page, setPage] = useState<Page | null>(null)
-    const [pageList, setPageList] = useState<Page []>([])
+    const [page, setPage] = useState<Page<IData> | null>(null)
+    const [pageList, setPageList] = useState<Page<IData> []>([])
     const [index, setIndex] = useState<number>(0)
     const [list, setList] = useState<IData[]>([])
     const [isLoading, setLoading] = useState(false)
@@ -71,7 +71,7 @@ export function TableCustom(props: TableProps) {
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage("")
             .then((result) => {
-                const page: Page = result.json
+                const page: Page<IData> = result.json
                 setList(page.list)
                 setPage(page)
                 setPageList([page])
@@ -147,7 +147,7 @@ export function TableCustom(props: TableProps) {
         //Usa o cursor para buscar a próxima página e concatenar a lista atual com a lista da próxima página
         props.fetchPage(page.nextCursor)
             .then((result) => {
-                const newPage: Page = result.json
+                const newPage: Page<IData> = result.json
                 setPage(newPage)
                 setPageList(list => [...list, newPage])
                 setIndex(index + 1)

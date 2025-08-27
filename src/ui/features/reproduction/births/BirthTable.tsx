@@ -56,7 +56,7 @@ export const BirthTablePage = () => {
         </Button>
     )
 
-    const { rows, scrollRef, fetchNextPage } = usePagination({ fetchPage, setLoading })
+    const { rows, scrollRef, fetchNextPage } = usePagination<BirthEntry>({ fetchPage, setLoading })
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Mãe', value: DEFAULT_SORT },
         { name: 'Nome da Mãe', value: 'mother_name,calf_birth_date' },

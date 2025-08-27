@@ -68,7 +68,7 @@ export const EntriesTablePage = () => {
         { name: 'Data de Inseminação', value: defaultSort }
     ]
 
-    const { rows, scrollRef, fetchNextPage } = usePagination({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage } = usePagination<InseminationEntry>({ setLoading, fetchPage })
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar

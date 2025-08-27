@@ -1,7 +1,5 @@
-import { IData } from "@/shared/interfaces/Filter";
-
-export type Page = {
+export type Page<T> = {
     hasNextPage: boolean;
     nextCursor: string;
-    list: IData[];
+    list: T[];
 }
