@@ -3,7 +3,7 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import { Loss } from "./Entities"
 import { DialogActionButtons, DialogContainer } from "@/ui/shared/form-controls/DialogComponents"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
+import { searchMother } from "@/shared/GlobalApiCalls"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
@@ -33,8 +33,7 @@ export const AddLossDialog = ({ addLossOpen, setAddLossOpen }: AddLossDialogProp
             <DialogContainer className="flex flex-col gap-4">
                 <FormSearchBox
                     label="Vaca"
-                    searchByInput={searchMother}
-                    searchById={searchMotherById}
+                    searchOptions={searchMother}
                     formProps={{
                         control,
                         name: 'animalId',

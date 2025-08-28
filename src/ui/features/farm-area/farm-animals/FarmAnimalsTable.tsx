@@ -15,7 +15,7 @@ import {
     TableFooterCell
 } from "@/ui/shared/table/TableComponents"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
+import { searchPasture } from "@/shared/GlobalApiCalls"
 import { transformAnimalType } from "../../animals/shared/AnimalEntities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
@@ -118,8 +118,7 @@ const AnimalFarmEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<Animal
         setRowValue(data)
     }
 
-    const handlePastureSearch = (input?: string) => searchPasture(input, rowValue.farmId)
-    const handlePastureSearchById = (id?: string) => searchPastureById(id, rowValue.farmId)
+    const handlePastureSearch = () => searchPasture(rowValue.farmId)
 
     return <>
         <TableBodyCell>
@@ -137,8 +136,7 @@ const AnimalFarmEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<Animal
         <TableBodyCell>{transformAnimalType(rowValue.animalType, rowValue.sex)}</TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
-                searchByInput={handlePastureSearch}
-                searchById={handlePastureSearchById}
+                searchOptions={handlePastureSearch}
                 onChange={(_, label) => setValue('pastureName', label)}
                 formProps={{
                     control,

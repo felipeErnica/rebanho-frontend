@@ -2,7 +2,7 @@ import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { BirthEntry } from "./Entities"
-import { searchFather, searchFatherById, searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
+import { searchFather, searchMother } from "@/shared/GlobalApiCalls"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormRadioGroup } from "@/ui/shared/form-controls/FormRadioGroup"
@@ -30,8 +30,7 @@ export const AddBirthDialog = ({ isAddBirthOpen, setAddBirthOpen }: AddBirthDial
         <DialogContent className="flex flex-col gap-4">
             <FormSearchBox
                 label="Mãe"
-                searchById={searchMotherById}
-                searchByInput={searchMother}
+                searchOptions={searchMother}
                 formProps={{
                     control,
                     name: 'motherId'
@@ -55,8 +54,7 @@ export const AddBirthDialog = ({ isAddBirthOpen, setAddBirthOpen }: AddBirthDial
             />
             <FormSearchBox
                 label="Pai"
-                searchByInput={searchFather}
-                searchById={searchFatherById}
+                searchOptions={searchFather}
                 formProps={{
                     control,
                     name: 'calfFatherId'

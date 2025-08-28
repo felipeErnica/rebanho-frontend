@@ -2,7 +2,7 @@ import { FormSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSear
 import { ColumnProps } from "@/ui/shared/table/TableCustom"
 import { useCallback, useState } from "react"
 import { SexValues } from "@/shared/entities/enums"
-import { searchFarm, searchFather, searchFatherById, searchMother, searchMotherById, searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
+import { searchFarm, searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 
 export type AnimalFilter = {
@@ -41,8 +41,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
 
     const [farmId, setFarmId] = useState<string>()
 
-    const handlePastureSearchById = useCallback((id?: string) => searchPastureById(id, farmId), [farmId])
-    const handlePastureSearch = useCallback((input?: string) => searchPasture(input, farmId), [farmId])
+    const handlePastureSearch = useCallback((input?: string) => searchPasture(input), [farmId])
 
     return [
         {
@@ -71,8 +70,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             isEditable: true,
             editComponent: (control, _, setValue) => {
                 return <FormSearchBox
-                    searchByInput={searchFather}
-                    searchById={searchFatherById}
+                    searchOptions={searchFather}
                     variant="standard"
                     onChange={(_, label) => setValue('fatherName', label)}
                     formProps={{
@@ -88,8 +86,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             isEditable: true,
             editComponent: (control, _, setValue) => {
                 return <FormSearchBox
-                    searchByInput={searchMother}
-                    searchById={searchMotherById}
+                    searchOptions={searchMother}
                     variant="standard"
                     onChange={(_, label) => setValue('motherName', label)}
                     formProps={{
@@ -141,8 +138,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
                         setValue('farmName', label)
                         setFarmId(id)
                     }}
-                    searchByInput={searchFarm}
-                    searchById={searchFatherById}
+                    searchOptions={searchFarm}
                     formProps={{
                         control,
                         name: 'farmId'
@@ -160,8 +156,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
                     variant="standard"
                     disabled={!farmId}
                     onChange={(_, label) => setValue('pastureName', label)}
-                    searchByInput={handlePastureSearch}
-                    searchById={handlePastureSearchById}
+                    searchOptions={handlePastureSearch}
                     formProps={{
                         control,
                         name: 'pastureId'

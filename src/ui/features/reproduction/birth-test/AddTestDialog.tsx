@@ -5,7 +5,7 @@ import { DialogActionButtons, DialogContainer } from "@/ui/shared/form-controls/
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
+import { searchMother } from "@/shared/GlobalApiCalls"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormRadioGroup } from "@/ui/shared/form-controls/FormRadioGroup"
 import { useEffect, useState } from "react"
@@ -53,8 +53,7 @@ export const AddTestDialog = ({ addTestOpen, setAddTestOpen, testDate }: AddTest
                 />
                 <FormSearchBox
                     label="Vaca"
-                    searchByInput={searchMother}
-                    searchById={searchMotherById}
+                    searchOptions={searchMother}
                     formProps={{
                         control,
                         rules: { required: REQUIRED_FIELD_MSG },

@@ -3,6 +3,7 @@ import { LactationGroupFilter } from "./Entities";
 
 export const DASHBOARD_BASE = "lactation/dashboard/"
 export const GROUP_BASE = "lactation/groups/"
+export const ENTRIES_BASE = "lactation/entries/"
 
 export function getMonthMilk() {
     return apiGet(DASHBOARD_BASE + "month-milk")
@@ -42,3 +43,24 @@ export function findGroupsPage(filter: LactationGroupFilter, order: string, curs
     return apiPost(GROUP_BASE + pageQuery, filter)
 }
 
+export function getGroupEntries(entryDate: Date) {
+    const pageQuery = `entries?entryDate=${entryDate.toISOString()}`
+    return apiGet(GROUP_BASE + pageQuery)
+}
+export function getGroupEntriesFoot(entryDate: Date) {
+    const pageQuery = `entries/foot?entryDate=${entryDate.toISOString()}`
+    return apiGet(GROUP_BASE + pageQuery)
+}
+export function findEntriesPage(
+    filter: LactationGroupFilter, 
+    sort: string, 
+    order: string, 
+    cursor?: string,
+) {
+    const pageQuery = `page?order=${order}&sort=${sort}${cursor ? `&cursor=${cursor}` : ''}`
+    return apiPost(ENTRIES_BASE + pageQuery, filter)
+}
+
+export function getEntriesPageFoot(filter: LactationGroupFilter) {
+    return apiPost(ENTRIES_BASE + "page/foot", filter)
+}

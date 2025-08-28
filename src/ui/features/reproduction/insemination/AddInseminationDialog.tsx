@@ -4,7 +4,7 @@ import { InseminationEntry } from "./Entities"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
+import { searchMother } from "@/shared/GlobalApiCalls"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 
 type AddInseminationDialogProps = {
@@ -57,8 +57,7 @@ export const AddInseminationDialog = ({
                 />
                 <FormSearchBox
                     label="*Vaca"
-                    searchById={searchMotherById}
-                    searchByInput={searchMother}
+                    searchOptions={searchMother}
                     formProps={{
                         control,
                         name: 'animalId',

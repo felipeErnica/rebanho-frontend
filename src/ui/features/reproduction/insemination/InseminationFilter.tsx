@@ -3,8 +3,8 @@ import { InseminationEntryFilter, statusMapToComboBox } from "./Entities"
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
 import { ComboBoxFilter } from "@/ui/shared/filter-controls/ComboBoxFilter"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
-import { searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
-import { searchInseminationBulls, searchInseminationBullsById } from "./Controller"
+import { searchMother } from "@/shared/GlobalApiCalls"
+import { searchInseminationBulls } from "./Controller"
 
 type InseminationFilterProps = FilterPopoverProps & {
     filter: InseminationEntryFilter
@@ -23,8 +23,7 @@ export const InseminationFilter = ({
                 label="Touros"
                 className="col-span-2"
                 fieldName="bulls"
-                searchById={searchInseminationBullsById}
-                searchByInput={searchInseminationBulls}
+                searchOptions={searchInseminationBulls}
                 filter={filter}
                 setFilter={setFilter}
             />
@@ -32,8 +31,7 @@ export const InseminationFilter = ({
                 label="Vacas"
                 className="col-span-2"
                 fieldName="animals"
-                searchById={searchMotherById}
-                searchByInput={searchMother}
+                searchOptions={searchMother}
                 filter={filter}
                 setFilter={setFilter}
             />

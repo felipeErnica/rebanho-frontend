@@ -41,8 +41,10 @@ import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
 import { GroupTablePage } from "./MilkGroupTable"
 import { HomePage } from "../home/HomePage"
-import { MilkDashboardPage } from "./LactationPages"
+import { MilkDashboardPage, MilkEntriesPage } from "./LactationPages"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
+import { GroupEntriesTablePage } from "./GroupEntriesTable"
+import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 
 export const LactationDashboard = () => {
 
@@ -59,6 +61,10 @@ export const LactationDashboard = () => {
 }
 
 const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps) => {
+
+    const { setPageProps } = useContext(PageContext)
+    const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
+
     return <div className="flex flex-row gap-6">
         <ReloadButton
             variant="text"
@@ -68,30 +74,29 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
         <Button
             className="ml-auto"
             startIcon={<Add />}
+            onClick={() => setAddMilkEntryOpen(true)}
         >
-            Adicionar Marcação
+            Marcar Leite
         </Button>
         <Button
             variant="text"
             startIcon={<ChevronRight />}
+            onClick={() => setPageProps && setPageProps(MilkEntriesPage)}
         >
-            Ver Histórico de Lactações
+            Ver Histórico de Marcações
         </Button>
+        <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen }} />
     </div>
 }
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-    return <div className="flex flex-col gap-4">
-        <div className="grid grid-flow-row gap-4">
-            <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
-            <AnimalsAverageCard {...{ stopLoading, startLoading, reloadFlag }} />
-            <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
-            <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
-        </div>
-        <div className="grid grid-flow-col gap-4">
-            <BestAnimalsTable {...{ startLoading, stopLoading, reloadFlag }} />
-            <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
-        </div>
+    return <div className="grid grid-flow-row gap-4">
+        <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
+        <AnimalsAverageCard {...{ stopLoading, startLoading, reloadFlag }} />
+        <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
+        <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
+        <BestAnimalsTable {...{ startLoading, stopLoading, reloadFlag }} />
+        <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
     </div>
 }
 
@@ -195,6 +200,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     const [data, setData] = useState<MilkEntry[]>([])
     const [lastDate, setLastDate] = useState<Date>()
     const [loading, setLoading] = useState(false)
+    const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
 
     useEffect(() => {
         startLoading()
@@ -251,9 +257,11 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             className="ml-auto"
             variant="text"
             startIcon={<Add />}
+            onClick={() => setAddMilkEntryOpen(true)}
         >
-            Adicionar Marcação
+            Marcar Leite
         </Button>
+        <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen, entryDate: lastDate }} />
     </DashboardCard>
 }
 
@@ -346,7 +354,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             })
     }, [reloadFlag, startLoading, stopLoading, rankBy])
 
-    return <DashboardCard>
+    return <DashboardCard className="col-span-4">
         <div className="flex flex-row gap-4">
             <ComboBox
                 className="w-[300]"
@@ -432,7 +440,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
             })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard>
+    return <DashboardCard className="col-span-4">
         <div className="flex flex-row gap-4">
             <CardDefaultTitle text="Últimas Marcações" />
             <Button
@@ -469,12 +477,12 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
                             <TableCell>
                                 <EditControlButtons
                                     onShow={() => {
-                                        // const pageProps: PageProps = {
-                                        //     title: `Marcação - ${dateTransform(item.entryDate)}`,
-                                        //     // page: <GroupTablePage />,
-                                        //     previousPages: [HomePage, MilkDashboardPage]
-                                        // }
-                                        // if (setPageProps) setPageProps(pageProps)
+                                        const pageProps: PageProps = {
+                                            title: `Marcação - ${dateTransform(item.entryDate)}`,
+                                            page: <GroupEntriesTablePage {...{ entryDate: item.entryDate }} />,
+                                            previousPages: [HomePage, MilkDashboardPage]
+                                        }
+                                        if (setPageProps) setPageProps(pageProps)
                                     }}
                                 />
                             </TableCell>

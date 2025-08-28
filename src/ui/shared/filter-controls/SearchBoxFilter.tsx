@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { SearchBoxItem } from "../form-controls/FormSearchBox"
 import { ApiResponse } from "@/shared/entities/ApiResponse"
-import { debounce } from "@mui/material/utils"
 import Autocomplete from "@mui/material/Autocomplete"
 import TextField from "@mui/material/TextField"
 import Checkbox from "@mui/material/Checkbox"
@@ -11,8 +10,7 @@ import { IFilters } from "@/shared/interfaces/Filter"
 
 export type MultipleSearchBoxFilterProps = {
     label: string
-    searchByInput: (input?: string) => Promise<ApiResponse>
-    searchById: (id?: string) => Promise<ApiResponse>
+    searchOptions: () => Promise<ApiResponse>
     className?: string
     disabled?: boolean
     limitTags?: number
@@ -23,8 +21,7 @@ export type MultipleSearchBoxFilterProps = {
 }
 
 export const MultipleSearchBoxFilter = ({
-    searchByInput,
-    searchById,
+    searchOptions,
     onChange,
     label,
     disabled,
@@ -36,57 +33,29 @@ export const MultipleSearchBoxFilter = ({
 }: MultipleSearchBoxFilterProps) => {
 
     const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [value, setValue] = useState<SearchBoxItem[]>([])
-    const [inputValue, setInputValue] = useState('')
-
-    const searchValue = (search: string) => {
-        searchByInput(search)
-            .then(response => setOptions(response.json))
-            .catch(() => setOptions([]))
-    }
-    const setDebouncedSearch = useMemo(() => debounce(searchValue, 300), [searchValue])
 
     useEffect(() => {
-        searchById(filter[fieldName])
-            .then(response => {
-                const options: SearchBoxItem[] = response.json
-                setOptions(options)
-                const selected: string[] = filter[fieldName]
-                if (!selected) {
-                    setValue([])
-                    return
-                }
-                const values = options.filter(item => selected.includes(item.id))
-                setValue(values)
-            })
+        searchOptions()
+            .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
     }, [filter, fieldName])
 
 
     return <Autocomplete
         multiple
-        value={value}
-        inputValue={inputValue}
         disableCloseOnSelect
         className={className}
         forcePopupIcon={false}
         limitTags={limitTags}
-        filterOptions={(x) => x}
         getOptionLabel={(option) => option.label}
-        onInputChange={(_, input) => {
-            setInputValue(input)
-            setDebouncedSearch(input)
-        }}
         filterSelectedOptions
         options={options}
         onChange={(_, newValue) => {
             if (!newValue) {
                 setFilter({ ...filter, [fieldName]: undefined })
-                setValue([])
                 return
             }
             const values = Array.isArray(newValue) ? [...newValue] : [newValue]
-            setValue(values)
             if (values.length == 0) {
                 setFilter({ ...filter, [fieldName]: undefined })
                 return
@@ -121,8 +90,7 @@ export const MultipleSearchBoxFilter = ({
 
 type SearchBoxProps = {
     label: string
-    searchByInput: (input?: string) => Promise<ApiResponse>
-    searchById: (id?: string) => Promise<ApiResponse>
+    searchOptions: () => Promise<ApiResponse>
     className?: string
     disabled?: boolean
     onChange?: (newValue: SearchBoxItem | null) => void
@@ -132,8 +100,7 @@ type SearchBoxProps = {
 }
 
 export const SearchBoxFilter = ({
-    searchByInput,
-    searchById,
+    searchOptions,
     onChange,
     label,
     disabled,
@@ -144,44 +111,19 @@ export const SearchBoxFilter = ({
 }: SearchBoxProps) => {
 
     const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [selected, setSelected] = useState<SearchBoxItem | null>()
-    const [inputValue, setInputValue] = useState('')
-
-    const searchInput = (search: string) => {
-        searchByInput(search)
-            .then(response => { setOptions(response.json) })
-            .catch(() => setOptions([]))
-    }
-    const setDebouncedSearch = useMemo(() => debounce(searchInput, 300), [searchInput])
 
     useEffect(() => {
-        searchById(filter[fieldName])
-            .then(response => {
-                const options: SearchBoxItem[] = response.json
-                setOptions(options)
-                if (!filter[fieldName]) {
-                    setSelected(null)
-                    return
-                }
-                const value = options.find(option => option.id === filter[fieldName])
-                setSelected(value)
-            })
+        searchOptions()
+            .then(response => setOptions(response.json)) 
             .catch(() => setOptions([]))
     }, [])
 
     return <Autocomplete
-        value={selected}
-        inputValue={inputValue}
         className={className}
-        filterOptions={(x) => x}
         getOptionLabel={(option) => option.label}
-        onInputChange={(_, input) => {
-            setInputValue(input)
-            setDebouncedSearch(input)
-        }}
+        filterSelectedOptions
         options={options}
         onChange={(_, newValue) => {
-            setSelected(newValue)
             if (!newValue) {
                 setFilter({ ...filter, [fieldName]: undefined })
                 return

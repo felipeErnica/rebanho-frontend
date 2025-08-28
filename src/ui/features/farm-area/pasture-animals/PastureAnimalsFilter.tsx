@@ -7,7 +7,7 @@ import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
 import { RefObject } from "react"
 import { FilterPopover } from "@/ui/shared/filter-controls/FilterPopover"
 import { IFilters } from "@/shared/interfaces/Filter"
-import { searchFather, searchFatherById, searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
+import { searchFather, searchMother } from "@/shared/GlobalApiCalls"
 
 type PastureAnimalsFilterProps = {
     filter: IFilters
@@ -60,8 +60,7 @@ export const PastureAnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchByInput={searchFather}
-                    searchById={searchFatherById}
+                    searchOptions={searchFather}
                     fieldName="fathers"
                     className="col-span-6"
                 />
@@ -70,8 +69,7 @@ export const PastureAnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchByInput={searchMother}
-                    searchById={searchMotherById}
+                    searchOptions={searchMother}
                     fieldName="mothers"
                     className="col-span-6"
                 />

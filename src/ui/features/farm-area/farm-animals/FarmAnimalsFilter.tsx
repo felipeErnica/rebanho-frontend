@@ -7,7 +7,7 @@ import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
 import { RefObject, useCallback } from "react"
 import { FilterPopover } from "@/ui/shared/filter-controls/FilterPopover"
 import { IFilters } from "@/shared/interfaces/Filter"
-import { searchFather, searchFatherById, searchMother, searchMotherById, searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
+import { searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
 
 type FarmAnimalsFilterProps = {
     farmId: string
@@ -27,8 +27,7 @@ export const FarmAnimalsFilter = ({
     anchorEl,
 }: FarmAnimalsFilterProps) => {
 
-    const handlePastureSearch = useCallback((input?: string) => searchPasture(input, farmId), [farmId])
-    const handlePastureSearchById = useCallback((id?: string | string[]) => searchPastureById(id, farmId), [farmId])
+    const handlePastureSearch = useCallback(() => searchPasture(farmId), [farmId])
 
     return <FilterPopover
         setFilter={setFilter}
@@ -65,8 +64,7 @@ export const FarmAnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchByInput={searchFather}
-                    searchById={searchFatherById}
+                    searchOptions={searchFather}
                     fieldName="fathers"
                     className="col-span-6"
                 />
@@ -75,8 +73,7 @@ export const FarmAnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchByInput={searchMother}
-                    searchById={searchMotherById}
+                    searchOptions={searchMother}
                     fieldName="mothers"
                     className="col-span-6"
                 />
@@ -85,8 +82,7 @@ export const FarmAnimalsFilter = ({
                     limitTags={2}
                     filter={filter}
                     setFilter={setFilter}
-                    searchByInput={handlePastureSearch}
-                    searchById={handlePastureSearchById}
+                    searchOptions={handlePastureSearch}
                     fieldName="pastures"
                     className="col-span-6"
                 />

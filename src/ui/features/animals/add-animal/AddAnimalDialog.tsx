@@ -6,14 +6,14 @@ import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import Typography from "@mui/material/Typography"
 import { useCallback, useEffect, useState } from "react"
-import { FormSearchBox } from "../../../shared/form-controls/FormSearchBox"
 import { AddAnimalForm } from "./api/AddAnimalEntities"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormRadioGroup, RadioControlProps } from "@/ui/shared/form-controls/FormRadioGroup"
 import { AnimalType } from "../shared/AnimalEntities"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
-import { searchFarm, searchFarmById, searchFather, searchFatherById, searchMother, searchMotherById, searchPasture, searchPastureById } from "@/shared/GlobalApiCalls"
+import { searchFarm, searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 
 type AddAnimalProps = {
     isAddOpen: boolean
@@ -30,7 +30,7 @@ const MainControls = ({ control }: FormStateProps) => {
     const [typeControls, setTypeControls] = useState<RadioControlProps[]>([])
 
     const sexOptions: RadioControlProps[] = [
-        { value: "M", label: "Macho" }, 
+        { value: "M", label: "Macho" },
         { value: "F", label: "Fêmea" }
     ]
 
@@ -110,8 +110,7 @@ const MainControls = ({ control }: FormStateProps) => {
 const OtherControls = ({ control }: FormStateProps) => {
 
     const [farmId, setFarmId] = useState<string[]>()
-    const fetchPastureById = useCallback((id?: string) => searchPastureById(id, farmId), [farmId])
-    const fetchPasture = useCallback((input?: string) => searchPasture(input, farmId), [farmId])
+    const fetchPasture = useCallback(() => searchPasture(farmId), [farmId])
 
     return <div className="mt-10 flex flex-col gap-3">
         <Typography variant="h6" className="col-span-3">Outras Informações</Typography>
@@ -122,8 +121,7 @@ const OtherControls = ({ control }: FormStateProps) => {
                 rules: { required: REQUIRED_FIELD_MSG }
             }}
             label="Pai*"
-            searchByInput={searchFather}
-            searchById={searchFatherById}
+            searchOptions={searchFather}
         />
         <FormSearchBox
             formProps={{
@@ -132,8 +130,7 @@ const OtherControls = ({ control }: FormStateProps) => {
                 rules: { required: REQUIRED_FIELD_MSG }
             }}
             label="Mãe*"
-            searchByInput={searchMother}
-            searchById={searchMotherById}
+            searchOptions={searchMother}
         />
         <FormSearchBox
             formProps={{
@@ -143,15 +140,13 @@ const OtherControls = ({ control }: FormStateProps) => {
             }}
             onChange={(id) => id && setFarmId([id])}
             label="Fazenda*"
-            searchByInput={searchFarm}
-            searchById={searchFarmById}
+            searchOptions={searchFarm}
             className="col-span-3"
 
         />
         <FormSearchBox
             disabled={!farmId}
-            searchByInput={fetchPasture}
-            searchById={fetchPastureById}
+            searchOptions={fetchPasture}
             formProps={{
                 control,
                 name: "pastureId",

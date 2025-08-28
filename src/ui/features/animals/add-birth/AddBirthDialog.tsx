@@ -1,10 +1,10 @@
 import { Dialog, DialogContent, DialogTitle } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { AnimalSave } from "../shared/AnimalEntities"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
-import { searchMother, searchMotherById } from "@/shared/GlobalApiCalls"
+import { searchMother } from "@/shared/GlobalApiCalls"
+import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 
 export type DialogProps = {
     isDialogOpen: boolean
@@ -31,8 +31,7 @@ export const AddBirthDialog = ({ isDialogOpen, setDialogOpen }: DialogProps) => 
                         name: 'motherId',
                         rules: { required: REQUIRED_FIELD_MSG }
                     }}
-                    searchByInput={searchMother}
-                    searchById={searchMotherById}
+                    searchOptions={searchMother}
                 />
                 <FormDatePicker
                     label="Data de Nascimento*"

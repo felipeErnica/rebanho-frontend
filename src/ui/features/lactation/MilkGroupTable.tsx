@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useEffect, useRef, useState } from "react"
+import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { LactationGroup, LactationGroupFilter } from "./Entities"
 import { findGroupsPage } from "./Controller"
 import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
@@ -16,16 +16,22 @@ import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/Con
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
+import { MilkGroupFilter } from "./MilkGroupFilter"
+import { PageContext } from "@/ui/shared/main-page/PageContext"
+import { PageProps } from "@/ui/shared/main-page/PageDisplay"
+import { GroupEntriesTablePage } from "./GroupEntriesTable"
+import { HomePage } from "../home/HomePage"
+import { MilkDashboardPage, MilkGroupsPage } from "./LactationPages"
 
 export const GroupTablePage = () => {
 
     const [filter, setFilter] = useState<LactationGroupFilter>({ isFiltered: false })
-    // const [filterOpen, setFilterOpen] = useState(false)
+    const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [order, setOrder] = useState("desc")
 
 
-    // const anchorEl = useRef<HTMLButtonElement>(null)
+    const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
         return findGroupsPage(filter, order, cursor)
@@ -39,10 +45,10 @@ export const GroupTablePage = () => {
         <TableTopBar
             reloadProps={{ onReload, loading }}
             orderProps={{ order, setOrder }}
-        // filterProps={{ setFilterOpen, anchorEl }}
+            filterProps={{ setFilterOpen, anchorEl }}
         />
         <GroupsTable {...{ rows, loading, scrollRef, fetchNextPage }} />
-        {/* <BirthTestFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} /> */}
+        <MilkGroupFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
     </div>
 }
 
@@ -102,6 +108,7 @@ const GroupsRow = ({ item, loading }: GroupsRowProps) => {
 
     const [rowData, setRowData] = useState<LactationGroup>(item)
     const [editing, setEditing] = useState(false)
+    const { setPageProps } = useContext(PageContext)
 
     useEffect(() => setRowData(item), [item])
 
@@ -110,7 +117,17 @@ const GroupsRow = ({ item, loading }: GroupsRowProps) => {
 
     return <>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons
+                setEditing={setEditing}
+                onShow={() => {
+                    const page: PageProps = {
+                        title: `Marcação - ${dateTransform(rowData.entryDate)}`,
+                        page: <GroupEntriesTablePage {...{ entryDate: rowData.entryDate }} />,
+                        previousPages: [HomePage, MilkDashboardPage, MilkGroupsPage]
+                    }
+                    if (setPageProps) setPageProps(page)
+                }}
+            />
         </TableBodyCell>
         <TableBodyCell>{dateTransform(rowData.entryDate)}</TableBodyCell>
         <TableBodyCell>

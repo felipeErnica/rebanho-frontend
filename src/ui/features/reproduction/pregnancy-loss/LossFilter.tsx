@@ -1,4 +1,4 @@
-import { searchMother, searchMotherById } from "@/shared/GlobalApiCalls";
+import { searchMother } from "@/shared/GlobalApiCalls";
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover";
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter";
@@ -17,8 +17,7 @@ export const LossFilterPopover = ({ filter, filterOpen, setFilter, setFilterOpen
             filter={filter}
             setFilter={setFilter}
             fieldName="animals"
-            searchById={searchMotherById}
-            searchByInput={searchMother}
+            searchOptions={searchMother}
         />
         <DateFilter 
             mainTitle="Data de Interrupção"

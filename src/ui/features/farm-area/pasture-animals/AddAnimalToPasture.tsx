@@ -2,7 +2,7 @@ import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormMultipleSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import { useForm } from "react-hook-form"
-import { searchPastureAnimalsById, searchPastureAnimals } from "./Controller"
+import { searchPastureAnimals } from "./Controller"
 
 type AddAnimalsEntity = {
     animalsId: string[]
@@ -19,8 +19,7 @@ export const AddAnimalToPasture = ({ pastureId, isAddAnimalOpen, setAddAnimalOpe
 
     const { handleSubmit, control } = useForm<AddAnimalsEntity>()
     const onClose = () => setAddAnimalOpen(false)
-    const fetchAnimals = (input?: string) => searchPastureAnimals(pastureId, input)
-    const fetchAnimalsById = (id?: string | string[]) => searchPastureAnimalsById(pastureId, id)
+    const fetchAnimals = () => searchPastureAnimals(pastureId)
 
     const onSubmit = (data: AddAnimalsEntity) => console.log(data)
 
@@ -32,8 +31,7 @@ export const AddAnimalToPasture = ({ pastureId, isAddAnimalOpen, setAddAnimalOpe
         <DialogContent>
             <div className="flex flex-col gap-4 p-4">
                 <FormMultipleSearchBox
-                    searchByInput={fetchAnimals}
-                    searchById={fetchAnimalsById}
+                    searchOptions={fetchAnimals}
                     label="Animais"
                     formProps={{
                         control,

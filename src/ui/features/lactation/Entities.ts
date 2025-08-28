@@ -6,6 +6,21 @@ export type MilkEntry = {
     quantity?: number
 }
 
+export type MilkEntryFilter = {
+  isFiltered: boolean
+  animals?: string[]
+  minEntryDate?: Date
+  maxEntryDate?: Date
+  minQuantity?: number
+  maxQuantity?: number
+}
+
+export type MilkEntryFoot = {
+  animalsNumber: number
+  totalMilk: number
+  averageMilk: number
+}
+
 export type MonthMilkHist = {
     entryDate: Date
     totalMilk: number

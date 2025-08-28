@@ -6,8 +6,8 @@ import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { useState } from "react"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
-import { searchFarm, searchFarmById } from "@/shared/GlobalApiCalls"
-import { searchBull, searchBullById } from "./api/DashboardController"
+import { searchFarm } from "@/shared/GlobalApiCalls"
+import { searchBull } from "./api/DashboardController"
 
 export const TableFarmTopBar = () => {
 
@@ -95,8 +95,7 @@ const AddPastureDialog = ({ isAddPastureOpen, setAddPastureOpen }: AddPastureDia
                     }}
                 />
                 <FormSearchBox
-                    searchByInput={searchFarm}
-                    searchById={searchFarmById}
+                    searchOptions={searchFarm}
                     className="col-span-2"
                     label="Fazenda*"
                     formProps={{
@@ -106,8 +105,7 @@ const AddPastureDialog = ({ isAddPastureOpen, setAddPastureOpen }: AddPastureDia
                     }}
                 />
                 <FormSearchBox
-                    searchByInput={searchBull}
-                    searchById={searchBullById}
+                    searchOptions={searchBull}
                     className="col-start-1 col-span-2"
                     label="Touro (Opcional)"
                     formProps={{

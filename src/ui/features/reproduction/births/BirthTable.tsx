@@ -22,7 +22,7 @@ import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 import { SexValues } from "@/shared/entities/enums"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchFather, searchFatherById } from "@/shared/GlobalApiCalls"
+import { searchFather } from "@/shared/GlobalApiCalls"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { BirthFilter } from "./BirthFilter"
 import { Button } from "@mui/material"
@@ -209,8 +209,7 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
-                searchById={searchFatherById}
-                searchByInput={searchFather}
+                searchOptions={searchFather}
                 onChange={(_, value) => setValue('calfFather', value)}
                 formProps={{
                     control,
