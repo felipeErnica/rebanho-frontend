@@ -7,18 +7,63 @@ export type MilkEntry = {
 }
 
 export type MilkEntryFilter = {
-  isFiltered: boolean
-  animals?: string[]
-  minEntryDate?: Date
-  maxEntryDate?: Date
-  minQuantity?: number
-  maxQuantity?: number
+    isFiltered: boolean
+    animals?: string[]
+    minEntryDate?: Date
+    maxEntryDate?: Date
+    minQuantity?: number
+    maxQuantity?: number
 }
 
 export type MilkEntryFoot = {
-  animalsNumber: number
-  totalMilk: number
-  averageMilk: number
+    animalsNumber: number
+    totalMilk: number
+    averageMilk: number
+}
+
+export type LactationHist = {
+    id: string
+    animalId: string
+    animalName: string
+    calfId: string
+    calfInfo: string
+    startDate: Date
+    endDate: Date
+    lacPeriod: number
+    averageProduction: number
+    totalProduction: number
+    lacInterval: number
+    peak: number
+}
+
+export type LactationHistFilter = {
+    isFiltered: boolean
+    animals?: string[]
+    minCalfBirthDate?: Date
+    maxCalfBirthDate?: Date
+    minStartDate?: Date
+    maxStartDate?: Date
+    minEndDate?: Date
+    maxEndDate?: Date
+    minLacPeriod?: number
+    maxLacPeriod?: number
+    minAverageProduction?: number
+    maxAverageProduction?: number
+    minTotalProduction?: number
+    maxTotalProduction?: number
+    minLacInterval?: number
+    maxLacInterval?: number
+    minPeak?: number
+    maxPeak?: number
+}
+
+export type LactationHistFoot = {
+    totalLacs: number
+    averagePeriod: number
+    averageProduction: number
+    averageTotal: number
+    averageInterval: number
+    averagePeak: number
 }
 
 export type MonthMilkHist = {
@@ -73,6 +118,20 @@ export type AnimalsRating = {
     avgProd: number
     avgInterval: number
     lacNum: number
+    periodRate: number
+    totalRate: number
+    prodRate: number
+    intervalRate: number
+}
+
+export type ParentsRating = {
+    parentName: string
+    avgTotal: number
+    avgPeriod: number
+    avgProd: number
+    avgInterval: number
+    avgLac: number
+    lacRate: number
     periodRate: number
     totalRate: number
     prodRate: number

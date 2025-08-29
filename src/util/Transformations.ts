@@ -20,6 +20,7 @@ export function percentageTransform(value: number) {
 
 export function dateTransform(value?: Date) {
     if (value === undefined) return ""
+    if (!value) return ""
     value = new Date(value)
     const dateString = value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
     if (dateString == 'Invalid Date') return ""

@@ -8,12 +8,13 @@ import {
 import { DashboardInformationProps, DashboardTopBarProps } from "@/ui/shared/dashboard/Entities"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
-import { AnimalsAverage, AnimalsRating, LactationGroup, MilkEntry, MilkProductionHist, MonthMilkCard } from "./Entities"
+import { AnimalsAverage, AnimalsRating, LactationGroup, MilkEntry, MilkProductionHist, MonthMilkCard, ParentsRating } from "./Entities"
 import {
     getAnimalsAverage,
     getLastEntries,
     getLastGroups,
     getMonthMilk,
+    getParentRatings,
     getProductionHist,
     getRankedAnimals
 } from "./Controller"
@@ -41,7 +42,7 @@ import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
 import { GroupTablePage } from "./MilkGroupTable"
 import { HomePage } from "../home/HomePage"
-import { MilkDashboardPage, MilkEntriesPage } from "./LactationPages"
+import { LactationHistPage, MilkDashboardPage, MilkEntriesPage } from "./LactationPages"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
@@ -95,7 +96,8 @@ const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInfor
         <AnimalsAverageCard {...{ stopLoading, startLoading, reloadFlag }} />
         <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
         <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
-        <BestAnimalsTable {...{ startLoading, stopLoading, reloadFlag }} />
+        <AnimalsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
+        <ParentsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
         <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
     </div>
 }
@@ -331,11 +333,12 @@ const ProductionChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
 
 }
 
-const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
     const [data, setData] = useState<AnimalsRating[]>([])
     const [loading, setLoading] = useState(false)
     const [rankBy, setRankBy] = useState('worst')
+    const { setPageProps } = useContext(PageContext)
 
     const rankByValues: ComboBoxItem[] = [
         { name: 'Os Melhores Resultados', value: 'best' },
@@ -368,6 +371,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                 className="ml-auto"
                 variant="text"
                 startIcon={<ChevronRight />}
+                onClick={() => setPageProps && setPageProps(LactationHistPage)}
             >
                 Ver Histórico de Lactação
             </Button>
@@ -390,6 +394,106 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                         <TableRow>
                             <TableCell>{item.animalName}</TableCell>
                             <TableCell align="center">{item.lacNum}</TableCell>
+                            <TableCell>
+                                <div className="flex flex-row items-center gap-2">
+                                    {decimalTransform(item.avgProd)}
+                                    <TrendComponent trend={item.prodRate} />
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-row items-center gap-2">
+                                    {decimalTransform(item.avgPeriod)}
+                                    <TrendComponent trend={item.periodRate} />
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-row items-center gap-2">
+                                    {decimalTransform(item.avgTotal)}
+                                    <TrendComponent trend={item.totalRate} />
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-row items-center gap-2">
+                                    {decimalTransform(item.avgInterval)}
+                                    <TrendComponent trend={item.intervalRate} inverse />
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))
+                }
+            </TableBody>
+        </Table>
+    </DashboardCard>
+}
+
+const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+
+    const [data, setData] = useState<ParentsRating[]>([])
+    const [loading, setLoading] = useState(false)
+    const [rankBy, setRankBy] = useState('best-mothers')
+    const { setPageProps } = useContext(PageContext)
+
+    const rankByValues: ComboBoxItem[] = [
+        { name: 'As Melhores Mães', value: 'best-mothers' },
+        { name: 'As Piores Mães', value: 'worst-mothers' },
+        { name: 'Os Melhores Pais', value: 'best-fathers' },
+        { name: 'Os Piores Pais', value: 'worst-fathers' },
+    ]
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getParentRatings(rankBy)
+            .then(response => setData(response.json))
+            .catch(() => setData([]))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [reloadFlag, startLoading, stopLoading, rankBy])
+
+    return <DashboardCard className="col-span-4">
+        <div className="flex flex-row gap-4">
+            <ComboBox
+                className="w-[300]"
+                variant="standard"
+                size="small"
+                value={rankBy}
+                onChange={(value) => setRankBy(value ?? 'worst')}
+                items={rankByValues}
+            />
+            <Button
+                className="ml-auto"
+                variant="text"
+                startIcon={<ChevronRight />}
+                onClick={() => setPageProps && setPageProps(LactationHistPage)}
+            >
+                Ver Histórico de Lactação
+            </Button>
+        </div>
+        <Table size="small">
+            <TableHead>
+                <TableRow>
+                    <TableCell>Vaca</TableCell>
+                    <TableCell>Nº Médio de Lactações</TableCell>
+                    <TableCell>Média de Leite por Dia</TableCell>
+                    <TableCell>Periodo de Lactação Médio</TableCell>
+                    <TableCell>Produção Total Média</TableCell>
+                    <TableCell>Intervalo entre Lactações Médio</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {loading
+                    ? Array(10).fill(<TableLoadingRow colSpan={4} />)
+                    : data.map(item => (
+                        <TableRow>
+                            <TableCell>{item.parentName}</TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={decimalTransform(item.avgLac)}
+                                    trendProps={{ trend: item.lacRate }}
+                                />
+                            </TableCell>
                             <TableCell>
                                 <div className="flex flex-row items-center gap-2">
                                     {decimalTransform(item.avgProd)}

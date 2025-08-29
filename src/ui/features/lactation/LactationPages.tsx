@@ -4,6 +4,7 @@ import { LactationDashboard } from "./LactarionDashboard";
 import { LactationIcon } from "@/ui/shared/common/OtherIcons";
 import { MilkEntriesTablePage } from "./MilkEntriesTable";
 import { GroupTablePage } from "./MilkGroupTable";
+import { LactationHistTablePage } from "./LactationHistTable";
 
 export const MilkDashboardPage: PageProps = {
     title: "Painel de Lactação",
@@ -21,5 +22,11 @@ export const MilkEntriesPage: PageProps = {
 export const MilkGroupsPage: PageProps = {
     title: "Dias de Marcação",
     page: <GroupTablePage />, 
+    previousPages: [HomePage, MilkDashboardPage]
+}
+
+export const LactationHistPage: PageProps = {
+    title: "Histórico de Lactações",
+    page: <LactationHistTablePage />, 
     previousPages: [HomePage, MilkDashboardPage]
 }

@@ -86,19 +86,21 @@ type VirtuosoHeadCellProps = {
     className?: string
     colSpan?: number
     width: number
+    align?: 'left' | 'right' | 'center' | 'justify'
 }
 
-export const VirtuosoHeadCell = ({ children, colSpan, className, width }: VirtuosoHeadCellProps) => {
+export const VirtuosoHeadCell = ({ children, colSpan, className, width, align }: VirtuosoHeadCellProps) => {
     return <TableCell
         className={`bg-gray-700 border-none text-white text-nowrap ${className}`}
         colSpan={colSpan}
         sx={{ minWidth: width, width }}
+        align={align}
     >
         {children}
     </TableCell>
 }
 
-export const VirtuosoResizeHeadCell = ({ children, colSpan, className, width }: VirtuosoHeadCellProps) => {
+export const VirtuosoResizeHeadCell = ({ children, colSpan, className, width, align }: VirtuosoHeadCellProps) => {
 
     const DEFAULT_MIN_WIDTH = width
 
@@ -135,6 +137,7 @@ export const VirtuosoResizeHeadCell = ({ children, colSpan, className, width }: 
         }
         sx={{ minWidth: DEFAULT_MIN_WIDTH, width }}
         colSpan={colSpan}
+        align={align}
     >
         {children}
         <div
@@ -172,7 +175,7 @@ type TableBodyCellProps = {
 export const TableBodyCell = ({ children, className, colSpan, align }: TableBodyCellProps) => {
     return <TableCell
         className={`border-b border-b-gray-400 overflow-hidden text-nowrap overflow-ellipsis ${className}`}
-        align={align}
+        align={align ?? 'inherit'}
         colSpan={colSpan}
     >
         {children}
