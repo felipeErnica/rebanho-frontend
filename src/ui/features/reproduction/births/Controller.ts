@@ -13,8 +13,20 @@ export function getBirthStats(): Promise<ApiResponse> {
     return apiGet(BIRTH_DASHBOARD_BASE + "birth-stats")
 }
 
-export function getBestIntervals(): Promise<ApiResponse> {
-    return apiGet(BIRTH_DASHBOARD_BASE + "best-intervals")
+export function getDeathIndex(): Promise<ApiResponse> {
+    return apiGet(BIRTH_DASHBOARD_BASE + "death-index")
+}
+
+export function getBirthIntervalStats(): Promise<ApiResponse> {
+    return apiGet(BIRTH_DASHBOARD_BASE + "interval-stats")
+}
+
+export function getIntervalsRanking(rankBy: string): Promise<ApiResponse> {
+    return apiGet(BIRTH_DASHBOARD_BASE + rankBy)
+}
+
+export function getBirthHistory(): Promise<ApiResponse> {
+    return apiGet(BIRTH_DASHBOARD_BASE + "birth-history")
 }
 
 export function findBirthsPage(
