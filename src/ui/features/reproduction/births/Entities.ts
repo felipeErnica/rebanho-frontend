@@ -1,90 +1,102 @@
-
 export type BirthEntry = {
-    id: string
-    motherId?: string
-    motherName?: string
-    motherOrder?: number
-    calfId?: string
-    calfBirthDate?: Date
-    calfSex?: string
-    calfFatherId?: string
-    calfFather?: string
-    calfName?: string
-    birthInterval?: number
-    observation?: string
+  id: string
+  motherId: string
+  motherName: string
+  motherOrder: number
+  calfId: string
+  calfName: string
+  calfBirthDate: Date
+  calfSex: string
+  calfFatherId?: string
+  calfFather?: string
+  birthInterval?: number
+  observation?: string
+  createdAt: Date
+  deletedAt?: Date
+  userId: string
 }
 
 export type BirthEntryFilter = {
-    isFiltered: boolean
-    mothers?: string[]
-    minBirthDate?: Date
-    maxBirthDate?: Date
-    sex?: string
-    fathers?: string[]
-    minBirthInterval?: number
-    maxBirthInterval?: number
+  isFiltered: boolean
+  mothers?: string[]
+  minBirthDate?: Date
+  maxBirthDate?: Date
+  sex?: string
+  fathers?: string[]
+  minBirthInterval?: number
+  maxBirthInterval?: number
+}
+
+export type BirthEntrySave = {
+  id: string
+  motherId: string
+  calfId: string
+  birthInterval?: number
+  observation?: string
+  createdAt: Date
+  deletedAt?: Date
+  userId: string
 }
 
 export type BirthFooter = {
-    total: number
-    intervalAverage: number
+  total: number
+  intervalAverage: number
 }
 
-export type BirthBySex = {
-    birthMonth: Date
-    males: number
-    females: number
-}
-
-export type BirthIndex = {
-    totalBirths: number
-    deathNumbers: number
-    deathPercentage: number
+export type BirthsBySex = {
+  birthMonth: Date
+  males: number
+  females: number
 }
 
 export type BirthsByDate = {
-    date: Date
-    birthTotal: number
-    deathTotal: number
+  date: Date
+  birthTotal: number
+  deathTotal: number
 }
 
 export type BirthIntervalHist = {
-    month: Date
-    intervalAverage: number
+  birthDate: Date
+  intervalAverage: number
 }
 
 export type DeathIndexHist = {
-    month: Date
-    deathIndex: number
+  month: Date
+  deathIndex: number
 }
 
 export type LossHist = {
-    month: Date
-    losses: number
+  month: Date
+  losses: number
 }
 
 export type IntervalAnimal = {
-    animalName: string
-    intervalAverage: number
-    birthNumbers: number
-    averageRate: number
+  animalName: string
+  birthNumbers: number
+  intervalAverage: number
+  averageRate: number
 }
 
-export type BirthStats = {
-    currentInterval: number
-    intervalTrend: number
-    intervalHist: BirthIntervalHist[]
-    deathIndex: number
-    deathTrend: number
-    deathIndexHist: DeathIndexHist[]
-    currentBirthNumbers: number
-    birthNumbersTrend: number
-    currentDeathNumbers: number
-    deathNumbersTrend: number
-    lossTrend: number
-    losses: number
-    lossHist: LossHist[]
-    pregnantsNumber: number
-    birthHistory: BirthsByDate[]
+export type IntervalStats = {
+  currentInterval: number
+  intervalTrend: number
+  intervalHist: BirthIntervalHist[]
 }
 
+export type DeathStats = {
+  currentDeathIndex: number
+  deathTrend: number
+  deathIndexHist: DeathIndexHist[]
+}
+
+export type LossStats = {
+  lossNumbers: number
+  lossTrend: number
+  lossHist: LossHist[]
+}
+
+export type CurrentStats = {
+  currentBirthNumbers: number
+  birthNumbersTrend: number
+  birthHistory: BirthsByDate[]
+}

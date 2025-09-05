@@ -3,6 +3,7 @@ import { DateFilter } from "@/ui/shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover";
 import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter";
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter";
+import { searchAllPastures } from "./Controller";
 
 export const MilkEntriesFilter = ({ 
     setFilter, 
@@ -19,6 +20,13 @@ export const MilkEntriesFilter = ({
             setFilter={setFilter}
             filter={filter}
             fieldName="animals"
+        />
+        <MultipleSearchBoxFilter 
+            label="Pastos"
+            searchOptions={searchAllPastures}
+            setFilter={setFilter}
+            filter={filter}
+            fieldName="pastures"
         />
         <DateFilter 
             mainTitle="Data de Marcação"

@@ -26,9 +26,8 @@ import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
 import { TableLoadingRow, TrendValues } from "@/ui/shared/table/TableComponents"
-import { ChartContainer } from "@mui/x-charts/ChartContainer"
 import { BarPlot } from "@mui/x-charts/BarChart"
-import { LinePlot } from "@mui/x-charts/LineChart"
+import { LineHighlightPlot, LinePlot } from "@mui/x-charts/LineChart"
 import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis"
 import { ChartsYAxis } from "@mui/x-charts/ChartsYAxis"
 import { ChartsTooltip } from "@mui/x-charts/ChartsTooltip"
@@ -46,6 +45,7 @@ import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
+import { ChartDataProvider, ChartsSurface } from "@mui/x-charts"
 
 export const LactationDashboard = () => {
 
@@ -123,7 +123,7 @@ const ProductionChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
 
     return <DashboardCard className="col-span-3 row-span-2">
         <CardDefaultTitle text="Histórico de Produção de Leite" />
-        <ChartContainer
+        <ChartDataProvider
             dataset={dataset}
             height={350}
             series={[
@@ -133,6 +133,7 @@ const ProductionChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                     dataKey: "animalsNumber",
                     type: 'bar',
                     yAxisId: "totalAxis",
+                    labelMarkType: 'square'
                 },
                 {
                     id: "totalMilk",
@@ -140,6 +141,7 @@ const ProductionChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                     label: "Produção de Leite",
                     type: "line",
                     yAxisId: "rateAxis",
+                    labelMarkType: 'line',
                     valueFormatter: (value) => decimalTransform(value ?? 0)
                 }
             ]}
@@ -156,15 +158,28 @@ const ProductionChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                 { id: "rateAxis", position: 'right', min: 0 }
             ]}
         >
-            <BarPlot />
-            <LinePlot />
-            <ChartsXAxis />
-            <ChartsYAxis axisId="totalAxis" />
-            <ChartsYAxis axisId="rateAxis" />
-            <ChartsTooltip />
-            <ChartsLegend />
-            <ChartsAxisHighlight x='line' />
-        </ChartContainer>
+            <ChartsLegend
+                slotProps={{
+                    legend: {
+                        direction: "horizontal",
+                        position: {
+                            horizontal: 'center',
+                            vertical: 'top'
+                        }
+                    }
+                }}
+            />
+            <ChartsSurface>
+                <BarPlot />
+                <LinePlot />
+                <ChartsAxisHighlight x='line' />
+                <LineHighlightPlot />
+                <ChartsXAxis />
+                <ChartsYAxis axisId="totalAxis" />
+                <ChartsYAxis axisId="rateAxis" />
+                <ChartsTooltip />
+            </ChartsSurface>
+        </ChartDataProvider>
     </DashboardCard>
 
 }
@@ -397,6 +412,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                 <TableHead>
                     <TableRow>
                         <TableCell>Vaca</TableCell>
+                        <TableCell>Pasto</TableCell>
                         <TableCell>Quantidade de Leite</TableCell>
                     </TableRow>
                 </TableHead>
@@ -406,6 +422,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                         : data.map(item => (
                             <TableRow>
                                 <TableCell>{item.animalName}</TableCell>
+                                <TableCell>{item.pastureName}</TableCell>
                                 <TableCell align="center">{decimalTransform(item.quantity ?? 0, 1)}</TableCell>
                             </TableRow>
                         ))

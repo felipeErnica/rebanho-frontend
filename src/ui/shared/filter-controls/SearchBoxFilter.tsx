@@ -33,22 +33,31 @@ export const MultipleSearchBoxFilter = ({
 }: MultipleSearchBoxFilterProps) => {
 
     const [options, setOptions] = useState<SearchBoxItem[]>([])
+    const [values, setValues] = useState<SearchBoxItem[]>([])
 
     useEffect(() => {
         searchOptions()
-            .then(response => setOptions(response.json))
+            .then(response => { 
+                const options: SearchBoxItem[] = response.json
+                setOptions(options)
+                const idList: string[] = filter[fieldName]
+                if (!idList) {
+                    setValues([])
+                    return
+                }
+                const filterValues = options.filter(item => idList.includes(item.id))
+                setValues(filterValues)
+            })
             .catch(() => setOptions([]))
-    }, [filter, fieldName])
-
+    }, [filter])
 
     return <Autocomplete
         multiple
+        value={values}
         disableCloseOnSelect
         className={className}
-        forcePopupIcon={false}
         limitTags={limitTags}
         getOptionLabel={(option) => option.label}
-        filterSelectedOptions
         options={options}
         onChange={(_, newValue) => {
             if (!newValue) {
@@ -120,6 +129,7 @@ export const SearchBoxFilter = ({
 
     return <Autocomplete
         className={className}
+        value={options.find(item => item.id === filter[fieldName])}
         getOptionLabel={(option) => option.label}
         filterSelectedOptions
         options={options}

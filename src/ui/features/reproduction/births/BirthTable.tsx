@@ -59,8 +59,9 @@ export const BirthTablePage = () => {
     const { rows, scrollRef, fetchNextPage } = usePagination<BirthEntry>({ fetchPage, setLoading })
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Mãe', value: DEFAULT_SORT },
-        { name: 'Nome da Mãe', value: 'mother_name,calf_birth_date' },
-        { name: 'Data de Nascimento', value: 'calf_birth_date' },
+        { name: 'Nome da Mãe', value: 'mother_name, calf_birth_date' },
+        { name: 'Data de Nascimento', value: 'calf_birth_date, mother_order' },
+        { name: 'Intervalo entre Partos', value: 'birth_interval, mother_order' },
     ]
 
     return <div className="w-full h-full flex flex-col">
@@ -113,9 +114,9 @@ const BirthTable = ({ rows, scrollRef, fetchNextPage, isLoading, footerData }: B
             return <TableHeadRow>
                 <VirtuosoHeadCell width={unit * 10}></VirtuosoHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 15}>Mãe</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Data de Nascimento</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Intervalo entre Partos</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 5}>Sexo</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Data de Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Intervalo entre Partos</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 5}>Sexo</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 10}>Pai</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 15}>Informações da Cria</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 25}>Observações da Parição</VirtuosoResizeHeadCell>
@@ -133,7 +134,7 @@ const BirthTable = ({ rows, scrollRef, fetchNextPage, isLoading, footerData }: B
                 <TableFooterCell colSpan={4} />
             </TableFooterRow>
         }}
-        itemContent={(_, data) => <BirthRow {...{ data, isLoading }} />}
+        itemContent={(_, data) => <BirthRow {...{ data: data as BirthEntry, isLoading }} />}
     />
 }
 

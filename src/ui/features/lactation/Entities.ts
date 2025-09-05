@@ -2,6 +2,7 @@ export type MilkEntry = {
     id: string
     animalId?: string
     animalName?: string
+    pastureName?: string
     entryDate?: Date
     quantity?: number
 }
@@ -9,6 +10,7 @@ export type MilkEntry = {
 export type MilkEntryFilter = {
     isFiltered: boolean
     animals?: string[]
+    pastures?: string[]
     minEntryDate?: Date
     maxEntryDate?: Date
     minQuantity?: number

@@ -38,7 +38,7 @@ export const MilkEntriesTablePage = () => {
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [sort, setSort] = useState(defaultSort)
-    const [order, setOrder] = useState('asc')
+    const [order, setOrder] = useState('desc')
     const [foot, setFoot] = useState(defaultFoot)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
 
@@ -119,15 +119,16 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
 
             return <TableHeadRow>
                 <VirtuosoHeadCell width={unit * 10} />
-                <VirtuosoHeadCell width={unit * 50}>Vaca</VirtuosoHeadCell>
+                <VirtuosoHeadCell width={unit * 20}>Vaca</VirtuosoHeadCell>
                 <VirtuosoHeadCell width={unit * 20}>Data da Marcação</VirtuosoHeadCell>
+                <VirtuosoHeadCell width={unit * 30}>Pasto</VirtuosoHeadCell>
                 <VirtuosoHeadCell width={unit * 20}>Quantidade</VirtuosoHeadCell>
             </TableHeadRow>
 
         }}
         fixedFooterContent={() => (
             <TableFooterRow>
-                <TableFooterCell colSpan={2}>
+                <TableFooterCell colSpan={3}>
                     <FooterContent title="Total" content={foot.animalsNumber} />
                 </TableFooterCell>
                 <TableFooterCell colSpan={1}>
@@ -155,7 +156,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingCells colSpan={4} />
+    if (loading) return <TableLoadingCells colSpan={5} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <>
@@ -164,6 +165,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>{dateTransform(rowData.entryDate)}</TableBodyCell>
+        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell>{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
     </>
 }
@@ -198,6 +200,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                 }}
             />
         </TableBodyCell>
+        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell>
             <FormTextField
                 type="number"

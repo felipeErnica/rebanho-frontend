@@ -95,3 +95,7 @@ export function getLactationEntries(lacId: string) {
 export function getLactationEntriesFoot(lacId: string) {
     return apiGet(LAC_BASE + `${lacId}/entries/foot`)
 }
+
+export function searchAllPastures() {
+    return apiGet("farm-area/pastures/search-all")
+}

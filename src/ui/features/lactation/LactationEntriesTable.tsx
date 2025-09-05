@@ -85,8 +85,9 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
             <TableHead>
                 <TableHeadRow>
                     <TableHeadCell width={unit * 10} />
-                    <TableHeadCell width={unit * 50}>Vaca</TableHeadCell>
+                    <TableHeadCell width={unit * 20}>Vaca</TableHeadCell>
                     <TableHeadCell width={unit * 20}>Data da Marcação</TableHeadCell>
+                    <TableHeadCell width={unit * 30}>Pasto</TableHeadCell>
                     <TableHeadCell width={unit * 20}>Quantidade</TableHeadCell>
                 </TableHeadRow>
             </TableHead>
@@ -95,7 +96,7 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
             </TableBody>
             <StickyTableFooter>
                 <TableFooterRow>
-                    <TableFooterCell colSpan={2}>
+                    <TableFooterCell colSpan={3}>
                         <FooterContent title="Total" content={foot.animalsNumber} />
                     </TableFooterCell>
                     <TableFooterCell colSpan={1}>
@@ -131,6 +132,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>{dateTransform(rowData.entryDate)}</TableBodyCell>
+        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell>{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
     </TableBodyRow>
 }
@@ -158,6 +160,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>{dateTransform(rowData.entryDate)}</TableBodyCell>
+        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell>
             <FormTextField
                 type="number"
