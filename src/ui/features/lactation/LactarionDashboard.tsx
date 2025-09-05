@@ -8,17 +8,16 @@ import {
 import { DashboardInformationProps, DashboardTopBarProps } from "@/ui/shared/dashboard/Entities"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
-import { AnimalsAverage, AnimalsRating, LactationGroup, MilkEntry, MilkProductionHist, MonthMilkCard, ParentsRating } from "./Entities"
+import { AnimalsRating, LactationGroup, MilkEntry, MilkProductionHist, MonthMilkCard, ParentsRating } from "./Entities"
 import {
-    getAnimalsAverage,
     getLastEntries,
     getLastGroups,
     getMonthMilk,
     getParentRatings,
     getProductionHist,
-    getRankedAnimals
+    getRankedAnimals,
+    getYearkyMilk
 } from "./Controller"
-import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { ComboBox, ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import Table from "@mui/material/Table"
@@ -46,6 +45,7 @@ import { LactationHistPage, MilkDashboardPage, MilkEntriesPage } from "./Lactati
 import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
+import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 
 export const LactationDashboard = () => {
 
@@ -92,180 +92,16 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
     return <div className="grid grid-flow-row gap-4">
-        <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
-        <AnimalsAverageCard {...{ stopLoading, startLoading, reloadFlag }} />
-        <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
         <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
+        <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
+        <YearlyMilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
+        <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
+        <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
         <AnimalsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
         <ParentsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
-        <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
     </div>
 }
 
-const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
-
-    const defaultValue: MonthMilkCard = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [stats, setStats] = useState<MonthMilkCard>(defaultValue)
-    const [loading, setLoading] = useState(false)
-
-    useEffect(() => {
-        setLoading(true)
-        startLoading()
-        getMonthMilk()
-            .then(response => setStats(response.json))
-            .catch(() => setStats(defaultValue))
-            .finally(() => {
-                setLoading(false)
-                stopLoading()
-            })
-    }, [defaultValue, reloadFlag, startLoading, stopLoading])
-
-    return <DashboardCard>
-        <CardChartContent
-            title="Produção de Leite no Mês"
-            loading={loading}
-            data={stats.current}
-            chart={(
-                <SparkLineChart
-                    data={stats.hist.map(item => item.totalMilk)}
-                    valueFormatter={(value) => decimalTransform(value ?? 0)}
-                    height={80}
-                    showTooltip
-                    xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', {
-                            month: 'short',
-                            year: 'numeric'
-                        })
-                    }}
-                />
-            )}
-            trendProps={{ trend: stats.trend }}
-        />
-    </DashboardCard>
-}
-
-const AnimalsAverageCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
-
-    const defaultValue: AnimalsAverage = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [stats, setStats] = useState<AnimalsAverage>(defaultValue)
-    const [loading, setLoading] = useState(false)
-
-    useEffect(() => {
-        setLoading(true)
-        startLoading()
-        getAnimalsAverage()
-            .then(response => setStats(response.json))
-            .catch(() => setStats(defaultValue))
-            .finally(() => {
-                setLoading(false)
-                stopLoading()
-            })
-    }, [defaultValue, reloadFlag, startLoading, stopLoading])
-
-    return <DashboardCard className="col-start-2">
-        <CardChartContent
-            title="Pico Mensal de Animais em Lactação"
-            loading={loading}
-            data={stats.current}
-            chart={(
-                <SparkLineChart
-                    data={stats.hist.map(item => item.animalsNumber)}
-                    height={80}
-                    showTooltip
-                    xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', {
-                            month: 'short',
-                            year: 'numeric'
-                        })
-                    }}
-                />
-            )}
-            trendProps={{ trend: stats.trend }}
-        />
-    </DashboardCard>
-}
-
-const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
-
-    const [data, setData] = useState<MilkEntry[]>([])
-    const [lastDate, setLastDate] = useState<Date>()
-    const [loading, setLoading] = useState(false)
-    const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
-
-    useEffect(() => {
-        startLoading()
-        setLoading(true)
-        getLastEntries()
-            .then(response => {
-                const entries: MilkEntry[] = response.json
-                setLastDate(entries[0].entryDate)
-                setData(entries)
-            })
-            .catch(() => {
-                setLastDate(undefined)
-                setData([])
-            })
-            .finally(() => {
-                setLoading(false)
-                stopLoading()
-            })
-    }, [reloadFlag, startLoading, stopLoading])
-
-    return <DashboardCard className="col-start-3 row-span-2 h-[600] overflow-hidden">
-        <div className="flex flex-row gap-4">
-            <CardDefaultTitle text={`Última Marcação${lastDate && ' - ' + dateTransform(lastDate)}`} />
-            <Button
-                className="ml-auto"
-                variant="text"
-                startIcon={<ChevronRight />}
-            >
-                Ver Todas
-            </Button>
-        </div>
-        <div className="overflow-auto">
-            <Table size="small" stickyHeader>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Vaca</TableCell>
-                        <TableCell>Quantidade de Leite</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {loading
-                        ? Array(10).fill(<TableLoadingRow colSpan={4} />)
-                        : data.map(item => (
-                            <TableRow>
-                                <TableCell>{item.animalName}</TableCell>
-                                <TableCell align="center">{decimalTransform(item.quantity ?? 0, 1)}</TableCell>
-                            </TableRow>
-                        ))
-                    }
-                </TableBody>
-            </Table>
-        </div>
-        <Button
-            className="ml-auto"
-            variant="text"
-            startIcon={<Add />}
-            onClick={() => setAddMilkEntryOpen(true)}
-        >
-            Marcar Leite
-        </Button>
-        <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen, entryDate: lastDate }} />
-    </DashboardCard>
-}
 
 const ProductionChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
@@ -285,11 +121,11 @@ const ProductionChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
             })
     }, [stopLoading, startLoading, reloadFlag])
 
-    return <DashboardCard className="col-span-2">
+    return <DashboardCard className="col-span-3 row-span-2">
         <CardDefaultTitle text="Histórico de Produção de Leite" />
         <ChartContainer
             dataset={dataset}
-            height={360}
+            height={350}
             series={[
                 {
                     id: "animalsNumber",
@@ -331,6 +167,262 @@ const ProductionChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
         </ChartContainer>
     </DashboardCard>
 
+}
+
+const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const defaultValue: MonthMilkCard = useMemo(() => ({
+        trend: 0,
+        current: 0,
+        hist: []
+    }), [])
+
+    const [stats, setStats] = useState<MonthMilkCard>(defaultValue)
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        setLoading(true)
+        startLoading()
+        getMonthMilk()
+            .then(response => setStats(response.json))
+            .catch(() => setStats(defaultValue))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard>
+        <CardChartContent
+            title="Produção de Leite no Mês"
+            loading={loading}
+            data={stats.current}
+            chart={(
+                <SparkLineChart
+                    data={stats.hist.map(item => item.totalMilk)}
+                    valueFormatter={(value) => decimalTransform(value ?? 0)}
+                    height={100}
+                    showTooltip
+                    area
+                    xAxis={{
+                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', {
+                            month: 'short',
+                            year: 'numeric'
+                        })
+                    }}
+                />
+            )}
+            trendProps={{ trend: stats.trend }}
+        />
+    </DashboardCard>
+}
+
+const YearlyMilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const defaultValue: MonthMilkCard = useMemo(() => ({
+        trend: 0,
+        current: 0,
+        hist: []
+    }), [])
+
+    const [stats, setStats] = useState<MonthMilkCard>(defaultValue)
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        setLoading(true)
+        startLoading()
+        getYearkyMilk()
+            .then(response => setStats(response.json))
+            .catch(() => setStats(defaultValue))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard>
+        <CardChartContent
+            title="Produção de Leite no Ano"
+            loading={loading}
+            data={decimalTransform(stats.current)}
+            chart={(
+                <SparkLineChart
+                    data={stats.hist.map(item => item.totalMilk)}
+                    valueFormatter={value => decimalTransform(value ?? 0)}
+                    height={100}
+                    showTooltip
+                    area
+                    xAxis={{
+                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        valueFormatter: (value: Date) => value.getFullYear().toString()
+                    }}
+                />
+            )}
+            trendProps={{ trend: stats.trend }}
+        />
+    </DashboardCard>
+}
+
+const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+
+    const [data, setData] = useState<LactationGroup[]>([])
+    const [loading, setLoading] = useState(false)
+    const { setPageProps } = useContext(PageContext)
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getLastGroups()
+            .then(response => setData(response.json))
+            .catch(() => setData([]))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard className="col-span-2">
+        <div className="flex flex-row gap-4">
+            <CardDefaultTitle text="Últimas Marcações" />
+            <Button
+                className="ml-auto"
+                variant="text"
+                startIcon={<ChevronRight />}
+                onClick={() => {
+                    const pageProps: PageProps = {
+                        title: "Histórico de Marcações",
+                        page: <GroupTablePage />,
+                        previousPages: [HomePage, MilkDashboardPage]
+                    }
+                    if (setPageProps) setPageProps(pageProps)
+                }}
+            >
+                Ver Todas
+            </Button>
+        </div>
+        <Table size="small" stickyHeader>
+            <TableHead>
+                <TableRow>
+                    <TableCell />
+                    <TableCell>Data da Marcação</TableCell>
+                    <TableCell>Nº de Animais</TableCell>
+                    <TableCell>Leite Produzido</TableCell>
+                    <TableCell>Média de Produção</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {loading
+                    ? Array(10).fill(<TableLoadingRow colSpan={4} />)
+                    : data.map(item => (
+                        <TableRow>
+                            <TableCell>
+                                <EditControlButtons
+                                    onShow={() => {
+                                        const pageProps: PageProps = {
+                                            title: `Marcação - ${dateTransform(item.entryDate)}`,
+                                            page: <GroupEntriesTablePage {...{ entryDate: item.entryDate }} />,
+                                            previousPages: [HomePage, MilkDashboardPage]
+                                        }
+                                        if (setPageProps) setPageProps(pageProps)
+                                    }}
+                                />
+                            </TableCell>
+                            <TableCell>{dateTransform(item.entryDate)}</TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={item.animalsNumber}
+                                    trendProps={{ trend: item.numberDifference, noPercentage: true, integer: true }}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={decimalTransform(item.totalMilk, 1)}
+                                    trendProps={{ trend: item.totalRate }}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={decimalTransform(item.averageMilk)}
+                                    trendProps={{ trend: item.averageRate }}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    ))
+                }
+            </TableBody>
+        </Table>
+    </DashboardCard>
+}
+
+const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+
+    const [data, setData] = useState<MilkEntry[]>([])
+    const [lastDate, setLastDate] = useState<Date>()
+    const [loading, setLoading] = useState(false)
+    const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getLastEntries()
+            .then(response => {
+                const entries: MilkEntry[] = response.json
+                setLastDate(entries[0].entryDate)
+                setData(entries)
+            })
+            .catch(() => {
+                setLastDate(undefined)
+                setData([])
+            })
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard className="col-span-2 h-[650] overflow-hidden">
+        <div className="flex flex-row gap-4">
+            <CardDefaultTitle text={`Última Marcação${lastDate && ' - ' + dateTransform(lastDate)}`} />
+            <Button
+                className="ml-auto"
+                variant="text"
+                startIcon={<ChevronRight />}
+            >
+                Ver Todas
+            </Button>
+        </div>
+        <div className="overflow-auto">
+            <Table size="small" stickyHeader>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Vaca</TableCell>
+                        <TableCell>Quantidade de Leite</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {loading
+                        ? Array(10).fill(<TableLoadingRow colSpan={4} />)
+                        : data.map(item => (
+                            <TableRow>
+                                <TableCell>{item.animalName}</TableCell>
+                                <TableCell align="center">{decimalTransform(item.quantity ?? 0, 1)}</TableCell>
+                            </TableRow>
+                        ))
+                    }
+                </TableBody>
+            </Table>
+        </div>
+        <Button
+            className="ml-auto"
+            variant="text"
+            startIcon={<Add />}
+            onClick={() => setAddMilkEntryOpen(true)}
+        >
+            Marcar Leite
+        </Button>
+        <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen, entryDate: lastDate }} />
+    </DashboardCard>
 }
 
 const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
@@ -526,93 +618,3 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
     </DashboardCard>
 }
 
-const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
-
-    const [data, setData] = useState<LactationGroup[]>([])
-    const [loading, setLoading] = useState(false)
-    const { setPageProps } = useContext(PageContext)
-
-    useEffect(() => {
-        startLoading()
-        setLoading(true)
-        getLastGroups()
-            .then(response => setData(response.json))
-            .catch(() => setData([]))
-            .finally(() => {
-                setLoading(false)
-                stopLoading()
-            })
-    }, [reloadFlag, startLoading, stopLoading])
-
-    return <DashboardCard className="col-span-4">
-        <div className="flex flex-row gap-4">
-            <CardDefaultTitle text="Últimas Marcações" />
-            <Button
-                className="ml-auto"
-                variant="text"
-                startIcon={<ChevronRight />}
-                onClick={() => {
-                    const pageProps: PageProps = {
-                        title: "Histórico de Marcações",
-                        page: <GroupTablePage />,
-                        previousPages: [HomePage, MilkDashboardPage]
-                    }
-                    if (setPageProps) setPageProps(pageProps)
-                }}
-            >
-                Ver Todas
-            </Button>
-        </div>
-        <Table size="small" stickyHeader>
-            <TableHead>
-                <TableRow>
-                    <TableCell />
-                    <TableCell>Data da Marcação</TableCell>
-                    <TableCell>Nº de Animais</TableCell>
-                    <TableCell>Leite Produzido</TableCell>
-                    <TableCell>Média de Produção</TableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {loading
-                    ? Array(10).fill(<TableLoadingRow colSpan={4} />)
-                    : data.map(item => (
-                        <TableRow>
-                            <TableCell>
-                                <EditControlButtons
-                                    onShow={() => {
-                                        const pageProps: PageProps = {
-                                            title: `Marcação - ${dateTransform(item.entryDate)}`,
-                                            page: <GroupEntriesTablePage {...{ entryDate: item.entryDate }} />,
-                                            previousPages: [HomePage, MilkDashboardPage]
-                                        }
-                                        if (setPageProps) setPageProps(pageProps)
-                                    }}
-                                />
-                            </TableCell>
-                            <TableCell>{dateTransform(item.entryDate)}</TableCell>
-                            <TableCell>
-                                <TrendValues
-                                    value={item.animalsNumber}
-                                    trendProps={{ trend: item.numberDifference, noPercentage: true, integer: true }}
-                                />
-                            </TableCell>
-                            <TableCell>
-                                <TrendValues
-                                    value={decimalTransform(item.totalMilk, 1)}
-                                    trendProps={{ trend: item.totalRate }}
-                                />
-                            </TableCell>
-                            <TableCell>
-                                <TrendValues
-                                    value={decimalTransform(item.averageMilk)}
-                                    trendProps={{ trend: item.averageRate }}
-                                />
-                            </TableCell>
-                        </TableRow>
-                    ))
-                }
-            </TableBody>
-        </Table>
-    </DashboardCard>
-}

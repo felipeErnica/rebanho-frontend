@@ -35,6 +35,10 @@ export function getProductionHist() {
     return apiGet(DASHBOARD_BASE + "milk-production")
 }
 
+export function getYearkyMilk() {
+    return apiGet(DASHBOARD_BASE + "yearly-milk")
+}
+
 export function getParentRatings(ratingOption: string) {
     return apiGet(DASHBOARD_BASE + ratingOption)
 }

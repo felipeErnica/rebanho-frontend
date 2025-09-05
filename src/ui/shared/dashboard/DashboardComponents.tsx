@@ -145,12 +145,14 @@ export type CardWithGraphProps = {
 export const CardChartContent = ({ trendProps, data, chart, title, loading }: CardWithGraphProps) => {
     return <>
         <CardDefaultTitle text={title} />
-        <div className="grid grid-flow-row auto-cols-auto auto-rows-auto gap-2">
-            <CardDefaultText loading={loading}>{data}</CardDefaultText>
-            <div className="col-start-2 row-span-2">
+        <div className="flex flex-col gap-2">
+            <div className="flex flex-row gap-4">
+                <CardDefaultText loading={loading}>{data}</CardDefaultText>
+                <TrendComponent {...{ ...trendProps, loading }} />
+            </div>
+            <div>
                 {loading ? <Skeleton className="h-full w-full" animation='wave' variant="rounded" /> : chart}
             </div>
-            <TrendComponent {...{ ...trendProps, loading }} />
         </div>
     </>
 }
