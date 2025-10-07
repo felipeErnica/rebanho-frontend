@@ -133,7 +133,7 @@ const GroupsRow = ({ item, loading }: GroupsRowProps) => {
         <TableBodyCell>
             <TrendValues
                 value={rowData.animalsNumber}
-                trendProps={{ trend: rowData.numberDifference, noPercentage: true, integer: true }}
+                trendProps={{ trend: rowData.numberDifference, text: rowData.numberDifference.toString()}}
             />
         </TableBodyCell>
         <TableBodyCell>
@@ -183,7 +183,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
         <TableBodyCell>
             <TrendValues
                 value={rowData.animalsNumber}
-                trendProps={{ trend: rowData.numberDifference, noPercentage: true, integer: true }}
+                trendProps={{ trend: rowData.numberDifference, text: rowData.numberDifference.toString()}}
             />
         </TableBodyCell>
         <TableBodyCell>
@@ -200,4 +200,3 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
         </TableBodyCell>
     </>
 }
-

@@ -26,11 +26,11 @@ import { BirthTestDashboardPage } from "@/ui/features/reproduction/birth-test/Bi
 import { LossDashboardPage } from "@/ui/features/reproduction/pregnancy-loss/LossPages"
 import { SlaughterTablePage } from "@/ui/features/slaughter-area/slaughter/SlaughterPages"
 import { SlaughterHouseTablePage } from "@/ui/features/slaughter-area/slaughterhouse/SlaughterHousePages"
-import { WeightTablePage } from "@/ui/features/slaughter-area/weight/WeightPages"
 import { HomePage } from "@/ui/features/home/HomePage"
 import { MilkDashboardPage } from "@/ui/features/lactation/LactationPages"
 import { AnimalDashboardPage } from "@/ui/features/animals/AnimalsPage"
 import { FarmPage } from "@/ui/features/farm-area/FarmPage"
+import { WeightMainPage } from "@/ui/features/weight/WeightPages"
 
 export type MenuItem = {
     key: string
@@ -94,12 +94,6 @@ export const buildList = () => {
             icon: <SlaughterhouseIcon />,
             page: SlaughterHouseTablePage
         },
-        {
-            key: 'weight',
-            title: 'Pesagens',
-            icon: <Scale />,
-            page: WeightTablePage
-        },
     ]
 
     const mainList: MenuItem[] = [
@@ -128,8 +122,14 @@ export const buildList = () => {
             collapsedList: reproductionSubMenu
         },
         {
+            key: 'weight',
+            title: 'Pesagens',
+            icon: <Scale />,
+            page: WeightMainPage
+        },
+        {
             key: 'slaughter-weight',
-            title: 'Pesagem e Abate',
+            title: 'Abate',
             icon: <CowIcon />,
             collapsedList: slaughterSubMenu
         },

@@ -3,6 +3,8 @@ import {
     CardDefaultTitle,
     DashboardCard,
     DashboardContainer,
+    DashboardInfoContainer,
+    DashboardTopContainer,
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
 import { DashboardInformationProps, DashboardTopBarProps } from "@/ui/shared/dashboard/Entities"
@@ -31,7 +33,6 @@ import { LineHighlightPlot, LinePlot } from "@mui/x-charts/LineChart"
 import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis"
 import { ChartsYAxis } from "@mui/x-charts/ChartsYAxis"
 import { ChartsTooltip } from "@mui/x-charts/ChartsTooltip"
-import { ChartsLegend } from "@mui/x-charts/ChartsLegend"
 import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight"
 import { Button } from "@mui/material"
 import ChevronRight from "@mui/icons-material/ChevronRight"
@@ -45,7 +46,7 @@ import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
-import { ChartDataProvider, ChartsSurface } from "@mui/x-charts"
+import { ChartDataProvider, ChartsLegend, ChartsSurface } from "@mui/x-charts"
 
 export const LactationDashboard = () => {
 
@@ -66,7 +67,7 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
     const { setPageProps } = useContext(PageContext)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
 
-    return <div className="flex flex-row gap-6">
+    return <DashboardTopContainer>
         <ReloadButton
             variant="text"
             loading={activeRequests > 0}
@@ -87,11 +88,11 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
             Ver Histórico de Marcações
         </Button>
         <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen }} />
-    </div>
+    </DashboardTopContainer>
 }
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-    return <div className="grid grid-flow-row gap-4">
+    return <DashboardInfoContainer className="grid grid-flow-row">
         <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
         <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
         <YearlyMilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
@@ -99,7 +100,7 @@ const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInfor
         <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
         <AnimalsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
         <ParentsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
-    </div>
+    </DashboardInfoContainer>
 }
 
 
@@ -123,63 +124,56 @@ const ProductionChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
 
     return <DashboardCard className="col-span-3 row-span-2">
         <CardDefaultTitle text="Histórico de Produção de Leite" />
-        <ChartDataProvider
-            dataset={dataset}
-            height={350}
-            series={[
-                {
-                    id: "animalsNumber",
-                    label: "Pico de Animais Lactando",
-                    dataKey: "animalsNumber",
-                    type: 'bar',
-                    yAxisId: "totalAxis",
-                    labelMarkType: 'square'
-                },
-                {
-                    id: "totalMilk",
-                    dataKey: "totalMilk",
-                    label: "Produção de Leite",
-                    type: "line",
-                    yAxisId: "rateAxis",
-                    labelMarkType: 'line',
-                    valueFormatter: (value) => decimalTransform(value ?? 0)
-                }
-            ]}
-            xAxis={[{
-                scaleType: 'band',
-                dataKey: "entryDate",
-                valueFormatter: (date: Date) => date.toLocaleString('pt-BR', {
-                    month: 'short',
-                    year: 'numeric'
-                })
-            }]}
-            yAxis={[
-                { id: "totalAxis", position: 'left', min: 0 },
-                { id: "rateAxis", position: 'right', min: 0 }
-            ]}
-        >
-            <ChartsLegend
-                slotProps={{
-                    legend: {
-                        direction: "horizontal",
-                        position: {
-                            horizontal: 'center',
-                            vertical: 'top'
-                        }
+        <div className="flex flex-col items-center">
+            <ChartDataProvider
+                dataset={dataset}
+                height={350}
+                series={[
+                    {
+                        id: "animalsNumber",
+                        label: "Pico de Animais Lactando",
+                        dataKey: "animalsNumber",
+                        type: 'bar',
+                        yAxisId: "totalAxis",
+                        labelMarkType: 'square'
+                    },
+                    {
+                        id: "totalMilk",
+                        dataKey: "totalMilk",
+                        label: "Produção de Leite",
+                        type: "line",
+                        yAxisId: "rateAxis",
+                        labelMarkType: 'line',
+                        valueFormatter: (value) => decimalTransform(value ?? 0)
                     }
-                }}
-            />
-            <ChartsSurface>
-                <BarPlot />
-                <LinePlot />
-                <ChartsAxisHighlight x='line' />
-                <LineHighlightPlot />
-                <ChartsXAxis />
-                <ChartsYAxis axisId="totalAxis" />
-                <ChartsYAxis axisId="rateAxis" />
+                ]}
+                xAxis={[{
+                    scaleType: 'band',
+                    label: "Mês",
+                    dataKey: "entryDate",
+                    valueFormatter: (date: Date) => date.toLocaleString('pt-BR', {
+                        month: 'short',
+                        year: 'numeric'
+                    })
+                }]}
+                yAxis={[
+                    { id: "totalAxis", position: 'left', label: "Nº de Animais", min: 0 },
+                    { id: "rateAxis", position: 'right', label: "Leite Produzido", min: 0 }
+                ]}
+            >
+                <ChartsLegend />
                 <ChartsTooltip />
-            </ChartsSurface>
-        </ChartDataProvider>
+                <ChartsSurface>
+                    <ChartsXAxis />
+                    <ChartsYAxis axisId="totalAxis" />
+                    <ChartsYAxis axisId="rateAxis" />
+                    <BarPlot />
+                    <LinePlot />
+                    <ChartsAxisHighlight x='line' />
+                    <LineHighlightPlot />
+                </ChartsSurface>
+            </ChartDataProvider>
+        </div>
     </DashboardCard>
 
 }
@@ -207,7 +201,7 @@ const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: Dashboard
             })
     }, [defaultValue, reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard>
+    return <DashboardCard className="h-[220]">
         <CardChartContent
             title="Produção de Leite no Mês"
             loading={loading}
@@ -256,7 +250,7 @@ const YearlyMilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: Das
             })
     }, [defaultValue, reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard>
+    return <DashboardCard className="h-[220]">
         <CardChartContent
             title="Produção de Leite no Ano"
             loading={loading}
@@ -299,7 +293,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
 
     return <DashboardCard className="col-span-2">
         <div className="flex flex-row gap-4">
-            <CardDefaultTitle text="Últimas Marcações" />
+            <CardDefaultTitle text="As 10 Últimas Marcações" />
             <Button
                 className="ml-auto"
                 variant="text"
@@ -347,7 +341,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
                             <TableCell>
                                 <TrendValues
                                     value={item.animalsNumber}
-                                    trendProps={{ trend: item.numberDifference, noPercentage: true, integer: true }}
+                                    trendProps={{ trend: item.numberDifference, text: item.numberDifference.toString() }}
                                 />
                             </TableCell>
                             <TableCell>
@@ -398,7 +392,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
 
     return <DashboardCard className="col-span-2 h-[650] overflow-hidden">
         <div className="flex flex-row gap-4">
-            <CardDefaultTitle text={`Última Marcação${lastDate && ' - ' + dateTransform(lastDate)}`} />
+            <CardDefaultTitle text={`Última Marcação de Leite${lastDate && ' - ' + dateTransform(lastDate)}`} />
             <Button
                 className="ml-auto"
                 variant="text"
@@ -450,8 +444,8 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
     const { setPageProps } = useContext(PageContext)
 
     const rankByValues: ComboBoxItem[] = [
-        { name: 'Os Melhores Resultados', value: 'best' },
-        { name: 'Os Piores Resultados', value: 'worst' },
+        { name: 'As Melhores Vacas', value: 'best' },
+        { name: 'As Piores Vacas', value: 'worst' },
     ]
 
     useEffect(() => {
@@ -466,7 +460,7 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
             })
     }, [reloadFlag, startLoading, stopLoading, rankBy])
 
-    return <DashboardCard className="col-span-4">
+    return <DashboardCard className="h-[500] col-span-4">
         <div className="flex flex-row gap-4">
             <ComboBox
                 className="w-[300]"
@@ -561,7 +555,7 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
             })
     }, [reloadFlag, startLoading, stopLoading, rankBy])
 
-    return <DashboardCard className="col-span-4">
+    return <DashboardCard className="h-[500] col-span-4">
         <div className="flex flex-row gap-4">
             <ComboBox
                 className="w-[300]"

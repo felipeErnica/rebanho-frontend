@@ -1,6 +1,6 @@
 export function trendingTransform(value: number) {
-    const decimal = decimalTransform(value)
-    return `${value > 0 ? '+' : ''}${decimal}%`
+    const decimal = percentageTransform(value)
+    return `${value > 0 ? '+' : ''}${decimal}`
 }
 
 export function decimalTransform(value: number, digitNumbers?: number) {

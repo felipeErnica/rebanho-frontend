@@ -1,4 +1,3 @@
-import { decimalTransform } from "@/util/Transformations"
 import TrendingDown from "@mui/icons-material/TrendingDown"
 import TrendingUp from "@mui/icons-material/TrendingUp"
 import HorizontalRule from "@mui/icons-material/HorizontalRule"
@@ -7,14 +6,27 @@ import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 import { ReactNode } from "react"
 import { Skeleton } from "@mui/material"
+import { trendingTransform } from "@/util/Transformations"
 
 type DashboardContainerProps = {
     className?: string
     children?: ReactNode | ReactNode[]
 }
 
+export const DashboardTopContainer = ({ children, className }: DashboardContainerProps) => {
+    return <div className={`p-4 bg-white border border-gray-200 flex flex-row gap-4 ${className}`}>
+        {children}
+    </div>
+}
+
 export const DashboardContainer = ({ className, children }: DashboardContainerProps) => {
-    return <div className={`w-full h-full bg-gray-100 overflow-auto p-4 flex flex-col gap-4 ${className}`}>
+    return <div className={`w-full h-full bg-gray-100 overflow-hidden flex flex-col ${className}`}>
+        {children}
+    </div>
+}
+
+export const DashboardInfoContainer = ({ children, className }: DashboardContainerProps) => {
+    return <div className={`p-4 overflow-auto gap-4 ${className}`}>
         {children}
     </div>
 }
@@ -44,7 +56,10 @@ type DashboardCardProps = {
 }
 
 export const DashboardCard = ({ className, children }: DashboardCardProps) => {
-    return <Card variant="outlined" className={`p-4 flex flex-col gap-4 ${className}`}>
+    return <Card
+        variant="outlined"
+        className={`min-h-[180] p-4 flex flex-col gap-4 ${className}`}
+    >
         {children}
     </Card>
 }
@@ -76,6 +91,7 @@ export const CardDefaultText = ({ children, className, loading }: CardDefaultTex
 
     return <Typography
         variant="h4"
+        fontSize={24}
         className={className}
     >
         {children ?? 0}
@@ -84,21 +100,15 @@ export const CardDefaultText = ({ children, className, loading }: CardDefaultTex
 
 export type TrendComponentProps = {
     trend: number | undefined
+    text?: string
     className?: string
     inverse?: boolean
-    noPercentage?: boolean
-    integer?: boolean
     loading?: boolean
 }
 
-export const TrendComponent = ({ trend, inverse, className, noPercentage, integer, loading }: TrendComponentProps) => {
+export const TrendComponent = ({ trend, text, inverse, className, loading }: TrendComponentProps) => {
 
     if (trend == undefined) return
-
-    const percentage = !noPercentage ? '%' : ''
-    const plus = trend > 0 ? "+" : ''
-    const number = integer ? trend.toString() : decimalTransform(trend)
-    const text = trend ? plus + number + percentage : ''
 
     let textColor: 'success' | 'error' | 'warning'
 
@@ -127,7 +137,7 @@ export const TrendComponent = ({ trend, inverse, className, noPercentage, intege
                 variant="body1"
                 color={textColor}
             >
-                {text}
+                {text ?? trendingTransform(trend)}
             </Typography>
             : <Skeleton variant="text" animation='wave' width={50} />
         }
