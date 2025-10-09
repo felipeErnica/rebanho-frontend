@@ -15,6 +15,12 @@ export type WeightEntry = {
   weightGain: number;
 };
 
+export type WeightFoot = {
+    animalsNumber: number
+    averageWeight: number
+    averageGain: number
+}
+
 export type WeightGroup = {
   entryDate: Date
   animalsNumber: number;

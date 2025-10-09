@@ -5,8 +5,9 @@ import Card from "@mui/material/Card"
 import Paper from "@mui/material/Paper"
 import Typography from "@mui/material/Typography"
 import { ReactNode } from "react"
-import { Skeleton } from "@mui/material"
+import { Skeleton, TableCell, TableRow } from "@mui/material"
 import { trendingTransform } from "@/util/Transformations"
+import { TableLoadingRow } from "../table/TableComponents"
 
 type DashboardContainerProps = {
     className?: string
@@ -26,7 +27,7 @@ export const DashboardContainer = ({ className, children }: DashboardContainerPr
 }
 
 export const DashboardInfoContainer = ({ children, className }: DashboardContainerProps) => {
-    return <div className={`p-4 overflow-auto gap-4 ${className}`}>
+    return <div className={`p-4 overflow-auto ${className}`}>
         {children}
     </div>
 }
@@ -165,4 +166,33 @@ export const CardChartContent = ({ trendProps, data, chart, title, loading }: Ca
             </div>
         </div>
     </>
+}
+
+type LoadingProps = {
+    loading: boolean
+    rowSpan: number
+}
+
+type DashboardTableBodyProps<T> = {
+    dataset: T[]
+    colSpan: number
+    render: (row: T) => ReactNode | ReactNode[]
+    loadingProps?: LoadingProps
+}
+
+export function DashboardTableBody<T>({ dataset, render, loadingProps, colSpan }: DashboardTableBodyProps<T>) {
+
+    if (loadingProps !== undefined && loadingProps.loading) {
+        return Array(loadingProps.rowSpan).fill(<TableLoadingRow colSpan={colSpan} />)
+    }
+
+    if (dataset.length === 0) {
+        return <TableRow>
+            <TableCell colSpan={colSpan}>
+                <Typography align="center" variant="body1">Não há dados disponíveis</Typography>
+            </TableCell>
+        </TableRow>
+    }
+
+    return dataset.map(render)
 }

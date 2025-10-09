@@ -1,3 +1,7 @@
+export function positiveTransform(value: number) {
+    return `${value > 0 ? '+' : ''}${value}`
+}
+
 export function trendingTransform(value: number) {
     const decimal = percentageTransform(value)
     return `${value > 0 ? '+' : ''}${decimal}`

@@ -3,6 +3,16 @@ import TableCell from "@mui/material/TableCell"
 import { ForwardedRef, ReactNode, Ref, RefObject, useRef } from "react"
 import { TrendComponent, TrendComponentProps } from "../dashboard/DashboardComponents"
 
+type TablePageContainerProps = {
+    children: ReactNode | ReactNode[]
+}
+
+export const TablePageContainer = ({ children }: TablePageContainerProps) => {
+    return <div className="w-full h-full flex flex-col overflow-hidden">
+        {children}
+    </div>
+}
+
 type TableHeadRowProps = {
     children?: ReactNode | ReactNode[]
     className?: string

@@ -86,7 +86,7 @@ const AnimalFarmRow = (row: AnimalFarm) => {
     const [isEditing, setEditing] = useState(false)
     const [rowValue, setRowValue] = useState(row)
 
-    if (isEditing) return <AnimalFarmEditRow {...{ setRowValue, setEditing, rowValue }} />
+    if (isEditing) return <AnimalFarmEditRow {...{ setRowData: setRowValue, setEditing, rowData: rowValue }} />
     return <AnimalFarmNormalRow {...{ setEditing, rowValue }} />
 }
 
@@ -109,7 +109,7 @@ const AnimalFarmNormalRow = ({ rowValue, setEditing }: NormalRow<AnimalFarm>) =>
     </>
 }
 
-const AnimalFarmEditRow = ({ rowValue, setEditing, setRowValue }: EditRow<AnimalFarm>) => {
+const AnimalFarmEditRow = ({ rowData: rowValue, setEditing, setRowData: setRowValue }: EditRow<AnimalFarm>) => {
 
     const { handleSubmit, control, setValue } = useForm({ defaultValues: rowValue })
 

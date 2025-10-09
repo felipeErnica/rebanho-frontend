@@ -1,7 +1,7 @@
 export type EditRow<T> = {
-    setEditing: (isEditing: boolean) => void
-    setRowValue: (rowValue: T) => void
-    rowValue: T
+    setEditing: (editing: boolean) => void
+    setRowData: (rowData: T) => void
+    rowData: T
 }
 
 export type NormalRow<T> = {

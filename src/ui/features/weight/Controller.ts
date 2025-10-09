@@ -4,12 +4,12 @@ import { WeightFilter } from "./Entities"
 const WEIGHT_DASHBOARD = "weight/dashboard/"
 const WEIGHT_INFO = "weight/info/"
 
-export function getYearWeightGain() {
-    return apiGet(WEIGHT_DASHBOARD + "year-gain")
+export function getGainHist() {
+    return apiGet(WEIGHT_DASHBOARD + "gain-hist")
 }
 
-export function getYearWeight() {
-    return apiGet(WEIGHT_DASHBOARD + "year-weight")
+export function getWeightHist() {
+    return apiGet(WEIGHT_DASHBOARD + "weight-hist")
 }
 
 export function getLastWeightGain() {
@@ -28,20 +28,20 @@ export function getLastGroups() {
     return apiGet(WEIGHT_DASHBOARD + "last-groups")
 }
 
-export function getBestFathers() {
-    return apiGet(WEIGHT_DASHBOARD + "best-fathers")
-}
-
-export function getBestMothers() {
-    return apiGet(WEIGHT_DASHBOARD + "best-mothers")
+export function getAnimalsRating(rateType: string) {
+    return apiGet(WEIGHT_DASHBOARD + rateType)
 }
 
 export function findGroups() {
     return apiGet(WEIGHT_INFO + "groups")
 }
 
-export function findGroupsByDate(entryDate: Date) {
-    return apiGet(WEIGHT_DASHBOARD + `groups/${entryDate.toISOString()}/entries`)
+export function findEntriesByDate(entryDate: Date) {
+    return apiGet(WEIGHT_INFO + `groups/${entryDate.toISOString()}/entries`)
+}
+
+export function findEntriesFootByDate(entryDate: Date) {
+    return apiGet(WEIGHT_INFO + `groups/${entryDate.toISOString()}/entries/foot`)
 }
 
 export function findEntriesPage(
@@ -52,4 +52,8 @@ export function findEntriesPage(
 ) {
     const pageQuery = buildPageCall(sort, order, cursor)
     return apiPost(WEIGHT_INFO + `entries/${pageQuery}`, filter)
+}
+
+export function getEntriesPageFoot(filter: WeightFilter) {
+    return apiPost(WEIGHT_INFO + `entries/page/foot`, filter)
 }
