@@ -51,7 +51,9 @@ export const WeightEntriesTable = () => {
         return findEntriesPage(filter, sort, order, cursor)
     }, [filter, sort, order])
 
-    const { rows, fetchNextPage, onReload, scrollRef } = usePagination<WeightEntry>({ fetchPage, setLoading })
+    const { rows, fetchNextPage, scrollRef } = usePagination<WeightEntry>({ fetchPage, setLoading })
+
+    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
         { name: "Data de Pesagem", value: defaultSort },
@@ -108,17 +110,19 @@ const EntriesTable = ({ rows, fetchNextPage, loading, scrollRef, foot }: Entries
 
             return <TableHeadRow>
                 <VirtuosoHeadCell width={unit * 10} />
-                <VirtuosoResizeHeadCell width={unit * 20}>Animal</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Data da Pesagem</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 10}>Peso</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 20}>Ganho de Peso Diário (kg/dia)</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Varição de Peso</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Animal</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Mãe</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Pai</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Data da Pesagem</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Peso</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Ganho de Peso Diário (kg/dia)</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 10}>Varição de Peso</VirtuosoResizeHeadCell>
             </TableHeadRow>
 
         }}
         fixedFooterContent={() => (
             <TableFooterRow>
-                <TableFooterCell colSpan={3}>
+                <TableFooterCell colSpan={5}>
                     <FooterContent title="Total" content={foot.animalsNumber} />
                 </TableFooterCell>
                 <TableFooterCell colSpan={1}>
@@ -147,7 +151,9 @@ const EntriesRow = ({ loading, item }: EntriesRowProps) => {
     const [editing, setEditing] = useState(false)
     const [rowData, setRowData] = useState<WeightEntry>(item)
 
-    if (loading) return <TableLoadingCells colSpan={6} />
+    useEffect(() => setRowData(item), [item])
+
+    if (loading) return <TableLoadingCells colSpan={8} />
     if (editing) return <EntriesEditingRow {...{ setEditing, rowData, setRowData }} />
 
     const onDelete = () => {
@@ -159,8 +165,10 @@ const EntriesRow = ({ loading, item }: EntriesRowProps) => {
             <EditControlButtons {...{ setEditing, onDelete }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.motherName}</TableBodyCell>
+        <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             {`${decimalTransform(rowData.weight)} (${decimalTransform(rowData.weight / 15)}@)`}
         </TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.weightGain)}</TableBodyCell>
@@ -189,13 +197,15 @@ const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRow<WeightEn
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.motherName}</TableBodyCell>
+        <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell>
             <FormDatePicker formProps={{ control, name: "entryDate" }} />
         </TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: "weight" }} type="number" />
         </TableBodyCell>
-        <TableBodyCell>{rowData.weightGain}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.weightGain)}</TableBodyCell>
         <TableBodyCell>
             <TrendComponent
                 trend={rowData.weightVariation}

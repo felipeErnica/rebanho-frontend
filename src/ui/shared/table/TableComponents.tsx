@@ -3,6 +3,41 @@ import TableCell from "@mui/material/TableCell"
 import { ForwardedRef, ReactNode, Ref, RefObject, useRef } from "react"
 import { TrendComponent, TrendComponentProps } from "../dashboard/DashboardComponents"
 
+type NoDataPlaceholderProps = {
+    colSpan: number
+}
+
+export const NoDataPlaceholder = ({ colSpan }: NoDataPlaceholderProps) => {
+    return <TableRow>
+        <TableCell height={'100%'} colSpan={colSpan}>
+            <Typography align="center" variant="body1">Não há dados disponíveis</Typography>
+        </TableCell>
+    </TableRow>
+}
+
+type LoadingProps = {
+    loading: boolean
+    rowSpan: number
+}
+
+type TableBodyContainerProps<T> = {
+    dataset: T[]
+    colSpan: number
+    render: (row: T) => ReactNode | ReactNode[]
+    loadingProps?: LoadingProps
+}
+
+export function TableBodyContainer<T>({ dataset, render, loadingProps, colSpan }: TableBodyContainerProps<T>) {
+
+    if (loadingProps !== undefined && loadingProps.loading) {
+        return Array(loadingProps.rowSpan).fill(<TableLoadingRow colSpan={colSpan} />)
+    }
+
+    if (dataset.length === 0) return <NoDataPlaceholder {...{ colSpan }} />
+        
+
+    return dataset.map(render)
+}
 type TablePageContainerProps = {
     children: ReactNode | ReactNode[]
 }
@@ -29,13 +64,15 @@ type CommonTableHeadProps = {
     className?: string
     colSpan?: number
     width?: number | string
+    align?: 'left' | 'right' | 'center' | 'justify'
 }
 
-export const TableHeadCell = ({ children, colSpan, className, width }: CommonTableHeadProps) => {
+export const TableHeadCell = ({ children, colSpan, className, width, align }: CommonTableHeadProps) => {
     return <TableCell
         className={`bg-gray-700 border-none text-white ${className}`}
         colSpan={colSpan}
         sx={{ width }}
+        align={align}
     >
         {children}
     </TableCell>
@@ -46,9 +83,10 @@ type ResizableTableHeadCellProps = {
     className?: string
     colSpan?: number
     width?: string | number
+    align?: 'left' | 'right' | 'center' | 'justify'
 }
 
-export const ResizableHeadCell = ({ children, colSpan, className, width }: ResizableTableHeadCellProps) => {
+export const ResizableHeadCell = ({ children, colSpan, className, width, align }: ResizableTableHeadCellProps) => {
 
     const handlerRef = useRef<HTMLDivElement>(null)
 
@@ -81,6 +119,7 @@ export const ResizableHeadCell = ({ children, colSpan, className, width }: Resiz
         }
         sx={{ width, minWidth: width ?? 80 }}
         colSpan={colSpan}
+        align={align}
     >
         <span>{children}</span>
         <div

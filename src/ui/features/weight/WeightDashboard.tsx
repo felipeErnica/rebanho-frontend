@@ -42,7 +42,10 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
-import { WeightEntriesPage } from "./WeightPages"
+import { WeightEntriesPage, WeightGroupsPage, WeightMainPage } from "./WeightPages"
+import { PageProps } from "@/ui/shared/main-page/PageDisplay"
+import { WeightGroupEntriesTable } from "./WeightGroupEntriesTable"
+import { HomePage } from "../home/HomePage"
 
 export const WeightDashboard = () => {
 
@@ -67,7 +70,7 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
             onReload={() => setReloadFlag(prev => prev + 1)}
             loading={activeRequests > 0}
         />
-        <Button 
+        <Button
             className="ml-auto"
             startIcon={<ChevronRight />}
             onClick={() => setPageProps && setPageProps(WeightEntriesPage)}
@@ -211,10 +214,10 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             })
     }, [startLoading, stopLoading, reloadFlag])
 
-    return <DashboardCard className="col-start-3 row-span-2 h-[550]">
+    return <DashboardCard className="col-start-3 row-span-2 h-[650]">
         <CardDefaultTitle text={`Última Marcação de Peso - ${lastDate}`} />
         <div className="overflow-auto">
-            <Table size="small" stickyHeader>
+            <Table stickyHeader size="small">
                 <TableHead>
                     <TableRow>
                         <TableCell />
@@ -250,7 +253,7 @@ const LastEntriesRow = ({ row }: LastEntriesRowProps) => {
 
     const onDelete = useCallback(() => console.log(data.id), [])
 
-    if (editing) return <EditingLastEntriesRow {...{setEditing, setData, data}} />
+    if (editing) return <EditingLastEntriesRow {...{ setEditing, setData, data }} />
 
     return <TableRow>
         <TableCell>
@@ -291,11 +294,11 @@ const EditingLastEntriesRow = ({ setEditing, data, setData }: EditingLastEntries
 
     return <TableRow>
         <TableCell>
-            <EditingControlButtons {...{setEditing, onSave }} />
+            <EditingControlButtons {...{ setEditing, onSave }} />
         </TableCell>
         <TableCell>{data.animalName}</TableCell>
         <TableCell>
-            <FormTextField 
+            <FormTextField
                 formProps={{
                     control,
                     name: 'weight'
@@ -319,6 +322,8 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
     const [results, setResults] = useState<WeightGroup[]>([])
     const [loading, setLoading] = useState(false)
 
+    const { setPageProps } = useContext(PageContext)
+
     useEffect(() => {
         setLoading(true)
         startLoading()
@@ -333,42 +338,63 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
 
     return <DashboardCard className="col-start-1 col-span-2">
         <CardDefaultTitle text="As 5 Últimas Marcações" />
-        <div className="overflow-auto">
-            <Table stickyHeader size="small">
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Data</TableCell>
-                        <TableCell>Nº de Animais</TableCell>
-                        <TableCell align="center">Peso</TableCell>
-                        <TableCell align="center">Ganho de Peso (Kg/dia)</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    <DashboardTableBody
-                        colSpan={4}
-                        loadingProps={{ loading, rowSpan: 5 }}
-                        dataset={results}
-                        render={row => (
-                            <TableRow>
-                                <TableCell>{dateTransform(row.entryDate)}</TableCell>
-                                <TableCell>{row.animalsNumber}</TableCell>
-                                <TableCell>
-                                    <TrendValues
-                                        value={decimalTransform(row.averageWeight)}
-                                        trendProps={{ trend: row.weightVariation }}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <TrendValues
-                                        value={decimalTransform(row.averageGain)}
-                                        trendProps={{ trend: row.gainVariation }}
-                                    />
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    />
-                </TableBody>
-            </Table>
+        <Table stickyHeader size="small">
+            <TableHead>
+                <TableRow>
+                    <TableCell />
+                    <TableCell>Data</TableCell>
+                    <TableCell>Nº de Animais</TableCell>
+                    <TableCell align="center">Peso</TableCell>
+                    <TableCell align="center">Ganho de Peso (Kg/dia)</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                <DashboardTableBody
+                    colSpan={5}
+                    loadingProps={{ loading, rowSpan: 5 }}
+                    dataset={results}
+                    render={row => (
+                        <TableRow>
+                            <TableCell>
+                                <EditControlButtons
+                                    onShow={() => {
+                                        const entryDate = new Date(row.entryDate)
+                                        const dateStr = entryDate.toLocaleDateString("pt-BR", { dateStyle: 'short' })
+                                        const newPage: PageProps = {
+                                            title: `Marcações de Peso - ${dateStr}`,
+                                            page: <WeightGroupEntriesTable {...{entryDate}} />,
+                                            previousPages: [HomePage, WeightMainPage]
+                                        }
+                                        if (setPageProps) setPageProps(newPage)
+                                    }}
+                                />
+                            </TableCell>
+                            <TableCell>{dateTransform(row.entryDate)}</TableCell>
+                            <TableCell>{row.animalsNumber}</TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={decimalTransform(row.averageWeight)}
+                                    trendProps={{ trend: row.weightVariation }}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={decimalTransform(row.averageGain)}
+                                    trendProps={{ trend: row.gainVariation }}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    )}
+                />
+            </TableBody>
+        </Table>
+        <div className="flex flex-row-reverse">
+            <Button
+                endIcon={<ChevronRight />}
+                onClick={() => setPageProps && setPageProps(WeightGroupsPage)}
+            >
+                Ver Mais...
+            </Button>
         </div>
     </DashboardCard>
 }

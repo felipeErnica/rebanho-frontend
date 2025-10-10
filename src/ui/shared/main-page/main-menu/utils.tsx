@@ -4,13 +4,11 @@ import {
     BirthTestIcon,
     CalfIcon,
     CowHeadIcon,
-    CowIcon,
     EmbryoIcon,
     InseminationIcon,
     LactationIcon,
     PregnancyLossIcon,
     ReproductionIcon,
-    SlaughterhouseIcon,
     SlaughterIcon,
     FarmMainIcon,
     BullIcon
@@ -24,13 +22,12 @@ import { NaturalMatingTablePage } from "@/ui/features/reproduction/natural-repro
 import { EmbryoTablePage } from "@/ui/features/reproduction/embryo-transfer/EmbryoTransferPages"
 import { BirthTestDashboardPage } from "@/ui/features/reproduction/birth-test/BirthTestPages"
 import { LossDashboardPage } from "@/ui/features/reproduction/pregnancy-loss/LossPages"
-import { SlaughterTablePage } from "@/ui/features/slaughter-area/slaughter/SlaughterPages"
-import { SlaughterHouseTablePage } from "@/ui/features/slaughter-area/slaughterhouse/SlaughterHousePages"
 import { HomePage } from "@/ui/features/home/HomePage"
 import { MilkDashboardPage } from "@/ui/features/lactation/LactationPages"
 import { AnimalDashboardPage } from "@/ui/features/animals/AnimalsPage"
 import { FarmPage } from "@/ui/features/farm-area/FarmPage"
 import { WeightMainPage } from "@/ui/features/weight/WeightPages"
+import { SlaughterMainPage } from "@/ui/features/slaughter/SlaughterPages"
 
 export type MenuItem = {
     key: string
@@ -81,21 +78,6 @@ export const buildList = () => {
         },
     ]
 
-    const slaughterSubMenu: MenuItem[] = [
-        {
-            key: 'slaughter',
-            title: 'Abates',
-            icon: <SlaughterIcon />,
-            page: SlaughterTablePage
-        },
-        {
-            key: 'slaughterhouse',
-            title: 'Frigoríficos Registrados',
-            icon: <SlaughterhouseIcon />,
-            page: SlaughterHouseTablePage
-        },
-    ]
-
     const mainList: MenuItem[] = [
         {
             key: 'home',
@@ -130,8 +112,8 @@ export const buildList = () => {
         {
             key: 'slaughter-weight',
             title: 'Abate',
-            icon: <CowIcon />,
-            collapsedList: slaughterSubMenu
+            icon: <SlaughterIcon />,
+            page: SlaughterMainPage
         },
         {
             key: 'lactation-area',

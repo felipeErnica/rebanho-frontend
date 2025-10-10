@@ -32,15 +32,19 @@ export function getAnimalsRating(rateType: string) {
     return apiGet(WEIGHT_DASHBOARD + rateType)
 }
 
-export function findGroups() {
-    return apiGet(WEIGHT_INFO + "groups")
+export function findGroups(order: string) {
+    return apiGet(WEIGHT_INFO + `groups?order=${order}`)
 }
 
-export function findEntriesByDate(entryDate: Date) {
-    return apiGet(WEIGHT_INFO + `groups/${entryDate.toISOString()}/entries`)
+export function findEntriesByDate(
+    entryDate: Date, 
+    order: string, 
+    sort: string
+) {
+    return apiGet(WEIGHT_INFO + `groups/${entryDate.toISOString()}/entries?order=${order}&sort=${sort}`)
 }
 
-export function findEntriesFootByDate(entryDate: Date) {
+export function getEntriesFootByDate(entryDate: Date) {
     return apiGet(WEIGHT_INFO + `groups/${entryDate.toISOString()}/entries/foot`)
 }
 

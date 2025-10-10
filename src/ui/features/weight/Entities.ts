@@ -1,6 +1,8 @@
 export type WeightFilter = {
     isFiltered: boolean
     animals?: string[]
+    mothers?: string[]
+    fathers?: string[]
     minEntryDate?: Date
     maxEntryDate?: Date
 }
@@ -9,6 +11,8 @@ export type WeightEntry = {
   id: string;
   animalId: string;
   animalName: string;
+  fatherName?: string;
+  motherName?: string;
   entryDate: Date;  
   weight: number;
   weightVariation: number;
