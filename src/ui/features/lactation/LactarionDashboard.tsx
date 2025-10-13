@@ -4,6 +4,7 @@ import {
     DashboardCard,
     DashboardContainer,
     DashboardInfoContainer,
+    DashboardTableBody,
     DashboardTopContainer,
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
@@ -27,7 +28,7 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
-import { TableLoadingRow, TrendValues } from "@/ui/shared/table/TableComponents"
+import { TrendValues } from "@/ui/shared/table/TableComponents"
 import { BarPlot } from "@mui/x-charts/BarChart"
 import { LineHighlightPlot, LinePlot } from "@mui/x-charts/LineChart"
 import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis"
@@ -92,7 +93,7 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
 }
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-    return <DashboardInfoContainer className="grid grid-flow-row">
+    return <DashboardInfoContainer className="grid grid-flow-row gap-4">
         <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
         <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
         <YearlyMilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
@@ -321,9 +322,11 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
                 </TableRow>
             </TableHead>
             <TableBody>
-                {loading
-                    ? Array(10).fill(<TableLoadingRow colSpan={4} />)
-                    : data.map(item => (
+                <DashboardTableBody
+                    colSpan={5}
+                    dataset={data}
+                    loadingProps={{ loading, rowSpan: 10 }}
+                    render={item => (
                         <TableRow>
                             <TableCell>
                                 <EditControlButtons
@@ -357,8 +360,8 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
                                 />
                             </TableCell>
                         </TableRow>
-                    ))
-                }
+                    )}
+                />
             </TableBody>
         </Table>
     </DashboardCard>
@@ -411,16 +414,18 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {loading
-                        ? Array(10).fill(<TableLoadingRow colSpan={4} />)
-                        : data.map(item => (
+                    <DashboardTableBody
+                        colSpan={3}
+                        loadingProps={{ loading, rowSpan: 20 }}
+                        dataset={data}
+                        render={item => (
                             <TableRow>
                                 <TableCell>{item.animalName}</TableCell>
                                 <TableCell>{item.pastureName}</TableCell>
                                 <TableCell align="center">{decimalTransform(item.quantity ?? 0, 1)}</TableCell>
                             </TableRow>
-                        ))
-                    }
+                        )}
+                    />
                 </TableBody>
             </Table>
         </div>
@@ -491,9 +496,11 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 </TableRow>
             </TableHead>
             <TableBody>
-                {loading
-                    ? Array(10).fill(<TableLoadingRow colSpan={4} />)
-                    : data.map(item => (
+                <DashboardTableBody
+                    colSpan={6}
+                    loadingProps={{ loading, rowSpan: 10 }}
+                    dataset={data}
+                    render={item => (
                         <TableRow>
                             <TableCell>{item.animalName}</TableCell>
                             <TableCell align="center">{item.lacNum}</TableCell>
@@ -522,8 +529,8 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                                 </div>
                             </TableCell>
                         </TableRow>
-                    ))
-                }
+                    )}
+                />
             </TableBody>
         </Table>
     </DashboardCard>
@@ -562,7 +569,7 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 variant="standard"
                 size="small"
                 value={rankBy}
-                onChange={(value) => setRankBy(value ?? 'worst')}
+                onChange={(value) => setRankBy(value ?? 'worst-fathers')}
                 items={rankByValues}
             />
             <Button
@@ -586,9 +593,11 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 </TableRow>
             </TableHead>
             <TableBody>
-                {loading
-                    ? Array(10).fill(<TableLoadingRow colSpan={4} />)
-                    : data.map(item => (
+                <DashboardTableBody
+                    dataset={data}
+                    loadingProps={{ loading, rowSpan: 10 }}
+                    colSpan={6}
+                    render={item => (
                         <TableRow>
                             <TableCell>{item.parentName}</TableCell>
                             <TableCell>
@@ -622,8 +631,9 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                                 </div>
                             </TableCell>
                         </TableRow>
-                    ))
-                }
+                    )}
+
+                />
             </TableBody>
         </Table>
     </DashboardCard>

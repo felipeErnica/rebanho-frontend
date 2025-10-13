@@ -2,8 +2,10 @@ export type SlaughterEntry = {
     id: string;
     animalId?: string;
     animalName?: string;
-    entryDate?: Date;
-    discountRate?: number;
+    fatherName?: string;
+    motherName?: string;
+    entryDate: Date;
+    discountRate: number;
     slaughterhouseId: string;
     slaughterhouse: string;
     weight: number;
@@ -12,9 +14,19 @@ export type SlaughterEntry = {
     performanceRate: number;
 };
 
+export type SlaughterFoot = {
+    animalsNumber: number;
+    averageWeight: number;
+    averageDeadWeight: number;
+    averageRate: number;
+};
+
 export type SlaughterEntryFilter = {
     isFiltered: boolean;
-    animalId?: string[];
+    animals?: string[];
+    fathers?: string[];
+    mothers?: string[];
+    slaughterhouses?: string[];
     minAnimalBirth?: Date;
     maxAnimalBirth?: Date;
     minEntryDate?: Date;
@@ -26,7 +38,7 @@ export type SlaughterEntryFilter = {
 };
 
 export type SlaughterGroup = {
-    entryDate: Date; 
+    entryDate: Date;
     slaughterhouse: string;
     animalsNumber: number;
     averageWeight: number;
@@ -51,16 +63,21 @@ export type AverageWeightHist = {
     averageWeight: number;
 };
 
-export type AverageWeightCard = {
+export type WeightCardEntry = {
     current: number;
     trend: number;
     hist: AverageWeightHist[];
 };
 
-export type SlaughterHist = {
+export type WeightHist = {
     entryDate: Date;
-    averageWeight: number;
-    performanceRate: number;
+    weight: number;
+    deadWeight: number;
+};
+
+export type RateHist = {
+    entryDate: Date;
+    averageRate: number;
 };
 
 export type TableRatings = {

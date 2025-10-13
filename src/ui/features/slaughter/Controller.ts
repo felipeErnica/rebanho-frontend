@@ -4,6 +4,11 @@ import { SlaughterEntryFilter } from "./Entities"
 const SLAUGHTER_DASHBOARD = 'slaughter/dashboard/'
 const SLAUGHTER_INFO = 'slaughter/info/'
 
+
+export function getLastDeadWeight() {
+    return apiGet(SLAUGHTER_DASHBOARD + "last-dead-weight")
+}
+
 export function getLastAverageWeight() {
     return apiGet(SLAUGHTER_DASHBOARD + "last-weight")
 }
@@ -12,28 +17,24 @@ export function getLastPerformance() {
     return apiGet(SLAUGHTER_DASHBOARD + "last-performance")
 }
 
-export function getSlaughterGraph() {
-    return apiGet(SLAUGHTER_DASHBOARD + "slaughter-graph")
+export function getWeightHist() {
+    return apiGet(SLAUGHTER_DASHBOARD + "weight-hist")
 }
 
-export function getBestFathers() {
-    return apiGet(SLAUGHTER_DASHBOARD + "best-fathers")
+export function getRateHist() {
+    return apiGet(SLAUGHTER_DASHBOARD + "rate-hist")
 }
 
-export function getBestMothers() {
-    return apiGet(SLAUGHTER_DASHBOARD + "best-mothers")
-}
-
-export function getBestSlaughterhouses() {
-    return apiGet(SLAUGHTER_DASHBOARD + "best-slaughterhouses")
+export function getBestRatings(rating: string) {
+    return apiGet(SLAUGHTER_DASHBOARD + rating)
 }
 
 export function getLastEntries() {
     return apiGet(SLAUGHTER_DASHBOARD + "last-entries")
 }
 
-export function getLastGroup() {
-    return apiGet(SLAUGHTER_DASHBOARD + "last-group")
+export function getLastGroups() {
+    return apiGet(SLAUGHTER_DASHBOARD + "last-groups")
 }
 
 export function findEntriesPage(
@@ -43,7 +44,11 @@ export function findEntriesPage(
     cursor?: string,
 ) {
     const pageCall = buildPageCall(sort, order, cursor)
-    return apiPost(SLAUGHTER_INFO + `entries/page${pageCall}`, filter)
+    return apiPost(SLAUGHTER_INFO + `entries/${pageCall}`, filter)
+}
+
+export function getEntriesPageFoot(filter: SlaughterEntryFilter) {
+    return apiPost(SLAUGHTER_INFO + "entries/page/foot", filter)
 }
 
 export function findGroups() {
