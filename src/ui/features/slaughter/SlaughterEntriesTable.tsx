@@ -14,7 +14,7 @@ import { SlaughterEntry, SlaughterEntryFilter, SlaughterFoot } from "./Entities"
 import { RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
-import { findEntriesPage, getEntriesPageFoot } from "./Controller"
+import { findEntriesPage, getEntriesPageFoot, searchSlaughterhouses } from "./Controller"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { SlaughterFilterPopover } from "./SlaughterFilterPopover"
 import { dateTransform, decimalTransform, percentageTransform } from "@/util/Transformations"
@@ -23,6 +23,7 @@ import { EditRow } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
+import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 
 export const SlaughterEntriesTable = () => {
 
@@ -179,7 +180,7 @@ const EntriesRow = ({ loading, item }: EntriesRowProps) => {
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell align="center">{rowData.slaughterhouse}</TableBodyCell>
-        <TableBodyCell align="center">{percentageTransform(rowData.performanceRate)}</TableBodyCell>
+        <TableBodyCell align="center">{percentageTransform(rowData.discountRate)}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
         <TableBodyCell align="center">
             {`${decimalTransform(rowData.weight)} (${decimalTransform(rowData.weight / 15)}@)`}
@@ -212,8 +213,15 @@ const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRow<Slaughte
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
-        <TableBodyCell>{rowData.slaughterhouse}</TableBodyCell>
-        <TableBodyCell>{rowData.discountRate}</TableBodyCell>
+        <TableBodyCell>
+            <FormSearchBox
+                formProps={{ control, name: 'slaughterhouseId' }}
+                searchOptions={searchSlaughterhouses}
+            />
+        </TableBodyCell>
+        <TableBodyCell>
+            <FormTextField formProps={{ control, name: 'discountRate' }} type="number" />
+        </TableBodyCell>
         <TableBodyCell>
             <FormDatePicker formProps={{ control, name: "entryDate" }} />
         </TableBodyCell>

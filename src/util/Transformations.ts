@@ -8,8 +8,7 @@ export function trendingTransform(value: number) {
 }
 
 export function decimalTransform(value: any, digitNumbers?: number) {
-    if (value === null) return "0"
-    if (!value) return value.toString()
+    if (value === null || !value) return "0"
     const formatter = new Intl.NumberFormat("pt-BR", {
         maximumFractionDigits: digitNumbers || 2,
         minimumFractionDigits: digitNumbers || 2,
@@ -18,8 +17,7 @@ export function decimalTransform(value: any, digitNumbers?: number) {
 }
 
 export function percentageTransform(value: number | null) {
-    if (value === null) return "0%"
-    if (!value) return value.toString()
+    if (value === null || !value) return "0%"
     const formatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 })
     return formatter.format(value) + '%'
 }

@@ -43,6 +43,8 @@ export type SlaughterGroup = {
     animalsNumber: number;
     averageWeight: number;
     weightVariation: number;
+    averageDeadWeight: number;
+    deadWeightVariation: number;
     averageRate: number;
     rateVariation: number;
 };

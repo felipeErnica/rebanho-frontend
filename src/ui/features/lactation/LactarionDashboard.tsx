@@ -93,14 +93,16 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
 }
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-    return <DashboardInfoContainer className="grid grid-flow-row gap-4">
-        <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
-        <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
-        <YearlyMilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
-        <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
-        <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
-        <AnimalsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
-        <ParentsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
+    return <DashboardInfoContainer className="flex flex-col gap-4">
+        <div className="grid grid-flow-row gap-4">
+            <ProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
+            <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
+            <YearlyMilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
+            <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <AnimalsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <ParentsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
+        </div>
     </DashboardInfoContainer>
 }
 

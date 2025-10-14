@@ -83,15 +83,15 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
 
 const DashboardInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid gap-4 grid-cols-[320_320_1fr] grid-rows-[180_1fr]">
+        <div className="grid gap-4 grid-cols-[420_420_1fr] grid-rows-[180_400]">
             <LastWeightCard {...{ startLoading, stopLoading, reloadFlag }} />
             <LastGainCard {...{ startLoading, stopLoading, reloadFlag }} />
+            <BestAnimalsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
-            <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
         <div className="grid grid-cols-[800_1fr] gap-4">
             <GainHistChart {...{ startLoading, stopLoading, reloadFlag }} />
-            <BestAnimalsTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <WeightHistChart {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
     </DashboardInfoContainer>
@@ -188,6 +188,69 @@ const LastGainCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInform
     </DashboardCard>
 }
 
+const BestAnimalsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const [rows, setRows] = useState<AnimalRating[]>([])
+    const [loading, setLoading] = useState(false)
+    const [rateType, setRateType] = useState('best-fathers')
+
+    const rateItems: ComboBoxItem[] = [
+        { name: "Os Melhores Pais", value: "best-fathers" },
+        { name: "As Melhores Mães", value: "best-mothers" },
+    ]
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getAnimalsRating(rateType)
+            .then(results => setRows(results.json))
+            .catch(() => setRows([]))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [startLoading, stopLoading, reloadFlag, rateType])
+
+    return <DashboardCard className="row-span-2">
+        <ComboBox
+            className="w-[300]"
+            variant="standard"
+            size="small"
+            value={rateType}
+            items={rateItems}
+            onChange={(value) => setRateType(value || 'best-fathers')}
+        />
+        <Table size="small">
+            <TableHead>
+                <TableRow>
+                    <TableCell>Nome</TableCell>
+                    <TableCell align="center">Nº de Crias</TableCell>
+                    <TableCell>Ganho de Peso Diário Médio (kg/Dia)</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                <DashboardTableBody
+                    dataset={rows}
+                    colSpan={3}
+                    loadingProps={{ loading, rowSpan: 10 }}
+                    render={item => (
+                        <TableRow>
+                            <TableCell>{item.animalName}</TableCell>
+                            <TableCell align="center">{item.childrenNumber}</TableCell>
+                            <TableCell>
+                                <TrendValues
+                                    value={decimalTransform(item.averageGain)}
+                                    trendProps={{ trend: item.gainTrend }}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    )}
+                />
+            </TableBody>
+        </Table>
+    </DashboardCard>
+}
+
 const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
     const [results, setResults] = useState<WeightEntry[]>([])
@@ -214,7 +277,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             })
     }, [startLoading, stopLoading, reloadFlag])
 
-    return <DashboardCard className="col-start-3 row-span-2 h-[650]">
+    return <DashboardCard className="col-span-2">
         <CardDefaultTitle text={`Última Marcação de Peso - ${lastDate}`} />
         <div className="overflow-auto">
             <Table stickyHeader size="small">
@@ -317,6 +380,56 @@ const EditingLastEntriesRow = ({ setEditing, data, setData }: EditingLastEntries
 
 }
 
+const GainHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const [dataset, setDataset] = useState<AverageWeightGain[]>([])
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getGainHist()
+            .then(results => setDataset(results.json))
+            .catch(() => setDataset([]))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [startLoading, stopLoading, reloadFlag])
+
+    return <DashboardCard>
+        <CardDefaultTitle text="Histórico de Ganho de Peso" />
+        <LineChart
+            height={250}
+            loading={loading}
+            localeText={{
+                loading: LOADING_MSG,
+                noData: NO_DATA_AVAILABLE
+            }}
+            series={[{
+                id: "gain",
+                data: dataset.map(item => item.averageGain),
+                valueFormatter: (value) => decimalTransform(value || 0),
+                label: "Ganho de Peso Médio (Kg/dia)",
+                curve: "linear",
+                showMark: false,
+                area: true,
+            }]}
+            xAxis={[{
+                id: "dateAxis",
+                data: dataset.map(item => new Date(item.entryDate)),
+                label: "Data",
+                scaleType: 'time',
+                domainLimit: 'strict',
+                valueFormatter: (value: Date) => value.toLocaleString("pt-BR", {
+                    month: 'short',
+                    year: 'numeric'
+                })
+            }]}
+        />
+    </DashboardCard>
+}
+
 const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
     const [results, setResults] = useState<WeightGroup[]>([])
@@ -336,7 +449,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
             })
     }, [startLoading, stopLoading, reloadFlag])
 
-    return <DashboardCard className="col-start-1 col-span-2">
+    return <DashboardCard className="row-span-2">
         <CardDefaultTitle text="As 5 Últimas Marcações" />
         <Table stickyHeader size="small">
             <TableHead>
@@ -399,118 +512,6 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
     </DashboardCard>
 }
 
-const GainHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-
-    const [dataset, setDataset] = useState<AverageWeightGain[]>([])
-    const [loading, setLoading] = useState(false)
-
-    useEffect(() => {
-        startLoading()
-        setLoading(true)
-        getGainHist()
-            .then(results => setDataset(results.json))
-            .catch(() => setDataset([]))
-            .finally(() => {
-                setLoading(false)
-                stopLoading()
-            })
-    }, [startLoading, stopLoading, reloadFlag])
-
-    return <DashboardCard>
-        <CardDefaultTitle text="Histórico de Ganho de Peso" />
-        <LineChart
-            height={250}
-            loading={loading}
-            localeText={{
-                loading: LOADING_MSG,
-                noData: NO_DATA_AVAILABLE
-            }}
-            series={[{
-                id: "gain",
-                data: dataset.map(item => item.averageGain),
-                valueFormatter: (value) => decimalTransform(value || 0),
-                label: "Ganho de Peso Médio (Kg/dia)",
-                curve: "natural",
-                showMark: false,
-                area: true,
-            }]}
-            xAxis={[{
-                id: "dateAxis",
-                data: dataset.map(item => new Date(item.entryDate)),
-                label: "Data",
-                scaleType: 'time',
-                valueFormatter: (value: Date) => value.toLocaleString("pt-BR", {
-                    month: 'short',
-                    year: 'numeric'
-                })
-            }]}
-        />
-    </DashboardCard>
-}
-
-const BestAnimalsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-
-    const [rows, setRows] = useState<AnimalRating[]>([])
-    const [loading, setLoading] = useState(false)
-    const [rateType, setRateType] = useState('best-fathers')
-
-    const rateItems: ComboBoxItem[] = [
-        { name: "Os Melhores Pais", value: "best-fathers" },
-        { name: "As Melhores Mães", value: "best-mothers" },
-    ]
-
-    useEffect(() => {
-        startLoading()
-        setLoading(true)
-        getAnimalsRating(rateType)
-            .then(results => setRows(results.json))
-            .catch(() => setRows([]))
-            .finally(() => {
-                setLoading(false)
-                stopLoading()
-            })
-    }, [startLoading, stopLoading, reloadFlag, rateType])
-
-    return <DashboardCard className="row-span-2">
-        <ComboBox
-            className="w-[300]"
-            variant="standard"
-            size="small"
-            value={rateType}
-            items={rateItems}
-            onChange={(value) => setRateType(value || 'best-fathers')}
-        />
-        <Table size="small">
-            <TableHead>
-                <TableRow>
-                    <TableCell>Nome</TableCell>
-                    <TableCell align="center">Nº de Crias</TableCell>
-                    <TableCell>Ganho de Peso Diário Médio (kg/Dia)</TableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                <DashboardTableBody
-                    dataset={rows}
-                    colSpan={3}
-                    loadingProps={{ loading, rowSpan: 10 }}
-                    render={item => (
-                        <TableRow>
-                            <TableCell>{item.animalName}</TableCell>
-                            <TableCell align="center">{item.childrenNumber}</TableCell>
-                            <TableCell>
-                                <TrendValues
-                                    value={decimalTransform(item.averageGain)}
-                                    trendProps={{ trend: item.gainTrend }}
-                                />
-                            </TableCell>
-                        </TableRow>
-                    )}
-                />
-            </TableBody>
-        </Table>
-    </DashboardCard>
-}
-
 const WeightHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
     const [dataset, setDataset] = useState<AverageWeight[]>([])
@@ -543,6 +544,7 @@ const WeightHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                 valueFormatter: (value) => `${decimalTransform(value || 0)} (${decimalTransform((value || 0) / 15)}@)`,
                 label: "Peso Médio",
                 color: yellow[600],
+                curve: 'linear',
                 showMark: false,
                 area: true,
             }]}
@@ -550,6 +552,7 @@ const WeightHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                 id: "dateAxis",
                 data: dataset.map(item => new Date(item.entryDate)),
                 label: "Data",
+                domainLimit: 'strict',
                 scaleType: 'time',
                 valueFormatter: (value: Date) => value.toLocaleString("pt-BR", {
                     month: 'short',

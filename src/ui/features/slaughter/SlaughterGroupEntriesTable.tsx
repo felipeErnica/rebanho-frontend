@@ -16,53 +16,64 @@ import TableBody from "@mui/material/TableBody"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { WeightEntry, WeightFoot } from "./Entities"
-import { findEntriesByDate, getEntriesFootByDate } from "./Controller"
-import { decimalTransform, positiveTransform } from "@/util/Transformations"
+import { decimalTransform, percentageTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
-import { TrendComponent } from "@/ui/shared/dashboard/DashboardComponents"
 import { EditRow } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
+import { SlaughterEntry, SlaughterFoot } from "./Entities"
+import { findEntriesByDate, getEntriesByDateFoot } from "./Controller"
 
-type WeightGroupEntriesTableProps = {
+type SlaughterGroupEntriesTableProps = {
     entryDate: Date
 }
 
-export const WeightGroupEntriesTable = ({ entryDate }: WeightGroupEntriesTableProps) => {
+export const SlaughterGroupEntriesTable = ({ entryDate }: SlaughterGroupEntriesTableProps) => {
 
     const defaultSort = 'animal_order, birth_date'
-    const defaultFoot: WeightFoot = {
+    const defaultFoot: SlaughterFoot = {
         animalsNumber: 0,
-        averageGain: 0,
-        averageWeight: 0
+        averageWeight: 0,
+        averageDeadWeight: 0,
+        averageRate: 0,
     }
 
-    const [foot, setFoot] = useState<WeightFoot>(defaultFoot)
+    const [foot, setFoot] = useState<SlaughterFoot>(defaultFoot)
 
-    const [rows, setRows] = useState<WeightEntry[]>([])
+    const [rows, setRows] = useState<SlaughterEntry[]>([])
     const [order, setOrder] = useState('asc')
     const [sort, setSort] = useState(defaultSort)
     const [loading, setLoading] = useState(false)
+    const [discountRate, setDiscountRate] = useState(0)
 
     const onReload = useCallback(() => {
         setLoading(true)
-        getEntriesFootByDate(entryDate)
+        getEntriesByDateFoot(entryDate)
             .then(results => setFoot(results.json))
             .catch(() => setFoot(defaultFoot))
-        findEntriesByDate(entryDate, order, sort)
-            .then(results => setRows(results.json))
-            .catch(() => setRows([]))
+        findEntriesByDate(entryDate, sort, order)
+            .then(results => {
+                const json: SlaughterEntry[] = results.json
+                setDiscountRate(json.length != 0 ? json[0].discountRate : 0)
+                setRows(json)
+            })
+            .catch(() => {
+                setRows([])
+                setDiscountRate(0)
+            })
             .finally(() => setLoading(false))
-    }, [order, sort])
+    }, [order, sort, entryDate])
 
     useEffect(onReload, [onReload])
 
     const sortColumns: ComboBoxItem[] = [
-        { name: "Brinco", value: defaultSort },
-        { name: "Nome", value: 'animal_name, animal_order, birth_date' },
-        { name: "Data de Nascimento", value: 'birth_date, animal_order' },
+        { name: 'Brinco', value: defaultSort },
+        { name: 'Nome', value: 'animal_name, birth_date' },
+        { name: 'Data de Nascimento', value: 'birth_date, animal_order' },
+        { name: 'Peso', value: 'weight, animal_order, birth_date' },
+        { name: 'Peso de Abate', value: 'dead_weight, animal_order, birth_date' },
+        { name: 'Rendimento', value: 'performance_rate, animal_order, birth_date' },
     ]
 
     return <TablePageContainer>
@@ -71,18 +82,19 @@ export const WeightGroupEntriesTable = ({ entryDate }: WeightGroupEntriesTablePr
             orderProps={{ order, setOrder }}
             sortProps={{ sort, setSort, sortColumns, defaultSort }}
         />
-        <EntriesTable {...{ rows, loading, foot }} />
+        <EntriesTable {...{ discountRate, rows, loading, foot }} />
     </TablePageContainer>
 
 }
 
 type EntriesTableProps = {
+    discountRate: number
     loading: boolean
-    foot: WeightFoot
-    rows: WeightEntry[]
+    foot: SlaughterFoot
+    rows: SlaughterEntry[]
 }
 
-const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
+const EntriesTable = ({ rows, loading, foot, discountRate }: EntriesTableProps) => {
 
     const [unit, setUnit] = useState(0)
     const tableRef = useRef<HTMLDivElement>(null)
@@ -106,17 +118,20 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
             <TableHead>
                 <TableRow>
                     <TableHeadCell width={unit * 10} />
-                    <ResizableHeadCell width={unit * 20}>Animal</ResizableHeadCell>
+                    <ResizableHeadCell width={unit * 15}>Animal</ResizableHeadCell>
                     <ResizableHeadCell width={unit * 15}>Mãe</ResizableHeadCell>
                     <ResizableHeadCell width={unit * 15}>Pai</ResizableHeadCell>
                     <ResizableHeadCell align="center" width={unit * 10}>Peso</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 15}>Ganho de Peso Diário (Kg/dia)</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Varição de Peso</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={unit * 15}>
+                        {`Peso (Desc.: ${percentageTransform(discountRate)})`}
+                    </ResizableHeadCell>
+                    <ResizableHeadCell width={unit * 10}>Peso de Abate</ResizableHeadCell>
+                    <ResizableHeadCell width={unit * 10}>Rendimento</ResizableHeadCell>
                 </TableRow>
             </TableHead>
             <TableBody>
                 <TableBodyContainer
-                    colSpan={7}
+                    colSpan={8}
                     loadingProps={{ loading, rowSpan: 30 }}
                     dataset={rows}
                     render={row => <EntriesRow {...row} />}
@@ -130,13 +145,19 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
                     <TableFooterCell colSpan={2}>
                         <FooterContent
                             title="Peso Médio"
-                            content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`} 
+                            content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
                         />
                     </TableFooterCell>
-                    <TableFooterCell colSpan={3}>
-                        <FooterContent 
-                            title="Ganho de Peso Médio" 
-                            content={decimalTransform(foot.averageGain)} 
+                    <TableFooterCell colSpan={2}>
+                        <FooterContent
+                            title="Peso de Abate Médio"
+                            content={`${decimalTransform(foot.averageDeadWeight)} (${decimalTransform(foot.averageDeadWeight / 15)}@)`}
+                        />
+                    </TableFooterCell>
+                    <TableFooterCell colSpan={2}>
+                        <FooterContent
+                            title="Rendimento Médio"
+                            content={percentageTransform(foot.averageRate)}
                         />
                     </TableFooterCell>
                 </TableFooterRow>
@@ -145,20 +166,20 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
     </div>
 }
 
-const EntriesRow = (row: WeightEntry) => {
+const EntriesRow = (row: SlaughterEntry) => {
 
-    const [rowData, setRowData] = useState<WeightEntry>(row)
+    const [rowData, setRowData] = useState<SlaughterEntry>(row)
     const [editing, setEditing] = useState(false)
 
     useEffect(() => setRowData(row), [row])
+
+    const onDelete = useCallback(() => console.log(rowData.id), [rowData])
 
     if (editing) return <EntriesRowEditing {...{ rowData, setRowData, setEditing }} />
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditControlButtons
-                setEditing={setEditing}
-            />
+            <EditControlButtons {...{ setEditing, onDelete }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
@@ -166,22 +187,22 @@ const EntriesRow = (row: WeightEntry) => {
         <TableBodyCell align="center">
             {`${decimalTransform(rowData.weight)} (${decimalTransform(rowData.weight / 15)}@)`}
         </TableBodyCell>
-        <TableBodyCell align="center">{decimalTransform(rowData.weightGain)}</TableBodyCell>
-        <TableBodyCell>
-            <TrendComponent
-                trend={rowData.weightVariation}
-                text={positiveTransform(rowData.weightVariation)}
-            />
+        <TableBodyCell align="center">
+            {`${decimalTransform(rowData.discountWeight)} (${decimalTransform(rowData.discountWeight / 15)}@)`}
         </TableBodyCell>
+        <TableBodyCell align="center">
+            {`${decimalTransform(rowData.deadWeight)} (${decimalTransform(rowData.deadWeight / 15)}@)`}
+        </TableBodyCell>
+        <TableBodyCell align="center">{percentageTransform(rowData.performanceRate)}</TableBodyCell>
     </TableBodyRow>
 
 }
 
-const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRow<WeightEntry>) => {
+const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRow<SlaughterEntry>) => {
 
-    const { handleSubmit, control } = useForm<WeightEntry>({ defaultValues: rowData })
+    const { handleSubmit, control } = useForm<SlaughterEntry>({ defaultValues: rowData })
 
-    const onSubmit: SubmitHandler<WeightEntry> = (data: WeightEntry) => {
+    const onSubmit: SubmitHandler<SlaughterEntry> = (data: SlaughterEntry) => {
         setRowData(data)
         setEditing(false)
     }
@@ -190,24 +211,21 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRow<WeightEn
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ setEditing, onSave }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
-        <TableBodyCell align="center">
-            <FormTextField
-                formProps={{ control, name: 'weight' }}
-                type="number"
-            />
-        </TableBodyCell>
-        <TableBodyCell align="center">{decimalTransform(rowData.weightGain)}</TableBodyCell>
         <TableBodyCell>
-            <TrendComponent
-                trend={rowData.weightVariation}
-                text={positiveTransform(rowData.weightVariation)}
-            />
+            <FormTextField formProps={{ control, name: "weight" }} type="number" />
         </TableBodyCell>
+        <TableBodyCell align="center">
+            {`${decimalTransform(rowData.discountWeight)} (${decimalTransform(rowData.discountWeight / 15)}@)`}
+        </TableBodyCell>
+        <TableBodyCell>
+            <FormTextField formProps={{ control, name: 'deadWeight' }} type="number" />
+        </TableBodyCell>
+        <TableBodyCell align="center">{percentageTransform(rowData.performanceRate)}</TableBodyCell>
     </TableBodyRow>
 
 }

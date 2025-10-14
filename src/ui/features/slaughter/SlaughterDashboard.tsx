@@ -47,7 +47,10 @@ import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { green, yellow } from "@mui/material/colors"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
-import { SlaughterEntriesPage } from "./SlaughterPages"
+import { SlaughterEntriesPage, SlaughterGroupsPage, SlaughterMainPage } from "./SlaughterPages"
+import { PageProps } from "@/ui/shared/main-page/PageDisplay"
+import { SlaughterGroupEntriesTable } from "./SlaughterGroupEntriesTable"
+import { HomePage } from "../home/HomePage"
 
 export const SlaughterDashboard = () => {
 
@@ -73,6 +76,8 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTopBarProp
             loading={activeRequests > 0}
         />
         <Button
+            className="ml-auto"
+            variant="outlined"
             endIcon={<ChevronRight />}
             onClick={() => setPageProps && setPageProps(SlaughterEntriesPage)}
         >
@@ -460,7 +465,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
     const [results, setResults] = useState<SlaughterGroup[]>([])
     const [loading, setLoading] = useState(false)
 
-    // const { setPageProps } = useContext(PageContext)
+    const { setPageProps } = useContext(PageContext)
 
     useEffect(() => {
         setLoading(true)
@@ -475,7 +480,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
     }, [startLoading, stopLoading, reloadFlag])
 
     return <DashboardCard className="row-span-2">
-        <CardDefaultTitle text="As 15 Últimas Marcações" />
+        <CardDefaultTitle text="As 10 Últimas Marcações" />
         <div className="overflow-auto">
             <Table stickyHeader size="small">
                 <TableHead>
@@ -496,7 +501,18 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                         render={row => (
                             <TableRow>
                                 <TableCell>
-                                    <EditControlButtons />
+                                    <EditControlButtons
+                                        onShow={() => {
+                                            const entryDate = new Date(row.entryDate)
+                                            const dateStr = entryDate.toLocaleString('pt-BR', { dateStyle: 'short' })
+                                            const page: PageProps = {
+                                                title: `Marcações de Peso - ${dateStr} (Frig.: ${row.slaughterhouse})`,
+                                                page: <SlaughterGroupEntriesTable {...{entryDate} } />,
+                                                previousPages: [HomePage, SlaughterMainPage]
+                                            }
+                                            if (setPageProps) setPageProps(page)
+                                        }}
+                                    />
                                 </TableCell>
                                 <TableCell>{dateTransform(row.entryDate)}</TableCell>
                                 <TableCell>{row.slaughterhouse}</TableCell>
@@ -522,7 +538,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
         <div className="flex flex-row-reverse">
             <Button
                 endIcon={<ChevronRight />}
-            // onClick={() => setPageProps && setPageProps(WeightGroupsPage)}
+                onClick={() => setPageProps && setPageProps(SlaughterGroupsPage)}
             >
                 Ver Mais...
             </Button>

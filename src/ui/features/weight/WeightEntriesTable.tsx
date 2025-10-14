@@ -122,17 +122,23 @@ const EntriesTable = ({ rows, fetchNextPage, loading, scrollRef, foot }: Entries
         }}
         fixedFooterContent={() => (
             <TableFooterRow>
-                <TableFooterCell colSpan={5}>
-                    <FooterContent title="Total" content={foot.animalsNumber} />
+                <TableFooterCell colSpan={2}>
+                    <FooterContent
+                        title="Total"
+                        content={foot.animalsNumber}
+                    />
                 </TableFooterCell>
-                <TableFooterCell colSpan={1}>
+                <TableFooterCell colSpan={2}>
                     <FooterContent
                         title="Peso Médio"
                         content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
                     />
                 </TableFooterCell>
-                <TableFooterCell colSpan={2}>
-                    <FooterContent title="Ganho de Peso Diário Médio" content={decimalTransform(foot.averageGain)} />
+                <TableFooterCell colSpan={4}>
+                    <FooterContent
+                        title="Ganho de Peso Diário Médio"
+                        content={decimalTransform(foot.averageGain)}
+                    />
                 </TableFooterCell>
             </TableFooterRow>
         )}

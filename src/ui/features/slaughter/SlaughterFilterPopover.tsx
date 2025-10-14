@@ -3,6 +3,7 @@ import { DateFilter } from "@/ui/shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover";
 import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter";
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter";
+import { searchSlaughterhouses } from "./Controller";
 
 export const SlaughterFilterPopover = ({
     setFilter,
@@ -31,6 +32,13 @@ export const SlaughterFilterPopover = ({
             label="Mães"
             fieldName="mothers"
             searchOptions={searchMother}
+            setFilter={setFilter}
+            filter={filter}
+        />
+        <MultipleSearchBoxFilter 
+            label="Frigorífico"
+            fieldName="slaughterhouses"
+            searchOptions={searchSlaughterhouses}
             setFilter={setFilter}
             filter={filter}
         />
