@@ -23,7 +23,6 @@ import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 import { SexValues } from "@/shared/entities/enums"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchFather } from "@/shared/GlobalApiCalls"
-import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { BirthFilter } from "./BirthFilter"
 import { Button } from "@mui/material"
 import Add from "@mui/icons-material/Add"
@@ -51,7 +50,7 @@ export const BirthTablePage = () => {
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
     const otherActions = (
-        <Button startIcon={<Add />} variant="outlined">
+        <Button startIcon={<Add />}>
             Adicionar Parição
         </Button>
     )
@@ -114,24 +113,21 @@ const BirthTable = ({ rows, scrollRef, fetchNextPage, isLoading, footerData }: B
             return <TableHeadRow>
                 <VirtuosoHeadCell width={unit * 10}></VirtuosoHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 15}>Mãe</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Data de Nascimento</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Intervalo entre Partos</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 5}>Sexo</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 10}>Pai</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Data de Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Intervalo entre Partos</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Sexo</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Pai</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 15}>Informações da Cria</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 25}>Observações da Parição</VirtuosoResizeHeadCell>
             </TableHeadRow>
         }}
         fixedFooterContent={() => {
             return <TableFooterRow>
-                <TableFooterCell>
+                <TableFooterCell colSpan={2}>
                     <FooterContent title="Total" content={footerData.total} />
                 </TableFooterCell>
-                <TableFooterCell colSpan={2} />
-                <TableFooterCell>
+                <TableFooterCell colSpan={5}>
                     <FooterContent title="Intervalo Médio" content={decimalTransform(footerData.intervalAverage)} />
                 </TableFooterCell>
-                <TableFooterCell colSpan={4} />
             </TableFooterRow>
         }}
         itemContent={(_, data) => <BirthRow {...{ data: data as BirthEntry, isLoading }} />}
@@ -151,7 +147,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
     useEffect(() => setRowData(data), [data])
     const onDelete = useCallback(() => console.log(data), [data])
 
-    if (isLoading) return <TableLoadingCells colSpan={8} />
+    if (isLoading) return <TableLoadingCells colSpan={7} />
     if (editing) return <BirthRowEdit {...{ setEditing, rowData, setRowData }} />
 
     return <>
@@ -167,7 +163,6 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
         <TableBodyCell align="center">{rowData.calfSex}</TableBodyCell>
         <TableBodyCell>{rowData.calfFather}</TableBodyCell>
         <TableBodyCell>{rowData.calfName}</TableBodyCell>
-        <TableBodyCell>{rowData.observation}</TableBodyCell>
     </>
 }
 
@@ -191,41 +186,22 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
         </TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>
-            <FormDatePicker
-                formProps={{
-                    control,
-                    name: 'calfBirthDate'
-                }}
-            />
+            <FormDatePicker formProps={{ control, name: 'calfBirthDate' }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.birthInterval ?? '1ª CRIA'}</TableBodyCell>
         <TableBodyCell>
             <FormComboBox
                 items={SexValues}
-                formProps={{
-                    control,
-                    name: 'calfSex'
-                }}
+                formProps={{ control, name: 'calfSex' }}
             />
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
                 searchOptions={searchFather}
                 onChange={(_, value) => setValue('calfFather', value)}
-                formProps={{
-                    control,
-                    name: 'calfFatherId'
-                }}
+                formProps={{ control, name: 'calfFatherId' }}
             />
         </TableBodyCell>
         <TableBodyCell>{rowData.calfName}</TableBodyCell>
-        <TableBodyCell>
-            <FormTextField
-                formProps={{
-                    control,
-                    name: 'observation'
-                }}
-            />
-        </TableBodyCell>
     </>
 }

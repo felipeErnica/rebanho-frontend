@@ -48,6 +48,8 @@ export function FormSearchBox<T extends FieldValues>({
         {...formProps}
         render={({ field, fieldState: { error } }) => {
             return <Autocomplete
+                {...field}
+                value={options.find(item => item.id === field.value) ?? null}
                 multiple={false}
                 onBlur={field.onBlur}
                 className={className}
@@ -127,10 +129,10 @@ export function FormMultipleSearchBox<T extends FieldValues>({
 
     return <Controller
         {...formProps}
-        render={({ field, fieldState: { error } }) => {
-
-
-            return <Autocomplete
+        render={({ field, fieldState: { error } }) => (
+            <Autocomplete
+                {...field}
+                value={options.filter(item => field.value.includes(item.id))}
                 multiple={true}
                 onBlur={field.onBlur}
                 limitTags={limitTags}
@@ -170,7 +172,7 @@ export function FormMultipleSearchBox<T extends FieldValues>({
                     }}
                 />}
             />
-        }}
+        )}
     />
 
 }

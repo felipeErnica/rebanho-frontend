@@ -3,3 +3,9 @@ export type Page<T> = {
     nextCursor: string;
     list: T[];
 }
+
+export type CardEntry<T> = {
+    current: number
+    trend: number
+    hist: T[]
+}

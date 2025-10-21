@@ -6,37 +6,36 @@ export const GROUP_BASE = "lactation/groups/"
 export const ENTRIES_BASE = "lactation/entries/"
 export const LAC_BASE = "lactation/lac-hist/"
 
-export function getMonthMilk() {
-    return apiGet(DASHBOARD_BASE + "month-milk")
+export function getLastMilk() {
+    return apiGet(DASHBOARD_BASE + "last-milk")
 }
 
-export function getAnimalsAverage() {
-    return apiGet(DASHBOARD_BASE + "animals-average")
+export function getLastAverageMilk() {
+    return apiGet(DASHBOARD_BASE + "last-avg-milk")
+}
+
+export function getLastCount() {
+    return apiGet(DASHBOARD_BASE + "last-count")
 }
 
 export function getRankedAnimals(rankBy: string) {
-    if (rankBy == "best") return getBestAnimals();
-    else return getWorstAnimals()
-}
-
-export function getBestAnimals() {
-    return apiGet(DASHBOARD_BASE + "best-animals")
-}
-
-export function getWorstAnimals() {
-    return apiGet(DASHBOARD_BASE + "worst-animals")
+    return apiGet(DASHBOARD_BASE + rankBy)
 }
 
 export function getLastEntries() {
     return apiGet(DASHBOARD_BASE + "last-entries")
 }
 
-export function getProductionHist() {
+export function getMilkProduction() {
     return apiGet(DASHBOARD_BASE + "milk-production")
 }
 
-export function getYearkyMilk() {
-    return apiGet(DASHBOARD_BASE + "yearly-milk")
+export function getYearProduction() {
+    return apiGet(DASHBOARD_BASE + "year-milk")
+}
+
+export function getYearAverage() {
+    return apiGet(DASHBOARD_BASE + "year-avg-milk")
 }
 
 export function getParentRatings(ratingOption: string) {
@@ -61,9 +60,9 @@ export function getGroupEntriesFoot(entryDate: Date) {
     return apiGet(GROUP_BASE + pageQuery)
 }
 export function findEntriesPage(
-    filter: LactationGroupFilter, 
-    sort: string, 
-    order: string, 
+    filter: LactationGroupFilter,
+    sort: string,
+    order: string,
     cursor?: string,
 ) {
     const pageQuery = `page?order=${order}&sort=${sort}${cursor ? `&cursor=${cursor}` : ''}`
@@ -75,9 +74,9 @@ export function getEntriesPageFoot(filter: LactationGroupFilter) {
 }
 
 export function findLactationsPage(
-    filter: LactationGroupFilter, 
-    sort: string, 
-    order: string, 
+    filter: LactationGroupFilter,
+    sort: string,
+    order: string,
     cursor?: string,
 ) {
     const pageQuery = `page?order=${order}&sort=${sort}${cursor ? `&cursor=${cursor}` : ''}`

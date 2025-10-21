@@ -21,6 +21,26 @@ export function getBirthIntervalStats(): Promise<ApiResponse> {
     return apiGet(BIRTH_DASHBOARD_BASE + "interval-stats")
 }
 
+export function getLastBirths(): Promise<ApiResponse> {
+    return apiGet(BIRTH_DASHBOARD_BASE + "last-births")
+}
+
+export function getLastBirthsNumber(): Promise<ApiResponse> {
+    return apiGet(BIRTH_DASHBOARD_BASE + "births-number")
+}
+
+export function getYearBirthsNumber(): Promise<ApiResponse> {
+    return apiGet(BIRTH_DASHBOARD_BASE + "year-births")
+}
+
+export function getYearDeathsNumber(): Promise<ApiResponse> {
+    return apiGet(BIRTH_DASHBOARD_BASE + "year-deaths")
+}
+
+export function getYearBirthsSex(): Promise<ApiResponse> {
+    return apiGet(BIRTH_DASHBOARD_BASE + "year-sex")
+}
+
 export function getIntervalsRanking(rankBy: string): Promise<ApiResponse> {
     return apiGet(BIRTH_DASHBOARD_BASE + rankBy)
 }

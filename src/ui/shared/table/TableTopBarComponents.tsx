@@ -47,7 +47,7 @@ const OrderButton = ({ order, setOrder }: OrderButtonProps) => {
     ), [rotationClass]);
 
     return <Button
-        variant="outlined"
+        variant="text"
         onClick={() => setOrder(isAsc ? 'desc' : 'asc')}
         endIcon={arrowIcon}
     >
@@ -65,6 +65,7 @@ type SortComboBoxProps = {
 const SortComboBox = ({ sort, setSort, sortColumns, defaultSort }: SortComboBoxProps) => {
     return <ComboBox
         className="w-[250]"
+        variant="standard"
         label="Ordenar Por"
         items={sortColumns}
         value={sort}
@@ -80,7 +81,7 @@ type ReloadButtonProps = {
 
 export const ReloadButton = ({ onReload, loading, variant }: ReloadButtonProps) => {
     return <Button
-        variant={variant ?? 'outlined'}
+        variant={variant ?? 'text'}
         loading={loading}
         loadingPosition="start"
         startIcon={!loading && <Refresh />}
@@ -97,7 +98,7 @@ type FilterButtonProps = {
 
 const FilterButton = ({ setFilterOpen, anchorEl }: FilterButtonProps) => {
     return <Button
-        variant="outlined"
+        variant="text"
         ref={anchorEl}
         startIcon={<FilterAlt />}
         onClick={() => setFilterOpen(true)}

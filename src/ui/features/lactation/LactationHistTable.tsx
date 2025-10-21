@@ -63,6 +63,10 @@ export const LactationHistTablePage = () => {
         { name: 'Início de Lactação', value: 'start_date, animal_order' },
         { name: 'Fim de Lactação', value: 'end_date, animal_order' },
         { name: 'Nascimento do Bezerro', value: 'calf_birth_date, start_date, animal_order' },
+        { name: 'Produção Média', value: 'avg_production, start_date, animal_order' },
+        { name: 'Período em Lactação', value: 'lac_period, start_date, animal_order' },
+        { name: 'Produção Total', value: 'total_production, start_date, animal_order' },
+        { name: 'Intervalo de Lactação', value: 'lac_interval, start_date, animal_order' },
     ]
 
     const { rows, scrollRef, fetchNextPage } = usePagination<LactationHist>({ setLoading, fetchPage })
@@ -178,7 +182,7 @@ const LacRow = ({ item, loading }: LacRowProps) => {
                     const startDate = dateTransform(rowData.startDate)
                     const endDate = rowData.endDate ? ` Fim: ${dateTransform(rowData.endDate)}` : "" 
                     const page: PageProps = {
-                        title: `Marcações - ${rowData.animalName} Início: ${startDate}${endDate}`,
+                        title: `Leite - ${rowData.animalName} - (Início: ${startDate}${endDate})`,
                         page: <LactationEntriesTablePage {...{lacId: rowData.id}} />,
                         previousPages: [HomePage, MilkDashboardPage, LactationHistPage]
                     }

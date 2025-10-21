@@ -1,10 +1,10 @@
 import { PageProps } from "@/ui/shared/main-page/PageDisplay";
 import { HomePage } from "@/ui/features/home/HomePage";
-import { LactationDashboard } from "./LactarionDashboard";
 import { LactationIcon } from "@/ui/shared/common/OtherIcons";
 import { MilkEntriesTablePage } from "./MilkEntriesTable";
 import { GroupTablePage } from "./MilkGroupTable";
 import { LactationHistTablePage } from "./LactationHistTable";
+import { LactationDashboard } from "./LactationDashboard";
 
 export const MilkDashboardPage: PageProps = {
     title: "Painel de Lactação",

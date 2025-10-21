@@ -14,8 +14,12 @@ export function getPregnancyRateStats() {
     return apiGet(DASHBOARD_BASE + 'pregnancy-rate')
 }
 
-export function getPregnantsNumber() {
-    return apiGet(DASHBOARD_BASE + 'pregnants-number')
+export function getAnimalsNumber() {
+    return apiGet(DASHBOARD_BASE + 'animals-number')
+}
+
+export function getFutureBirths() {
+    return apiGet(DASHBOARD_BASE + 'future-births')
 }
 
 export function getInseminationHist() {
@@ -52,23 +56,15 @@ export function findGroups() {
     return apiGet(GROUP_BASE + "page")
 }
 
-export function getGroupsFooter() {
-    return apiGet(GROUP_BASE + "page/foot")
-}
-
-export function findEntriesByGroup(bullId: string, inseminationDate: Date) {
-    const query = GROUP_BASE  + `entries?bullId=${bullId}&inseminationDate=${inseminationDate.toISOString()}`
+    export function findEntriesByGroup(inseminationDate: Date) {
+    const query = GROUP_BASE  + `${inseminationDate.toISOString()}/entries`
     return apiGet(query)
 }
 
-export function getEntriesByGroupFoot(bullId: string, inseminationDate: Date) {
-    return apiGet(GROUP_BASE  + `entries/foot?bullId=${bullId}&inseminationDate=${inseminationDate.toISOString()}`)
+export function getEntriesByGroupFoot(inseminationDate: Date) {
+    return apiGet(GROUP_BASE  + `${inseminationDate.toISOString()}/entries/foot`)
 }
 
 export function searchInseminationBulls(input?: string) {
     return apiGet(BULLS_BASE  + `search?input=${input}`)
-}
-
-export function searchInseminationBullsById(id?: string | string[]) {
-    return apiGet(BULLS_BASE  + `ids/${id}`)
 }

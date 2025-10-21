@@ -81,7 +81,7 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTopBarProp
             endIcon={<ChevronRight />}
             onClick={() => setPageProps && setPageProps(SlaughterEntriesPage)}
         >
-            Marcações de Abate
+            Abates
         </Button>
     </DashboardTopContainer>
 }
@@ -137,6 +137,7 @@ const WeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
                     data={data.hist.map(item => item.averageWeight)}
                     valueFormatter={value => `${decimalTransform(value)} (${decimalTransform((value || 0) / 15)}@)`}
                     showTooltip
+                    showHighlight
                     height={50}
                     xAxis={{
                         data: data.hist.map(item => new Date(item.entryDate)),
@@ -182,8 +183,9 @@ const DeadWeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
                 <SparkLineChart
                     data={data.hist.map(item => item.averageWeight)}
                     valueFormatter={value => `${decimalTransform(value)} (${decimalTransform((value || 0) / 15)}@)`}
-                    color={yellow[600]}
+                    color={yellow[800]}
                     showTooltip
+                    showHighlight
                     height={50}
                     xAxis={{
                         data: data.hist.map(item => new Date(item.entryDate)),
@@ -230,7 +232,8 @@ const PerformanceCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                     data={data.hist.map(item => item.performanceRate)}
                     valueFormatter={value => `${decimalTransform(value)} (${decimalTransform((value || 0) / 15)}@)`}
                     showTooltip
-                    color={green[600]}
+                    showHighlight
+                    color={green[800]}
                     height={50}
                     xAxis={{
                         data: data.hist.map(item => new Date(item.entryDate)),
@@ -274,7 +277,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
     }, [startLoading, stopLoading, reloadFlag])
 
     return <DashboardCard className="col-span-3">
-        <CardDefaultTitle text={`Última Marcação de Peso - ${lastDate} (Frig.: ${slaughterhouse})`} />
+        <CardDefaultTitle text={`Último Abate - ${lastDate} (Frig.: ${slaughterhouse})`} />
         <div className="overflow-auto">
             <Table stickyHeader size="small">
                 <TableHead>
@@ -480,7 +483,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
     }, [startLoading, stopLoading, reloadFlag])
 
     return <DashboardCard className="row-span-2">
-        <CardDefaultTitle text="As 10 Últimas Marcações" />
+        <CardDefaultTitle text="Os Últimos Abates" />
         <div className="overflow-auto">
             <Table stickyHeader size="small">
                 <TableHead>
@@ -506,7 +509,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                             const entryDate = new Date(row.entryDate)
                                             const dateStr = entryDate.toLocaleString('pt-BR', { dateStyle: 'short' })
                                             const page: PageProps = {
-                                                title: `Marcações de Peso - ${dateStr} (Frig.: ${row.slaughterhouse})`,
+                                                title: `Abate - ${dateStr} (Frig.: ${row.slaughterhouse})`,
                                                 page: <SlaughterGroupEntriesTable {...{entryDate} } />,
                                                 previousPages: [HomePage, SlaughterMainPage]
                                             }
@@ -632,7 +635,7 @@ const RateHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInfor
                     id: "rate",
                     label: "Rend. Médio",
                     showMark: false,
-                    color: green[600],
+                    color: green[800],
                     area: true,
                     data: dataset.map(item => item.averageRate),
                     valueFormatter: (value) => percentageTransform(value),

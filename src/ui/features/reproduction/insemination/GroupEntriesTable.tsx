@@ -4,7 +4,6 @@ import {
     InseminationFooter,
     InseminationStatusColorMap,
     InseminationStatusMap,
-    statusMapToComboBox
 } from "./Entities"
 import { findEntriesByGroup, getEntriesByGroupFoot } from "./Controller"
 import Table from "@mui/material/Table"
@@ -24,7 +23,6 @@ import TableHead from "@mui/material/TableHead"
 import { Button, Chip, TableBody } from "@mui/material"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { percentageTransform } from "@/util/Transformations"
 import { AddInseminationDialog } from "./AddInseminationDialog"
@@ -32,11 +30,10 @@ import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
 
 type GroupEntriesTablePageProps = {
-    bullId: string
     inseminationDate: Date
 }
 
-export const GroupEntriesTablePage = ({ bullId, inseminationDate }: GroupEntriesTablePageProps) => {
+export const GroupEntriesTablePage = ({ inseminationDate }: GroupEntriesTablePageProps) => {
 
     const defaultValue: InseminationFooter = useMemo(() => ({
         totals: 0,
@@ -51,14 +48,14 @@ export const GroupEntriesTablePage = ({ bullId, inseminationDate }: GroupEntries
 
     const onReload = useCallback(() => {
         setLoading(true)
-        getEntriesByGroupFoot(bullId, inseminationDate)
+        getEntriesByGroupFoot(inseminationDate)
             .then(response => setFoot(response.json))
             .catch(() => setFoot(defaultValue))
-        findEntriesByGroup(bullId, inseminationDate)
+        findEntriesByGroup(inseminationDate)
             .then(response => setRows(response.json))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
-    }, [bullId, defaultValue, inseminationDate])
+    }, [defaultValue, inseminationDate])
 
     useEffect(onReload, [onReload])
 
@@ -109,9 +106,11 @@ const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
                 <TableHeadRow>
                     <TableHeadCell width={tableUnit * 10} />
                     <ResizableHeadCell width={tableUnit * 20}>Vaca</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 15}>Prenhez</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 15}>Nascimento</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 40}>Observações</ResizableHeadCell>
+                    <ResizableHeadCell width={tableUnit * 10}>Touro</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={tableUnit * 15}>Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={tableUnit * 15}>Nascimento</ResizableHeadCell>
+                    <ResizableHeadCell width={tableUnit * 15}>Informações da Cria</ResizableHeadCell>
+                    <ResizableHeadCell width={tableUnit * 15}>Observações</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>
@@ -122,10 +121,10 @@ const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
                     <TableFooterCell colSpan={2}>
                         <FooterContent title="Total" content={foot.totals} />
                     </TableFooterCell>
-                    <TableFooterCell colSpan={1}>
+                    <TableFooterCell colSpan={2}>
                         <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.averagePregnancyRate)} />
                     </TableFooterCell>
-                    <TableFooterCell colSpan={2}>
+                    <TableFooterCell colSpan={3}>
                         <FooterContent title="Taxa de Nascimento" content={percentageTransform(foot.averageBirthRate)} />
                     </TableFooterCell>
                 </TableFooterRow>
@@ -146,7 +145,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingRow colSpan={6} />
+    if (loading) return <TableLoadingRow colSpan={7} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <TableBodyRow>
@@ -154,7 +153,8 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell>{rowData.bullName}</TableBodyCell>
+        <TableBodyCell align="center">
             {rowData.pregnancyStatus &&
                 <Chip
                     label={InseminationStatusMap.get(rowData.pregnancyStatus)}
@@ -162,14 +162,15 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
                 />
             }
         </TableBodyCell>
-        <TableBodyCell>
-            {rowData.status &&
+        <TableBodyCell align="center">
+            {rowData.birthStatus &&
                 <Chip
-                    label={InseminationStatusMap.get(rowData.status)}
-                    color={InseminationStatusColorMap.get(rowData.status)}
+                    label={InseminationStatusMap.get(rowData.birthStatus)}
+                    color={InseminationStatusColorMap.get(rowData.birthStatus)}
                 />
             }
         </TableBodyCell>
+        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>{rowData.observation}</TableBodyCell>
     </TableBodyRow>
 }
@@ -196,24 +197,10 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
-        <TableBodyCell align="center">
-            <FormComboBox
-                items={statusMapToComboBox()}
-                formProps={{
-                    control,
-                    name: 'pregnancyStatus'
-                }}
-            />
-        </TableBodyCell>
-        <TableBodyCell align="center">
-            <FormComboBox
-                items={statusMapToComboBox()}
-                formProps={{
-                    control,
-                    name: 'status'
-                }}
-            />
-        </TableBodyCell>
+        <TableBodyCell>{rowData.bullName}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.pregnancyStatus}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.birthStatus}</TableBodyCell>
+        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>
             <FormTextField
                 formProps={{

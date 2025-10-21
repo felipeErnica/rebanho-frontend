@@ -9,10 +9,16 @@ export type InseminationEntry = {
     bullId?: string
     bullName?: string
     observation?: string
+    childInformation?: string
     pregnancyStatus?: string
-    status?: string
+    birthStatus?: string
     lossId?: string
     calfId?: string
+}
+
+export type LastEntry = {
+    inseminationDate: Date
+    entries: InseminationEntry[]
 }
 
 export type InseminationEntryFilter = {
@@ -27,7 +33,7 @@ export type InseminationEntryFilter = {
 export const InseminationStatusMap: Map<string, string> = new Map([
     ['FAILED', 'Falhou'],
     ['SUCCESS', 'Confirmado'],
-    ['STAND_BY', 'Aguardando Confirmação'],
+    ['STAND_BY', 'Aguardando...'],
 ])
 
 export const InseminationStatusColorMap: Map<string, ColorStrings> = new Map([
@@ -68,24 +74,30 @@ export type InseminationBulls = {
     pregnancyComparisonRate: number
 }
 
-export type PregnantsNumber = {
-    pregnantNumber: number
+export type AnimalsNumberEntry = {
+    inseminationDate: Date
+    animalsNumber: number
+}
+
+export type FutureBirthsEntry = {
+    birthForecast: Date
+    birthsNumber: number
 }
 
 export type InseminationHist = {
-    dateMonth: Date
+    inseminationDate: Date
     total: number
-    birthRate: number
-    pregnancyRate: number
+    birthNumbers: number
+    pregnancyNumbers: number
 }
 
 export type BirthRateHist = {
-    dateMonth: Date
+    inseminationDate: Date
     birthRate: number
 }
 
 export type PregnancyRateHist = {
-    dateMonth: Date
+    inseminationDate: Date
     pregnancyRate: number
 }
 

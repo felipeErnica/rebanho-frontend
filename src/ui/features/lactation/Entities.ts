@@ -68,20 +68,19 @@ export type LactationHistFoot = {
     averagePeak: number
 }
 
-export type MonthMilkHist = {
-    entryDate: Date
-    totalMilk: number
-}
-
 export type AnimalsAverageHist = {
     entryDate: Date
     animalsNumber: number
 }
 
-export type MonthMilkCard = {
-    current: number
-    trend: number
-    hist: MonthMilkHist[]
+export type TotalMilkHist = {
+    entryDate: Date
+    totalMilk: number
+}
+
+export type AverageMilkHist = {
+    entryDate: Date
+    averageMilk: number
 }
 
 export type AnimalsAverage = {
@@ -132,7 +131,7 @@ export type ParentsRating = {
     avgPeriod: number
     avgProd: number
     avgInterval: number
-    avgLac: number
+    childrenNumber: number
     lacRate: number
     periodRate: number
     totalRate: number

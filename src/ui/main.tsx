@@ -7,6 +7,7 @@ import { createTheme, StyledEngineProvider, ThemeProvider } from '@mui/material/
 import GlobalStyles from '@mui/material/GlobalStyles'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers'
+import type { } from '@mui/x-charts/themeAugmentation';
 
 const theme = createTheme({
     palette: {

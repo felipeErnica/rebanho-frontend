@@ -1,18 +1,15 @@
 import React, { useContext, useEffect, useRef, useState } from "react"
-import { InseminationFooter, InseminationGroup } from "./Entities"
-import { findGroups, getGroupsFooter } from "./Controller"
+import { InseminationGroup } from "./Entities"
+import { findGroups } from "./Controller"
 import { Button, Table, TableBody, TableHead } from "@mui/material"
 import {
-    FooterContent,
     ResizableHeadCell,
-    StickyTableFooter,
     TableBodyCell,
     TableBodyRow,
-    TableFooterCell,
-    TableFooterRow,
     TableHeadCell,
     TableHeadRow,
-    TableLoadingRow
+    TableLoadingRow,
+    TrendValues
 } from "@/ui/shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
@@ -21,7 +18,6 @@ import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { HomePage } from "../../home/HomePage"
 import { GroupsTablePageProps, InseminationPage } from "./InseminationPages"
-import { TrendComponent } from "@/ui/shared/dashboard/DashboardComponents"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
@@ -67,7 +63,6 @@ type GroupsTableProps = {
 
 const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
 
-    const [foot, setFoot] = useState<InseminationFooter>({ totals: 0, averageBirthRate: 0, averagePregnancyRate: 0 })
     const [rows, setRows] = useState<InseminationGroup[]>([])
     const [unit, setUnit] = useState(0)
 
@@ -82,9 +77,6 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
         }
 
         setLoading(true)
-        getGroupsFooter()
-            .then(response => setFoot(response.json))
-            .catch(() => setFoot({ totals: 0, averageBirthRate: 0, averagePregnancyRate: 0 }))
         findGroups()
             .then(response => setRows(response.json))
             .catch(() => setRows([]))
@@ -100,26 +92,15 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
             <TableHead>
                 <TableHeadRow>
                     <TableHeadCell width={unit * 10} />
-                    <ResizableHeadCell width={unit * 30}>Touro</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Data de Inseminação</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Total de Animais</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Taxa de Natalidade</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Comparação com Média</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={unit * 20}>Data de Inseminação</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={unit * 20}>Total de Animais</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={unit * 25}>Taxa de Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={unit * 25}>Taxa de Natalidade</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>
                 {rows.map(item => <GroupsRow {...{ item, loading, setPageProps }} />)}
             </TableBody>
-            <StickyTableFooter>
-                <TableFooterRow>
-                    <TableFooterCell colSpan={4}>
-                        <FooterContent title="Total" content={foot.totals} />
-                    </TableFooterCell>
-                    <TableFooterCell colSpan={2}>
-                        <FooterContent title="Natalidade Média" content={percentageTransform(foot.averageBirthRate)} />
-                    </TableFooterCell>
-                </TableFooterRow>
-            </StickyTableFooter>
         </Table>
     </div>
 }
@@ -135,7 +116,7 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
     const [rowData, setRowData] = useState<InseminationGroup>(item)
     const [editing, setEditing] = useState(false)
 
-    if (loading) return <TableLoadingRow colSpan={6} />
+    if (loading) return <TableLoadingRow colSpan={5} />
     if (editing) return <GroupsRowEditing {...{ setEditing, setRowData, rowData }} />
 
     return <TableBodyRow>
@@ -143,27 +124,33 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
             <EditControlButtons
                 setEditing={setEditing}
                 onShow={() => {
-                    const bullId = item.bullId
                     const inseminationDate = new Date(item.inseminationDate)
                     const dateString = inseminationDate.toLocaleDateString('pt-BR', {
                         month: 'short',
                         year: 'numeric'
                     })
                     const page: PageProps = {
-                        page: <GroupEntriesTablePage {...{ inseminationDate, bullId }} />,
-                        title: `Inseminações - ${rowData.bullName} - ${dateString}`,
+                        page: <GroupEntriesTablePage {...{ inseminationDate }} />,
+                        title: `Inseminação - ${dateString}`,
                         previousPages: [HomePage, InseminationPage, GroupsTablePageProps]
                     }
                     if (setPageProps) setPageProps(page)
                 }}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.bullName}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.inseminationDate)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.cowNumber}</TableBodyCell>
-        <TableBodyCell align="center">{percentageTransform(rowData.birthRate)}</TableBodyCell>
-        <TableBodyCell>
-            <TrendComponent trend={rowData.birthComparisonRate} />
+        <TableBodyCell align="center">
+            <TrendValues
+                value={percentageTransform(rowData.pregnancyRate)}
+                trendProps={{ trend: rowData.pregnancyComparisonRate }}
+            />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <TrendValues
+                value={percentageTransform(rowData.birthRate)}
+                trendProps={{ trend: rowData.birthComparisonRate }}
+            />
         </TableBodyCell>
     </TableBodyRow>
 }
@@ -186,7 +173,6 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
         <TableBodyCell>
             <EditingControlButtons {...{ setEditing, onSave: handleSubmit(onSubmit) }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.bullName}</TableBodyCell>
         <TableBodyCell>
             <FormDatePicker
                 formProps={{
@@ -196,9 +182,17 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
             />
         </TableBodyCell>
         <TableBodyCell>{rowData.cowNumber}</TableBodyCell>
-        <TableBodyCell>{percentageTransform(rowData.birthRate)}</TableBodyCell>
-        <TableBodyCell>
-            <TrendComponent trend={rowData.birthComparisonRate} />
+        <TableBodyCell align="center">
+            <TrendValues
+                value={rowData.pregnancyRate}
+                trendProps={{ trend: rowData.pregnancyComparisonRate }}
+            />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <TrendValues
+                value={rowData.birthRate}
+                trendProps={{ trend: rowData.birthComparisonRate }}
+            />
         </TableBodyCell>
     </TableBodyRow>
 }

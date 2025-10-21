@@ -22,11 +22,11 @@ export function percentageTransform(value: number | null) {
     return formatter.format(value) + '%'
 }
 
-export function dateTransform(value?: Date) {
+export function dateTransform(value: Date | undefined, options?: Intl.DateTimeFormatOptions) {
     if (value === undefined) return ""
     if (!value) return ""
     value = new Date(value)
-    const dateString = value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
+    const dateString = value.toLocaleDateString("pt-BR", options ?? { dateStyle: 'short' })
     if (dateString == 'Invalid Date') return ""
     return dateString
 }

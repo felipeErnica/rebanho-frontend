@@ -121,7 +121,7 @@ const GroupsRow = ({ item, loading }: GroupsRowProps) => {
                 setEditing={setEditing}
                 onShow={() => {
                     const page: PageProps = {
-                        title: `Marcação - ${dateTransform(rowData.entryDate)}`,
+                        title: `Leite - ${dateTransform(rowData.entryDate)}`,
                         page: <GroupEntriesTablePage {...{ entryDate: rowData.entryDate }} />,
                         previousPages: [HomePage, MilkDashboardPage, MilkGroupsPage]
                     }

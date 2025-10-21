@@ -3,35 +3,36 @@ import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTa
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { findEntriesPage, getEntriesPage } from "./Controller"
-import { 
-    InseminationFooter, 
-    InseminationEntry, 
-    InseminationEntryFilter, 
-    InseminationStatusColorMap, 
-    InseminationStatusMap, 
-    statusMapToComboBox 
+import {
+    InseminationFooter,
+    InseminationEntry,
+    InseminationEntryFilter,
+    InseminationStatusColorMap,
+    InseminationStatusMap,
 } from "./Entities"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
-import { 
-    FooterContent, 
-    TableBodyCell, 
-    TableFooterCell, 
-    TableFooterRow, 
-    TableHeadRow, 
-    TableLoadingCells, 
-    VirtuosoHeadCell, 
-    VirtuosoResizeHeadCell 
+import {
+    FooterContent,
+    TableBodyCell,
+    TableFooterCell,
+    TableFooterRow,
+    TableHeadRow,
+    TableLoadingCells,
+    VirtuosoHeadCell,
+    VirtuosoResizeHeadCell
 } from "@/ui/shared/table/TableComponents"
 import { Button, Chip } from "@mui/material"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { InseminationFilter } from "./InseminationFilter"
 import Add from "@mui/icons-material/Add"
 import { AddInseminationDialog } from "./AddInseminationDialog"
+import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
+import { searchBull } from "../../farm-area/main-table/api/DashboardController"
+import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 
 export const EntriesTablePage = () => {
 
@@ -47,7 +48,7 @@ export const EntriesTablePage = () => {
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [sort, setSort] = useState(defaultSort)
-    const [order, setOrder] = useState('asc')
+    const [order, setOrder] = useState('desc')
     const [foot, setFoot] = useState(defaultFoot)
     const [addInseminationOpen, setAddInseminationOpen] = useState(false)
 
@@ -133,18 +134,19 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
                 <VirtuosoResizeHeadCell width={unit * 10}>Touro</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 15}>Prenhez</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 15}>Nascimento</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 25}>Observações</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Informações de Cria</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 20}>Observações</VirtuosoResizeHeadCell>
             </TableHeadRow>
         }}
         fixedFooterContent={() => (
             <TableFooterRow>
-                <TableFooterCell colSpan={4}>
+                <TableFooterCell colSpan={2}>
                     <FooterContent title="Total" content={foot.totals} />
                 </TableFooterCell>
-                <TableFooterCell colSpan={1}>
+                <TableFooterCell colSpan={2}>
                     <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.averagePregnancyRate)} />
                 </TableFooterCell>
-                <TableFooterCell colSpan={2}>
+                <TableFooterCell colSpan={4}>
                     <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.averageBirthRate)} />
                 </TableFooterCell>
             </TableFooterRow>
@@ -166,7 +168,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingCells colSpan={6} />
+    if (loading) return <TableLoadingCells colSpan={8} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <>
@@ -185,13 +187,14 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
             }
         </TableBodyCell>
         <TableBodyCell>
-            {rowData.status &&
+            {rowData.birthStatus &&
                 <Chip
-                    label={InseminationStatusMap.get(rowData.status)}
-                    color={InseminationStatusColorMap.get(rowData.status)}
+                    label={InseminationStatusMap.get(rowData.birthStatus)}
+                    color={InseminationStatusColorMap.get(rowData.birthStatus)}
                 />
             }
         </TableBodyCell>
+        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>{rowData.observation}</TableBodyCell>
     </>
 }
@@ -218,33 +221,20 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
-        <TableBodyCell align="center">{dateTransform(rowData.inseminationDate)}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.bullName}</TableBodyCell>
         <TableBodyCell align="center">
-            <FormComboBox
-                items={statusMapToComboBox()}
-                formProps={{
-                    control,
-                    name: 'pregnancyStatus'
-                }}
-            />
+            <FormDatePicker formProps={{ control, name: 'inseminationDate' }} />
         </TableBodyCell>
         <TableBodyCell align="center">
-            <FormComboBox
-                items={statusMapToComboBox()}
-                formProps={{
-                    control,
-                    name: 'status'
-                }}
+            <FormSearchBox
+                formProps={{ control, name: 'bullId' }}
+                searchOptions={searchBull}
             />
         </TableBodyCell>
+        <TableBodyCell align="center">{rowData.pregnancyStatus}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.birthStatus}</TableBodyCell>
+        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>
-            <FormTextField
-                formProps={{
-                    control,
-                    name: 'observation'
-                }}
-            />
+            <FormTextField formProps={{ control, name: 'observation' }} />
         </TableBodyCell>
     </>
 }

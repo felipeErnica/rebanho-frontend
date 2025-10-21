@@ -8,3 +8,8 @@ export type NormalRow<T> = {
     setEditing: (isEditing: boolean) => void
     rowValue: T
 }
+
+export type TableRowProp<T> = {
+    loading?: boolean
+    row: T
+}

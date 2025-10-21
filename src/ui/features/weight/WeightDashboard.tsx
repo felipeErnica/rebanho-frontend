@@ -129,10 +129,12 @@ const LastWeightCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.averageWeight)}
-                    height={50}
+                    height={80}
                     valueFormatter={(value) => `${decimalTransform(value || 0)} (${decimalTransform((value || 0) / 15)}@)`}
-                    color={yellow[600]}
+                    color={yellow[800]}
+                    area
                     showTooltip
+                    showHighlight
                     xAxis={{
                         data: data.hist.map(item => new Date(item.entryDate)),
                         valueFormatter: (value: Date) => dateTransform(value)
@@ -175,9 +177,11 @@ const LastGainCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInform
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.averageGain)}
-                    height={50}
+                    height={80}
                     valueFormatter={(value) => decimalTransform(value || 0)}
                     showTooltip
+                    showHighlight
+                    area
                     xAxis={{
                         data: data.hist.map(item => new Date(item.entryDate)),
                         valueFormatter: (value: Date) => dateTransform(value)
@@ -450,7 +454,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
     }, [startLoading, stopLoading, reloadFlag])
 
     return <DashboardCard className="row-span-2">
-        <CardDefaultTitle text="As 5 Últimas Marcações" />
+        <CardDefaultTitle text="As Últimas Marcações" />
         <Table stickyHeader size="small">
             <TableHead>
                 <TableRow>
@@ -474,7 +478,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                         const entryDate = new Date(row.entryDate)
                                         const dateStr = entryDate.toLocaleDateString("pt-BR", { dateStyle: 'short' })
                                         const newPage: PageProps = {
-                                            title: `Marcações de Peso - ${dateStr}`,
+                                            title: `Peso - ${dateStr}`,
                                             page: <WeightGroupEntriesTable {...{entryDate}} />,
                                             previousPages: [HomePage, WeightMainPage]
                                         }
@@ -543,7 +547,7 @@ const WeightHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                 data: dataset.map(item => item.averageWeight),
                 valueFormatter: (value) => `${decimalTransform(value || 0)} (${decimalTransform((value || 0) / 15)}@)`,
                 label: "Peso Médio",
-                color: yellow[600],
+                color: yellow[800],
                 curve: 'linear',
                 showMark: false,
                 area: true,
