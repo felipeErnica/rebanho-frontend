@@ -9,6 +9,10 @@ export function getPregnancyRate() {
     return apiGet(DASHBOARD_BASE + "pregnancy-rate")
 }
 
+export function getAnimalsNumber() {
+    return apiGet(DASHBOARD_BASE + "animals-number")
+}
+
 export function getBirthRate() {
     return apiGet(DASHBOARD_BASE + "birth-rate")
 }

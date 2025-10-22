@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { TestEntry, TestEntryFooter } from "./Entities"
+import { BirthStatusMap, PregnancyStatusMap, TestEntry, TestEntryFooter } from "./Entities"
 import { findEntriesByGroup, getEntriesByGroupFoot } from "./Controller"
 import Table from "@mui/material/Table"
 import { Button, Chip, TableBody, TableHead } from "@mui/material"
@@ -17,15 +17,14 @@ import {
 } from "@/ui/shared/table/TableComponents"
 import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
-import { InseminationStatusColorMap, InseminationStatusMap, statusMapToComboBox } from "../insemination/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
 import { AddTestDialog } from "./AddTestDialog"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
+import { ChipColorScheme } from "@/ui/shared/Globals"
 
 type GroupEntriesTablePageProps = {
     testDate: Date
@@ -69,7 +68,6 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
 
     const otherProps = (
         <Button
-            variant="outlined"
             startIcon={<Add />}
             onClick={() => setAddTestOpen(true)}
         >
@@ -119,10 +117,11 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
             <TableHead>
                 <TableHeadRow>
                     <TableHeadCell width={unit * 10} />
-                    <ResizableHeadCell width={unit * 20}>Vaca</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Prenhez</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Nascimento</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 10}>Data de Previsão</ResizableHeadCell>
+                    <ResizableHeadCell width={unit * 15}>Vaca</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={unit * 15}>Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={unit * 15}>Nascimento</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={unit * 15}>Data de Previsão</ResizableHeadCell>
+                    <ResizableHeadCell width={unit * 15}>Informações de Cria</ResizableHeadCell>
                     <ResizableHeadCell width={unit * 30}>Observações</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
@@ -131,13 +130,13 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
             </TableBody>
             <StickyTableFooter>
                 <TableFooterRow>
-                    <TableFooterCell colSpan={4}>
+                    <TableFooterCell colSpan={2}>
                         <FooterContent title="Total" content={foot.totals} />
                     </TableFooterCell>
-                    <TableFooterCell colSpan={1}>
+                    <TableFooterCell colSpan={2}>
                         <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.pregnancyRate)} />
                     </TableFooterCell>
-                    <TableFooterCell colSpan={2}>
+                    <TableFooterCell colSpan={3}>
                         <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.birthRate)} />
                     </TableFooterCell>
                 </TableFooterRow>
@@ -158,7 +157,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingRow colSpan={6} />
+    if (loading) return <TableLoadingRow colSpan={7} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <TableBodyRow>
@@ -166,23 +165,24 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             {rowData.pregnancyStatus &&
                 <Chip
-                    label={InseminationStatusMap.get(rowData.pregnancyStatus)}
-                    color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+                    label={PregnancyStatusMap.get(rowData.pregnancyStatus)}
+                    color={ChipColorScheme.get(rowData.pregnancyStatus)}
                 />
             }
         </TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             {rowData.birthStatus &&
                 <Chip
-                    label={InseminationStatusMap.get(rowData.birthStatus)}
-                    color={InseminationStatusColorMap.get(rowData.birthStatus)}
+                    label={BirthStatusMap.get(rowData.birthStatus)}
+                    color={ChipColorScheme.get(rowData.birthStatus)}
                 />
             }
         </TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.birthForecast)}</TableBodyCell>
+        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>{rowData.observation}</TableBodyCell>
     </TableBodyRow>
 }
@@ -210,38 +210,23 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell align="center">
-            <FormComboBox
-                items={statusMapToComboBox()}
-                formProps={{
-                    control,
-                    name: 'pregnancyStatus'
-                }}
+            <Chip
+                label={PregnancyStatusMap.get(rowData.pregnancyStatus)}
+                color={ChipColorScheme.get(rowData.pregnancyStatus)}
             />
         </TableBodyCell>
         <TableBodyCell align="center">
-            <FormComboBox
-                items={statusMapToComboBox()}
-                formProps={{
-                    control,
-                    name: 'birthStatus'
-                }}
+            <Chip
+                label={BirthStatusMap.get(rowData.birthStatus)}
+                color={ChipColorScheme.get(rowData.birthStatus)}
             />
         </TableBodyCell>
         <TableBodyCell>
-            <FormDatePicker
-                formProps={{
-                    control,
-                    name: 'birthForecast'
-                }}
-            />
+            <FormDatePicker formProps={{ control, name: 'birthForecast' }} />
         </TableBodyCell>
+        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>
-            <FormTextField
-                formProps={{
-                    control,
-                    name: 'observation'
-                }}
-            />
+            <FormTextField formProps={{ control, name: 'observation' }} />
         </TableBodyCell>
     </TableBodyRow>
 }

@@ -24,7 +24,7 @@ export const AddTestDialog = ({ addTestOpen, setAddTestOpen, testDate }: AddTest
 
     const [disableForecast, setDisableForecast] = useState(true)
 
-    useEffect(() => setValue('testDate', testDate), [setValue, testDate])
+    useEffect(() => testDate && setValue('testDate', testDate), [setValue, testDate])
 
     const onSubmit: SubmitHandler<TestEntry> = (data: TestEntry) => {
         console.log(data)

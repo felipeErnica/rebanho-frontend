@@ -1,14 +1,29 @@
+export const BirthStatusMap: Map<string, string> = new Map([
+    ['FAILED', 'Falhou'],
+    ['SUCCESS', 'Confirmado'],
+    ['STAND_BY', 'Aguardando...'],
+])
+
+export const PregnancyStatusMap: Map<string, string> = new Map([
+    ['FAILED', 'Vazia'],
+    ['SUCCESS', 'Prenha'],
+])
+
 export type TestEntry = {
     id: string
-    testDate?: Date
-    animalId?: string
-    animalName?: string
+    testDate: Date
+    animalId: string
+    animalName: string
     birthForecast?: Date
-    birthStatus?: string
-    pregnancyStatus?: string
+    birthStatus: string
+    pregnancyStatus: string
+    childInformation?: string
     observation?: string
-    lossId?: string
-    calfId?: string
+}
+
+export type LastEntryProps = {
+    testDate: Date
+    entries: TestEntry[]
 }
 
 export type TestEntryFilter = {
@@ -42,6 +57,11 @@ type PregnancyRateHist = {
     pregnancyRate: number
 }
 
+export type AnimalsNumberHist = {
+    testDate: Date
+    animalsNumber: number
+}
+
 export type PregnancyRateStats = {
     current: number
     trend: number
@@ -67,8 +87,8 @@ export type NextBirths = {
 export type PregnancyTestsHist = {
     testDate: Date
     totals: number
-    pregnancyRate: number
-    birthRate: number
+    pregnancies: number
+    births: number
 }
 
 export type TestGroup = {
