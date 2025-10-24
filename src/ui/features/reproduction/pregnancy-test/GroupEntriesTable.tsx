@@ -9,7 +9,6 @@ import {
     StickyTableFooter,
     TableBodyCell,
     TableBodyRow,
-    TableFooterCell,
     TableFooterRow,
     TableHeadCell,
     TableHeadRow,
@@ -129,16 +128,10 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
                 {rows.map((item) => <EntriesRow {...{ item, loading }} />)}
             </TableBody>
             <StickyTableFooter>
-                <TableFooterRow>
-                    <TableFooterCell colSpan={2}>
-                        <FooterContent title="Total" content={foot.totals} />
-                    </TableFooterCell>
-                    <TableFooterCell colSpan={2}>
-                        <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.pregnancyRate)} />
-                    </TableFooterCell>
-                    <TableFooterCell colSpan={3}>
-                        <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.birthRate)} />
-                    </TableFooterCell>
+                <TableFooterRow colSpan={7}>
+                    <FooterContent title="Total" content={foot.totals} />
+                    <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.pregnancyRate)} />
+                    <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.birthRate)} />
                 </TableFooterRow>
             </StickyTableFooter>
         </Table>
@@ -198,6 +191,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
     const { control, handleSubmit } = useForm<TestEntry>({ defaultValues: rowData })
 
     const onSubmit: SubmitHandler<TestEntry> = (data: TestEntry) => {
+        console.log(data)
         setRowData(data)
         setEditing(false)
     }

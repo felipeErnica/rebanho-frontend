@@ -7,18 +7,18 @@ import {
     FooterContent,
     StickyTableFooter,
     TableBodyCell,
+    TableBodyContainer,
     TableBodyRow,
-    TableFooterCell,
     TableFooterRow,
     TableHeadCell,
     TableHeadRow,
-    TableLoadingRow
 } from "@/ui/shared/table/TableComponents"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
+import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 
 type LactationEntriesTableProps = {
     lacId: string
@@ -92,19 +92,18 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
                 </TableHeadRow>
             </TableHead>
             <TableBody>
-                {rows.map(item => <EntriesRow {...{ item, loading }} />)}
+                <TableBodyContainer
+                    dataset={rows}
+                    colSpan={5}
+                    loadingProps={{ loading, rowSpan: 20 }}
+                    render={item => <EntriesRow {...{ item }} />}
+                />
             </TableBody>
             <StickyTableFooter>
-                <TableFooterRow>
-                    <TableFooterCell colSpan={3}>
-                        <FooterContent title="Total" content={foot.animalsNumber} />
-                    </TableFooterCell>
-                    <TableFooterCell colSpan={1}>
-                        <FooterContent title="Produção Média" content={decimalTransform(foot.averageMilk)} />
-                    </TableFooterCell>
-                    <TableFooterCell colSpan={1}>
-                        <FooterContent title="Produção Total" content={decimalTransform(foot.totalMilk)} />
-                    </TableFooterCell>
+                <TableFooterRow colSpan={5}>
+                    <FooterContent title="Total" content={foot.animalsNumber} />
+                    <FooterContent title="Produção Média" content={decimalTransform(foot.averageMilk)} />
+                    <FooterContent title="Produção Total" content={decimalTransform(foot.totalMilk)} />
                 </TableFooterRow>
             </StickyTableFooter>
         </Table>
@@ -113,17 +112,15 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
 
 type EntriesRowProps = {
     item: MilkEntry
-    loading: boolean
 }
 
-const EntriesRow = ({ item, loading }: EntriesRowProps) => {
+const EntriesRow = ({ item }: EntriesRowProps) => {
 
     const [rowData, setRowData] = useState<MilkEntry>(item)
     const [editing, setEditing] = useState(false)
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingRow colSpan={4} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <TableBodyRow>
@@ -159,16 +156,12 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
-        <TableBodyCell>{dateTransform(rowData.entryDate)}</TableBodyCell>
+        <TableBodyCell>
+            <FormDatePicker formProps={{ name: 'entryDate' , control }} />
+        </TableBodyCell>
         <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell>
-            <FormTextField
-                type="number"
-                formProps={{
-                    control,
-                    name: 'quantity'
-                }}
-            />
+            <FormTextField type="number" formProps={{ control, name: 'quantity' }} />
         </TableBodyCell>
     </TableBodyRow>
 }

@@ -2,13 +2,12 @@ import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "re
 import { MilkEntry, MilkEntryFilter, MilkEntryFoot } from "./Entities"
 import { findEntriesPage, getEntriesPageFoot } from "./Controller"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
-import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import {
     FooterContent,
     TableBodyCell,
-    TableFooterCell,
     TableFooterRow,
     TableHeadRow,
     TableLoadingCells,
@@ -69,7 +68,6 @@ export const MilkEntriesTablePage = () => {
             sortProps={{ sort, sortColumns, setSort, defaultSort }}
             otherProps={(
                 <Button
-                    variant="outlined"
                     onClick={() => setAddMilkEntryOpen(true)}
                     startIcon={<Add />}
                 >
@@ -111,7 +109,7 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
         scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
-        components={VirtuosoTableComponents}
+        components={useVirtuosoComponents(5)}
         endReached={fetchNextPage}
         fixedHeaderContent={() => {
 
@@ -127,16 +125,10 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
 
         }}
         fixedFooterContent={() => (
-            <TableFooterRow>
-                <TableFooterCell colSpan={3}>
+            <TableFooterRow colSpan={5}>
                     <FooterContent title="Total" content={foot.animalsNumber} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={1}>
                     <FooterContent title="Produção Média" content={decimalTransform(foot.averageMilk)} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={1}>
                     <FooterContent title="Produção Total" content={decimalTransform(foot.totalMilk)} />
-                </TableFooterCell>
             </TableFooterRow>
         )}
         itemContent={(_, item) => <EntriesRow {...{ item, loading }} />}
@@ -193,12 +185,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>
-            <FormDatePicker
-                formProps={{
-                    control,
-                    name: 'entryDate'
-                }}
-            />
+            <FormDatePicker formProps={{ control, name: 'entryDate' }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell>

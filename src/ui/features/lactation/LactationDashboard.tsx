@@ -117,12 +117,12 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[250_250_250_1fr] grid-rows-[180_450] gap-4">
+        <div className="grid grid-cols-[repeat(3,270)_1fr] grid-rows-[180_450] gap-4">
             <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
             <AverageMilkCard {...{ stopLoading, startLoading, reloadFlag }} />
             <AnimalsCard {...{ startLoading, stopLoading, reloadFlag }} />
-            <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
         <div className="grid grid-rows-2 grid-cols-[1fr_500] gap-4">
             <MilkProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
@@ -173,7 +173,7 @@ const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: Dashboard
                     showTooltip
                     xAxis={{
                         data: stats.hist.map(item => new Date(item.entryDate)),
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' })
+                        valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
             )}
@@ -220,7 +220,7 @@ const AverageMilkCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                     showTooltip
                     xAxis={{
                         data: stats.hist.map(item => new Date(item.entryDate)),
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' })
+                        valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
             )}
@@ -266,7 +266,7 @@ const AnimalsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInforma
                     showTooltip
                     xAxis={{
                         data: stats.hist.map(item => new Date(item.entryDate)),
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' })
+                        valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
             )}
@@ -293,7 +293,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
             })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard className="row-span-2">
+    return <DashboardCard className="col-span-3">
         <CardDefaultTitle text="As Últimas Marcações" />
         <Table size="small" stickyHeader>
             <TableHead>
@@ -369,9 +369,12 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
 const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
     const [data, setData] = useState<MilkEntry[]>([])
-    const [lastDate, setLastDate] = useState<Date>()
+    const [lastDate, setLastDate] = useState(new Date())
+    const [textDate, setTextDate] = useState('Sem dados')
     const [loading, setLoading] = useState(false)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
+
+    const { setPageProps } = useContext(PageContext)
 
     useEffect(() => {
         startLoading()
@@ -379,11 +382,14 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         getLastEntries()
             .then(response => {
                 const entries: MilkEntry[] = response.json
-                setLastDate(entries[0].entryDate)
+                const entryDate = new Date(entries[0].entryDate ?? '')
+                setLastDate(entryDate)
+                setTextDate(dateTransform(entryDate))
                 setData(entries)
             })
             .catch(() => {
-                setLastDate(undefined)
+                setLastDate(new Date())
+                setTextDate('Sem dados')
                 setData([])
             })
             .finally(() => {
@@ -392,17 +398,8 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard className="col-span-3">
-        <div className="flex flex-row gap-4">
-            <CardDefaultTitle text={`Última Marcação de Leite${lastDate && ' - ' + dateTransform(lastDate)}`} />
-            <Button
-                className="ml-auto"
-                variant="text"
-                startIcon={<ChevronRight />}
-            >
-                Ver Todas
-            </Button>
-        </div>
+    return <DashboardCard className="row-span-2">
+        <CardDefaultTitle text={`Última Marcação de Leite - ${textDate}`} />
         <div className="overflow-auto">
             <Table size="small" stickyHeader>
                 <TableHead>
@@ -423,15 +420,29 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                 </TableBody>
             </Table>
         </div>
-        <Button
-            className="ml-auto"
-            variant="text"
-            startIcon={<Add />}
-            onClick={() => setAddMilkEntryOpen(true)}
-        >
-            Marcar Leite
-        </Button>
-        <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen, entryDate: lastDate }} />
+        <div className="flex flex-row gap-4">
+            <Button
+                className="ml-auto"
+                startIcon={<Add />}
+                onClick={() => setAddMilkEntryOpen(true)}
+            >
+                Marcar Leite
+            </Button>
+            <Button
+                endIcon={<ChevronRight />}
+                onClick={() => {
+                    const page: PageProps = {
+                        title: `Leite - ${textDate}`,
+                        page: <GroupEntriesTablePage {...{ entryDate: lastDate }} />,
+                        previousPages: [HomePage, MilkDashboardPage]
+                    }
+                    if (setPageProps) setPageProps(page)
+                }}
+            >
+                Ver Mais...
+            </Button>
+            <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen, entryDate: lastDate }} />
+        </div>
     </DashboardCard>
 }
 

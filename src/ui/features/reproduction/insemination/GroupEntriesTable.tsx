@@ -13,7 +13,6 @@ import {
     StickyTableFooter,
     TableBodyCell,
     TableBodyRow,
-    TableFooterCell,
     TableFooterRow,
     TableHeadCell,
     TableHeadRow,
@@ -117,16 +116,10 @@ const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
                 {rows.map(item => <EntriesRow {...{ item, loading }} />)}
             </TableBody>
             <StickyTableFooter>
-                <TableFooterRow>
-                    <TableFooterCell colSpan={2}>
-                        <FooterContent title="Total" content={foot.totals} />
-                    </TableFooterCell>
-                    <TableFooterCell colSpan={2}>
-                        <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.averagePregnancyRate)} />
-                    </TableFooterCell>
-                    <TableFooterCell colSpan={3}>
-                        <FooterContent title="Taxa de Nascimento" content={percentageTransform(foot.averageBirthRate)} />
-                    </TableFooterCell>
+                <TableFooterRow colSpan={7}>
+                    <FooterContent title="Total" content={foot.totals} />
+                    <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.averagePregnancyRate)} />
+                    <FooterContent title="Taxa de Nascimento" content={percentageTransform(foot.averageBirthRate)} />
                 </TableFooterRow>
             </StickyTableFooter>
         </Table>

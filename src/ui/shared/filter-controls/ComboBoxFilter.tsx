@@ -1,6 +1,6 @@
 import { IFilters } from "@/shared/interfaces/Filter"
 import { ComboBox, ComboBoxItem } from "../common/ComboBox"
-import { useEffect, useState } from "react"
+import { HTMLAttributes, ReactNode, useEffect, useState } from "react"
 
 type ComboBoxFilterProps = {
     label: string
@@ -9,40 +9,43 @@ type ComboBoxFilterProps = {
     setFilter: (filter: IFilters) => void
     onChange?: (value: any) => void
     items: ComboBoxItem[]
-    className?:string
+    className?: string
+    renderOption?: (props: HTMLAttributes<HTMLLIElement> & { key: any }, option: ComboBoxItem) => ReactNode
+    renderValue?: (value: ComboBoxItem, getItemProps: (args?: { index?: number }) => {
+        className: string
+        disabled: boolean
+        tabIndex: -1
+        "data-item-index": number
+        onDelete: (event: any) => void
+    }) => ReactNode
 }
 
-export const ComboBoxFilter = ({ 
-    label, 
-    onChange, 
-    items, 
-    filter, 
-    setFilter, 
+export const ComboBoxFilter = ({
+    label,
+    onChange,
+    items,
+    filter,
+    setFilter,
     className,
-    fieldName 
+    fieldName,
+    renderOption,
+    renderValue
 }: ComboBoxFilterProps) => {
 
-    const [value, setValue] = useState<string>()
-    const [inputValue, setInputValue] = useState('')
+    const [value, setValue] = useState<string>(filter[fieldName])
 
     useEffect(() => {
-        const matchedItem = items.find(item => {
-            const filterValue = filter[fieldName]
-            if (!filterValue) return false
-            if (item.value) return filterValue == item.value
-            return filterValue == item.name
-        })
-        setValue(matchedItem?.value ?? matchedItem?.name)
-        setInputValue(matchedItem?.name ?? '')
+        if (filter[fieldName] === value) return
+        setValue(filter[fieldName])
     }, [fieldName, filter, items])
 
     return <ComboBox
         size="small"
         className={className}
         value={value}
-        inputValue={inputValue}
-        onInputChange={setInputValue}
         label={label}
+        renderOption={renderOption}
+        renderValue={renderValue}
         onChange={(value) => {
             if (!value) {
                 setFilter({ ...filter, isFiltered: true, [fieldName]: undefined })

@@ -1,8 +1,7 @@
-import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import {
     FooterContent,
     TableBodyCell,
-    TableFooterCell,
     TableFooterRow,
     TableHeadRow,
     TableLoadingCells,
@@ -105,7 +104,7 @@ const BirthTable = ({ rows, scrollRef, fetchNextPage, isLoading, footerData }: B
         ref={scrollRef}
         endReached={fetchNextPage}
         data={rows}
-        components={VirtuosoTableComponents}
+        components={useVirtuosoComponents(7)}
         fixedHeaderContent={() => {
 
             const unit = tableWidth / 100
@@ -121,13 +120,9 @@ const BirthTable = ({ rows, scrollRef, fetchNextPage, isLoading, footerData }: B
             </TableHeadRow>
         }}
         fixedFooterContent={() => {
-            return <TableFooterRow>
-                <TableFooterCell colSpan={2}>
+            return <TableFooterRow colSpan={7}>
                     <FooterContent title="Total" content={footerData.total} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={5}>
                     <FooterContent title="Intervalo Médio" content={decimalTransform(footerData.intervalAverage)} />
-                </TableFooterCell>
             </TableFooterRow>
         }}
         itemContent={(_, data) => <BirthRow {...{ data: data as BirthEntry, isLoading }} />}

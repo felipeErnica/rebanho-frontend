@@ -15,6 +15,14 @@ export const NoDataPlaceholder = ({ colSpan }: NoDataPlaceholderProps) => {
     </TableRow>
 }
 
+export const VirtuosoNoDataPlaceholder = ({ colSpan }: NoDataPlaceholderProps) => {
+    return <TableCell colSpan={colSpan}>
+        <div className="flex flex-col p-10 items-center">
+            <Typography align="center" variant="body1">Não há dados disponíveis</Typography>
+        </div>
+    </TableCell>
+}
+
 type LoadingProps = {
     loading: boolean
     rowSpan: number
@@ -28,16 +36,14 @@ type TableBodyContainerProps<T> = {
 }
 
 export function TableBodyContainer<T>({ dataset, render, loadingProps, colSpan }: TableBodyContainerProps<T>) {
-
     if (loadingProps !== undefined && loadingProps.loading) {
         return Array(loadingProps.rowSpan).fill(<TableLoadingRow colSpan={colSpan} />)
     }
 
     if (dataset.length === 0) return <NoDataPlaceholder {...{ colSpan }} />
-        
-
     return dataset.map(render)
 }
+
 type TablePageContainerProps = {
     children: ReactNode | ReactNode[]
 }
@@ -242,33 +248,26 @@ export const StickyTableFooter = ({ className, children }: StickyTableFooterProp
     </TableFooter>
 }
 
-export const TableFooterRow = ({ children, className, style, ref }: TableBodyRowProps) => {
+type TableFooterRowProps = TableBodyRowProps & {
+    colSpan: number
+}
+
+export const TableFooterRow = ({ children, className, style, ref, colSpan }: TableFooterRowProps) => {
     return <TableRow
         ref={ref as Ref<HTMLTableRowElement>}
         style={style}
         className={`bg-white ${className}`}
     >
-        {children}
+        <TableCell
+            size="small"
+            className={`border-t border-gray-400 overflow-hidden text-nowrap overflow-ellipsis`}
+            colSpan={colSpan}
+        >
+            <div className="flex flex-row gap-52">
+                {children}
+            </div>
+        </TableCell>
     </TableRow>
-}
-
-export const TableFooterTitleCell = ({ children, className, colSpan }: TableBodyCellProps) => {
-    return <TableCell
-        className={`bg-gray-700 border-t border-gray-400 font-bold text-white ${className}`}
-        colSpan={colSpan}
-    >
-        <Typography variant="body2">{children}</Typography>
-    </TableCell>
-}
-
-export const TableFooterCell = ({ children, className, colSpan }: TableBodyCellProps) => {
-    return <TableCell
-        size="small"
-        className={`border-t border-gray-400 overflow-hidden text-nowrap overflow-ellipsis ${className}`}
-        colSpan={colSpan}
-    >
-        {children}
-    </TableCell>
 }
 
 type FooterContentProps = {

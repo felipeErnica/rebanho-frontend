@@ -2,33 +2,33 @@ import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 
 //Página contendo matrizes de valores constantes para a utilização na lógica de negócio
 export const BrazilStates: ComboBoxItem[] = [
-    { name: 'Acre' },
-    { name: 'Alagoas' },
-    { name: 'Amápa' },
-    { name: 'Amazonas' },
-    { name: 'Bahia' },
-    { name: 'Ceará' },
-    { name: 'Distrito Federal' },
-    { name: 'Espirito Santo' },
-    { name: 'Goiás' },
-    { name: 'Maranhão' },
-    { name: 'Mato Grosso' },
-    { name: 'Mato Grosso do Sul' },
-    { name: 'Minas Gerais' },
-    { name: 'Pará' },
-    { name: 'Paraíba' },
-    { name: 'Paraná' },
-    { name: 'Pernanbuco' },
-    { name: 'Piauí' },
-    { name: 'Rio de Janeiro' },
-    { name: 'Rio Grande do Norte' },
-    { name: 'Rio Grande do Sul' },
-    { name: 'Rondônia' },
-    { name: 'Roraima' },
-    { name: 'Santa Catarina' },
-    { name: 'São Paulo' },
-    { name: 'Sergipe' },
-    { name: 'Tocantins' }
+    { name: 'Acre', value: 'Acre' },
+    { name: 'Alagoas', value: 'Alagoas' },
+    { name: 'Amápa', value: 'Amápa' },
+    { name: 'Amazonas', value: 'Amazonas' },
+    { name: 'Bahia', value: 'Bahia' },
+    { name: 'Ceará', value: 'Ceara' },
+    { name: 'Distrito Federal', value: 'Distrito Federal' },
+    { name: 'Espírito Santo', value: 'Espirito Santo' },
+    { name: 'Goiás', value: 'Goias' },
+    { name: 'Maranhão', value: 'Maranhao' },
+    { name: 'Mato Grosso', value: 'Mato Grosso' },
+    { name: 'Mato Grosso do Sul', value: 'Mato Grosso do Sul' },
+    { name: 'Minas Gerais', value: 'Minas Gerais' },
+    { name: 'Pará', value: 'Para' },
+    { name: 'Paraíba', value: 'Paraiba' },
+    { name: 'Paraná', value: 'Parana' },
+    { name: 'Pernanbuco', value: 'Pernanbuco' },
+    { name: 'Piauí', value: 'Piaui' },
+    { name: 'Rio de Janeiro', value: 'Rio de Janeiro' },
+    { name: 'Rio Grande do Norte', value: 'Rio Grande do Norte' },
+    { name: 'Rio Grande do Sul', value: 'Rio Grande do Sul' },
+    { name: 'Rondônia', value: 'Rondonia' },
+    { name: 'Roraima', value: 'Roraima' },
+    { name: 'Santa Catarina', value: 'Santa Catarina' },
+    { name: 'São Paulo', value: 'Sao Paulo' },
+    { name: 'Sergipe', value: 'Sergipe' },
+    { name: 'Tocantins', value: 'Tocantins' }
 ]
 
 export const ReproductionStatuses: ComboBoxItem[] = [
@@ -42,4 +42,4 @@ export const LossTypes: ComboBoxItem[] = [
     { name: 'Natimorto', value: 'STILLBORN' },
 ]
 
-export const SexValues: ComboBoxItem[] = [{ name: 'M' }, { name: 'F' }]
+export const SexValues: ComboBoxItem[] = [{ name: 'M', value: 'M' }, { name: 'F', value: 'F' }]

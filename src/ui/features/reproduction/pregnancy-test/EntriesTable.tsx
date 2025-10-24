@@ -1,11 +1,10 @@
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { BirthStatusMap, PregnancyStatusMap, TestEntry, TestEntryFilter, TestEntryFooter } from "./Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
-import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import {
     FooterContent,
     TableBodyCell,
-    TableFooterCell,
     TableFooterRow,
     TableHeadRow,
     TableLoadingCells,
@@ -101,7 +100,7 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
         scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
-        components={VirtuosoTableComponents}
+        components={useVirtuosoComponents(8)}
         endReached={fetchNextPage}
         fixedHeaderContent={() => {
 
@@ -120,16 +119,10 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
 
         }}
         fixedFooterContent={() => (
-            <TableFooterRow>
-                <TableFooterCell colSpan={2}>
-                    <FooterContent title="Total" content={foot.totals} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={2}>
-                    <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.pregnancyRate)} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={4}>
-                    <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.birthRate)} />
-                </TableFooterCell>
+            <TableFooterRow colSpan={8}>
+                <FooterContent title="Total" content={foot.totals} />
+                <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.pregnancyRate)} />
+                <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.birthRate)} />
             </TableFooterRow>
         )}
         itemContent={(_, item) => <EntriesRow {...{ item: item as TestEntry, loading }} />}

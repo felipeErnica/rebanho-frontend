@@ -5,7 +5,6 @@ import {
     TableBodyCell,
     TableBodyContainer,
     TableBodyRow,
-    TableFooterCell,
     TableFooterRow,
     TableHeadCell,
     TablePageContainer,
@@ -123,22 +122,16 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
                 />
             </TableBody>
             <StickyTableFooter>
-                <TableFooterRow>
-                    <TableFooterCell colSpan={2}>
-                        <FooterContent title="Total" content={foot.animalsNumber} />
-                    </TableFooterCell>
-                    <TableFooterCell colSpan={2}>
-                        <FooterContent
-                            title="Peso Médio"
-                            content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`} 
-                        />
-                    </TableFooterCell>
-                    <TableFooterCell colSpan={3}>
-                        <FooterContent 
-                            title="Ganho de Peso Médio" 
-                            content={decimalTransform(foot.averageGain)} 
-                        />
-                    </TableFooterCell>
+                <TableFooterRow colSpan={7}>
+                    <FooterContent title="Total" content={foot.animalsNumber} />
+                    <FooterContent
+                        title="Peso Médio"
+                        content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
+                    />
+                    <FooterContent
+                        title="Ganho de Peso Médio"
+                        content={decimalTransform(foot.averageGain)}
+                    />
                 </TableFooterRow>
             </StickyTableFooter>
         </Table>

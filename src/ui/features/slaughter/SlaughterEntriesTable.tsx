@@ -1,7 +1,6 @@
 import {
     FooterContent,
     TableBodyCell,
-    TableFooterCell,
     TableFooterRow,
     TableHeadRow,
     TableLoadingCells,
@@ -13,7 +12,7 @@ import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { SlaughterEntry, SlaughterEntryFilter, SlaughterFoot } from "./Entities"
 import { RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
-import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import { findEntriesPage, getEntriesPageFoot, searchSlaughterhouses } from "./Controller"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { SlaughterFilterPopover } from "./SlaughterFilterPopover"
@@ -106,7 +105,7 @@ const EntriesTable = ({ rows, fetchNextPage, loading, scrollRef, foot }: Entries
         scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
-        components={VirtuosoTableComponents}
+        components={useVirtuosoComponents(11)}
         endReached={fetchNextPage}
         fixedHeaderContent={() => {
 
@@ -128,24 +127,16 @@ const EntriesTable = ({ rows, fetchNextPage, loading, scrollRef, foot }: Entries
 
         }}
         fixedFooterContent={() => (
-            <TableFooterRow>
-                <TableFooterCell colSpan={2}>
+            <TableFooterRow colSpan={11}>
                     <FooterContent title="Total" content={foot.animalsNumber} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={2}>
                     <FooterContent
                         title="Peso Médio"
                         content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
                     />
-                </TableFooterCell>
-                <TableFooterCell colSpan={2}>
                     <FooterContent
                         title="Peso de Abate Médio"
                         content={`${decimalTransform(foot.averageDeadWeight)} (${decimalTransform(foot.averageDeadWeight / 15)}@)`} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={5}>
                     <FooterContent title="Rend. Médio" content={percentageTransform(foot.averageRate)} />
-                </TableFooterCell>
             </TableFooterRow>
         )}
         itemContent={(_, item) => <EntriesRow {...{ item: item as SlaughterEntry, loading }} />}

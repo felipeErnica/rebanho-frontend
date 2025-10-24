@@ -2,18 +2,17 @@ import { RefObject, useCallback, useContext, useEffect, useMemo, useRef, useStat
 import { LactationHist, LactationHistFilter, LactationHistFoot } from "./Entities"
 import { findLactationsPage, getLactationsPageFoot } from "./Controller"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
-import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
-import { 
-    FooterContent, 
-    TableBodyCell, 
-    TableFooterCell, 
-    TableFooterRow, 
-    TableHeadRow, 
-    TableLoadingCells, 
-    VirtuosoHeadCell, 
-    VirtuosoResizeHeadCell 
+import {
+    FooterContent,
+    TableBodyCell,
+    TableFooterRow,
+    TableHeadRow,
+    TableLoadingCells,
+    VirtuosoHeadCell,
+    VirtuosoResizeHeadCell
 } from "@/ui/shared/table/TableComponents"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
@@ -111,7 +110,7 @@ const LacTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTabl
         scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
-        components={VirtuosoTableComponents}
+        components={useVirtuosoComponents(10)}
         endReached={fetchNextPage}
         fixedHeaderContent={() => {
 
@@ -132,25 +131,13 @@ const LacTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTabl
 
         }}
         fixedFooterContent={() => (
-            <TableFooterRow>
-                <TableFooterCell colSpan={5}>
-                    <FooterContent title="Total" content={foot.totalLacs} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={1}>
-                    <FooterContent title="Intervalo Médio" content={decimalTransform(foot.averageInterval)} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={1}>
-                    <FooterContent title="Período Médio" content={decimalTransform(foot.averagePeriod)} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={1}>
-                    <FooterContent title="Média Diária Geral" content={decimalTransform(foot.averageProduction)} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={1}>
-                    <FooterContent title="Pico Médio" content={decimalTransform(foot.averagePeak)} />
-                </TableFooterCell>
-                <TableFooterCell colSpan={1}>
-                    <FooterContent title="Produção Média" content={decimalTransform(foot.averageTotal)} />
-                </TableFooterCell>
+            <TableFooterRow colSpan={10}>
+                <FooterContent title="Total" content={foot.totalLacs} />
+                <FooterContent title="Intervalo Médio" content={decimalTransform(foot.averageInterval)} />
+                <FooterContent title="Período Médio" content={decimalTransform(foot.averagePeriod)} />
+                <FooterContent title="Média Diária Geral" content={decimalTransform(foot.averageProduction)} />
+                <FooterContent title="Pico Médio" content={decimalTransform(foot.averagePeak)} />
+                <FooterContent title="Produção Média" content={decimalTransform(foot.averageTotal)} />
             </TableFooterRow>
         )}
         itemContent={(_, item) => <LacRow {...{ item: item as LactationHist, loading }} />}
@@ -176,14 +163,14 @@ const LacRow = ({ item, loading }: LacRowProps) => {
 
     return <>
         <TableBodyCell>
-            <EditControlButtons 
+            <EditControlButtons
                 setEditing={setEditing}
                 onShow={() => {
                     const startDate = dateTransform(rowData.startDate)
-                    const endDate = rowData.endDate ? ` Fim: ${dateTransform(rowData.endDate)}` : "" 
+                    const endDate = rowData.endDate ? ` Fim: ${dateTransform(rowData.endDate)}` : ""
                     const page: PageProps = {
                         title: `Leite - ${rowData.animalName} - (Início: ${startDate}${endDate})`,
-                        page: <LactationEntriesTablePage {...{lacId: rowData.id}} />,
+                        page: <LactationEntriesTablePage {...{ lacId: rowData.id }} />,
                         previousPages: [HomePage, MilkDashboardPage, LactationHistPage]
                     }
                     if (setPageProps) setPageProps(page)
@@ -225,7 +212,7 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>{rowData.calfInfo}</TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <FormDatePicker
                 formProps={{
                     control,
@@ -233,7 +220,7 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
                 }}
             />
         </TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <FormDatePicker
                 formProps={{
                     control,
@@ -241,10 +228,10 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
                 }}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.lacInterval ?? "1ª Lactação"}</TableBodyCell>
-        <TableBodyCell>{rowData.lacPeriod}</TableBodyCell>
-        <TableBodyCell>{decimalTransform(rowData.averageProduction ?? 0)}</TableBodyCell>
-        <TableBodyCell>{decimalTransform(rowData.peak ?? 0, 1)}</TableBodyCell>
-        <TableBodyCell>{decimalTransform(rowData.totalProduction ?? 0)}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.lacInterval ?? "1ª Lactação"}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.lacPeriod}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.averageProduction ?? 0)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.peak ?? 0, 1)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.totalProduction ?? 0)}</TableBodyCell>
     </>
 }

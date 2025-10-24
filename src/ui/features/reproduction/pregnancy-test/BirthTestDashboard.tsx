@@ -72,6 +72,7 @@ import { HomePage } from "../../home/HomePage"
 import IconButton from "@mui/material/IconButton"
 import { CardEntry } from "@/shared/entities/Page"
 import { ChipColorScheme } from "@/ui/shared/Globals"
+import { orange, yellow } from "@mui/material/colors"
 
 export const BirthTestDashboard = () => {
 
@@ -175,6 +176,7 @@ const PregnancyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
                 <SparkLineChart
                     data={stats.hist.map(item => item.pregnancyRate)}
                     valueFormatter={(value) => percentageTransform(value ?? 0)}
+                    color={yellow[800]}
                     height={50}
                     showTooltip
                     showHighlight
@@ -266,6 +268,7 @@ const BirthCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
                 <SparkLineChart
                     data={stats.hist.map(item => item.birthRate)}
                     valueFormatter={(value) => percentageTransform(value ?? 0)}
+                    color={orange[800]}
                     height={50}
                     showTooltip
                     showHighlight
@@ -569,7 +572,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             .then(response => {
                 const json: LastEntryProps = response.json
                 setData(json.entries)
-                setTestDate(json.testDate)
+                setTestDate(new Date(json.testDate))
                 setTextDate(dateTransform(json.testDate))
             })
             .catch(() => {

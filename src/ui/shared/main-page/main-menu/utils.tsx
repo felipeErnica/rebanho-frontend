@@ -7,7 +7,6 @@ import {
     EmbryoIcon,
     InseminationIcon,
     LactationIcon,
-    PregnancyLossIcon,
     ReproductionIcon,
     SlaughterIcon,
     FarmMainIcon,
@@ -20,8 +19,7 @@ import { BirthPage } from "@/ui/features/reproduction/births/BirthPages"
 import { InseminationPage } from "@/ui/features/reproduction/insemination/InseminationPages"
 import { NaturalMatingTablePage } from "@/ui/features/reproduction/natural-reproduction/NaturalReprodutionPages"
 import { EmbryoTablePage } from "@/ui/features/reproduction/embryo-transfer/EmbryoTransferPages"
-import { BirthTestDashboardPage } from "@/ui/features/reproduction/birth-test/BirthTestPages"
-import { LossDashboardPage } from "@/ui/features/reproduction/pregnancy-loss/LossPages"
+import { BirthTestDashboardPage } from "@/ui/features/reproduction/pregnancy-test/BirthTestPages"
 import { HomePage } from "@/ui/features/home/HomePage"
 import { MilkDashboardPage } from "@/ui/features/lactation/LactationPages"
 import { AnimalDashboardPage } from "@/ui/features/animals/AnimalsPage"
@@ -47,6 +45,12 @@ export const buildList = () => {
             page: BirthPage
         },
         {
+            key: 'birth-test',
+            title: 'Exames de Toque',
+            icon: <BirthTestIcon />,
+            page: BirthTestDashboardPage
+        },
+        {
             key: 'insemination',
             title: 'Inseminação',
             icon: <InseminationIcon />,
@@ -63,18 +67,6 @@ export const buildList = () => {
             title: 'Transferência Embrionária',
             icon: <EmbryoIcon />,
             page: EmbryoTablePage
-        },
-        {
-            key: 'birth-test',
-            title: 'Exames de Toque',
-            icon: <BirthTestIcon />,
-            page: BirthTestDashboardPage
-        },
-        {
-            key: 'pregnancy-loss',
-            title: 'Perdas e Abortos',
-            icon: <PregnancyLossIcon />,
-            page: LossDashboardPage
         },
     ]
 

@@ -1,7 +1,7 @@
 import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { LactationGroup, LactationGroupFilter } from "./Entities"
 import { findGroupsPage } from "./Controller"
-import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import {
@@ -79,7 +79,7 @@ const GroupsTable = ({ rows, loading, scrollRef, fetchNextPage }: GroupTableProp
         scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
-        components={VirtuosoTableComponents}
+        components={useVirtuosoComponents(5)}
         endReached={fetchNextPage}
         fixedHeaderContent={() => {
 

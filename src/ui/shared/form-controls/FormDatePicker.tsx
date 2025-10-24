@@ -18,7 +18,7 @@ export const FormDatePicker = <T extends FieldValues>({ label, className, varian
             <DatePicker
                 {...field}
                 value={field.value ? dayjs(field.value) : null}
-                onChange={(date) => field.onChange(date?.toDate())}
+                onChange={(date) => field.onChange(date ? date.toDate() : null)}
                 label={label}
                 className={className}
                 disabled={disabled}

@@ -1,8 +1,7 @@
-import { usePagination, VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import {
     FooterContent,
     TableBodyCell,
-    TableFooterCell,
     TableFooterRow,
     TableHeadRow,
     TableLoadingCells,
@@ -102,7 +101,7 @@ const EntriesTable = ({ rows, fetchNextPage, loading, scrollRef, foot }: Entries
         scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
-        components={VirtuosoTableComponents}
+        components={useVirtuosoComponents(8)}
         endReached={fetchNextPage}
         fixedHeaderContent={() => {
 
@@ -121,25 +120,19 @@ const EntriesTable = ({ rows, fetchNextPage, loading, scrollRef, foot }: Entries
 
         }}
         fixedFooterContent={() => (
-            <TableFooterRow>
-                <TableFooterCell colSpan={2}>
+            <TableFooterRow colSpan={8}>
                     <FooterContent
                         title="Total"
                         content={foot.animalsNumber}
                     />
-                </TableFooterCell>
-                <TableFooterCell colSpan={2}>
                     <FooterContent
                         title="Peso Médio"
                         content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
                     />
-                </TableFooterCell>
-                <TableFooterCell colSpan={4}>
                     <FooterContent
                         title="Ganho de Peso Diário Médio"
                         content={decimalTransform(foot.averageGain)}
                     />
-                </TableFooterCell>
             </TableFooterRow>
         )}
         itemContent={(_, item) => <EntriesRow {...{ item: item as WeightEntry, loading }} />}

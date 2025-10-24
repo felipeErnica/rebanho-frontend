@@ -11,14 +11,13 @@ import {
     TableLoadingCells,
     VirtuosoHeadCell,
     TableFooterRow,
-    TableFooterTitleCell,
-    TableFooterCell
+    FooterContent,
 } from "@/ui/shared/table/TableComponents"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchPasture } from "@/shared/GlobalApiCalls"
 import { transformAnimalType } from "../../animals/shared/AnimalEntities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
-import { VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { useVirtuosoComponents } from "@/ui/shared/table/PageTable"
 
 type FarmAnimalsTableProps = {
     rows: AnimalFarm[]
@@ -52,7 +51,7 @@ export const FarmAnimalsTable = ({
 
 
     return <TableVirtuoso
-        components={VirtuosoTableComponents}
+        components={useVirtuosoComponents(9)}
         ref={scrollRef}
         scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         data={rows}
@@ -72,9 +71,8 @@ export const FarmAnimalsTable = ({
             </TableHeadRow>
         }}
         fixedFooterContent={() => (
-            <TableFooterRow>
-                <TableFooterTitleCell colSpan={2}>Total de Animais</TableFooterTitleCell>
-                <TableFooterCell colSpan={7}>{total}</TableFooterCell>
+            <TableFooterRow colSpan={9}>
+                <FooterContent title="Total de Animais" content={total} />
             </TableFooterRow>
         )}
         itemContent={(_, row) => isLoading ? <TableLoadingCells colSpan={9} /> : <AnimalFarmRow {...row} />}

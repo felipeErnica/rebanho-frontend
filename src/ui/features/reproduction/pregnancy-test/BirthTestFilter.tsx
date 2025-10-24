@@ -1,9 +1,11 @@
 import { searchMother } from "@/shared/GlobalApiCalls"
 import { ComboBoxFilter } from "@/ui/shared/filter-controls/ComboBoxFilter"
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover"
-import { SearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
-import { statusMapToComboBox } from "../insemination/Entities"
+import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
+import { BirthStatusItems, PregnancyStatusItems } from "./Entities"
+import { Chip } from "@mui/material"
+import { ChipColorScheme } from "@/ui/shared/Globals"
 
 export const BirthTestFilter = ({
     filterOpen,
@@ -14,7 +16,7 @@ export const BirthTestFilter = ({
 }: FilterPopoverProps) => {
     return <FilterPopover {...{ filterOpen, setFilterOpen, anchorEl, setFilter }}>
         <div className="grid grid-cols-2 gap-4">
-            <SearchBoxFilter
+            <MultipleSearchBoxFilter
                 className="col-span-2"
                 label="Vacas"
                 searchOptions={searchMother}
@@ -24,19 +26,41 @@ export const BirthTestFilter = ({
             />
             <ComboBoxFilter
                 label="Prenhez"
-                items={statusMapToComboBox()}
+                items={PregnancyStatusItems}
                 fieldName="pregnancyStatus"
+                renderValue={(value) => (
+                    <Chip 
+                        label={value.name} 
+                        color={ChipColorScheme.get(value.value)} 
+                    />
+                )}
+                renderOption={(props, option) => (
+                    <li {...props}>
+                        <Chip label={option.name} color={ChipColorScheme.get(option.value)} />
+                    </li>
+                )}
                 filter={filter}
                 setFilter={setFilter}
             />
             <ComboBoxFilter
                 label="Nascimento"
-                items={statusMapToComboBox()}
+                items={BirthStatusItems}
                 fieldName="birthStatus"
+                renderValue={(value) => (
+                    <Chip 
+                        label={value.name} 
+                        color={ChipColorScheme.get(value.value)} 
+                    />
+                )}
+                renderOption={(props, option) => (
+                    <li {...props}>
+                        <Chip label={option.name} color={ChipColorScheme.get(option.value)} />
+                    </li>
+                )}
                 filter={filter}
                 setFilter={setFilter}
             />
-            <DateFilter 
+            <DateFilter
                 className="col-span-2"
                 mainTitle="Data de Exame"
                 maxFieldName="maxTestDate"
@@ -44,7 +68,7 @@ export const BirthTestFilter = ({
                 filter={filter}
                 setFilter={setFilter}
             />
-            <DateFilter 
+            <DateFilter
                 className="col-span-2"
                 mainTitle="Data de Previsão"
                 maxFieldName="maxBirthForecast"

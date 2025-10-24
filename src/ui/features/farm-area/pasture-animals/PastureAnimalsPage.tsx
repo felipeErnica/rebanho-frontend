@@ -63,7 +63,7 @@ export const PastureAnimalsPage = ({ pastureId }: PastureAnimalsPageProps) => {
             filterProps={{ setFilterOpen, anchorEl }}
             otherProps={otherActions}
         />
-        <PastureAnimalsTable {...{ rows, isLoading }} />
+        <PastureAnimalsTable {...{ rows, loading: isLoading }} />
         <PastureAnimalsFilter {...{
             isFilterOpen,
             setFilterOpen,

@@ -5,8 +5,7 @@ import {
     TableLoadingCells,
     TableFooterRow,
     VirtuosoHeadCell,
-    TableFooterTitleCell,
-    TableFooterCell,
+    FooterContent,
 } from "@/ui/shared/table/TableComponents"
 import { PastureEntry } from "./Entities"
 import { RefObject, useEffect, useRef, useState } from "react"
@@ -14,7 +13,7 @@ import { dateTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
-import { VirtuosoTableComponents } from "@/ui/shared/table/PageTable"
+import { useVirtuosoComponents } from "@/ui/shared/table/PageTable"
 import { TableVirtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 type PastureEntriesTableProps = {
@@ -46,10 +45,10 @@ export const PastureEntriesTable = ({ fetchNextPage, rows, isLoading, scrollRef,
             ref={scrollRef}
             scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
             data={rows}
-            components={VirtuosoTableComponents}
+            components={useVirtuosoComponents(7)}
             endReached={fetchNextPage}
             fixedHeaderContent={() => {
-                const unit = tableWidth/100
+                const unit = tableWidth / 100
                 return <TableHeadRow>
                     <VirtuosoHeadCell width={unit * 10} />
                     <VirtuosoResizeHeadCell width={unit * 5}>Brinco</VirtuosoResizeHeadCell>
@@ -61,9 +60,8 @@ export const PastureEntriesTable = ({ fetchNextPage, rows, isLoading, scrollRef,
                 </TableHeadRow>
             }}
             fixedFooterContent={() => (
-                <TableFooterRow>
-                    <TableFooterTitleCell colSpan={2}>Total de Entradas</TableFooterTitleCell>
-                    <TableFooterCell colSpan={7}>{total}</TableFooterCell>
+                <TableFooterRow colSpan={7}>
+                    <FooterContent title="Total" content={total} />
                 </TableFooterRow>
             )}
             itemContent={(_, row) => isLoading ? <TableLoadingCells colSpan={7} /> : <PastureEntriesRow {...row} />}

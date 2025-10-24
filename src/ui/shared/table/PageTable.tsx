@@ -10,18 +10,40 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { forwardRef, RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { TableVirtuosoProps, VirtuosoHandle } from "react-virtuoso";
+import { VirtuosoNoDataPlaceholder } from "./TableComponents";
 
-export const VirtuosoTableComponents: TableVirtuosoProps<IData, any>['components'] = {
-    Scroller: forwardRef((props, ref) => (
-        <TableContainer
-            component={Paper}
-            {...props}
-            ref={ref}
-        />)),
-    Table: (props) => <Table {...props} className="min-w-max table-fixed border-separate" />,
-    TableHead,
-    TableRow: (props) => <TableRow className="hover:bg-gray-300" {...props} />,
-    TableBody: forwardRef((props, ref) => <TableBody {...props} ref={ref} />),
+export function useVirtuosoComponents(colSpan: number) {
+
+    const [tableComponents, setTableComponents] = useState<TableVirtuosoProps<IData,any>['components']>({
+        Scroller: forwardRef((props, ref) => (
+            <TableContainer
+                component={Paper}
+                {...props}
+                ref={ref}
+            />)),
+        Table: (props) => <Table {...props} className="min-w-max table-fixed border-separate" />,
+        TableHead,
+        TableRow: (props) => <TableRow className="hover:bg-gray-300" {...props} />,
+        TableBody: forwardRef((props, ref) => <TableBody {...props} ref={ref} />),
+        EmptyPlaceholder: () => <VirtuosoNoDataPlaceholder {...{ colSpan }} />
+    })
+
+    useEffect(() => setTableComponents({
+        Scroller: forwardRef((props, ref) => (
+            <TableContainer
+                component={Paper}
+                {...props}
+                ref={ref}
+            />)),
+        Table: (props) => <Table {...props} className="min-w-max table-fixed border-separate" />,
+        TableHead,
+        TableRow: (props) => <TableRow className="hover:bg-gray-300" {...props} />,
+        TableBody: forwardRef((props, ref) => <TableBody {...props} ref={ref} />),
+        EmptyPlaceholder: () => <VirtuosoNoDataPlaceholder {...{ colSpan }} />
+
+    }), [])
+
+    return tableComponents
 }
 
 export type PaginationResponse<T> = {
@@ -69,7 +91,7 @@ export function usePagination<T>({ fetchPage, setLoading }: PaginationProps): Pa
             .then((result) => {
                 const newPage: Page<T> = result.json
                 setPage(newPage)
-                setRows(newPage.list) 
+                setRows(newPage.list)
                 putScrollAtTop()
             })
             .catch(() => {

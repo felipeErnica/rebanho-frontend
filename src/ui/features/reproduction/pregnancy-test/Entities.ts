@@ -1,13 +1,26 @@
+import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
+
 export const BirthStatusMap: Map<string, string> = new Map([
     ['FAILED', 'Falhou'],
     ['SUCCESS', 'Confirmado'],
     ['STAND_BY', 'Aguardando...'],
 ])
 
+export const BirthStatusItems: ComboBoxItem[] = [
+    { value: 'FAILED', name: 'Falhou' },
+    { value: 'SUCCESS', name: 'Confirmado' },
+    { value: 'STAND_BY', name: 'Aguardando...' },
+]
+
 export const PregnancyStatusMap: Map<string, string> = new Map([
     ['FAILED', 'Vazia'],
     ['SUCCESS', 'Prenha'],
 ])
+
+export const PregnancyStatusItems: ComboBoxItem[] = [
+    { name: 'Vazia', value: 'FAILED' },
+    { value: 'SUCCESS', name: 'Prenha' },
+]
 
 export type TestEntry = {
     id: string
