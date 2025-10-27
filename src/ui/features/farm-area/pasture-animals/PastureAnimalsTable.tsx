@@ -1,7 +1,7 @@
 import { Table, TableBody, TableHead } from "@mui/material"
 import { dateTransform } from "@/util/Transformations"
 import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
-import { transformAnimalType } from "../../animals/shared/AnimalEntities"
+import { transformAnimalType } from "../../animals/Entities"
 import {
     FooterContent,
     ResizableHeadCell,

@@ -3,15 +3,15 @@ import { ColorStrings } from "@/ui/shared/Globals"
 
 export type InseminationEntry = {
     id: string
-    animalId?: string
-    animalName?: string
-    inseminationDate?: Date
-    bullId?: string
-    bullName?: string
+    animalId: string
+    animalName: string
+    inseminationDate: Date
+    bullId: string
+    bullName: string
     observation?: string
-    childInformation?: string
-    pregnancyStatus?: string
-    birthStatus?: string
+    childInformation: string
+    pregnancyStatus: string
+    birthStatus: string
     lossId?: string
     calfId?: string
 }
@@ -27,7 +27,8 @@ export type InseminationEntryFilter = {
     minInseminationDate?: Date
     maxInseminationDate?: Date
     bulls?: string[]
-    status?: string
+    birthStatus?: string
+    pregnancyStatus?: string
 }
 
 export const InseminationStatusMap: Map<string, string> = new Map([
@@ -42,11 +43,11 @@ export const InseminationStatusColorMap: Map<string, ColorStrings> = new Map([
     ['STAND_BY', 'warning'],
 ])
 
-export function statusMapToComboBox() {
-    const items: ComboBoxItem[] = []
-    InseminationStatusMap.forEach((value, key) => items.push({ name: value, value: key }))
-    return items
-}
+export const InseminationsItens: ComboBoxItem[] = [
+    { name: 'Falhou', value: 'FAILED' },
+    { name: 'Sucesso', value: 'SUCCESS' },
+    { name: 'Aguardando...', value: 'STAND_BY' },
+]
 
 export type InseminationGroup = {
     bullId: string

@@ -17,7 +17,6 @@ import Vaccines from "@mui/icons-material/Vaccines"
 import { PageProps } from "../PageDisplay"
 import { BirthPage } from "@/ui/features/reproduction/births/BirthPages"
 import { InseminationPage } from "@/ui/features/reproduction/insemination/InseminationPages"
-import { NaturalMatingTablePage } from "@/ui/features/reproduction/natural-reproduction/NaturalReprodutionPages"
 import { EmbryoTablePage } from "@/ui/features/reproduction/embryo-transfer/EmbryoTransferPages"
 import { BirthTestDashboardPage } from "@/ui/features/reproduction/pregnancy-test/BirthTestPages"
 import { HomePage } from "@/ui/features/home/HomePage"
@@ -26,6 +25,7 @@ import { AnimalDashboardPage } from "@/ui/features/animals/AnimalsPage"
 import { FarmPage } from "@/ui/features/farm-area/FarmPage"
 import { WeightMainPage } from "@/ui/features/weight/WeightPages"
 import { SlaughterMainPage } from "@/ui/features/slaughter/SlaughterPages"
+import { MatingMainPage } from "@/ui/features/reproduction/natural-reproduction/NaturalMatingPages"
 
 export type MenuItem = {
     key: string
@@ -60,7 +60,7 @@ export const buildList = () => {
             key: 'mating',
             title: 'Monta Natural',
             icon: <BullIcon />,
-            page: NaturalMatingTablePage
+            page: MatingMainPage
         },
         {
             key: 'embryo-transfer',

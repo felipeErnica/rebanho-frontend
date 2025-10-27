@@ -6,7 +6,7 @@ import { lightBlue, pink } from "@mui/material/colors"
 import { PieChart } from "@mui/x-charts/PieChart"
 import { PieValueType } from "@mui/x-charts"
 import { getGroupByAge, getTotalByType } from "./api/DashboardController"
-import { AnimalType } from "../shared/AnimalEntities"
+import { AnimalType } from "../Entities"
 
 type AnimalChartsProps = {
     filter: AnimalDashboardFilter

@@ -1,4 +1,4 @@
-import { AnimalType } from "../../animals/shared/AnimalEntities"
+import { AnimalType } from "../../animals/Entities"
 
 export type PastureAnimal = {
     id?: string

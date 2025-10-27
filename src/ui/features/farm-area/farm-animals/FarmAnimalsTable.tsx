@@ -15,7 +15,7 @@ import {
 } from "@/ui/shared/table/TableComponents"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchPasture } from "@/shared/GlobalApiCalls"
-import { transformAnimalType } from "../../animals/shared/AnimalEntities"
+import { transformAnimalType } from "../../animals/Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { useVirtuosoComponents } from "@/ui/shared/table/PageTable"
 

@@ -3,13 +3,7 @@ import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTabl
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { findEntriesPage, getEntriesPage } from "./Controller"
-import {
-    InseminationFooter,
-    InseminationEntry,
-    InseminationEntryFilter,
-    InseminationStatusColorMap,
-    InseminationStatusMap,
-} from "./Entities"
+import { MatingEntry, MatingEntryFilter, MatingFoot, StatusColorMap, StatusMap } from "./Entities"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import {
@@ -26,30 +20,30 @@ import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/Con
 import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { InseminationFilter } from "./InseminationFilter"
 import Add from "@mui/icons-material/Add"
-import { AddInseminationDialog } from "./AddInseminationDialog"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchBull } from "../../farm-area/main-table/api/DashboardController"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
+import { AddMatingDialog } from "./AddMatingDialog"
+import { MatingFilter } from "./MatingFilter"
 
 export const EntriesTablePage = () => {
 
-    const defaultSort = 'insemination_date,animal_order'
+    const defaultSort = 'mating_date,animal_order'
 
-    const defaultFoot: InseminationFooter = {
+    const defaultFoot: MatingFoot = {
         totals: 0,
         averageBirthRate: 0,
         averagePregnancyRate: 0
     }
 
-    const [filter, setFilter] = useState<InseminationEntryFilter>({ isFiltered: false })
+    const [filter, setFilter] = useState<MatingEntryFilter>({ isFiltered: false })
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [sort, setSort] = useState(defaultSort)
     const [order, setOrder] = useState('desc')
     const [foot, setFoot] = useState(defaultFoot)
-    const [addInseminationOpen, setAddInseminationOpen] = useState(false)
+    const [addMatingOpen, setAddMatingOpen] = useState(false)
 
     const anchorEl = useRef<HTMLButtonElement>(null)
 
@@ -63,12 +57,12 @@ export const EntriesTablePage = () => {
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
-        { name: 'Brinco da Vaca', value: 'animal_order,insemination_date' },
-        { name: 'Nome da Vaca', value: 'name,insemination_date' },
-        { name: 'Data de Inseminação', value: defaultSort }
+        { name: 'Brinco da Vaca', value: 'animal_order,mating_date' },
+        { name: 'Nome da Vaca', value: 'name,mating_date' },
+        { name: 'Data de Monta', value: defaultSort }
     ]
 
-    const { rows, scrollRef, fetchNextPage } = usePagination<InseminationEntry>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage } = usePagination<MatingEntry>({ setLoading, fetchPage })
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -79,21 +73,21 @@ export const EntriesTablePage = () => {
             otherProps={(
                 <Button
                     startIcon={<Add />}
-                    onClick={() => setAddInseminationOpen(true)}
+                    onClick={() => setAddMatingOpen(true)}
                 >
                     Adicionar Inseminação
                 </Button>
             )}
         />
         <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
-        <InseminationFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
-        <AddInseminationDialog {...{ addInseminationOpen, setAddInseminationOpen }} />
+        <MatingFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
+        <AddMatingDialog {...{ addMatingOpen, setAddMatingOpen }} />
     </div>
 }
 
 type EntriesTableProps = {
-    rows: InseminationEntry[]
-    foot: InseminationFooter
+    rows: MatingEntry[]
+    foot: MatingFoot
     loading: boolean
     scrollRef: RefObject<VirtuosoHandle | null>
     fetchNextPage: () => void
@@ -143,19 +137,19 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
                 <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.averageBirthRate)} />
             </TableFooterRow>
         )}
-        itemContent={(_, item) => <EntriesRow {...{ item: item as InseminationEntry, loading }} />}
+        itemContent={(_, item) => <EntriesRow {...{ item: item as MatingEntry, loading }} />}
     />
 
 }
 
 type EntriesRowProps = {
-    item: InseminationEntry
+    item: MatingEntry
     loading: boolean
 }
 
 const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
-    const [rowData, setRowData] = useState<InseminationEntry>(item)
+    const [rowData, setRowData] = useState<MatingEntry>(item)
     const [editing, setEditing] = useState(false)
 
     useEffect(() => setRowData(item), [item])
@@ -168,21 +162,21 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
-        <TableBodyCell align="center">{dateTransform(rowData.inseminationDate)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.matingDate)}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
         <TableBodyCell>
             {rowData.pregnancyStatus &&
                 <Chip
-                    label={InseminationStatusMap.get(rowData.pregnancyStatus)}
-                    color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+                    label={StatusMap.get(rowData.pregnancyStatus)}
+                    color={StatusColorMap.get(rowData.pregnancyStatus)}
                 />
             }
         </TableBodyCell>
         <TableBodyCell>
             {rowData.birthStatus &&
                 <Chip
-                    label={InseminationStatusMap.get(rowData.birthStatus)}
-                    color={InseminationStatusColorMap.get(rowData.birthStatus)}
+                    label={StatusMap.get(rowData.birthStatus)}
+                    color={StatusColorMap.get(rowData.birthStatus)}
                 />
             }
         </TableBodyCell>
@@ -192,16 +186,16 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 }
 
 type EntriesRowEditingProps = {
-    rowData: InseminationEntry
-    setRowData: (rowData: InseminationEntry) => void
+    rowData: MatingEntry
+    setRowData: (rowData: MatingEntry) => void
     setEditing: (editing: boolean) => void
 }
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<InseminationEntry>({ defaultValues: rowData })
+    const { control, handleSubmit } = useForm<MatingEntry>({ defaultValues: rowData })
 
-    const onSubmit: SubmitHandler<InseminationEntry> = (data: InseminationEntry) => {
+    const onSubmit: SubmitHandler<MatingEntry> = (data: MatingEntry) => {
         setRowData(data)
         setEditing(false)
     }
@@ -214,7 +208,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell align="center">
-            <FormDatePicker formProps={{ control, name: 'inseminationDate' }} />
+            <FormDatePicker formProps={{ control, name: 'matingDate' }} />
         </TableBodyCell>
         <TableBodyCell align="center">
             <FormSearchBox

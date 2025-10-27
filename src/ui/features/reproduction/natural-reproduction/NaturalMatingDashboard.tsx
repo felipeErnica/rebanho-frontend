@@ -9,18 +9,18 @@ import {
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
 import React, { Dispatch, useCallback, useContext, useEffect, useMemo, useState } from "react"
-import {
-    BirthRateStats,
-    InseminationBulls,
-    InseminationEntry,
-    InseminationGroup,
-    InseminationHist,
-    InseminationStatusColorMap,
-    InseminationStatusMap,
-    PregnancyRateStats,
-    AnimalsNumberEntry,
-    LastEntry,
-    FutureBirthsEntry
+import { 
+    AnimalsNumberEntry, 
+    BestBulls, 
+    BirthRateEntry, 
+    FutureBirths, 
+    LastEntry, 
+    MatingEntry, 
+    MatingGroup, 
+    MatingHist, 
+    PregnancyRateEntry, 
+    StatusColorMap, 
+    StatusMap 
 } from "./Entities"
 import {
     BarPlot,
@@ -60,12 +60,8 @@ import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/Con
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
-import { EntriesTablePage } from "./EntriesTable"
 import { HomePage } from "../../home/HomePage"
-import { GroupsTablePageProps, InseminationPage } from "./InseminationPages"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
-import { AddInseminationDialog } from "./AddInseminationDialog"
 import Add from "@mui/icons-material/Add"
 import { orange, yellow } from "@mui/material/colors"
 import { CardEntry } from "@/shared/entities/Page"
@@ -73,8 +69,13 @@ import { EditRow, TableRowProp } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchBull } from "../../farm-area/main-table/api/DashboardController"
+import { GroupsTablePageProps, MatingMainPage } from "./NaturalMatingPages"
+import { TrendValues } from "@/ui/shared/table/TableComponents"
+import { AddMatingDialog } from "./AddMatingDialog"
+import { EntriesTablePage } from "./EntriesTable"
+import { GroupEntriesTablePage } from "./GroupEntriesTable"
 
-export const InseminationDasboard = () => {
+export const MatingDashboard = () => {
 
     const [reloadFlag, setReloadFlag] = useState(0)
     const [activeRequests, setActiveRequests] = useState(0)
@@ -95,7 +96,7 @@ type DashboardToolbarProps = {
 
 const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarProps) => {
 
-    const [addInseminationOpen, setAddInseminationOpen] = useState(false)
+    const [addMatingOpen, setAddMatingOpen] = useState(false)
     const { setPageProps } = useContext(PageContext)
 
     return <DashboardTopContainer>
@@ -106,24 +107,24 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
         <Button
             className="ml-auto"
             startIcon={<Add />}
-            onClick={() => setAddInseminationOpen(true)}
+            onClick={() => setAddMatingOpen(true)}
         >
-            Adicionar Inseminação
+            Adicionar Monta Natural
         </Button>
         <Button
             endIcon={<ChevronRight />}
             onClick={() => {
                 const page: PageProps = {
                     page: <EntriesTablePage />,
-                    title: "Histórico de Inseminações",
-                    previousPages: [HomePage, InseminationPage]
+                    title: "Histórico de Montas",
+                    previousPages: [HomePage, MatingMainPage]
                 }
                 if (setPageProps) setPageProps(page)
             }}
         >
-            Histórico de Inseminações
+            Histórico de Montas
         </Button>
-        <AddInseminationDialog {...{ addInseminationOpen, setAddInseminationOpen }} />
+        <AddMatingDialog {...{ addMatingOpen, setAddMatingOpen }} />
     </DashboardTopContainer>
 }
 
@@ -143,7 +144,7 @@ const DashboardInformation = ({ reloadFlag, stopLoading, startLoading }: Dashboa
             <LastGroupsTable {...{ reloadFlag, startLoading, stopLoading }} />
         </div>
         <div className="grid grid-cols-[1fr_400] grid-rows-[repeat(2,500)] gap-4">
-            <InseminationHistGraph {...{ reloadFlag, startLoading, stopLoading }} />
+            <MatingHistGraph {...{ reloadFlag, startLoading, stopLoading }} />
             <FutureBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <BestBullsTable {...{ reloadFlag, startLoading, stopLoading }} />
         </div>
@@ -152,13 +153,13 @@ const DashboardInformation = ({ reloadFlag, stopLoading, startLoading }: Dashboa
 
 const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInformationProps) => {
 
-    const defaultValues = useMemo((): BirthRateStats => ({
+    const defaultValues = useMemo((): CardEntry<BirthRateEntry> => ({
         hist: [],
         trend: 0,
         current: 0
     }), [])
 
-    const [data, setData] = useState<BirthRateStats>(defaultValues)
+    const [data, setData] = useState<CardEntry<BirthRateEntry>>(defaultValues)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -188,7 +189,7 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
                     showHighlight
                     valueFormatter={(value) => percentageTransform(value)}
                     xAxis={{
-                        data: data.hist.map(item => new Date(item.inseminationDate)),
+                        data: data.hist.map(item => new Date(item.matingDate)),
                         domainLimit: 'strict',
                         scaleType: 'time',
                         valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' })
@@ -201,13 +202,13 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
 
 const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInformationProps) => {
 
-    const defaultValues = useMemo((): PregnancyRateStats => ({
+    const defaultValues = useMemo((): CardEntry<PregnancyRateEntry> => ({
         hist: [],
         trend: 0,
         current: 0
     }), [])
 
-    const [data, setData] = useState<PregnancyRateStats>(defaultValues)
+    const [data, setData] = useState<CardEntry<PregnancyRateEntry>>(defaultValues)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -237,7 +238,7 @@ const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardI
                     showHighlight
                     valueFormatter={(value) => percentageTransform(value)}
                     xAxis={{
-                        data: data.hist.map(item => new Date(item.inseminationDate)),
+                        data: data.hist.map(item => new Date(item.matingDate)),
                         domainLimit: 'strict',
                         scaleType: 'time',
                         valueFormatter: (value: Date) => value.toLocaleDateString('pt-BR', { dateStyle: 'short' })
@@ -273,7 +274,7 @@ const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: Dashboard
 
     return <DashboardCard>
         <CardChartContent
-            title="Nº de Vacas Inseminadas"
+            title="Nº de Vacas na Monta"
             data={data.current}
             loading={loading}
             trendProps={{ trend: data.trend }}
@@ -284,7 +285,7 @@ const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                     showHighlight
                     showTooltip
                     xAxis={{
-                        data: data.hist.map(item => new Date(item.inseminationDate)),
+                        data: data.hist.map(item => new Date(item.matingDate)),
                         valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' }),
                         domainLimit: 'strict',
                         scaleType: 'time',
@@ -297,7 +298,7 @@ const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: Dashboard
 
 const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const [data, setData] = useState<InseminationBulls[]>([])
+    const [data, setData] = useState<BestBulls[]>([])
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -318,7 +319,7 @@ const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInfo
             <TableHead>
                 <TableRow>
                     <TableCell>Touro</TableCell>
-                    <TableCell align="center">Nº de Inseminações</TableCell>
+                    <TableCell align="center">Nº de Montas</TableCell>
                     <TableCell>Taxa de Prenhez</TableCell>
                     <TableCell>Taxa de Natalidade</TableCell>
                 </TableRow>
@@ -352,18 +353,14 @@ const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInfo
     </DashboardCard>
 }
 
-const InseminationHistGraph = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+const MatingHistGraph = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const [dataset, setDataset] = useState<InseminationHist[]>([])
+    const [dataset, setDataset] = useState<MatingHist[]>([])
 
     useEffect(() => {
         startLoading()
         getInseminationHist()
-            .then(response => {
-                const json: InseminationHist[] = response.json
-                json.forEach(item => item.inseminationDate = new Date(item.inseminationDate))
-                setDataset(response.json)
-            })
+            .then(response => setDataset(response.json))
             .catch(() => setDataset([]))
             .finally(() => {
                 stopLoading()
@@ -371,7 +368,7 @@ const InseminationHistGraph = ({ reloadFlag, stopLoading, startLoading }: Dashbo
     }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
-        <CardDefaultTitle text="Histórico de Inseminações" />
+        <CardDefaultTitle text="Histórico de Montas" />
         <div className="h-full flex flex-col items-center">
             <ChartDataProvider
                 localeText={{
@@ -384,26 +381,26 @@ const InseminationHistGraph = ({ reloadFlag, stopLoading, startLoading }: Dashbo
                         id: 'total',
                         label: 'Total de Inseminadas',
                         type: 'bar',
-                        data: dataset.map(item => item.total)
+                        data: dataset.map(item => item.animalsNumber)
                     },
                     {
                         id: 'birthRate',
                         label: 'Nº de Nascimentos',
                         type: 'line',
                         curve: 'linear',
-                        data: dataset.map(item => item.birthNumbers),
+                        data: dataset.map(item => item.birthsNumber),
                     },
                     {
                         id: 'pregnancyNumber',
                         label: 'Nº de Prenhas',
                         type: 'line',
                         curve: 'linear',
-                        data: dataset.map(item => item.pregnancyNumbers),
+                        data: dataset.map(item => item.pregnanciesNumber),
                     }
                 ]}
                 xAxis={[{
                     scaleType: 'band',
-                    data: dataset.map(item => new Date(item.inseminationDate)),
+                    data: dataset.map(item => new Date(item.matingDate)),
                     domainLimit: 'strict',
                     valueFormatter: (value: Date) => value.toLocaleDateString('pt-BR', { dateStyle: 'short' })
                 }]}
@@ -425,7 +422,7 @@ const InseminationHistGraph = ({ reloadFlag, stopLoading, startLoading }: Dashbo
 
 const FutureBirthsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInformationProps) => {
 
-    const [data, setData] = useState<FutureBirthsEntry[]>([])
+    const [data, setData] = useState<FutureBirths[]>([])
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -470,9 +467,9 @@ const FutureBirthsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardI
 
 const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const [data, setData] = useState<InseminationEntry[]>([])
+    const [data, setData] = useState<MatingEntry[]>([])
     const [loading, setLoading] = useState(false)
-    const [inseminationDate, setInseminationDate] = useState(new Date())
+    const [matingDate, setInseminationDate] = useState(new Date())
     const [lastDate, setLastDate] = useState('Sem dados')
     const { setPageProps } = useContext(PageContext)
 
@@ -482,7 +479,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         getLastEntries()
             .then(response => {
                 const lastEntry: LastEntry = response.json
-                const lastInsemination = new Date(lastEntry.inseminationDate)
+                const lastInsemination = new Date(lastEntry.matingDate)
                 setInseminationDate(lastInsemination)
                 setLastDate(lastInsemination.toLocaleString('pt-BR', { dateStyle: 'short' }))
                 setData(lastEntry.entries)
@@ -500,7 +497,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
 
     return <DashboardCard className="row-span-2">
         <div className="flex flex-row">
-            <CardDefaultTitle text={`Última Inseminação - ${lastDate}`} />
+            <CardDefaultTitle text={`Última Monta - ${lastDate}`} />
         </div>
         <div className="overflow-auto">
             <Table size="small" stickyHeader>
@@ -528,9 +525,9 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             startIcon={<ChevronRight />}
             onClick={() => {
                 const page: PageProps = {
-                    page: <GroupEntriesTablePage {...{ inseminationDate }} />,
-                    title: `Inseminação - ${lastDate}`,
-                    previousPages: [HomePage, InseminationPage]
+                    page: <GroupEntriesTablePage {...{ matingDate }} />,
+                    title: `Monta - ${lastDate}`,
+                    previousPages: [HomePage, MatingMainPage]
                 }
                 if (setPageProps) setPageProps(page)
             }}
@@ -540,10 +537,10 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     </DashboardCard>
 }
 
-const LastEntriesRow = ({ row }: TableRowProp<InseminationEntry>) => {
+const LastEntriesRow = ({ row }: TableRowProp<MatingEntry>) => {
 
     const [editing, setEditing] = useState(false)
-    const [rowData, setRowData] = useState<InseminationEntry>(row)
+    const [rowData, setRowData] = useState<MatingEntry>(row)
 
     useEffect(() => setRowData(row), [row])
     const onDelete = useCallback(() => console.log(rowData.id), [rowData])
@@ -558,25 +555,25 @@ const LastEntriesRow = ({ row }: TableRowProp<InseminationEntry>) => {
         <TableCell>{rowData.bullName}</TableCell>
         <TableCell>
             <Chip
-                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
-                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+                label={StatusMap.get(rowData.pregnancyStatus)}
+                color={StatusColorMap.get(rowData.pregnancyStatus)}
             />
         </TableCell>
         <TableCell>
             <Chip
-                label={InseminationStatusMap.get(rowData.birthStatus)}
-                color={InseminationStatusColorMap.get(rowData.birthStatus)}
+                label={StatusMap.get(rowData.birthStatus)}
+                color={StatusColorMap.get(rowData.birthStatus)}
             />
         </TableCell>
     </TableRow>
 
 }
 
-const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRow<InseminationEntry>) => {
+const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRow<MatingEntry>) => {
 
     const { handleSubmit, control } = useForm({ defaultValues: rowData })
 
-    const onSubimt: SubmitHandler<InseminationEntry> = (data: InseminationEntry) => {
+    const onSubimt: SubmitHandler<MatingEntry> = (data: MatingEntry) => {
         setRowData(data)
         setEditing(false)
     }
@@ -596,14 +593,14 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRow<Insemin
         </TableCell>
         <TableCell>
             <Chip
-                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
-                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+                label={StatusMap.get(rowData.pregnancyStatus)}
+                color={StatusColorMap.get(rowData.pregnancyStatus)}
             />
         </TableCell>
         <TableCell>
             <Chip
-                label={InseminationStatusMap.get(rowData.birthStatus)}
-                color={InseminationStatusColorMap.get(rowData.birthStatus)}
+                label={StatusMap.get(rowData.birthStatus)}
+                color={StatusColorMap.get(rowData.birthStatus)}
             />
         </TableCell>
     </TableRow>
@@ -612,7 +609,7 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRow<Insemin
 
 const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInformationProps) => {
 
-    const [data, setData] = useState<InseminationGroup[]>([])
+    const [data, setData] = useState<MatingGroup[]>([])
     const [loading, setLoading] = useState(false)
     const { setPageProps } = useContext(PageContext)
 
@@ -629,12 +626,12 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
     }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard className="col-span-3">
-        <CardDefaultTitle text="As Últimas Inseminações" />
+        <CardDefaultTitle text="As Últimas Montas" />
         <Table size="small">
             <TableHead>
                 <TableRow>
                     <TableCell />
-                    <TableCell align="center">Data de Inseminação</TableCell>
+                    <TableCell align="center">Data de Monta Natural</TableCell>
                     <TableCell align="center">Total de Animais</TableCell>
                     <TableCell>Taxa de Prenhez</TableCell>
                     <TableCell>Taxa de Natalidade</TableCell>
@@ -650,33 +647,33 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                             <TableCell>
                                 <EditControlButtons
                                     onShow={() => {
-                                        const inseminationDate = new Date(item.inseminationDate)
-                                        const date = inseminationDate.toLocaleDateString('pt-BR', {
+                                        const matingDate = new Date(item.matingDate)
+                                        const date = matingDate.toLocaleDateString('pt-BR', {
                                             month: 'short',
                                             year: 'numeric'
                                         })
                                         const page: PageProps = {
-                                            page: <GroupEntriesTablePage {...{ inseminationDate }} />,
-                                            title: `Inseminação - ${date}`,
-                                            previousPages: [HomePage, InseminationPage]
+                                            page: <GroupEntriesTablePage {...{ matingDate }} />,
+                                            title: `Monta Natural - ${date}`,
+                                            previousPages: [HomePage, MatingMainPage]
                                         }
                                         if (setPageProps) setPageProps(page)
                                     }}
                                 />
                             </TableCell>
-                            <TableCell align="center">{dateTransform(item.inseminationDate)}</TableCell>
+                            <TableCell align="center">{dateTransform(item.matingDate)}</TableCell>
                             <TableCell align="center">{item.cowNumber}</TableCell>
                             <TableCell>
-                                <div className="flex flex-row items-center gap-2">
-                                    {percentageTransform(item.pregnancyRate)}
-                                    <TrendComponent trend={item.pregnancyComparisonRate} />
-                                </div>
+                                <TrendValues 
+                                    value={percentageTransform(item.pregnancyRate)}
+                                    trendProps={{ trend: item.pregnancyComparisonRate}}
+                                />
                             </TableCell>
                             <TableCell>
-                                <div className="flex flex-row items-center gap-2">
-                                    {percentageTransform(item.birthRate)}
-                                    <TrendComponent trend={item.birthComparisonRate} />
-                                </div>
+                                <TrendValues 
+                                    value={percentageTransform(item.pregnancyRate)}
+                                    trendProps={{ trend: item.pregnancyComparisonRate}}
+                                />
                             </TableCell>
                         </TableRow>
                     )}

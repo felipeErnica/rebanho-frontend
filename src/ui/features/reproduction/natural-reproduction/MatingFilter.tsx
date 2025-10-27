@@ -1,5 +1,5 @@
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover"
-import { InseminationEntryFilter, InseminationsItens } from "./Entities"
+import { MatingEntryFilter, StatusItens } from "./Entities"
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
 import { ComboBoxFilter } from "@/ui/shared/filter-controls/ComboBoxFilter"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
@@ -9,10 +9,10 @@ import { Chip } from "@mui/material"
 import { ChipColorScheme } from "@/ui/shared/Globals"
 
 type InseminationFilterProps = FilterPopoverProps & {
-    filter: InseminationEntryFilter
+    filter: MatingEntryFilter
 }
 
-export const InseminationFilter = ({
+export const MatingFilter = ({
     filter,
     setFilter,
     filterOpen,
@@ -47,7 +47,7 @@ export const InseminationFilter = ({
             />
             <ComboBoxFilter
                 label="Nascimento"
-                items={InseminationsItens}
+                items={StatusItens}
                 filter={filter}
                 setFilter={setFilter}
                 fieldName="birthStatus"
@@ -68,7 +68,7 @@ export const InseminationFilter = ({
             />
             <ComboBoxFilter
                 label="Prenhez"
-                items={InseminationsItens}
+                items={StatusItens}
                 filter={filter}
                 setFilter={setFilter}
                 fieldName="pregnancyStatus"
