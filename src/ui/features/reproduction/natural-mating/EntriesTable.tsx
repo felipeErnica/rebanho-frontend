@@ -75,7 +75,7 @@ export const EntriesTablePage = () => {
                     startIcon={<Add />}
                     onClick={() => setAddMatingOpen(true)}
                 >
-                    Adicionar Inseminação
+                    Adicionar Monta
                 </Button>
             )}
         />

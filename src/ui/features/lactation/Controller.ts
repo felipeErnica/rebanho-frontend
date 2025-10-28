@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from "@/util/ApiRequest"
+import { apiGet, apiPost, buildPageCall } from "@/util/ApiRequest"
 import { LactationGroupFilter } from "./Entities";
 
 export const DASHBOARD_BASE = "lactation/dashboard/"
@@ -65,7 +65,7 @@ export function findEntriesPage(
     order: string,
     cursor?: string,
 ) {
-    const pageQuery = `page?order=${order}&sort=${sort}${cursor ? `&cursor=${cursor}` : ''}`
+    const pageQuery = buildPageCall(sort, order, cursor)
     return apiPost(ENTRIES_BASE + pageQuery, filter)
 }
 

@@ -45,7 +45,7 @@ export const ComboBox = (props: ComboBoxProps) => {
                 error={props.error}
                 name={props.name}
                 size={props.size ? props.size : 'small'}
-                variant={props.variant}
+                variant={props.variant ?? 'standard'}
                 label={props.label}
             />
         }}

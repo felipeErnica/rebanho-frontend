@@ -66,7 +66,7 @@ export const BirthDashboard = () => {
 export const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps) => {
 
     const { setPageProps } = useContext(PageContext)
-    const [isAddBirthOpen, setAddBirthOpen] = useState(false)
+    const [addBirthOpen, setAddBirthOpen] = useState(false)
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -75,13 +75,13 @@ export const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTop
             loading={activeRequests > 0}
         />
         <Button
+            className="ml-auto"
             startIcon={<Add />}
             onClick={() => setAddBirthOpen(true)}
         >
             Adicionar Parição
         </Button>
         <Button
-            className="ml-auto"
             endIcon={<ChevronRight />}
             onClick={() => {
                 const tablePage: PageProps = {
@@ -94,7 +94,7 @@ export const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTop
         >
             Tabela de Parição
         </Button>
-        <AddBirthDialog {...{ isAddBirthOpen, setAddBirthOpen }} />
+        <AddBirthDialog {...{ addBirthOpen, setAddBirthOpen }} />
     </DashboardTopContainer>
 }
 
@@ -277,11 +277,7 @@ const BirthByDateGraph = ({ stopLoading, startLoading, reloadFlag }: DashboardIn
         startLoading()
         setLoading(true)
         getBirthHistory()
-            .then(response => {
-                const json: BirthsByDate[] = response.json
-                json.forEach(item => item.date = new Date(item.date))
-                setDataset(response.json)
-            })
+            .then(response => setDataset(response.json))
             .catch(() => setDataset([]))
             .finally(() => {
                 stopLoading()
@@ -299,21 +295,21 @@ const BirthByDateGraph = ({ stopLoading, startLoading, reloadFlag }: DashboardIn
                 noData: NO_DATA_AVAILABLE
             }}
             xAxis={[{
-                dataKey: 'date',
+                data: dataset.map(item => new Date(item.date)),
                 scaleType: 'time',
                 domainLimit: 'strict',
                 valueFormatter: (value: Date) => value.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
             }]}
             series={[
                 {
-                    dataKey: 'birthTotal',
+                    data: dataset.map(item => item.birthTotal),
                     label: 'Nascimentos',
                     curve: 'linear',
                     showMark: false,
                     color: green[800],
                 },
                 {
-                    dataKey: 'deathTotal',
+                    data: dataset.map(item => item.deathTotal),
                     label: 'Morte de Bezerros (*abaixo de 1 ano)',
                     curve: 'linear',
                     showMark: false,

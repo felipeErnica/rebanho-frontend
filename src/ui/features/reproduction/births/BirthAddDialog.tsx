@@ -8,11 +8,11 @@ import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormRadioGroup } from "@/ui/shared/form-controls/FormRadioGroup"
 
 type AddBirthDialogProps = {
-    isAddBirthOpen: boolean
-    setAddBirthOpen: (isAddBirthOpen: boolean) => void
+    addBirthOpen: boolean
+    setAddBirthOpen: (addBirthOpen: boolean) => void
 }
 
-export const AddBirthDialog = ({ isAddBirthOpen, setAddBirthOpen }: AddBirthDialogProps) => {
+export const AddBirthDialog = ({ addBirthOpen, setAddBirthOpen }: AddBirthDialogProps) => {
 
     const { handleSubmit, control } = useForm<BirthEntry>()
 
@@ -23,7 +23,7 @@ export const AddBirthDialog = ({ isAddBirthOpen, setAddBirthOpen }: AddBirthDial
     }
 
     return <Dialog
-        open={isAddBirthOpen}
+        open={addBirthOpen}
         onClose={onClose}
     >
         <DialogTitle>Adicionar Parição</DialogTitle>

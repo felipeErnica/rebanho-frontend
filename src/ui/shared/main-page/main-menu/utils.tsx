@@ -17,7 +17,7 @@ import Vaccines from "@mui/icons-material/Vaccines"
 import { PageProps } from "../PageDisplay"
 import { BirthPage } from "@/ui/features/reproduction/births/BirthPages"
 import { InseminationPage } from "@/ui/features/reproduction/insemination/InseminationPages"
-import { EmbryoTablePage } from "@/ui/features/reproduction/embryo-transfer/EmbryoTransferPages"
+import { TransferMainPage } from "@/ui/features/reproduction/embryo-transfer/EmbryoTransferPages"
 import { BirthTestDashboardPage } from "@/ui/features/reproduction/pregnancy-test/BirthTestPages"
 import { HomePage } from "@/ui/features/home/HomePage"
 import { MilkDashboardPage } from "@/ui/features/lactation/LactationPages"
@@ -25,7 +25,7 @@ import { AnimalDashboardPage } from "@/ui/features/animals/AnimalsPage"
 import { FarmPage } from "@/ui/features/farm-area/FarmPage"
 import { WeightMainPage } from "@/ui/features/weight/WeightPages"
 import { SlaughterMainPage } from "@/ui/features/slaughter/SlaughterPages"
-import { MatingMainPage } from "@/ui/features/reproduction/natural-reproduction/NaturalMatingPages"
+import { MatingMainPage } from "@/ui/features/reproduction/natural-mating/NaturalMatingPages"
 
 export type MenuItem = {
     key: string
@@ -66,7 +66,7 @@ export const buildList = () => {
             key: 'embryo-transfer',
             title: 'Transferência Embrionária',
             icon: <EmbryoIcon />,
-            page: EmbryoTablePage
+            page: TransferMainPage
         },
     ]
 

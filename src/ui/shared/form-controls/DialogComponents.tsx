@@ -1,5 +1,10 @@
 import { Button } from "@mui/material"
-import { ReactNode } from "react"
+import { Dispatch, ReactNode, SetStateAction } from "react"
+
+export interface AddDialogProps {
+    addDialogOpen: boolean
+    setAddDialogOpen: Dispatch<SetStateAction<boolean>>
+}
 
 type DialogActionButtonsProps = {
     onClose: () => void

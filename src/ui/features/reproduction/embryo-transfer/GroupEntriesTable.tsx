@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { MatingEntry, MatingFoot, StatusColorMap, StatusMap } from "./Entities"
+import { EmbryoTransfer, TransferFoot, StatusColorMap, StatusMap } from "./Entities"
 import { findEntriesByGroup, getEntriesByGroupFoot } from "./Controller"
 import Table from "@mui/material/Table"
 import {
@@ -21,58 +21,60 @@ import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { percentageTransform } from "@/util/Transformations"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
-import { AddMatingDialog } from "./AddMatingDialog"
+import { AddTransferDialog } from "./AddTransferDialog"
+import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
+import { searchMother } from "@/shared/GlobalApiCalls"
 
 type GroupEntriesTablePageProps = {
-    matingDate: Date
+    transferDate: Date
 }
 
-export const GroupEntriesTablePage = ({ matingDate }: GroupEntriesTablePageProps) => {
+export const GroupEntriesTablePage = ({ transferDate }: GroupEntriesTablePageProps) => {
 
-    const defaultValue: MatingFoot = useMemo(() => ({
+    const defaultValue: TransferFoot = useMemo(() => ({
         totals: 0,
         averageBirthRate: 0,
         averagePregnancyRate: 0
     }), [])
 
     const [loading, setLoading] = useState(false)
-    const [rows, setRows] = useState<MatingEntry[]>([])
-    const [foot, setFoot] = useState<MatingFoot>(defaultValue)
-    const [addMatingOpen, setAddMatingOpen] = useState(false)
+    const [rows, setRows] = useState<EmbryoTransfer[]>([])
+    const [foot, setFoot] = useState<TransferFoot>(defaultValue)
+    const [addTransferOpen, setAddTransferOpen] = useState(false)
 
     const onReload = useCallback(() => {
         setLoading(true)
-        getEntriesByGroupFoot(matingDate)
+        getEntriesByGroupFoot(transferDate)
             .then(response => setFoot(response.json))
             .catch(() => setFoot(defaultValue))
-        findEntriesByGroup(matingDate)
+        findEntriesByGroup(transferDate)
             .then(response => setRows(response.json))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
-    }, [defaultValue, matingDate])
+    }, [defaultValue, transferDate])
 
     useEffect(onReload, [onReload])
 
     return <div className="w-full h-full overflow-hidden flex flex-col">
-        <AddMatingDialog {...{ addMatingOpen, setAddMatingOpen }} />
         <TableTopBar
             reloadProps={{ onReload, loading }}
             otherProps={(
                 <Button
                     startIcon={<Add />}
-                    onClick={() => setAddMatingOpen(true)}
+                    onClick={() => setAddTransferOpen(true)}
                 >
-                    Adicionar Monta
+                    Adicionar Transferência
                 </Button>
             )}
         />
         <GroupEntriesTable {...{ rows, foot, loading }} />
+        <AddTransferDialog {...{ addTransferOpen, setAddTransferOpen }} />
     </div>
 }
 
 type GroupEntriesTableProps = {
-    rows: MatingEntry[]
-    foot: MatingFoot
+    rows: EmbryoTransfer[]
+    foot: TransferFoot
     loading: boolean
 }
 
@@ -99,9 +101,10 @@ const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
                 <TableHeadRow>
                     <TableHeadCell width={tableUnit * 10} />
                     <ResizableHeadCell width={tableUnit * 20}>Vaca</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 10}>Touro</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={tableUnit * 15}>Prenhez</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={tableUnit * 15}>Nascimento</ResizableHeadCell>
+                    <ResizableHeadCell width={tableUnit * 15}>Doadora</ResizableHeadCell>
+                    <ResizableHeadCell width={tableUnit * 15}>Touro</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={tableUnit * 10}>Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={tableUnit * 10}>Nascimento</ResizableHeadCell>
                     <ResizableHeadCell width={tableUnit * 15}>Informações da Cria</ResizableHeadCell>
                     <ResizableHeadCell width={tableUnit * 15}>Observações</ResizableHeadCell>
                 </TableHeadRow>
@@ -110,7 +113,7 @@ const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
                 {rows.map(item => <EntriesRow {...{ item, loading }} />)}
             </TableBody>
             <StickyTableFooter>
-                <TableFooterRow colSpan={7}>
+                <TableFooterRow colSpan={8}>
                     <FooterContent title="Total" content={foot.totals} />
                     <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.averagePregnancyRate)} />
                     <FooterContent title="Taxa de Nascimento" content={percentageTransform(foot.averageBirthRate)} />
@@ -121,13 +124,13 @@ const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
 }
 
 type EntriesRowProps = {
-    item: MatingEntry
+    item: EmbryoTransfer
     loading: boolean
 }
 
 const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
-    const [rowData, setRowData] = useState<MatingEntry>(item)
+    const [rowData, setRowData] = useState<EmbryoTransfer>(item)
     const [editing, setEditing] = useState(false)
 
     useEffect(() => setRowData(item), [item])
@@ -139,23 +142,20 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.receiverName}</TableBodyCell>
+        <TableBodyCell>{rowData.donorName}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
         <TableBodyCell align="center">
-            {rowData.pregnancyStatus &&
-                <Chip
-                    label={StatusMap.get(rowData.pregnancyStatus)}
-                    color={StatusColorMap.get(rowData.pregnancyStatus)}
-                />
-            }
+            <Chip
+                label={StatusMap.get(rowData.pregnancyStatus)}
+                color={StatusColorMap.get(rowData.pregnancyStatus)}
+            />
         </TableBodyCell>
         <TableBodyCell align="center">
-            {rowData.birthStatus &&
-                <Chip
-                    label={StatusMap.get(rowData.birthStatus)}
-                    color={StatusColorMap.get(rowData.birthStatus)}
-                />
-            }
+            <Chip
+                label={StatusMap.get(rowData.birthStatus)}
+                color={StatusColorMap.get(rowData.birthStatus)}
+            />
         </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>{rowData.observation}</TableBodyCell>
@@ -163,16 +163,16 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 }
 
 type EntriesRowEditingProps = {
-    rowData: MatingEntry
-    setRowData: (rowData: MatingEntry) => void
+    rowData: EmbryoTransfer
+    setRowData: (rowData: EmbryoTransfer) => void
     setEditing: (editing: boolean) => void
 }
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<MatingEntry>({ defaultValues: rowData })
+    const { control, handleSubmit } = useForm<EmbryoTransfer>({ defaultValues: rowData })
 
-    const onSubmit: SubmitHandler<MatingEntry> = (data: MatingEntry) => {
+    const onSubmit: SubmitHandler<EmbryoTransfer> = (data: EmbryoTransfer) => {
         setRowData(data)
         setEditing(false)
     }
@@ -183,8 +183,19 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
-        <TableBodyCell>{rowData.bullName}</TableBodyCell>
+        <TableBodyCell>{rowData.receiverName}</TableBodyCell>
+        <TableBodyCell>
+            <FormSearchBox
+                searchOptions={searchMother}
+                formProps={{ control, name: 'donorId' }}
+            />
+        </TableBodyCell>
+        <TableBodyCell>
+            <FormSearchBox
+                searchOptions={searchMother}
+                formProps={{ control, name: 'bullId' }}
+            />
+        </TableBodyCell>
         <TableBodyCell align="center">{rowData.pregnancyStatus}</TableBodyCell>
         <TableBodyCell align="center">{rowData.birthStatus}</TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react"
 import { MatingGroup } from "./Entities"
 import { findGroups } from "./Controller"
-import { Button, Table, TableBody, TableHead } from "@mui/material"
+import { Table, TableBody, TableHead } from "@mui/material"
 import {
     ResizableHeadCell,
     TableBodyCell,
@@ -21,7 +21,6 @@ import { GroupsTablePageProps, MatingMainPage } from "./NaturalMatingPages"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
-import Add from "@mui/icons-material/Add"
 
 export const GroupsTablePage = () => {
 
@@ -46,12 +45,6 @@ const GroupsToolBar = ({ setReload, loading }: GroupsToolBarProps) => {
             onReload={() => setReload(prev => prev + 1)}
             variant="text"
         />
-        <Button
-            className="ml-auto"
-            startIcon={<Add />}
-        >
-            Adicionar Grupo
-        </Button>
     </div>
 }
 

@@ -54,7 +54,7 @@ export const MilkEntriesTablePage = () => {
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: 'animal_order, entry_date' },
-        { name: 'Nome da Vaca', value: 'name, entry_date' },
+        { name: 'Nome da Vaca', value: 'animal_name, entry_date' },
         { name: 'Data da Marcação', value: defaultSort }
     ]
 
