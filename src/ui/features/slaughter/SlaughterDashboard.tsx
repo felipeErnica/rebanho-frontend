@@ -77,7 +77,6 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTopBarProp
         />
         <Button
             className="ml-auto"
-            variant="outlined"
             endIcon={<ChevronRight />}
             onClick={() => setPageProps && setPageProps(SlaughterEntriesPage)}
         >
@@ -322,7 +321,7 @@ const LastEntriesRow = ({ row }: LastEntriesRowProps) => {
         <TableCell>
             <EditControlButtons {...{ setEditing, onDelete }} />
         </TableCell>
-        <TableCell>{rowData.animalName}</TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell>
             {`${decimalTransform(rowData.weight)} (${decimalTransform(rowData.weight / 15)}@)`}
         </TableCell>
@@ -366,7 +365,7 @@ const EditingLastEntriesRow = ({ setEditing, rowData, setRowData }: EditingLastE
         <TableCell>
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableCell>
-        <TableCell>{rowData.animalName}</TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell>
             <FormTextField
                 formProps={{ control, name: 'weight' }}

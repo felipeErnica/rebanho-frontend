@@ -58,7 +58,7 @@ export const buildList = () => {
         },
         {
             key: 'mating',
-            title: 'Monta Natural',
+            title: 'Cobertura',
             icon: <BullIcon />,
             page: MatingMainPage
         },
@@ -91,7 +91,7 @@ export const buildList = () => {
         },
         {
             key: 'reproduction',
-            title: 'Reprodução e Inseminação',
+            title: 'Área Reprodutiva',
             icon: <ReproductionIcon />,
             collapsedList: reproductionSubMenu
         },

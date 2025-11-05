@@ -48,8 +48,8 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: 'animal_order' },
-        { name: 'Nome da Vaca', value: 'name' },
-        { name: 'Data de Previsão', value: "birth_forecast,animal_order" }
+        { name: 'Nome da Vaca', value: 'animal_name' },
+        { name: 'Data de Previsão', value: "birth_forecast, animal_order" }
     ]
 
     const onReload = useCallback(() => {
@@ -157,7 +157,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">
             {rowData.pregnancyStatus &&
                 <Chip
@@ -202,7 +202,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">
             <Chip
                 label={PregnancyStatusMap.get(rowData.pregnancyStatus)}

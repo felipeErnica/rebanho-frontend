@@ -1,6 +1,17 @@
-import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { 
+    createContext, 
+    Dispatch, 
+    RefObject, 
+    SetStateAction, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useMemo, 
+    useRef, 
+    useState 
+} from "react"
 import { MilkEntry, MilkEntryFilter, MilkEntryFoot } from "./Entities"
-import { findEntriesPage, getEntriesPageFoot } from "./Controller"
+import { deleteMilkEntry, findEntriesPage, getEntriesPageFoot, updateMilkEntry } from "./Controller"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
@@ -22,6 +33,15 @@ import { MilkEntriesFilter } from "./MilkEntriesFilter"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import { Button } from "@mui/material"
 import Add from "@mui/icons-material/Add"
+import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
+import { APIError } from "@/util/ApiRequest"
+import { ConnectionError } from "@/ui/shared/Globals"
+
+type ErrorContextProps = {
+    setApiError: Dispatch<SetStateAction<APIError | undefined>>
+}
+
+const ErrorContext = createContext<ErrorContextProps>(undefined!)
 
 export const MilkEntriesTablePage = () => {
 
@@ -40,25 +60,39 @@ export const MilkEntriesTablePage = () => {
     const [order, setOrder] = useState('desc')
     const [foot, setFoot] = useState(defaultFoot)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
+    const [apiError, setApiError] = useState<APIError>()
 
     const anchorEl = useRef<HTMLButtonElement>(null)
 
-    const fetchPage = useCallback((cursor?: string) => {
+    const getFoot = useCallback(() => {
         getEntriesPageFoot(filter)
             .then(response => setFoot(response.json))
             .catch(() => setFoot(defaultFoot))
+    }, [defaultFoot, filter])
+
+    const fetchPage = useCallback((cursor?: string) => {
+        getFoot()
         return findEntriesPage(filter, sort, order, cursor)
-    }, [defaultFoot, filter, order, sort])
+    }, [filter, getFoot, order, sort])
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: 'animal_order, entry_date' },
-        { name: 'Nome da Vaca', value: 'animal_name, entry_date' },
+        { name: 'Nome da Vaca', value: 'name, entry_date' },
         { name: 'Data da Marcação', value: defaultSort }
     ]
 
-    const { rows, scrollRef, fetchNextPage } = usePagination<MilkEntry>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<MilkEntry>({ setLoading, fetchPage })
+
+    const onDelete = useCallback((id: string) => {
+        deleteMilkEntry(id)
+            .then(response => {
+                if (response.status != 200) return
+                setRows(prev => prev.filter(item => item.id != id))
+                getFoot()
+            })
+    }, [getFoot, setRows])
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -75,13 +109,28 @@ export const MilkEntriesTablePage = () => {
                 </Button>
             )}
         />
-        <EntriesTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
+        <ErrorContext value={{ setApiError }}>
+            <EntriesTable {...{ rows, foot, loading, scrollRef, fetchNextPage, onDelete }} />
+        </ErrorContext>
         <MilkEntriesFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
-        <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen }} />
+        <AddMilkEntryDialog 
+            addMilkEntryOpen={addMilkEntryOpen}
+            onClose={(added: boolean) => {
+                setAddMilkEntryOpen(false)
+                if (added) onReload()
+            }}
+        />
+        <ErrorDialog
+            openError={!!apiError}
+            onClose={() => setApiError(undefined)}
+            title={apiError?.title}
+            content={apiError?.message}
+        />
     </div>
 }
 
 type EntriesTableProps = {
+    onDelete: (id: string) => void
     rows: MilkEntry[]
     foot: MilkEntryFoot
     loading: boolean
@@ -89,7 +138,7 @@ type EntriesTableProps = {
     fetchNextPage: () => void
 }
 
-const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTableProps) => {
+const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot, onDelete }: EntriesTableProps) => {
 
     const [tableWidth, setTableWidth] = useState(0)
     const tableRef = useRef<HTMLDivElement>(null)
@@ -126,22 +175,23 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
         }}
         fixedFooterContent={() => (
             <TableFooterRow colSpan={5}>
-                    <FooterContent title="Total" content={foot.animalsNumber} />
-                    <FooterContent title="Produção Média" content={decimalTransform(foot.averageMilk)} />
-                    <FooterContent title="Produção Total" content={decimalTransform(foot.totalMilk)} />
+                <FooterContent title="Total" content={foot.animalsNumber} />
+                <FooterContent title="Produção Média" content={decimalTransform(foot.averageMilk)} />
+                <FooterContent title="Produção Total" content={decimalTransform(foot.totalMilk)} />
             </TableFooterRow>
         )}
-        itemContent={(_, item) => <EntriesRow {...{ item, loading }} />}
+        itemContent={(_, item) => <EntriesRow {...{ item, loading, onDelete }} />}
     />
 
 }
 
 type EntriesRowProps = {
+    onDelete: (id: string) => void
     item: MilkEntry
     loading: boolean
 }
 
-const EntriesRow = ({ item, loading }: EntriesRowProps) => {
+const EntriesRow = ({ item, loading, onDelete }: EntriesRowProps) => {
 
     const [rowData, setRowData] = useState<MilkEntry>(item)
     const [editing, setEditing] = useState(false)
@@ -153,9 +203,12 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     return <>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons 
+                setEditing={setEditing}
+                onDelete={() => onDelete(item.id)}
+            />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{dateTransform(rowData.entryDate)}</TableBodyCell>
         <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell>{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
@@ -170,20 +223,34 @@ type EntriesRowEditingProps = {
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
+    const [loading, setLoading] = useState(false)
+
     const { control, handleSubmit } = useForm<MilkEntry>({ defaultValues: rowData })
+    const { setApiError } = useContext(ErrorContext)
 
     const onSubmit: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
-        setRowData(data)
-        setEditing(false)
+        setLoading(true)
+        data.quantity = Number(data.quantity)
+        updateMilkEntry(data)
+            .then(response => {
+                if (response.status !== 200) {
+                    setApiError(response.json)
+                    return
+                }
+                setRowData(response.json)
+                setEditing(false)
+            })
+            .catch(() => setApiError(ConnectionError))
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>
             <FormDatePicker formProps={{ control, name: 'entryDate' }} />
         </TableBodyCell>
@@ -191,10 +258,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <FormTextField
                 type="number"
-                formProps={{
-                    control,
-                    name: 'quantity'
-                }}
+                formProps={{ control, name: 'quantity' }}
             />
         </TableBodyCell>
     </>

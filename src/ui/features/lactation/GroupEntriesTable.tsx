@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { MilkEntry, MilkEntryFoot } from "./Entities"
-import { getGroupEntries, getGroupEntriesFoot } from "./Controller"
+import { deleteMilkEntry, getGroupEntries, getGroupEntriesFoot, updateMilkEntry } from "./Controller"
 import Table from "@mui/material/Table"
 import { Button, TableBody, TableHead } from "@mui/material"
 import {
@@ -20,6 +20,14 @@ import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import Add from "@mui/icons-material/Add"
+import { APIError } from "@/util/ApiRequest"
+import { ConnectionError } from "@/ui/shared/Globals"
+
+type ErrorContextProps = {
+    setApiError: Dispatch<SetStateAction<APIError | undefined>>
+}
+
+const ErrorContext = createContext<ErrorContextProps>(undefined!)
 
 type GroupEntriesTableProps = {
     entryDate: Date
@@ -38,25 +46,42 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTableProps) => 
     const [loading, setLoading] = useState(false)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
 
-    const onReload = useCallback(() => {
-        setLoading(true)
+    const getFoot = useCallback(() => {
         getGroupEntriesFoot(new Date(entryDate))
             .then(response => setFoot(response.json))
             .catch(() => setFoot(defaultFoot))
+    }, [defaultFoot, entryDate])
+
+    const onReload = useCallback(() => {
+        setLoading(true)
+        getFoot()
         getGroupEntries(new Date(entryDate))
             .then(response => setRows(response.json))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
-    }, [])
+    }, [entryDate, getFoot])
 
     useEffect(onReload, [onReload])
+
+    const onClose = useCallback((added: boolean) => {
+        setAddMilkEntryOpen(false)
+        if (added) onReload()
+    }, [onReload])
+
+    const onDelete = useCallback((id: string) => {
+        deleteMilkEntry(id)
+            .then(response => {
+                if (response.status != 200) return
+                setRows(prev => prev.filter(item => item.id != id))
+                getFoot()
+            })
+    }, [getFoot, setRows])
 
     return <div className="w-full h-full overflow-hidden flex flex-col">
         <TableTopBar
             reloadProps={{ onReload }}
             otherProps={(
                 <Button
-                    variant="outlined"
                     onClick={() => setAddMilkEntryOpen(true)}
                     startIcon={<Add />}
                 >
@@ -64,18 +89,19 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTableProps) => 
                 </Button>
             )}
         />
-        <EntriesTable {...{ rows, loading, foot }} />
-        <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen, entryDate }} />
+        <EntriesTable {...{ rows, loading, foot, onDelete }} />
+        <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose, entryDate }} />
     </div>
 }
 
 type EntriesTableProps = {
+    onDelete: (id: string) => void
     rows: MilkEntry[]
     foot: MilkEntryFoot
     loading: boolean
 }
 
-const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
+const EntriesTable = ({ rows, loading, foot, onDelete }: EntriesTableProps) => {
 
     const [unit, setUnit] = useState(0)
     const tableRef = useRef<HTMLDivElement>(null)
@@ -109,7 +135,7 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
                     dataset={rows}
                     colSpan={4}
                     loadingProps={{ loading, rowSpan: 20 }}
-                    render={item => <EntriesRow {...{ item }} />}
+                    render={item => <EntriesRow {...{ item, onDelete }} />}
                 />
             </TableBody>
             <StickyTableFooter>
@@ -124,10 +150,11 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
 }
 
 type EntriesRowProps = {
+    onDelete: (id: string) => void
     item: MilkEntry
 }
 
-const EntriesRow = ({ item }: EntriesRowProps) => {
+const EntriesRow = ({ item, onDelete }: EntriesRowProps) => {
 
     const [rowData, setRowData] = useState<MilkEntry>(item)
     const [editing, setEditing] = useState(false)
@@ -138,9 +165,12 @@ const EntriesRow = ({ item }: EntriesRowProps) => {
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons
+                setEditing={setEditing}
+                onDelete={() => onDelete(item.id)}
+            />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell>{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
     </TableBodyRow>
@@ -154,23 +184,37 @@ type EntriesRowEditingProps = {
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
+    const [loading, setLoading] = useState(false)
+
     const { control, handleSubmit } = useForm<MilkEntry>({ defaultValues: rowData })
+    const { setApiError } = useContext(ErrorContext)
 
     const onSubmit: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
-        setRowData(data)
-        setEditing(false)
+        setLoading(true)
+        updateMilkEntry(data)
+            .then(response => {
+                if (response.status != 200) {
+                    setApiError(response.json)
+                    return
+                }
+                setApiError(undefined)
+                setRowData(response.json)
+                setEditing(false)
+            })
+            .catch(() => setApiError(ConnectionError))
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell>
-            <FormTextField type="number" formProps={{ control, name: 'quantity' }} /> 
+            <FormTextField type="number" formProps={{ control, name: 'quantity' }} />
         </TableBodyCell>
     </TableBodyRow>
 }

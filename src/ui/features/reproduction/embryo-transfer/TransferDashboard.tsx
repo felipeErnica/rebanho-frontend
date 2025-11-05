@@ -565,8 +565,8 @@ const LastEntriesRow = ({ row }: TableRowProp<EmbryoTransfer>) => {
         <TableCell>
             <EditControlButtons {...{ setEditing, onDelete }} />
         </TableCell>
-        <TableCell>{rowData.receiverName}</TableCell>
-        <TableCell>{rowData.donorName}</TableCell>
+        <TableCell>{rowData.receiverInfo}</TableCell>
+        <TableCell>{rowData.donorInfo}</TableCell>
         <TableCell>{rowData.bullName}</TableCell>
         <TableCell>
             <Chip
@@ -599,7 +599,7 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRow<EmbryoT
         <TableCell>
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableCell>
-        <TableCell>{rowData.receiverName}</TableCell>
+        <TableCell>{rowData.receiverInfo}</TableCell>
         <TableCell>
             <FormSearchBox
                 formProps={{ control, name: 'donorId' }}

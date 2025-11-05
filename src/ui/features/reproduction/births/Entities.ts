@@ -1,7 +1,7 @@
 export type BirthEntry = {
     id: string
     motherId: string
-    motherName: string
+    motherInfo: string
     motherOrder: number
     calfId: string
     calfName: string

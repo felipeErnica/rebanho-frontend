@@ -63,8 +63,8 @@ export const EntriesTablePage = () => {
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
-        { name: 'Brinco da Vaca', value: 'animal_order,insemination_date' },
-        { name: 'Nome da Vaca', value: 'name,insemination_date' },
+        { name: 'Brinco da Vaca', value: 'animal_order, insemination_date' },
+        { name: 'Nome da Vaca', value: 'animal_name, insemination_date' },
         { name: 'Data de Inseminação', value: defaultSort }
     ]
 
@@ -128,12 +128,12 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
             return <TableHeadRow>
                 <VirtuosoHeadCell width={unit * 10} />
                 <VirtuosoResizeHeadCell width={unit * 10}>Vaca</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Data de Inseminação</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Data de Inseminação</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 10}>Touro</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Prenhez</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Nascimento</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Informações de Cria</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 20}>Observações</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Prenhez</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 20}>Informações de Cria</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 25}>Observações</VirtuosoResizeHeadCell>
             </TableHeadRow>
         }}
         fixedFooterContent={() => (
@@ -167,24 +167,20 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.inseminationDate)}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
-        <TableBodyCell>
-            {rowData.pregnancyStatus &&
-                <Chip
-                    label={InseminationStatusMap.get(rowData.pregnancyStatus)}
-                    color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
-                />
-            }
+        <TableBodyCell align="center">
+            <Chip
+                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
+                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+            />
         </TableBodyCell>
-        <TableBodyCell>
-            {rowData.birthStatus &&
-                <Chip
-                    label={InseminationStatusMap.get(rowData.birthStatus)}
-                    color={InseminationStatusColorMap.get(rowData.birthStatus)}
-                />
-            }
+        <TableBodyCell align="center">
+            <Chip
+                label={InseminationStatusMap.get(rowData.birthStatus)}
+                color={InseminationStatusColorMap.get(rowData.birthStatus)}
+            />
         </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>{rowData.observation}</TableBodyCell>
@@ -202,6 +198,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
     const { control, handleSubmit } = useForm<InseminationEntry>({ defaultValues: rowData })
 
     const onSubmit: SubmitHandler<InseminationEntry> = (data: InseminationEntry) => {
+        console.log("insemination: ", data)
         setRowData(data)
         setEditing(false)
     }
@@ -212,18 +209,28 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">
             <FormDatePicker formProps={{ control, name: 'inseminationDate' }} />
         </TableBodyCell>
-        <TableBodyCell align="center">
+        <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'bullId' }}
                 searchOptions={searchBull}
             />
         </TableBodyCell>
-        <TableBodyCell align="center">{rowData.pregnancyStatus}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.birthStatus}</TableBodyCell>
+        <TableBodyCell align="center">
+            <Chip
+                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
+                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+            />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <Chip
+                label={InseminationStatusMap.get(rowData.birthStatus)}
+                color={InseminationStatusColorMap.get(rowData.birthStatus)}
+            />
+        </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'observation' }} />

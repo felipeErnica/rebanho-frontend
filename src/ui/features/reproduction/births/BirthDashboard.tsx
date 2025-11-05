@@ -516,7 +516,7 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                     loadingProps={{ loading, rowSpan: 10 }}
                     render={row => (
                         <TableRow>
-                            <TableCell>{row.motherName}</TableCell>
+                            <TableCell>{row.motherInfo}</TableCell>
                             <TableCell align="center">{dateTransform(row.calfBirthDate)}</TableCell>
                             <TableCell align="center">
                                 {row.birthInterval ?? '1ª Cria'}

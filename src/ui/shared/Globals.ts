@@ -1,3 +1,5 @@
+import { APIError } from "@/util/ApiRequest"
+
 export type ReloadFunction = () => void
 
 export const REQUIRED_FIELD_MSG = 'Este campo é obrigatório!'
@@ -13,3 +15,7 @@ export const ChipColorScheme: Map<string, ColorStrings> = new Map([
     ['STAND_BY', 'warning'],
 ])
 
+export const ConnectionError: APIError = {
+    title: 'Erro de Conexão',
+    message: 'Não foi possível conectar com o servidor!'
+}

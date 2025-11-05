@@ -23,7 +23,7 @@ export type MatingEntry = {
     id: string;
     animalId: string;
     animalNumber: string;
-    animalName: string;
+    animalInfo: string;
     matingDate: Date;
     bullId: string;
     bullName: string;

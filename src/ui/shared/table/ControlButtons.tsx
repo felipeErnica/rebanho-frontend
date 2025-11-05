@@ -45,16 +45,17 @@ export const EditControlButtons = ({ setEditing, onDelete, onShow, otherButtons 
 }
 
 type EditingControlButtonProps = {
+    loading?: boolean
     setEditing: (isEditing: boolean) => void
     onSave: () => void
 }
 
-export const EditingControlButtons = ({ setEditing, onSave }: EditingControlButtonProps) => {
+export const EditingControlButtons = ({ setEditing, onSave, loading }: EditingControlButtonProps) => {
     return <ControlButtonContainer>
-        <IconButton onClick={() => onSave()}>
+        <IconButton onClick={onSave} loading={loading}>
             <Check />
         </IconButton >
-        <IconButton onClick={() => setEditing(false)}>
+        <IconButton onClick={() => setEditing(false)} loading={loading}>
             <Close />
         </IconButton>
     </ControlButtonContainer>

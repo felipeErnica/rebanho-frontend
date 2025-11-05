@@ -153,7 +153,7 @@ const EntriesRow = (row: WeightEntry) => {
                 setEditing={setEditing}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell align="center">
@@ -185,7 +185,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRow<WeightEn
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell align="center">

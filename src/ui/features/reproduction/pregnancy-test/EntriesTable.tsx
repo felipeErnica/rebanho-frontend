@@ -1,5 +1,12 @@
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { BirthStatusMap, PregnancyStatusMap, TestEntry, TestEntryFilter, TestEntryFooter } from "./Entities"
+import { 
+    BirthStatusMap, 
+    PregnancyStatusItems, 
+    PregnancyStatusMap, 
+    TestEntry, 
+    TestEntryFilter, 
+    TestEntryFooter 
+} from "./Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import {
@@ -22,6 +29,7 @@ import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { findEntriesPage, getEntriesFoot } from "./Controller"
 import { BirthTestFilter } from "./BirthTestFilter"
 import { ChipColorScheme } from "@/ui/shared/Globals"
+import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 
 export const EntriesTablePage = () => {
 
@@ -53,9 +61,9 @@ export const EntriesTablePage = () => {
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Data de Exame', value: defaultSort },
-        { name: 'Brinco da Vaca', value: 'animal_order,test_date' },
-        { name: 'Nome da Vaca', value: 'name,test_date' },
-        { name: 'Data de Previsão', value: "birth_forecast,animal_order" }
+        { name: 'Brinco da Vaca', value: 'animal_order, test_date' },
+        { name: 'Nome da Vaca', value: 'animal_name, test_date' },
+        { name: 'Data de Previsão', value: "birth_forecast, animal_order" }
     ]
 
     const { rows, scrollRef, fetchNextPage } = usePagination<TestEntry>({ setLoading, fetchPage })
@@ -149,7 +157,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.testDate)}</TableBodyCell>
         <TableBodyCell align="center">
             <Chip
@@ -177,7 +185,10 @@ type EntriesRowEditingProps = {
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<TestEntry>({ defaultValues: rowData })
+    const [showForecast, setShowForecast] = useState(rowData.pregnancyStatus === 'SUCCESS')
+    const { control, handleSubmit, setValue } = useForm<TestEntry>({ defaultValues: rowData })
+
+    useEffect(() => setShowForecast(rowData.pregnancyStatus === 'SUCCESS'), [rowData])
 
     const onSubmit: SubmitHandler<TestEntry> = (data: TestEntry) => {
         setRowData(data)
@@ -190,14 +201,35 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">
             <FormDatePicker formProps={{ control, name: 'testDate' }} />
         </TableBodyCell>
         <TableBodyCell align="center">
-            <Chip
-                label={PregnancyStatusMap.get(rowData.pregnancyStatus)}
-                color={ChipColorScheme.get(rowData.pregnancyStatus)}
+            <FormComboBox
+                items={PregnancyStatusItems}
+                formProps={{ control, name: 'pregnancyStatus' }}
+                onChange={(value) => {
+                    setShowForecast(value === 'SUCCESS')
+                    if (value === 'FAILED') {
+                        setValue('birthStatus', 'FAILED')
+                        setValue('birthForecast', undefined)
+                    }
+                }}
+                renderOption={(props, option) => (
+                    <li {...props}>
+                        <Chip
+                            label={PregnancyStatusMap.get(option.value)}
+                            color={ChipColorScheme.get(option.value)}
+                        />
+                    </li>
+                )}
+                renderValue={value => (
+                    <Chip
+                        label={PregnancyStatusMap.get(value.value)}
+                        color={ChipColorScheme.get(value.value)}
+                    />
+                )}
             />
         </TableBodyCell>
         <TableBodyCell align="center">
@@ -207,7 +239,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             />
         </TableBodyCell>
         <TableBodyCell align="center">
-            <FormDatePicker formProps={{ control, name: 'birthForecast' }} />
+            {showForecast && <FormDatePicker formProps={{ control, name: 'birthForecast' }} />}
         </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>

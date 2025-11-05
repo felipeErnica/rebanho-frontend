@@ -1,5 +1,5 @@
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
-import { HTMLInputTypeAttribute, useEffect, useState } from "react"
+import { HTMLInputTypeAttribute } from "react"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 
 type FormTextFieldProps<T extends FieldValues> = {
@@ -26,25 +26,19 @@ export const FormTextField = <T extends FieldValues>({
     multiline
 }: FormTextFieldProps<T>) => {
 
-    const [value, setValue] = useState<any>()
-
     return <Controller
         {...formProps}
-        render={({ field, fieldState }) => {
-
-            useEffect(() => setValue(field.value), [])
-
-            return <TextField
+        render={({ field, fieldState }) => (
+            <TextField
                 {...field}
-                value={value}
+                value={field.value ?? ''}
                 type={type}
                 className={classname}
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}
                 onChange={(event) => {
-                    setValue(event.target.value)
-                    if (onChange) onChange(event.target.value)
                     field.onChange(event)
+                    if (onChange) onChange(event.target.value)
                 }}
                 label={label}
                 variant={variant || 'standard'}
@@ -54,6 +48,6 @@ export const FormTextField = <T extends FieldValues>({
                 maxRows={maxRows}
                 fullWidth
             />
-        }}
+        )}
     />
 }

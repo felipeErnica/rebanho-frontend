@@ -4,7 +4,7 @@ import { ColorStrings } from "@/ui/shared/Globals"
 export type InseminationEntry = {
     id: string
     animalId: string
-    animalName: string
+    animalInfo: string
     inseminationDate: Date
     bullId: string
     bullName: string

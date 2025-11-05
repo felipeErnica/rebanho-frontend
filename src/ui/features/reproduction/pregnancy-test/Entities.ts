@@ -26,7 +26,7 @@ export type TestEntry = {
     id: string
     testDate: Date
     animalId: string
-    animalName: string
+    animalInfo: string
     birthForecast?: Date
     birthStatus: string
     pregnancyStatus: string

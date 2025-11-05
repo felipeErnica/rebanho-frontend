@@ -10,6 +10,7 @@ export type NormalRow<T> = {
 }
 
 export type TableRowProp<T> = {
+    onDelete?: (id: string) => void
     loading?: boolean
     row: T
 }

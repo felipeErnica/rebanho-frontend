@@ -1,7 +1,7 @@
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 import { ComboBoxItem } from "../common/ComboBox"
 import Autocomplete from "@mui/material/Autocomplete"
-import { useState } from "react"
+import { HTMLAttributes, ReactNode, useState } from "react"
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
 
 type FormComboBox<T extends FieldValues> = {
@@ -10,6 +10,15 @@ type FormComboBox<T extends FieldValues> = {
     variant?: TextFieldVariants
     items: ComboBoxItem[]
     formProps: UseControllerProps<T>
+    onChange?: (value?: string) => void
+    renderOption?: (props: HTMLAttributes<HTMLLIElement> & { key: any }, option: ComboBoxItem) => ReactNode
+    renderValue?: (value: ComboBoxItem, getItemProps: (args?: { index?: number }) => {
+        className: string
+        disabled: boolean
+        tabIndex: -1
+        "data-item-index": number
+        onDelete: (event: any) => void
+    }) => ReactNode
 }
 
 export const FormComboBox = <T extends FieldValues>({
@@ -17,7 +26,10 @@ export const FormComboBox = <T extends FieldValues>({
     className,
     items,
     variant,
-    formProps
+    formProps,
+    onChange,
+    renderOption,
+    renderValue
 }: FormComboBox<T>) => {
 
     const [inputValue, setInputValue] = useState<string>('')
@@ -27,10 +39,7 @@ export const FormComboBox = <T extends FieldValues>({
         render={({ field, fieldState: { error } }) => (
             <Autocomplete
                 {...field}
-                value={items.find(item => {
-                    const itemValue = item.value || item.name
-                    return itemValue === field.value
-                })}
+                value={items.find(item => item.value === field.value) ?? null}
                 multiple={false}
                 inputValue={inputValue}
                 options={items}
@@ -40,14 +49,13 @@ export const FormComboBox = <T extends FieldValues>({
                 autoHighlight
                 openOnFocus
                 autoSelect
+                renderValue={renderValue}
+                renderOption={renderOption}
                 onInputChange={(_, value: string) => setInputValue(value)}
                 fullWidth
                 onChange={(_, value) => {
-                    if (!value) {
-                        field.onChange('')
-                        return
-                    }
-                    field.onChange(value.value || value.name)
+                    field.onChange(value?.value)
+                    if (onChange) onChange(value?.value)
                 }}
                 renderInput={(params) => {
                     return <TextField

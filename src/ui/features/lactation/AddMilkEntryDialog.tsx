@@ -1,44 +1,110 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
+import {
+    Alert,
+    AlertTitle,
+    Collapse,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle
+} from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { DialogActionButtons, DialogContainer } from "@/ui/shared/form-controls/DialogComponents"
+import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
-import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { ConnectionError, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchDairyAnimal } from "@/shared/GlobalApiCalls"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { MilkEntry } from "./Entities"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
+import { APIError } from "@/util/ApiRequest"
+import { addMilkEntry, replaceMilkEntry } from "./Controller"
 
 type AddTestDialogProps = {
     addMilkEntryOpen: boolean
-    setAddMilkEntryOpen: (addMilkEntryOpen: boolean) => void
+    onClose: (added: boolean) => void
     entryDate?: Date
 }
 
-export const AddMilkEntryDialog = ({ addMilkEntryOpen, setAddMilkEntryOpen, entryDate }: AddTestDialogProps) => {
+export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: AddTestDialogProps) => {
 
-    const { handleSubmit, control, reset, setValue } = useForm<MilkEntry>({
+    const [error, setError] = useState<APIError>()
+    const [openYesNo, setOpenYesNo] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [resetFlag, setResetFlag] = useState(0)
+    const [added, setAdded] = useState(false)
+
+    const { handleSubmit, control, reset, setValue, getValues, setFocus } = useForm<MilkEntry>({
         defaultValues: { entryDate }
     })
 
     useEffect(() => setValue('entryDate', entryDate), [setValue, entryDate])
 
+    useEffect(() => {
+        reset({ entryDate: getValues('entryDate') })
+        setFocus('animalId')
+    }, [getValues, reset, resetFlag, setFocus])
+
     const onSubmit: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
-        console.log(data)
-        reset({ entryDate: data.entryDate })
+        data.quantity = Number(data.quantity)
+        addMilkEntry(data)
+            .then(response => {
+                if (response.status == 409) {
+                    setError(undefined)
+                    setOpenYesNo(true)
+                    return
+                }
+                if (response.status != 201) {
+                    setError(response.json)
+                    return
+                }
+                setAdded(true)
+                setError(undefined)
+                reset({ entryDate: data.entryDate, quantity: undefined })
+                setFocus('animalId')
+            })
+            .catch(() => setError(ConnectionError))
+            .finally(() => setLoading(false))
     }
 
-    const onClose = () => {
+    const onReplace: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
+        data.quantity = Number(data.quantity)
+        replaceMilkEntry(data)
+            .then(response => {
+                if (response.status != 200) {
+                    setError(response.json)
+                    return
+                }
+                setAdded(true)
+                setError(undefined)
+            })
+            .catch(() => setError(ConnectionError))
+            .finally(() => {
+                setResetFlag(prev => prev + 1)
+                setOpenYesNo(false)
+            })
+    }
+
+    const handleClose = () => {
         reset()
-        setAddMilkEntryOpen(false)
+        onClose(added)
+    }
+
+    const alertOnClose = () => {
+        setError(undefined)
     }
 
     return <Dialog
         open={addMilkEntryOpen}
-        onClose={onClose}
+        onClose={handleClose}
     >
         <DialogTitle>Adicionar Marcação de Leite</DialogTitle>
         <DialogContent>
+            <Collapse in={!!error}>
+                <Alert severity="error" onClose={alertOnClose}>
+                    <AlertTitle>{error?.title}</AlertTitle>
+                    {error?.message}
+                </Alert>
+            </Collapse>
             <DialogContainer className="grid grid-flow-row gap-x-4 gap-y-8">
                 <FormDatePicker
                     className="col-span-3"
@@ -72,10 +138,21 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, setAddMilkEntryOpen, entr
         </DialogContent>
         <DialogActions>
             <DialogActionButtons
-                onClose={onClose}
+                loading={loading}
+                onClose={handleClose}
                 onSave={handleSubmit(onSubmit)}
                 saveText="Marcar Leite"
             />
         </DialogActions>
+        <YesNoDialog
+            title={'Marcação já exite!'}
+            content={"Esta marcação já existe! Deseja substituí-la?"}
+            onYes={handleSubmit(onReplace)}
+            onClose={() => {
+                setResetFlag(prev => prev + 1)
+                setOpenYesNo(false)
+            }}
+            openYesNo={openYesNo}
+        />
     </Dialog>
 }

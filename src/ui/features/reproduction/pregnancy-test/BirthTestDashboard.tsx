@@ -605,7 +605,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                         loadingProps={{ loading, rowSpan: 20 }}
                         render={item => (
                             <TableRow>
-                                <TableCell>{item.animalName}</TableCell>
+                                <TableCell>{item.animalInfo}</TableCell>
                                 <TableCell>
                                     {item.pregnancyStatus &&
                                         <Chip

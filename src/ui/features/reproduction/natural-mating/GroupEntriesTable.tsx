@@ -139,7 +139,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
         <TableBodyCell align="center">
             {rowData.pregnancyStatus &&
@@ -183,7 +183,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
         <TableBodyCell align="center">{rowData.pregnancyStatus}</TableBodyCell>
         <TableBodyCell align="center">{rowData.birthStatus}</TableBodyCell>

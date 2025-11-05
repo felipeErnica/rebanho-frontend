@@ -1,11 +1,10 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable react-hooks/exhaustive-deps */
 import Autocomplete from "@mui/material/Autocomplete"
 import { useEffect, useState } from "react"
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
 import { ApiResponse } from "@/shared/entities/ApiResponse"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
-import { CircularProgress } from "@mui/material"
+import { Checkbox, Chip, CircularProgress } from "@mui/material"
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 
 export type SearchBoxItem = {
     id: string
@@ -42,13 +41,12 @@ export function FormSearchBox<T extends FieldValues>({
             .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
             .finally(() => setLoading(false))
-    }, [])
+    }, [searchOptions])
 
     return <Controller
         {...formProps}
-        render={({ field, fieldState: { error } }) => {
-            return <Autocomplete
-                {...field}
+        render={({ field, fieldState: { error } }) => (
+            <Autocomplete
                 value={options.find(item => item.id === field.value) ?? null}
                 multiple={false}
                 onBlur={field.onBlur}
@@ -65,6 +63,8 @@ export function FormSearchBox<T extends FieldValues>({
                 disabled={disabled}
                 fullWidth
                 filterSelectedOptions
+                autoHighlight
+                autoSelect
                 renderInput={(params) => <TextField
                     {...params}
                     name={field.name}
@@ -88,7 +88,7 @@ export function FormSearchBox<T extends FieldValues>({
                     }}
                 />}
             />
-        }}
+        )}
     />
 
 }
@@ -103,6 +103,7 @@ type MultipleFormSearchBoxProps<T extends FieldValues> = {
     disabled?: boolean
     onChange?: (items: SearchBoxItem[]) => void
     limitTags?: number
+    noRenderValue?: boolean
 }
 
 export function FormMultipleSearchBox<T extends FieldValues>({
@@ -114,6 +115,7 @@ export function FormMultipleSearchBox<T extends FieldValues>({
     disabled,
     variant,
     onChange,
+    noRenderValue
 }: MultipleFormSearchBoxProps<T>) {
 
     const [options, setOptions] = useState<SearchBoxItem[]>([])
@@ -125,30 +127,56 @@ export function FormMultipleSearchBox<T extends FieldValues>({
             .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
             .finally(() => setLoading(false))
-    }, [])
+    }, [searchOptions])
 
     return <Controller
         {...formProps}
         render={({ field, fieldState: { error } }) => (
             <Autocomplete
-                {...field}
-                value={options.filter(item => field.value.includes(item.id))}
-                multiple={true}
-                onBlur={field.onBlur}
+                multiple
                 limitTags={limitTags}
+                value={field.value ? options.filter(option => field.value.includes(option.id)) : []}
+                onBlur={field.onBlur}
                 className={className}
                 loading={loading}
                 loadingText="Carregando..."
                 options={options}
                 getOptionLabel={(option) => option.label}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
                 onChange={(_, newValue) => {
                     field.onChange(newValue.map(item => item.id))
                     if (onChange) onChange(newValue)
                 }}
                 noOptionsText="Nenhum resultado encontrado!"
+                renderValue={(value, props) => {
+                    if (noRenderValue) return
+                    if (!limitTags) {
+                        return value.map((option, index) => {
+                            const itemProps = props({ index })
+                            return <Chip label={option.label} {...itemProps} />
+                        })
+                    }
+                    return <div className="gap-2">
+                        {value.slice(0, limitTags).map((option, index) => {
+                            const itemProps = props({ index })
+                            return <Chip label={option.label} {...itemProps} />
+                        })}
+                        {value.length > limitTags && `+${value.length - limitTags}`}
+                    </div>
+                }}
                 disabled={disabled}
-                filterSelectedOptions
+                renderOption={(props, option, { selected }) => (
+                    <li {...props}>
+                        <Checkbox
+                            style={{ marginRight: 8 }}
+                            checkedIcon={<CheckBoxIcon />}
+                            checked={selected}
+                        />
+                        {option.label}
+                    </li>
+                )}
                 fullWidth
+                disableCloseOnSelect
                 renderInput={(params) => <TextField
                     {...params}
                     name={field.name}

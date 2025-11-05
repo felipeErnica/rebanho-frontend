@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { EmbryoTransfer, TransferFoot, StatusColorMap, StatusMap } from "./Entities"
-import { findEntriesByGroup, getEntriesByGroupFoot } from "./Controller"
+import { findEntriesByGroup, getEntriesByGroupFoot, searchInseminationBulls } from "./Controller"
 import Table from "@mui/material/Table"
 import {
     FooterContent,
@@ -142,8 +142,8 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.receiverName}</TableBodyCell>
-        <TableBodyCell>{rowData.donorName}</TableBodyCell>
+        <TableBodyCell>{rowData.receiverInfo}</TableBodyCell>
+        <TableBodyCell>{rowData.donorInfo}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
         <TableBodyCell align="center">
             <Chip
@@ -183,7 +183,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.receiverName}</TableBodyCell>
+        <TableBodyCell>{rowData.receiverInfo}</TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
                 searchOptions={searchMother}
@@ -192,7 +192,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
-                searchOptions={searchMother}
+                searchOptions={searchInseminationBulls}
                 formProps={{ control, name: 'bullId' }}
             />
         </TableBodyCell>

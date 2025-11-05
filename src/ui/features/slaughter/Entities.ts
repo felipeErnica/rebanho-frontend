@@ -1,7 +1,7 @@
 export type SlaughterEntry = {
     id: string;
     animalId?: string;
-    animalName?: string;
+    animalInfo?: string;
     fatherName?: string;
     motherName?: string;
     entryDate: Date;

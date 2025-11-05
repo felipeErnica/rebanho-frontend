@@ -551,7 +551,7 @@ const LastEntriesRow = ({ row }: TableRowProp<MatingEntry>) => {
         <TableCell>
             <EditControlButtons {...{ setEditing, onDelete }} />
         </TableCell>
-        <TableCell>{rowData.animalName}</TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell>{rowData.bullName}</TableCell>
         <TableCell>
             <Chip
@@ -584,7 +584,7 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRow<MatingE
         <TableCell>
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableCell>
-        <TableCell>{rowData.animalName}</TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell>
             <FormSearchBox
                 formProps={{ control, name: 'bullId' }}

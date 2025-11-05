@@ -56,7 +56,7 @@ import {
     TableRow,
 } from "@mui/material"
 import { dateTransform, percentageTransform } from "@/util/Transformations"
-import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
+import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
@@ -69,10 +69,7 @@ import { AddInseminationDialog } from "./AddInseminationDialog"
 import Add from "@mui/icons-material/Add"
 import { orange, yellow } from "@mui/material/colors"
 import { CardEntry } from "@/shared/entities/Page"
-import { EditRow, TableRowProp } from "@/ui/shared/table/Entities"
-import { SubmitHandler, useForm } from "react-hook-form"
-import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchBull } from "../../farm-area/main-table/api/DashboardController"
+import { TableRowProp } from "@/ui/shared/table/Entities"
 
 export const InseminationDasboard = () => {
 
@@ -542,68 +539,25 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
 
 const LastEntriesRow = ({ row }: TableRowProp<InseminationEntry>) => {
 
-    const [editing, setEditing] = useState(false)
-    const [rowData, setRowData] = useState<InseminationEntry>(row)
+    const onDelete = useCallback(() => console.log(row.id), [row])
 
-    useEffect(() => setRowData(row), [row])
-    const onDelete = useCallback(() => console.log(rowData.id), [rowData])
-
-    if (editing) return <EditLastEntriesRow {...{ setEditing, setRowData, rowData }} />
 
     return <TableRow>
         <TableCell>
-            <EditControlButtons {...{ setEditing, onDelete }} />
+            <EditControlButtons {...{ onDelete }} />
         </TableCell>
-        <TableCell>{rowData.animalName}</TableCell>
-        <TableCell>{rowData.bullName}</TableCell>
+        <TableCell>{row.animalInfo}</TableCell>
+        <TableCell>{row.bullName}</TableCell>
         <TableCell>
             <Chip
-                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
-                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+                label={InseminationStatusMap.get(row.pregnancyStatus)}
+                color={InseminationStatusColorMap.get(row.pregnancyStatus)}
             />
         </TableCell>
         <TableCell>
             <Chip
-                label={InseminationStatusMap.get(rowData.birthStatus)}
-                color={InseminationStatusColorMap.get(rowData.birthStatus)}
-            />
-        </TableCell>
-    </TableRow>
-
-}
-
-const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRow<InseminationEntry>) => {
-
-    const { handleSubmit, control } = useForm({ defaultValues: rowData })
-
-    const onSubimt: SubmitHandler<InseminationEntry> = (data: InseminationEntry) => {
-        setRowData(data)
-        setEditing(false)
-    }
-
-    const onSave = useCallback(handleSubmit(onSubimt), [])
-
-    return <TableRow>
-        <TableCell>
-            <EditingControlButtons {...{ setEditing, onSave }} />
-        </TableCell>
-        <TableCell>{rowData.animalName}</TableCell>
-        <TableCell>
-            <FormSearchBox
-                formProps={{ control, name: 'bullId' }}
-                searchOptions={searchBull}
-            />
-        </TableCell>
-        <TableCell>
-            <Chip
-                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
-                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
-            />
-        </TableCell>
-        <TableCell>
-            <Chip
-                label={InseminationStatusMap.get(rowData.birthStatus)}
-                color={InseminationStatusColorMap.get(rowData.birthStatus)}
+                label={InseminationStatusMap.get(row.birthStatus)}
+                color={InseminationStatusColorMap.get(row.birthStatus)}
             />
         </TableCell>
     </TableRow>

@@ -172,7 +172,7 @@ const EntriesRow = (row: SlaughterEntry) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing, onDelete }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell align="center">
@@ -204,7 +204,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRow<Slaughte
         <TableBodyCell>
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell>

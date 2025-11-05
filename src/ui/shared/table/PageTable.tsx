@@ -8,7 +8,7 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { forwardRef, RefObject, useCallback, useEffect, useRef, useState } from "react"
+import { Dispatch, forwardRef, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from "react"
 import { TableVirtuosoProps, VirtuosoHandle } from "react-virtuoso";
 import { VirtuosoNoDataPlaceholder } from "./TableComponents";
 
@@ -47,6 +47,7 @@ export function useVirtuosoComponents(colSpan: number) {
 }
 
 export type PaginationResponse<T> = {
+    setRows: Dispatch<SetStateAction<T[]>> 
     rows: T[]
     fetchNextPage: () => void
     scrollRef: RefObject<VirtuosoHandle | null>
@@ -125,5 +126,5 @@ export function usePagination<T>({ fetchPage, setLoading }: PaginationProps): Pa
         scrollContainer.scrollToIndex({ index: 0 })
     }
 
-    return { rows, fetchNextPage, scrollRef, onReload }
+    return { rows, fetchNextPage, scrollRef, onReload, setRows }
 }

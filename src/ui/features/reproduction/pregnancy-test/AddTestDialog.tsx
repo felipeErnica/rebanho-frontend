@@ -1,7 +1,7 @@
 import { Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { TestEntry } from "./Entities"
-import { DialogActionButtons, DialogContainer } from "@/ui/shared/form-controls/DialogComponents"
+import { DialogActionButtons, DialogContainer } from "@/ui/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"

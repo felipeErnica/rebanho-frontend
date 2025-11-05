@@ -58,7 +58,7 @@ export const SlaughterEntriesTable = () => {
     const sortColumns: ComboBoxItem[] = [
         { name: 'Data de Abate', value: defaultSort },
         { name: 'Brinco', value: 'animal_order, birth_date, entry_date' },
-        { name: 'Nome', value: 'animal_name, birth_date, entry_date' },
+        { name: 'Nome', value: 'animal_name, animal_order, birth_date, entry_date' },
         { name: 'Data de Nascimento', value: 'birth_date, animal_order, entry_date' },
         { name: 'Peso', value: 'weight, entry_date' },
         { name: 'Peso de Abate', value: 'dead_weight, entry_date' },
@@ -167,7 +167,7 @@ const EntriesRow = ({ loading, item }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing, onDelete }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell align="center">{rowData.slaughterhouse}</TableBodyCell>
@@ -201,7 +201,7 @@ const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRow<Slaughte
         <TableBodyCell>
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell>

@@ -1,7 +1,7 @@
 export type MilkEntry = {
     id: string
     animalId?: string
-    animalName?: string
+    animalInfo?: string
     pastureName?: string
     entryDate?: Date
     quantity?: number
@@ -36,6 +36,16 @@ export type LactationHist = {
     totalProduction: number
     lacInterval: number
     peak: number
+}
+
+export type AddLactationStruct = {
+    animalId: string
+    startDate: Date
+}
+
+export type LactationEndDate = {
+    id: string
+    endDate: Date
 }
 
 export type LactationHistFilter = {

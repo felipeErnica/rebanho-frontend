@@ -3,6 +3,11 @@ import { User } from "@/shared/entities/User"
 
 const BASE_URL = "http://localhost:8080/"
 
+export type APIError = {
+    title: string
+    message: string
+}
+
 async function generateRequest(): Promise<RequestInit> {
     const authToken = await window.electronEvents.getAuthToken()
     const commonRequest: RequestInit = {
@@ -15,24 +20,12 @@ async function generateRequest(): Promise<RequestInit> {
     return commonRequest
 }
 
-function buildErrorMsg(status: number): string {
-    if (status == 500) return 'Houve um erro no servidor!'
-    return 'Erro desconhecido!'
-}
 
 async function buildResponse(response: Response): Promise<ApiResponse> {
     const json = await response.json()
-    if (response.ok) {
-        return {
-            status: response.status,
-            json: json
-        }
-    }
-
     return {
         status: response.status,
-        error: buildErrorMsg(response.status),
-        json: json
+        json: json 
     }
 }
 
@@ -41,7 +34,7 @@ export async function authUser(user: User): Promise<ApiResponse> {
         method: 'POST',
         signal: AbortSignal.timeout(5000),
         body: JSON.stringify(user),
-        headers: { 'Content-Type': 'application/json'}
+        headers: { 'Content-Type': 'application/json' }
     }
     const url = BASE_URL + "login"
     const response = await fetch(url, request)
@@ -51,6 +44,15 @@ export async function authUser(user: User): Promise<ApiResponse> {
 export async function apiPost<D>(apiCall: string, object: D): Promise<ApiResponse> {
     const request = await generateRequest()
     request.method = 'POST'
+    request.body = JSON.stringify(object)
+    const url = BASE_URL + apiCall
+    const response = await fetch(url, request)
+    return buildResponse(response)
+}
+
+export async function apiPut<D>(apiCall: string, object: D): Promise<ApiResponse> {
+    const request = await generateRequest()
+    request.method = 'PUT'
     request.body = JSON.stringify(object)
     const url = BASE_URL + apiCall
     const response = await fetch(url, request)

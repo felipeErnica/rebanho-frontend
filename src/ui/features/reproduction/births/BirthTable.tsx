@@ -152,7 +152,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
                 setEditing={setEditing}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.motherName}</TableBodyCell>
+        <TableBodyCell>{rowData.motherInfo}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.calfBirthDate)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.birthInterval ?? '1ª CRIA'}</TableBodyCell>
         <TableBodyCell align="center">{rowData.calfSex}</TableBodyCell>
@@ -179,7 +179,7 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
         <TableBodyCell>
             <EditingControlButtons setEditing={setEditing} onSave={handleSubmit(onSave)} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.motherName}</TableBodyCell>
+        <TableBodyCell>{rowData.motherInfo}</TableBodyCell>
         <TableBodyCell>
             <FormDatePicker formProps={{ control, name: 'calfBirthDate' }} />
         </TableBodyCell>

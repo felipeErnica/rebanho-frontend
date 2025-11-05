@@ -9,6 +9,11 @@ export default tseslint.config(
     {
         extends: [js.configs.recommended, ...tseslint.configs.recommended],
         files: ['**/*.{ts,tsx}'],
+        settings: {
+            "react-hooks": {
+                "additionalEffectHooks": "(useMyEffect|useCustomEffect)"
+            }
+        },
         languageOptions: {
             ecmaVersion: 2020,
             globals: globals.browser,
@@ -24,6 +29,8 @@ export default tseslint.config(
                 'warn',
                 { allowConstantExport: true },
             ],
+            "react-hooks/rules-of-hooks": "error", 
+            "react-hooks/exhaustive-deps": "warn" 
         },
     },
 )

@@ -22,9 +22,9 @@ export const StatusItens: ComboBoxItem[] = [
 export type EmbryoTransfer = {
     id: string;
     receiverId: string;
-    receiverName: string;
+    receiverInfo: string;
     donorId: string;
-    donorName: string;
+    donorInfo: string;
     bullId: string;
     bullName: string;
     transferDate: Date;

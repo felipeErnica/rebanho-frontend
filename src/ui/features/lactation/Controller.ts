@@ -1,5 +1,5 @@
-import { apiGet, apiPost, buildPageCall } from "@/util/ApiRequest"
-import { LactationGroupFilter } from "./Entities";
+import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@/util/ApiRequest"
+import { AddLactationStruct, LactationEndDate, LactationGroupFilter, MilkEntry } from "./Entities";
 
 export const DASHBOARD_BASE = "lactation/dashboard/"
 export const GROUP_BASE = "lactation/groups/"
@@ -97,4 +97,36 @@ export function getLactationEntriesFoot(lacId: string) {
 
 export function searchAllPastures() {
     return apiGet("farm-area/pastures/search-all")
+}
+
+export function searchLactating() {
+    return apiGet(LAC_BASE + "search-lactating")
+}
+
+export function searchDryAnimals() {
+    return apiGet(LAC_BASE + "search-dry-animals")
+}
+
+export function updateEndDate(lacList: LactationEndDate[]) {
+    return apiPut(LAC_BASE + `update/end-date`, lacList)
+}
+
+export function addLactation(lacList: AddLactationStruct[]) {
+    return apiPut(LAC_BASE + "add", lacList)
+}
+
+export function updateMilkEntry(entry: MilkEntry) {
+    return apiPut(ENTRIES_BASE + `update`, entry)
+}
+
+export function replaceMilkEntry(entry: MilkEntry) {
+    return apiPut(ENTRIES_BASE + "replace", entry)
+}
+
+export function addMilkEntry(entry: MilkEntry) {
+    return apiPut(ENTRIES_BASE + "add", entry)
+}
+
+export function deleteMilkEntry(id: string) {
+    return apiDelete(ENTRIES_BASE + `delete/${id}`)
 }

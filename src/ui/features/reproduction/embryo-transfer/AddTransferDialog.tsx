@@ -22,7 +22,7 @@ export const AddTransferDialog = ({
 }: AddTransferDialogProps) => {
 
     const { control, handleSubmit, reset, setFocus } = useForm<EmbryoTransfer>({
-        defaultValues: { bullId, transferDate }
+        defaultValues: { donorInfo: bullId, transferDate }
     })
 
     const onClose = () => {
@@ -33,7 +33,7 @@ export const AddTransferDialog = ({
     const onSubmit: SubmitHandler<EmbryoTransfer> = (data: EmbryoTransfer) => {
         reset({
             transferDate: data.transferDate,
-            bullId: data.bullId,
+            donorInfo: data.donorInfo,
             donorId: data.donorId
         })
         setFocus('receiverId')

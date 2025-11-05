@@ -8,9 +8,9 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
-import { DashboardInformationProps, DashboardTopBarProps } from "@/ui/shared/dashboard/Entities"
+import { DashboardInformationProps, DashboardTopBarProps, CommonMenuProps } from "@/ui/shared/dashboard/Entities"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import {
     AnimalsAverageHist as AnimalsNumberHist,
     AnimalsRating,
@@ -32,6 +32,7 @@ import {
     getYearProduction,
     getRankedAnimals,
     getMilkProduction,
+    deleteMilkEntry,
 } from "./Controller"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { ComboBox, ComboBoxItem } from "@/ui/shared/common/ComboBox"
@@ -41,9 +42,10 @@ import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
 import { TrendValues } from "@/ui/shared/table/TableComponents"
-import { Button } from "@mui/material"
+import { Button, Divider, ListItemIcon, Menu, MenuItem } from "@mui/material"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import Add from "@mui/icons-material/Add"
+import CalendarMonth from '@mui/icons-material/CalendarMonth';
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
 import { GroupTablePage } from "./MilkGroupTable"
@@ -55,7 +57,7 @@ import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { CardEntry } from "@/shared/entities/Page"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { EditRow } from "@/ui/shared/table/Entities"
+import { EditRow, TableRowProp } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import {
     BarPlot,
@@ -71,6 +73,8 @@ import {
 } from "@mui/x-charts"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import { green, yellow } from "@mui/material/colors"
+import ExpandMore from "@mui/icons-material/ExpandMore"
+import { EndLactationDialog } from "./EndLactationDialog"
 
 export const LactationDashboard = () => {
 
@@ -82,14 +86,14 @@ export const LactationDashboard = () => {
 
     return <DashboardContainer>
         <DashboardTopBar {...{ activeRequests, setReloadFlag }} />
-        <LactationInfo {...{ startLoading, stopLoading, reloadFlag }} />
+        <LactationInfo {...{ startLoading, stopLoading, reloadFlag, setReloadFlag }} />
     </DashboardContainer>
 }
 
 const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps) => {
 
-    const { setPageProps } = useContext(PageContext)
-    const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
+    const [menuOpen, setMenuOpen] = useState(false)
+    const optionsEl = useRef<HTMLButtonElement>(null)
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -99,29 +103,88 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
         />
         <Button
             className="ml-auto"
-            startIcon={<Add />}
-            onClick={() => setAddMilkEntryOpen(true)}
+            ref={optionsEl}
+            startIcon={<ExpandMore />}
+            onClick={() => setMenuOpen(true)}
         >
-            Marcar Leite
+            Opções
         </Button>
-        <Button
-            variant="text"
-            endIcon={<ChevronRight />}
-            onClick={() => setPageProps && setPageProps(MilkEntriesPage)}
-        >
-            Histórico de Leite
-        </Button>
-        <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen }} />
+        <OptionsMenu
+            anchorEl={optionsEl.current}
+            open={menuOpen}
+            handleClose={() => setMenuOpen(false)}
+            setReloadFlag={setReloadFlag}
+        />
     </DashboardTopContainer>
 }
 
-const LactationInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
+type OptionsMenuProps = CommonMenuProps & {
+    setReloadFlag: Dispatch<SetStateAction<number>>
+}
+
+const OptionsMenu = ({ open, anchorEl, handleClose, setReloadFlag }: OptionsMenuProps) => {
+
+    const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
+    const [openEndLactation, setOpenEndLactation] = useState(false)
+    const { setPageProps } = useContext(PageContext)
+
+    const onClose = useCallback((added: boolean) => {
+        setAddMilkEntryOpen(false)
+        if (added) setReloadFlag(prev => prev + 1)
+    }, [setReloadFlag])
+
+    const closeEndLactation = useCallback(() => setOpenEndLactation(false), [])
+
+    return <>
+        <Menu
+            open={open}
+            anchorEl={anchorEl}
+            onClose={handleClose}
+        >
+            <MenuItem onClick={() => setAddMilkEntryOpen(true)}>
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Marcar Leite
+            </MenuItem>
+            <MenuItem>
+                <ListItemIcon>
+                    <CalendarMonth />
+                </ListItemIcon>
+                Iniciar Lactações
+            </MenuItem>
+            <MenuItem onClick={() => setOpenEndLactation(true)}>
+                <ListItemIcon>
+                    <CalendarMonth />
+                </ListItemIcon>
+                Secar Vacas
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={() => setPageProps && setPageProps(MilkEntriesPage)}>
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Histórico de Leite
+            </MenuItem>
+            <MenuItem onClick={() => setPageProps && setPageProps(LactationHistPage)}>
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Histórico de Lactações
+            </MenuItem>
+        </Menu>
+        <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose }} />
+        <EndLactationDialog {...{ openEndLactation, closeEndLactation }} />
+    </>
+}
+
+const LactationInfo = ({ startLoading, stopLoading, reloadFlag, setReloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
         <div className="grid grid-cols-[repeat(3,270)_1fr] grid-rows-[180_450] gap-4">
             <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
             <AverageMilkCard {...{ stopLoading, startLoading, reloadFlag }} />
             <AnimalsCard {...{ startLoading, stopLoading, reloadFlag }} />
-            <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag, setReloadFlag }} />
             <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
         <div className="grid grid-rows-2 grid-cols-[1fr_500] gap-4">
@@ -366,7 +429,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
     </DashboardCard>
 }
 
-const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag }: DashboardInformationProps) => {
 
     const [data, setData] = useState<MilkEntry[]>([])
     const [lastDate, setLastDate] = useState(new Date())
@@ -375,6 +438,21 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
 
     const { setPageProps } = useContext(PageContext)
+
+    const onDelete = useCallback((id: string) => {
+        if (!setReloadFlag) return
+        deleteMilkEntry(id)
+            .then(response => {
+                if (response.status != 200) return
+                setReloadFlag(prev => prev + 1)
+            })
+    }, [setReloadFlag])
+
+    const onClose = useCallback(() => {
+        if (!setReloadFlag) return
+        setReloadFlag(prev => prev + 1)
+        setAddMilkEntryOpen(false)
+    }, [setReloadFlag])
 
     useEffect(() => {
         startLoading()
@@ -415,7 +493,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                         colSpan={4}
                         loadingProps={{ loading, rowSpan: 20 }}
                         dataset={data}
-                        render={item => <EntriesRow {...item} />}
+                        render={row => <EntriesRow {...{ row, onDelete }} />}
                     />
                 </TableBody>
             </Table>
@@ -441,12 +519,12 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             >
                 Ver Mais...
             </Button>
-            <AddMilkEntryDialog {...{ addMilkEntryOpen, setAddMilkEntryOpen, entryDate: lastDate }} />
+            <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose, entryDate: lastDate }} />
         </div>
     </DashboardCard>
 }
 
-const EntriesRow = (row: MilkEntry) => {
+const EntriesRow = ({ row, onDelete }: TableRowProp<MilkEntry>) => {
 
     const [editing, setEditing] = useState(false)
     const [rowData, setRowData] = useState(row)
@@ -457,9 +535,12 @@ const EntriesRow = (row: MilkEntry) => {
 
     return <TableRow>
         <TableCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons
+                setEditing={setEditing}
+                onDelete={() => onDelete && onDelete(row.id)}
+            />
         </TableCell>
-        <TableCell>{rowData.animalName}</TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell align="center">{rowData.pastureName}</TableCell>
         <TableCell align="center">{decimalTransform(rowData.quantity ?? 0, 1)}</TableCell>
     </TableRow>
@@ -481,7 +562,7 @@ const EditingEntriesRow = ({ rowData, setRowData, setEditing }: EditRow<MilkEntr
         <TableCell>
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableCell>
-        <TableCell>{rowData.animalName}</TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell align="center">{rowData.pastureName}</TableCell>
         <TableCell align="center">
             <FormTextField
@@ -502,7 +583,7 @@ const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: Dashboar
             .then(results => setDataset(results.json))
             .catch(() => setDataset([]))
             .finally(() => stopLoading())
-    }, [reloadFlag])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard className="row-span-2">
         <CardDefaultTitle text="Produção de Leite por Mês" />
@@ -535,8 +616,8 @@ const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                     }
                 ]}
                 yAxis={[
-                    { id: 'animalsAxis', min: 0, position: 'right', label: 'Nº de Animais' },
-                    { id: 'totalAxis', min: 0, position: 'left', label: 'Leite Produzido' },
+                    { id: 'animalsAxis', min: 0, position: 'left', label: 'Nº de Animais' },
+                    { id: 'totalAxis', min: 0, position: 'right', label: 'Leite Produzido' },
                 ]}
                 xAxis={[{
                     id: 'dateAxis',
@@ -553,8 +634,8 @@ const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                 <ChartsSurface>
                     <BarPlot />
                     <LinePlot />
-                    <LineHighlightPlot />
                     <ChartsAxisHighlight x="line" />
+                    <LineHighlightPlot />
                     <ChartsXAxis />
                     <ChartsYAxis axisId="totalAxis" />
                     <ChartsYAxis axisId="animalsAxis" />
@@ -567,11 +648,11 @@ const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: Dashboar
 
 const YearAverageChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultCard: CardEntry<AverageMilkHist> = {
+    const defaultCard: CardEntry<AverageMilkHist> = useMemo(() => ({
         current: 0,
         trend: 0,
         hist: []
-    }
+    }), [])
 
     const [dataset, setDataset] = useState<CardEntry<AverageMilkHist>>(defaultCard)
     const [loading, setLoading] = useState(false)
@@ -586,7 +667,7 @@ const YearAverageChart = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag])
+    }, [defaultCard, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -615,11 +696,11 @@ const YearAverageChart = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
 
 const YearMilkChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultCard: CardEntry<TotalMilkHist> = {
+    const defaultCard: CardEntry<TotalMilkHist> = useMemo(() => ({
         current: 0,
         trend: 0,
         hist: []
-    }
+    }), [])
 
     const [dataset, setDataset] = useState<CardEntry<TotalMilkHist>>(defaultCard)
     const [loading, setLoading] = useState(false)
@@ -634,7 +715,7 @@ const YearMilkChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInfor
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag])
+    }, [defaultCard, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -855,4 +936,3 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
         </Table>
     </DashboardCard>
 }
-

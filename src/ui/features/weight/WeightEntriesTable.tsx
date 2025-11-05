@@ -57,7 +57,7 @@ export const WeightEntriesTable = () => {
     const sortColumns: ComboBoxItem[] = [
         { name: "Data de Pesagem", value: defaultSort },
         { name: "Brinco", value: 'animal_order, entry_date' },
-        { name: "Nome", value: 'animal_name, animal_order, entry_date' },
+        { name: "Nome", value: 'animal_name, animal_order, birth_date, entry_date' },
         { name: "Data de Nascimento", value: 'birth_date, animal_order, entry_date' },
     ]
 
@@ -163,7 +163,7 @@ const EntriesRow = ({ loading, item }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing, onDelete }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
@@ -195,7 +195,7 @@ const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRow<WeightEn
         <TableBodyCell>
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell>

@@ -171,8 +171,8 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.receiverName}</TableBodyCell>
-        <TableBodyCell>{rowData.donorName}</TableBodyCell>
+        <TableBodyCell>{rowData.receiverInfo}</TableBodyCell>
+        <TableBodyCell>{rowData.donorInfo}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.transferDate)}</TableBodyCell>
         <TableBodyCell align="center">
@@ -213,7 +213,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.receiverName}</TableBodyCell>
+        <TableBodyCell>{rowData.receiverInfo}</TableBodyCell>
         <TableBodyCell align="center">
             <FormSearchBox
                 formProps={{ control, name: 'donorId' }}
