@@ -13,7 +13,7 @@ type BirthFilterProps = FilterPopoverProps & {
 
 export const BirthFilter = (props: BirthFilterProps) => {
     return <FilterPopover {...props}>
-        <div className="grid grid-flow-row gap-4">
+        <div className="grid grid-flow-row gap-10">
             <MultipleSearchBoxFilter 
                 className="col-span-2"
                 label="Mães"

@@ -39,7 +39,7 @@ export const FilterPopover = ({
             >
                 Controles de Filtro
             </Typography>
-            <div className="grow overflow-auto flex flex-col p-4 gap-12">
+                <div className="grow overflow-auto flex flex-col p-4 gap-12">
                 {children}
             </div>
             {setFilter &&

@@ -12,9 +12,9 @@ import {
     Typography
 } from "@mui/material"
 import { useCallback, useState } from "react"
-import { addLactation, searchDryAnimals, searchLactating, updateEndDate } from "./Controller"
+import { addLactation, searchDryAnimals } from "./Controller"
 import { useForm } from "react-hook-form"
-import { AddLactationStruct, LactationEndDate } from "./Entities"
+import { AddLactationStruct } from "./Entities"
 import { FormMultipleSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
 import { APIError } from "@/util/ApiRequest"
 import { ConnectionError } from "@/ui/shared/Globals"

@@ -42,7 +42,7 @@ export const DateFilter = ({
     }, [minError, minErrorDate])
 
     return <AbstractFilterGroup mainTitle={mainTitle} className={className}>
-        <div className={`flex flex-row gap-2`}>
+        <div className={`flex flex-row gap-4`}>
             <DatePicker
                 label='De'
                 onError={(error) => setMinError(!!error)}
@@ -71,6 +71,7 @@ export const DateFilter = ({
                 slotProps={{
                     textField: {
                         size: "small",
+                        variant: 'standard',
                         helperText: minHelperText(),
                         fullWidth: true,
                         error: minError || minErrorDate
@@ -105,6 +106,7 @@ export const DateFilter = ({
                 }}
                 slotProps={{
                     textField: {
+                        variant: 'standard',
                         size: "small",
                         helperText: maxHelperText(),
                         fullWidth: true,

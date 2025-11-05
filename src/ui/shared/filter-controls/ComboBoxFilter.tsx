@@ -37,7 +37,7 @@ export const ComboBoxFilter = ({
     useEffect(() => {
         if (filter[fieldName] === value) return
         setValue(filter[fieldName])
-    }, [fieldName, filter, items])
+    }, [fieldName, filter, items, value])
 
     return <ComboBox
         size="small"

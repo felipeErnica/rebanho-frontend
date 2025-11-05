@@ -29,12 +29,13 @@ export const NumberFilter = ({
     const [maxValue, setMaxValue] = useState<number>()
 
     return <AbstractFilterGroup mainTitle={mainTitle} className={className}>
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-4">
             <TextField
                 type="number"
                 error={minError}
                 value={filter[minFieldName] || ''}
                 label='De'
+                variant="standard"
                 helperText={minError ? 'Insira um valor menor que o do campo abaixo' : null}
                 size="small"
                 fullWidth
@@ -63,6 +64,7 @@ export const NumberFilter = ({
                 error={maxError}
                 helperText={maxError ? 'Insira um valor maior que o do campo acima' : null}
                 value={filter[maxFieldName] || null}
+                variant="standard"
                 label='Até'
                 slotProps={{
                     htmlInput: { step },

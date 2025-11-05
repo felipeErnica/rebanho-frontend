@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react"
 import { SearchBoxItem } from "../form-controls/FormSearchBox"
 import { ApiResponse } from "@/shared/entities/ApiResponse"
@@ -7,12 +6,14 @@ import TextField from "@mui/material/TextField"
 import Checkbox from "@mui/material/Checkbox"
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { IFilters } from "@/shared/interfaces/Filter"
+import Chip from "@mui/material/Chip"
 
 export type MultipleSearchBoxFilterProps = {
     label: string
     searchOptions: () => Promise<ApiResponse>
     className?: string
     disabled?: boolean
+    noRenderValue?: boolean
     limitTags?: number
     onChange?: (newValue: SearchBoxItem[] | null) => void
     filter: IFilters
@@ -28,6 +29,7 @@ export const MultipleSearchBoxFilter = ({
     limitTags,
     className,
     setFilter,
+    noRenderValue,
     filter,
     fieldName,
 }: MultipleSearchBoxFilterProps) => {
@@ -37,24 +39,24 @@ export const MultipleSearchBoxFilter = ({
 
     useEffect(() => {
         searchOptions()
-            .then(response => { 
-                const options: SearchBoxItem[] = response.json
-                setOptions(options)
-                const idList: string[] = filter[fieldName]
-                if (!idList) {
-                    setValues([])
-                    return
-                }
-                const filterValues = options.filter(item => idList.includes(item.id))
-                setValues(filterValues)
-            })
+            .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
-    }, [filter])
+    }, [searchOptions])
+
+    useEffect(() => {
+        const filterValues: string[] = filter[fieldName]
+        if (!filterValues) {
+            setValues([])
+            return
+        }
+        const valueList = options.filter(option => filterValues.includes(option.id))
+        setValues(valueList)
+    }, [fieldName, filter, options])
 
     return <Autocomplete
         multiple
-        value={values}
         disableCloseOnSelect
+        value={values}
         className={className}
         limitTags={limitTags}
         getOptionLabel={(option) => option.label}
@@ -75,6 +77,22 @@ export const MultipleSearchBoxFilter = ({
         }}
         noOptionsText="Nenhum resultado encontrado!"
         disabled={disabled}
+        renderValue={(value, props) => {
+            if (noRenderValue) return
+            if (!limitTags) {
+                return value.map((option, index) => {
+                    const itemProps = props({ index })
+                    return <Chip label={option.label} {...itemProps} />
+                })
+            }
+            return <div className="gap-2">
+                {value.slice(0, limitTags).map((option, index) => {
+                    const itemProps = props({ index })
+                    return <Chip label={option.label} {...itemProps} />
+                })}
+                {value.length > limitTags && `+${value.length - limitTags}`}
+            </div>
+        }}
         renderOption={(props, option, { selected }) => {
             return (
                 <li {...props}>
@@ -91,7 +109,7 @@ export const MultipleSearchBoxFilter = ({
             {...params}
             size="small"
             label={label}
-            variant="outlined"
+            variant='standard'
         />}
     />
 
@@ -123,9 +141,9 @@ export const SearchBoxFilter = ({
 
     useEffect(() => {
         searchOptions()
-            .then(response => setOptions(response.json)) 
+            .then(response => setOptions(response.json))
             .catch(() => setOptions([]))
-    }, [])
+    }, [searchOptions])
 
     return <Autocomplete
         className={className}
@@ -147,7 +165,7 @@ export const SearchBoxFilter = ({
             {...params}
             size="small"
             label={label}
-            variant="outlined"
+            variant="standard"
         />}
     />
 

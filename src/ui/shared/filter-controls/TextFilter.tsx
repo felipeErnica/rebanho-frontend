@@ -26,7 +26,7 @@ export const TextFilter = ({
 
     return <TextField
         size="small"
-        variant="outlined"
+        variant="standard"
         type="search"
         label={label}
         value={inputValue ?? ''}

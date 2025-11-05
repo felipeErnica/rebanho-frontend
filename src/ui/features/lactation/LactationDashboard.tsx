@@ -75,6 +75,7 @@ import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import { green, yellow } from "@mui/material/colors"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import { EndLactationDialog } from "./EndLactationDialog"
+import { StartLacDialog } from "./StartLactationDialog"
 
 export const LactationDashboard = () => {
 
@@ -126,6 +127,7 @@ const OptionsMenu = ({ open, anchorEl, handleClose, setReloadFlag }: OptionsMenu
 
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
     const [openEndLactation, setOpenEndLactation] = useState(false)
+    const [openStartLac, setOpenStartLac] = useState(false)
     const { setPageProps } = useContext(PageContext)
 
     const onClose = useCallback((added: boolean) => {
@@ -134,6 +136,7 @@ const OptionsMenu = ({ open, anchorEl, handleClose, setReloadFlag }: OptionsMenu
     }, [setReloadFlag])
 
     const closeEndLactation = useCallback(() => setOpenEndLactation(false), [])
+    const closeStartLac = useCallback(() => setOpenStartLac(false), [])
 
     return <>
         <Menu
@@ -147,7 +150,7 @@ const OptionsMenu = ({ open, anchorEl, handleClose, setReloadFlag }: OptionsMenu
                 </ListItemIcon>
                 Marcar Leite
             </MenuItem>
-            <MenuItem>
+            <MenuItem onClick={() => setOpenStartLac(true)}>
                 <ListItemIcon>
                     <CalendarMonth />
                 </ListItemIcon>
@@ -175,6 +178,7 @@ const OptionsMenu = ({ open, anchorEl, handleClose, setReloadFlag }: OptionsMenu
         </Menu>
         <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose }} />
         <EndLactationDialog {...{ openEndLactation, closeEndLactation }} />
+        <StartLacDialog {...{openStartLac, closeStartLac }} />
     </>
 }
 
