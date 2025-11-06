@@ -1,4 +1,14 @@
-import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { 
+    createContext, 
+    Dispatch, 
+    SetStateAction, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useMemo, 
+    useRef, 
+    useState 
+} from "react"
 import { MilkEntry, MilkEntryFoot } from "./Entities"
 import { deleteMilkEntry, getGroupEntries, getGroupEntriesFoot, updateMilkEntry } from "./Controller"
 import Table from "@mui/material/Table"
@@ -71,7 +81,7 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTableProps) => 
     const onDelete = useCallback((id: string) => {
         deleteMilkEntry(id)
             .then(response => {
-                if (response.status != 200) return
+                if (response.error) return
                 setRows(prev => prev.filter(item => item.id != id))
                 getFoot()
             })
@@ -193,7 +203,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         setLoading(true)
         updateMilkEntry(data)
             .then(response => {
-                if (response.status != 200) {
+                if (response.error) {
                     setApiError(response.json)
                     return
                 }

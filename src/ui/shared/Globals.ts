@@ -15,7 +15,17 @@ export const ChipColorScheme: Map<string, ColorStrings> = new Map([
     ['STAND_BY', 'warning'],
 ])
 
+//Manejo de Erros
+
+export const INTERNAL_SERVER_ERROR = "InternalError"
+export const CONFLICT_ERROR = "ConflictError" 
+export const INCORRET_INFO_ERROR = "IncorretInfoError"
+export const OTHER_ERROR = "OtherError"
+export const API_WARNING = "ApiWarning"
+
 export const ConnectionError: APIError = {
+    kind: 'ConnectionError',
     title: 'Erro de Conexão',
     message: 'Não foi possível conectar com o servidor!'
 }
+

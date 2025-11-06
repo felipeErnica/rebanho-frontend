@@ -20,7 +20,10 @@ createRoot(document.getElementById('root')!).render(
         <StyledEngineProvider enableCssLayer >
             <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
             <ThemeProvider theme={theme} >
-                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='pt-br'>
+                <LocalizationProvider 
+                    dateAdapter={AdapterDayjs} 
+                    adapterLocale='pt-br'
+                >
                     <App />
                 </LocalizationProvider>
             </ThemeProvider>

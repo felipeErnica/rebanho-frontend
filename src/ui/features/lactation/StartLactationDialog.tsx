@@ -2,69 +2,55 @@ import { DialogActionButtons, DialogContainer } from "@/ui/shared/dialog/DialogC
 import {
     Alert,
     AlertTitle,
-    Chip,
     Collapse,
     Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
-    ListItem,
-    Typography
 } from "@mui/material"
 import { useCallback, useState } from "react"
 import { addLactation, searchDryAnimals } from "./Controller"
 import { useForm } from "react-hook-form"
-import { AddLactationStruct } from "./Entities"
-import { FormMultipleSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
+import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { APIError } from "@/util/ApiRequest"
-import { ConnectionError } from "@/ui/shared/Globals"
+import { API_WARNING, ConnectionError } from "@/ui/shared/Globals"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
+import { AddLactationStruct } from "./Entities"
 
 type StartLacDialogProps = {
     openStartLac: boolean
     closeStartLac: () => void
 }
 
-type StartLacDialogForm = {
-    animalId: string[]
-    startDate: Date
-}
-
 export const StartLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProps) => {
 
     const [error, setError] = useState<APIError>()
-    const [lacs, setLacs] = useState<SearchBoxItem[]>([])
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit, setValue, reset } = useForm<StartLacDialogForm>()
+    const { control, handleSubmit, reset } = useForm<AddLactationStruct>()
 
-    const onSubmit = useCallback((data: StartLacDialogForm) => {
+    const errHandling = useCallback((err: APIError) => {
+        if (err.kind == API_WARNING) {
+            return
+        }
+        setError(err)
+    }, [])
+
+    const onSubmit = useCallback((data: AddLactationStruct) => {
         setLoading(true)
-        const addLacList: AddLactationStruct[] = data.animalId.map(item => ({
-            animalId: item,
-            startDate: data.startDate
-        }))
-
-        addLactation(addLacList)
+        addLactation(data)
             .then(response => {
-                if (response.status != 200) {
-                    setError(response.json)
+                if (response.error) {
+                    errHandling(response.json)
                     return
                 }
-                reset()
-                closeStartLac()
+                reset({ startDate: data.startDate })
             })
             .catch(() => setError(ConnectionError))
             .finally(() => setLoading(false))
-    }, [closeStartLac, reset])
+    }, [errHandling, reset])
 
     const onSave = handleSubmit(onSubmit)
-
-    const handleDelete = useCallback((deleted: SearchBoxItem) => {
-        const newLacs = lacs.filter(item => item.id !== deleted.id)
-        setLacs(newLacs)
-        setValue('animalId', newLacs.map(item => item.id))
-    }, [lacs, setValue])
 
     return <Dialog open={openStartLac}>
         <DialogTitle>Iniciar Lactações</DialogTitle>
@@ -81,31 +67,22 @@ export const StartLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogPr
                     label="Data de Início"
                     formProps={{ control, name: 'startDate' }}
                 />
-                <FormMultipleSearchBox
+                <FormSearchBox
                     formProps={{ control, name: 'animalId' }}
-                    label="Selecionar Vacas"
+                    label="Vaca"
                     searchOptions={searchDryAnimals}
-                    onChange={(items) => setLacs(items)}
-                    noRenderValue
                 />
-                <div>
-                    <Typography>Vacas Selecionadas:</Typography>
-                    <div className="max-h-[250] flex flex-col gap-2 overflow-auto">
-                        {lacs.map(lac => (
-                            <ListItem>
-                                <Chip label={lac.label} onDelete={() => handleDelete(lac)} />
-                            </ListItem>
-                        ))}
-                    </div>
-                </div>
             </DialogContainer>
         </DialogContent>
         <DialogActions>
             <DialogActionButtons
                 loading={loading}
-                saveText="Enviar"
+                saveText="Iniciar"
                 onSave={onSave}
-                onClose={closeStartLac}
+                onClose={() => {
+                    reset()
+                    closeStartLac()
+                }}
             />
         </DialogActions>
     </Dialog>

@@ -1,5 +1,5 @@
 import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@/util/ApiRequest"
-import { AddLactationStruct, LactationEndDate, LactationGroupFilter, MilkEntry } from "./Entities";
+import { AddLactationStruct, UpdateLactationStruct, LactationGroupFilter, MilkEntry } from "./Entities";
 
 export const DASHBOARD_BASE = "lactation/dashboard/"
 export const GROUP_BASE = "lactation/groups/"
@@ -104,15 +104,15 @@ export function searchLactating() {
 }
 
 export function searchDryAnimals() {
-    return apiGet(LAC_BASE + "search-dry-animals")
+    return apiGet(LAC_BASE + "search-dry")
 }
 
-export function updateEndDate(lacList: LactationEndDate[]) {
-    return apiPut(LAC_BASE + `update/end-date`, lacList)
+export function updateEndDate(data: UpdateLactationStruct) {
+    return apiPut(LAC_BASE + `update/end-date`, data)
 }
 
-export function addLactation(lacList: AddLactationStruct[]) {
-    return apiPut(LAC_BASE + "add", lacList)
+export function addLactation(entry: AddLactationStruct) {
+    return apiPut(LAC_BASE + "add", entry)
 }
 
 export function updateMilkEntry(entry: MilkEntry) {

@@ -447,7 +447,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
         if (!setReloadFlag) return
         deleteMilkEntry(id)
             .then(response => {
-                if (response.status != 200) return
+                if (response.error) return
                 setReloadFlag(prev => prev + 1)
             })
     }, [setReloadFlag])

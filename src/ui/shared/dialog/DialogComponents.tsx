@@ -1,6 +1,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material"
 import { Dispatch, ReactNode, SetStateAction } from "react"
 import Error from '@mui/icons-material/Error';
+import Warning from '@mui/icons-material/Warning';
 
 export interface AddDialogProps {
     addDialogOpen: boolean
@@ -39,8 +40,8 @@ export const DialogContainer = ({ children, className }: DialogContainerProps) =
 
 type YesNoDialogProps = {
     openYesNo: boolean
-    title: string
-    content: string
+    title: string | undefined
+    content: string | undefined
     onYes: () => void
     onClose: () => void
 }
@@ -60,8 +61,15 @@ export const YesNoDialog = ({ onYes, openYesNo, content, title, onClose }: YesNo
             }
         }}
     >
-        <DialogTitle>{title}</DialogTitle>
-        <DialogContent>{content}</DialogContent>
+        <DialogTitle>{title ?? 'AVISO: Informação Desconhecida'}</DialogTitle>
+        <DialogContent>
+            <div className="flex flex-row gap-8 items-center p-4">
+                <Warning sx={{ fontSize: 60 }} color="warning" />
+                <Typography fontSize={16} variant="body2">
+                    {content ?? 'Sem Informações'}
+                </Typography>
+            </div>
+        </DialogContent>
         <DialogActions>
             <Button
                 autoFocus

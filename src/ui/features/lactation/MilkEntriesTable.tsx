@@ -88,7 +88,7 @@ export const MilkEntriesTablePage = () => {
     const onDelete = useCallback((id: string) => {
         deleteMilkEntry(id)
             .then(response => {
-                if (response.status != 200) return
+                if (response.error) return
                 setRows(prev => prev.filter(item => item.id != id))
                 getFoot()
             })
@@ -233,7 +233,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         data.quantity = Number(data.quantity)
         updateMilkEntry(data)
             .then(response => {
-                if (response.status !== 200) {
+                if (response.error) {
                     setApiError(response.json)
                     return
                 }

@@ -1,4 +1,4 @@
 export type ApiResponse = {
-    status: number,
+    error: boolean
     json: any,
 }

@@ -10,10 +10,10 @@ import {
 import { SubmitHandler, useForm } from "react-hook-form"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
-import { ConnectionError, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { ConnectionError, API_WARNING, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchDairyAnimal } from "@/shared/GlobalApiCalls"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { MilkEntry } from "./Entities"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { APIError } from "@/util/ApiRequest"
@@ -28,7 +28,7 @@ type AddTestDialogProps = {
 export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: AddTestDialogProps) => {
 
     const [error, setError] = useState<APIError>()
-    const [openYesNo, setOpenYesNo] = useState(false)
+    const [warning, setWarning] = useState<APIError>()
     const [loading, setLoading] = useState(false)
     const [resetFlag, setResetFlag] = useState(0)
     const [added, setAdded] = useState(false)
@@ -44,17 +44,21 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
         setFocus('animalId')
     }, [getValues, reset, resetFlag, setFocus])
 
+    const errHandling = useCallback((err: APIError) => {
+        if (err.kind === API_WARNING) {
+            setWarning(err)
+            return
+        }
+        setError(err)
+        return
+    }, [])
+
     const onSubmit: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
         data.quantity = Number(data.quantity)
         addMilkEntry(data)
             .then(response => {
-                if (response.status == 409) {
-                    setError(undefined)
-                    setOpenYesNo(true)
-                    return
-                }
-                if (response.status != 201) {
-                    setError(response.json)
+                if (response.error) {
+                    errHandling(response.json)
                     return
                 }
                 setAdded(true)
@@ -70,7 +74,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
         data.quantity = Number(data.quantity)
         replaceMilkEntry(data)
             .then(response => {
-                if (response.status != 200) {
+                if (response.error) {
                     setError(response.json)
                     return
                 }
@@ -80,11 +84,13 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
             .catch(() => setError(ConnectionError))
             .finally(() => {
                 setResetFlag(prev => prev + 1)
-                setOpenYesNo(false)
+                setWarning(undefined)
             })
     }
 
     const handleClose = () => {
+        setWarning(undefined)
+        setError(undefined)
         reset()
         onClose(added)
     }
@@ -105,9 +111,8 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                     {error?.message}
                 </Alert>
             </Collapse>
-            <DialogContainer className="grid grid-flow-row gap-x-4 gap-y-8">
+            <DialogContainer className="grid grid-cols-[200_100_1fr] gap-x-4 gap-y-8">
                 <FormDatePicker
-                    className="col-span-3"
                     label="Data de Marcação"
                     formProps={{
                         control,
@@ -117,7 +122,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                 />
                 <FormSearchBox
                     label="Vaca"
-                    className="col-span-2"
+                    className="row-start-2 col-span-2"
                     searchOptions={searchDairyAnimal}
                     formProps={{
                         control,
@@ -127,6 +132,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                 />
                 <FormTextField
                     label="Quantidade"
+                    classname="row-start-2"
                     type="number"
                     formProps={{
                         control,
@@ -145,14 +151,14 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
             />
         </DialogActions>
         <YesNoDialog
-            title={'Marcação já exite!'}
-            content={"Esta marcação já existe! Deseja substituí-la?"}
+            title={warning?.title}
+            content={warning?.message}
             onYes={handleSubmit(onReplace)}
             onClose={() => {
                 setResetFlag(prev => prev + 1)
-                setOpenYesNo(false)
+                setWarning(undefined)
             }}
-            openYesNo={openYesNo}
+            openYesNo={!!warning}
         />
     </Dialog>
 }

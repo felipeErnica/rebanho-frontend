@@ -4,6 +4,7 @@ import { User } from "@/shared/entities/User"
 const BASE_URL = "http://localhost:8080/"
 
 export type APIError = {
+    kind: string
     title: string
     message: string
 }
@@ -24,7 +25,7 @@ async function generateRequest(): Promise<RequestInit> {
 async function buildResponse(response: Response): Promise<ApiResponse> {
     const json = await response.json()
     return {
-        status: response.status,
+        error: !response.ok,
         json: json 
     }
 }

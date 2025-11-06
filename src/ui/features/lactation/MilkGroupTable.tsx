@@ -30,7 +30,6 @@ export const GroupTablePage = () => {
     const [loading, setLoading] = useState(false)
     const [order, setOrder] = useState("desc")
 
-
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {

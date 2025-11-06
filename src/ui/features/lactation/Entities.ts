@@ -30,7 +30,7 @@ export type LactationHist = {
     calfId: string
     calfInfo: string
     startDate: Date
-    endDate: Date
+    endDate?: Date
     lacPeriod: number
     averageProduction: number
     totalProduction: number
@@ -41,11 +41,13 @@ export type LactationHist = {
 export type AddLactationStruct = {
     animalId: string
     startDate: Date
+    endDate?: Date
 }
 
-export type LactationEndDate = {
+export type UpdateLactationStruct = {
     id: string
-    endDate: Date
+    startDate?: Date
+    endDate?: Date
 }
 
 export type LactationHistFilter = {
