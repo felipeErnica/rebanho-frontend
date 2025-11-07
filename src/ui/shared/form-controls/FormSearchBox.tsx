@@ -18,7 +18,6 @@ type FormSearchBoxProps<T extends FieldValues> = {
     searchOptions: () => Promise<ApiResponse>
     args?: any[]
     className?: string
-    disabled?: boolean
     onChange?: (id?: string, label?: string) => void
 }
 
@@ -27,7 +26,6 @@ export function FormSearchBox<T extends FieldValues>({
     searchOptions,
     formProps,
     className,
-    disabled,
     variant,
     onChange,
 }: FormSearchBoxProps<T>) {
@@ -60,18 +58,18 @@ export function FormSearchBox<T extends FieldValues>({
                     if (onChange) onChange(newValue?.id, newValue?.label)
                 }}
                 noOptionsText="Nenhum resultado encontrado!"
-                disabled={disabled}
                 fullWidth
                 filterSelectedOptions
                 autoHighlight
                 autoSelect
+                disabled={field.disabled}
                 renderInput={(params) => <TextField
                     {...params}
                     name={field.name}
                     inputRef={field.ref}
-                    error={!!error}
+                    error={!field.disabled && !!error}
                     disabled={field.disabled}
-                    helperText={error?.message}
+                    helperText={!field.disabled && error?.message}
                     size="small"
                     label={label}
                     variant={variant || 'standard'}

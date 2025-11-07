@@ -75,7 +75,7 @@ import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import { green, yellow } from "@mui/material/colors"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import { EndLactationDialog } from "./EndLactationDialog"
-import { StartLacDialog } from "./StartLactationDialog"
+import { AddLacDialog } from "./AddLactationDialog"
 
 export const LactationDashboard = () => {
 
@@ -178,7 +178,7 @@ const OptionsMenu = ({ open, anchorEl, handleClose, setReloadFlag }: OptionsMenu
         </Menu>
         <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose }} />
         <EndLactationDialog {...{ openEndLactation, closeEndLactation }} />
-        <StartLacDialog {...{openStartLac, closeStartLac }} />
+        <AddLacDialog {...{openStartLac, closeStartLac }} />
     </>
 }
 

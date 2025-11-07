@@ -145,9 +145,9 @@ const OtherControls = ({ control }: FormStateProps) => {
 
         />
         <FormSearchBox
-            disabled={!farmId}
             searchOptions={fetchPasture}
             formProps={{
+                disabled: !farmId,
                 control,
                 name: "pastureId",
                 rules: { required: REQUIRED_FIELD_MSG }

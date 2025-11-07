@@ -107,7 +107,7 @@ function CustomDateField(props: CustomDateFieldProps) {
             return
         }
         const parsedValue = parsedDate(newInputValue)
-        const newValue = dayjs(parsedValue, pickerContext.fieldFormat)
+        const newValue = dayjs(parsedValue, 'DD-MM-YYYY', true)
         pickerContext.setValue(newValue)
     }
 

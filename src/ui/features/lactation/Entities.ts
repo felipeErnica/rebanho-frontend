@@ -36,18 +36,22 @@ export type LactationHist = {
     totalProduction: number
     lacInterval: number
     peak: number
+    observation?: string
 }
 
 export type AddLactationStruct = {
     animalId: string
     startDate: Date
+    calfId?: string
     endDate?: Date
+    observation?: string
 }
 
 export type UpdateLactationStruct = {
     id: string
     startDate?: Date
     endDate?: Date
+    observation?: string
 }
 
 export type LactationHistFilter = {

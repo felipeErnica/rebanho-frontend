@@ -1,19 +1,21 @@
-import { DialogActionButtons, DialogContainer } from "@/ui/shared/dialog/DialogComponents"
+import { DialogActionButtons } from "@/ui/shared/dialog/DialogComponents"
 import {
     Alert,
     AlertTitle,
+    Checkbox,
     Collapse,
     Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
+    FormControlLabel,
 } from "@mui/material"
 import { useCallback, useState } from "react"
-import { addLactation, searchDryAnimals } from "./Controller"
+import { addLactation, searchCalfs, searchDryAnimals } from "./Controller"
 import { useForm } from "react-hook-form"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { APIError } from "@/util/ApiRequest"
-import { API_WARNING, ConnectionError } from "@/ui/shared/Globals"
+import { API_WARNING, ConnectionError, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { AddLactationStruct } from "./Entities"
 
@@ -22,10 +24,11 @@ type StartLacDialogProps = {
     closeStartLac: () => void
 }
 
-export const StartLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProps) => {
+export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProps) => {
 
     const [error, setError] = useState<APIError>()
     const [loading, setLoading] = useState(false)
+    const [noBirth, setNoBirth] = useState(false)
 
     const { control, handleSubmit, reset } = useForm<AddLactationStruct>()
 
@@ -45,6 +48,7 @@ export const StartLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogPr
                     return
                 }
                 reset({ startDate: data.startDate })
+                setError(undefined)
             })
             .catch(() => setError(ConnectionError))
             .finally(() => setLoading(false))
@@ -53,31 +57,63 @@ export const StartLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogPr
     const onSave = handleSubmit(onSubmit)
 
     return <Dialog open={openStartLac}>
-        <DialogTitle>Iniciar Lactações</DialogTitle>
+        <DialogTitle>Adicionar Novas Lactações</DialogTitle>
         <DialogContent>
             <Collapse in={!!error}>
-                <Alert severity="error">
+                <Alert severity="error" onClose={() => setError(undefined)}>
                     <AlertTitle>{error?.title}</AlertTitle>
                     {error?.message}
                 </Alert>
             </Collapse>
-            <DialogContainer className="flex flex-col overflow-hidden">
+            <div className="flex flex-col gap-8 p-4">
                 <FormDatePicker
-                    className="w-[200]"
                     label="Data de Início"
-                    formProps={{ control, name: 'startDate' }}
+                    className="w-[200]"
+                    formProps={{
+                        control,
+                        name: 'startDate',
+                        rules: { required: REQUIRED_FIELD_MSG }
+                    }}
                 />
                 <FormSearchBox
-                    formProps={{ control, name: 'animalId' }}
+                    formProps={{
+                        control,
+                        name: 'animalId',
+                        rules: { required: REQUIRED_FIELD_MSG }
+                    }}
                     label="Vaca"
+                    className="w-[400]"
                     searchOptions={searchDryAnimals}
                 />
-            </DialogContainer>
+                <div className="flex flex-col">
+                    <FormSearchBox
+                        formProps={{
+                            disabled: noBirth,
+                            control,
+                            name: 'calfId',
+                            rules: { required: REQUIRED_FIELD_MSG }
+                        }}
+                        label="Bezerro"
+                        className="w-[400]"
+                        searchOptions={searchCalfs}
+                    />
+                    <FormControlLabel
+                        className="col-span-2"
+                        label="Lactação s/ Bezerro"
+                        control={(
+                            <Checkbox
+                                checked={noBirth}
+                                onChange={() => setNoBirth(prev => !prev)}
+                            />
+                        )}
+                    />
+                </div>
+            </div>
         </DialogContent>
         <DialogActions>
             <DialogActionButtons
                 loading={loading}
-                saveText="Iniciar"
+                saveText="Adicionar"
                 onSave={onSave}
                 onClose={() => {
                     reset()

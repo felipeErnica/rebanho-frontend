@@ -41,7 +41,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
 
     const [farmId, setFarmId] = useState<string>()
 
-    const handlePastureSearch = useCallback((input?: string) => searchPasture(input), [farmId])
+    const handlePastureSearch = useCallback((input?: string) => searchPasture(input), [])
 
     return [
         {
@@ -154,10 +154,10 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             editComponent: (control, _, setValue) => {
                 return <FormSearchBox
                     variant="standard"
-                    disabled={!farmId}
                     onChange={(_, label) => setValue('pastureName', label)}
                     searchOptions={handlePastureSearch}
                     formProps={{
+                        disabled: !farmId,
                         control,
                         name: 'pastureId'
                     }}
