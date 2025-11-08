@@ -57,7 +57,7 @@ const MainControls = ({ control }: FormStateProps) => {
         />
         <FormTextField
             label="Nome*"
-            classname="col-span-2"
+            className="col-span-2"
             formProps={{
                 control,
                 name: "name",
@@ -81,7 +81,7 @@ const MainControls = ({ control }: FormStateProps) => {
         />
         <FormTextField
             label="Raça do Animal"
-            classname="col-span-2"
+            className="col-span-2"
             formProps={{
                 control,
                 name: "color",

@@ -4,7 +4,7 @@ import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 
 type FormTextFieldProps<T extends FieldValues> = {
     label?: string
-    classname?: string
+    className?: string
     onChange?: (value: any) => void
     formProps: UseControllerProps<T>
     multiline?: boolean
@@ -18,7 +18,7 @@ export const FormTextField = <T extends FieldValues>({
     label,
     formProps,
     onChange,
-    classname,
+    className,
     rows,
     maxRows,
     type,
@@ -33,7 +33,7 @@ export const FormTextField = <T extends FieldValues>({
                 {...field}
                 value={field.value ?? ''}
                 type={type}
-                className={classname}
+                className={className}
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}
                 onChange={(event) => {

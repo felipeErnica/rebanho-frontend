@@ -32,7 +32,7 @@ type DialogContainerProps = {
 }
 
 export const DialogContainer = ({ children, className }: DialogContainerProps) => {
-    return <div className={`w-[500] gap-8 p-4 ${className}`}>
+    return <div className={`flex flex-col gap-8 p-4 ${className}`}>
         {children}
     </div>
 }

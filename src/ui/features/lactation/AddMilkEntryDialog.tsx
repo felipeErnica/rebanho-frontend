@@ -1,20 +1,22 @@
 import {
     Alert,
     AlertTitle,
+    Checkbox,
     Collapse,
     Dialog,
     DialogActions,
     DialogContent,
-    DialogTitle
+    DialogTitle,
+    FormControlLabel,
 } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { CONNECTION_ERROR, API_WARNING, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchDairyAnimal } from "@/shared/GlobalApiCalls"
+import { searchDairyAnimal, searchPastures } from "@/shared/GlobalApiCalls"
 import { useCallback, useEffect, useState } from "react"
-import { MilkEntry } from "./Entities"
+import { AddMilkEntryType } from "./Entities"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { APIError } from "@/util/ApiRequest"
 import { addMilkEntry, replaceMilkEntry } from "./Controller"
@@ -32,8 +34,9 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
     const [loading, setLoading] = useState(false)
     const [resetFlag, setResetFlag] = useState(0)
     const [added, setAdded] = useState(false)
+    const [noPasture, setNoPasture] = useState(false)
 
-    const { handleSubmit, control, reset, setValue, getValues, setFocus } = useForm<MilkEntry>({
+    const { handleSubmit, control, reset, setValue, getValues, setFocus } = useForm<AddMilkEntryType>({
         defaultValues: { entryDate }
     })
 
@@ -53,7 +56,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
         return
     }, [])
 
-    const onSubmit: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
+    const onSubmit: SubmitHandler<AddMilkEntryType> = (data: AddMilkEntryType) => {
         data.quantity = Number(data.quantity)
         addMilkEntry(data)
             .then(response => {
@@ -63,15 +66,14 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                 }
                 setAdded(true)
                 setError(undefined)
-                reset({ entryDate: data.entryDate, quantity: undefined })
+                reset({ entryDate: data.entryDate, pastureId: data.pastureId })
                 setFocus('animalId')
             })
             .catch(() => setError(CONNECTION_ERROR))
             .finally(() => setLoading(false))
     }
 
-    const onReplace: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
-        data.quantity = Number(data.quantity)
+    const onReplace: SubmitHandler<AddMilkEntryType> = (data: AddMilkEntryType) => {
         replaceMilkEntry(data)
             .then(response => {
                 if (response.error) {
@@ -111,9 +113,10 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                     {error?.message}
                 </Alert>
             </Collapse>
-            <DialogContainer className="grid grid-cols-[200_100_1fr] gap-x-4 gap-y-8">
+            <DialogContainer>
                 <FormDatePicker
                     label="Data de Marcação"
+                    className="w-[200]"
                     disableFuture
                     formProps={{
                         control,
@@ -121,26 +124,49 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                         rules: { required: REQUIRED_FIELD_MSG }
                     }}
                 />
-                <FormSearchBox
-                    label="Vaca"
-                    className="row-start-2 col-span-2"
-                    searchOptions={searchDairyAnimal}
-                    formProps={{
-                        control,
-                        rules: { required: REQUIRED_FIELD_MSG },
-                        name: 'animalId'
-                    }}
-                />
-                <FormTextField
-                    label="Quantidade"
-                    classname="row-start-2"
-                    type="number"
-                    formProps={{
-                        control,
-                        name: 'quantity',
-                        rules: { required: REQUIRED_FIELD_MSG }
-                    }}
-                />
+                <div className="flex flex-col">
+                    <FormSearchBox
+                        label="Lote"
+                        searchOptions={searchPastures}
+                        formProps={{
+                            control,
+                            name: 'pastureId',
+                            rules: { required: REQUIRED_FIELD_MSG },
+                            disabled: noPasture
+                        }}
+                    />
+                    <FormControlLabel
+                        label="Sem Lote"
+                        control={(
+                            <Checkbox
+                                checked={noPasture}
+                                onChange={() => setNoPasture(prev => !prev)}
+                            />
+                        )}
+                    />
+                </div>
+                <div className="flex flex-row gap-4">
+                    <FormSearchBox
+                        label="Vaca"
+                        className="w-[400]"
+                        searchOptions={searchDairyAnimal}
+                        formProps={{
+                            control,
+                            rules: { required: REQUIRED_FIELD_MSG },
+                            name: 'animalId'
+                        }}
+                    />
+                    <FormTextField
+                        label="Quantidade"
+                        type="number"
+                        className="w-[100]"
+                        formProps={{
+                            control,
+                            name: 'quantity',
+                            rules: { required: REQUIRED_FIELD_MSG }
+                        }}
+                    />
+                </div>
             </DialogContainer>
         </DialogContent>
         <DialogActions>

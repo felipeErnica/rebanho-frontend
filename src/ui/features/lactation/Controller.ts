@@ -1,5 +1,5 @@
 import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@/util/ApiRequest"
-import { AddLactationStruct, UpdateLactationStruct, LactationGroupFilter, MilkEntry, LactationHist } from "./Entities";
+import { AddLactationStruct, UpdateLactationStruct, LactationGroupFilter, MilkEntry, LactationHist, AddMilkEntryType } from "./Entities";
 
 export const DASHBOARD_BASE = "lactation/dashboard/"
 export const GROUP_BASE = "lactation/groups/"
@@ -135,11 +135,11 @@ export function updateMilkEntry(entry: MilkEntry) {
     return apiPut(ENTRIES_BASE + `update`, entry)
 }
 
-export function replaceMilkEntry(entry: MilkEntry) {
+export function replaceMilkEntry(entry: AddMilkEntryType) {
     return apiPut(ENTRIES_BASE + "replace", entry)
 }
 
-export function addMilkEntry(entry: MilkEntry) {
+export function addMilkEntry(entry: AddMilkEntryType) {
     return apiPut(ENTRIES_BASE + "add", entry)
 }
 

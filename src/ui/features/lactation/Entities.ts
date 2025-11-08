@@ -23,6 +23,12 @@ export type MilkEntryFoot = {
     averageMilk: number
 }
 
+export type AddMilkEntryType = {
+    animalId: string
+    pastureId?: string
+    entryDate?: Date
+    quantity: number
+}
 export type LactationHist = {
     id: string
     animalId: string

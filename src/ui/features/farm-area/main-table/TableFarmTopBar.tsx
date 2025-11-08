@@ -53,7 +53,7 @@ const AddFarmDialog = ({ isAddFarmOpen, setAddFarmOpen }: AddFarmDialogProps) =>
             <FormTextField
                 label="Nome da Fazenda*"
                 variant="standard"
-                classname="w-[400] p-4"
+                className="w-[400] p-4"
                 formProps={{
                     control,
                     rules: { required: REQUIRED_FIELD_MSG },
@@ -87,7 +87,7 @@ const AddPastureDialog = ({ isAddPastureOpen, setAddPastureOpen }: AddPastureDia
             <div className="w-[500] p-4 grid grid-cols-3 grid-flow-row gap-6">
                 <FormTextField
                     label="Nome da Pastagem*"
-                    classname="col-span-3"
+                    className="col-span-3"
                     formProps={{
                         control,
                         rules: { required: REQUIRED_FIELD_MSG },
