@@ -23,7 +23,7 @@ export const INCORRET_INFO_ERROR = "IncorretInfoError"
 export const OTHER_ERROR = "OtherError"
 export const API_WARNING = "ApiWarning"
 
-export const ConnectionError: APIError = {
+export const CONNECTION_ERROR: APIError = {
     kind: 'ConnectionError',
     title: 'Erro de Conexão',
     message: 'Não foi possível conectar com o servidor!'

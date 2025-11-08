@@ -10,7 +10,7 @@ import {
 import { SubmitHandler, useForm } from "react-hook-form"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
-import { ConnectionError, API_WARNING, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { CONNECTION_ERROR, API_WARNING, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchDairyAnimal } from "@/shared/GlobalApiCalls"
 import { useCallback, useEffect, useState } from "react"
@@ -66,7 +66,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                 reset({ entryDate: data.entryDate, quantity: undefined })
                 setFocus('animalId')
             })
-            .catch(() => setError(ConnectionError))
+            .catch(() => setError(CONNECTION_ERROR))
             .finally(() => setLoading(false))
     }
 
@@ -81,7 +81,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                 setAdded(true)
                 setError(undefined)
             })
-            .catch(() => setError(ConnectionError))
+            .catch(() => setError(CONNECTION_ERROR))
             .finally(() => {
                 setResetFlag(prev => prev + 1)
                 setWarning(undefined)
@@ -114,6 +114,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
             <DialogContainer className="grid grid-cols-[200_100_1fr] gap-x-4 gap-y-8">
                 <FormDatePicker
                     label="Data de Marcação"
+                    disableFuture
                     formProps={{
                         control,
                         name: 'entryDate',

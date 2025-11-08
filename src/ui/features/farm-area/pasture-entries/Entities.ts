@@ -1,5 +1,6 @@
 export type PastureEntry = {
     id: string
+    pastureId?: string
     animalId?: string
     animalName?: string
     animalBirthDate?: Date

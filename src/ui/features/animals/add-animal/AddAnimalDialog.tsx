@@ -12,7 +12,7 @@ import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormRadioGroup, RadioControlProps } from "@/ui/shared/form-controls/FormRadioGroup"
 import { AnimalType } from "../Entities"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
-import { searchFarm, searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { searchFarm, searchFather, searchMother, searchPastureByFarm } from "@/shared/GlobalApiCalls"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 
 type AddAnimalProps = {
@@ -110,7 +110,7 @@ const MainControls = ({ control }: FormStateProps) => {
 const OtherControls = ({ control }: FormStateProps) => {
 
     const [farmId, setFarmId] = useState<string[]>()
-    const fetchPasture = useCallback(() => searchPasture(farmId), [farmId])
+    const fetchPasture = useCallback(() => searchPastureByFarm(farmId), [farmId])
 
     return <div className="mt-10 flex flex-col gap-3">
         <Typography variant="h6" className="col-span-3">Outras Informações</Typography>

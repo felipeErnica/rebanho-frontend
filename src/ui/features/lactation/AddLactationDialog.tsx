@@ -15,9 +15,10 @@ import { addLactation, searchCalfs, searchDryAnimals } from "./Controller"
 import { useForm } from "react-hook-form"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { APIError } from "@/util/ApiRequest"
-import { API_WARNING, ConnectionError, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { API_WARNING, CONNECTION_ERROR, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { AddLactationStruct } from "./Entities"
+import { searchPastures } from "@/shared/GlobalApiCalls"
 
 type StartLacDialogProps = {
     openStartLac: boolean
@@ -29,6 +30,7 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
     const [error, setError] = useState<APIError>()
     const [loading, setLoading] = useState(false)
     const [noBirth, setNoBirth] = useState(false)
+    const [noPasture, setNoPasture] = useState(false)
 
     const { control, handleSubmit, reset } = useForm<AddLactationStruct>()
 
@@ -47,10 +49,10 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                     errHandling(response.json)
                     return
                 }
-                reset({ startDate: data.startDate })
+                reset({ startDate: data.startDate, pastureId: data.pastureId })
                 setError(undefined)
             })
-            .catch(() => setError(ConnectionError))
+            .catch(() => setError(CONNECTION_ERROR))
             .finally(() => setLoading(false))
     }, [errHandling, reset])
 
@@ -68,6 +70,7 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
             <div className="flex flex-col gap-8 p-4">
                 <FormDatePicker
                     label="Data de Início"
+                    disableFuture
                     className="w-[200]"
                     formProps={{
                         control,
@@ -75,6 +78,28 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                         rules: { required: REQUIRED_FIELD_MSG }
                     }}
                 />
+                <div className="flex flex-col">
+                    <FormSearchBox
+                        label="Pasto"
+                        searchOptions={searchPastures}
+                        className="w-[350]"
+                        formProps={{
+                            control,
+                            disabled: noPasture,
+                            name: 'pastureId',
+                            rules: { required: REQUIRED_FIELD_MSG }
+                        }}
+                    />
+                    <FormControlLabel
+                        label="Sem mudança de Lote"
+                        control={(
+                            <Checkbox
+                                checked={noPasture}
+                                onChange={() => setNoPasture(prev => !prev)}
+                            />
+                        )}
+                    />
+                </div>
                 <FormSearchBox
                     formProps={{
                         control,

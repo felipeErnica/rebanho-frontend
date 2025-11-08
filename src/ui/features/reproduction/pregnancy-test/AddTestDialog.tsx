@@ -76,7 +76,7 @@ export const AddTestDialog = ({ addTestOpen, setAddTestOpen, testDate }: AddTest
                 />
                 <FormDatePicker
                     label="Data Prevista de Parição"
-                    disabled={disableForecast}
+                    disablePast
                     formProps={{
                         control,
                         disabled: disableForecast,

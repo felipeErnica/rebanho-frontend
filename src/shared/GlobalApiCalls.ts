@@ -31,7 +31,11 @@ export async function searchAnimal() {
     return apiGet(ANIMAL_SEARCH_BASE + "animal")
 }
 
-export function searchPasture(farmIds?: string | string[]): Promise<ApiResponse> {
+export function searchPastureByFarm(farmIds?: string | string[]): Promise<ApiResponse> {
     const apiQuery = `search?farmId=${farmIds}` 
     return apiGet(PASTURE_BASE + apiQuery)
+}
+
+export function searchPastures(): Promise<ApiResponse> {
+    return apiGet(PASTURE_BASE + "search-all")
 }

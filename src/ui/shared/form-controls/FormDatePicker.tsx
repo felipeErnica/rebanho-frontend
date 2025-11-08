@@ -3,7 +3,7 @@ import { CalendarIcon, ClearIcon, DateValidationError } from "@mui/x-date-picker
 import { DatePicker, DatePickerFieldProps } from "@mui/x-date-pickers/DatePicker"
 import { useParsedFormat, usePickerContext, useSplitFieldProps } from "@mui/x-date-pickers/hooks"
 import { useValidation, validateDate } from "@mui/x-date-pickers/validation"
-import dayjs from "dayjs"
+import dayjs, { Dayjs } from "dayjs"
 import { useEffect, useMemo,  useRef,  useState } from "react"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 
@@ -12,10 +12,22 @@ type FormDatePickerProps<T extends FieldValues> = {
     className?: string
     variant?: TextFieldVariants
     formProps: UseControllerProps<T>
-    disabled?: boolean
+    disablePast?: boolean
+    disableFuture?: boolean
+    maxDate?: Dayjs
+    minDate?: Dayjs
 }
 
-export const FormDatePicker = <T extends FieldValues>({ label, className, variant, formProps, disabled }: FormDatePickerProps<T>) => {
+export const FormDatePicker = <T extends FieldValues>({ 
+    label, 
+    className, 
+    variant, 
+    formProps,
+    disablePast,
+    disableFuture,
+    maxDate,
+    minDate
+}: FormDatePickerProps<T>) => {
 
     const [validationError, setError] = useState<DateValidationError | null>(null)
 
@@ -23,7 +35,7 @@ export const FormDatePicker = <T extends FieldValues>({ label, className, varian
         switch (validationError) {
             case 'maxDate': {
                 return 'Inválido: Selecione uma data menor'
-            }
+                }
             case 'minDate': {
                 return 'Inválido: Selecione uma data menor';
             }
@@ -47,12 +59,16 @@ export const FormDatePicker = <T extends FieldValues>({ label, className, varian
         render={({ field, fieldState: { error } }) => (
             <DatePicker
                 {...field}
+                disableFuture={disableFuture}
+                disablePast={disablePast}
+                maxDate={maxDate}
+                minDate={minDate}
                 value={field.value ? dayjs(field.value) : null}
                 onChange={(date) => field.onChange(date ? date.toDate() : null)}
                 label={label}
                 onError={error => setError(error)}
                 className={className}
-                disabled={disabled}
+                disabled={field.disabled}
                 showDaysOutsideCurrentMonth
                 dayOfWeekFormatter={date => date.format('ddd')}
                 views={['year', 'month', 'day']}

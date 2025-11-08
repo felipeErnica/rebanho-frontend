@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form"
 import { UpdateLactationStruct } from "./Entities"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { APIError } from "@/util/ApiRequest"
-import { ConnectionError } from "@/ui/shared/Globals"
+import { CONNECTION_ERROR } from "@/ui/shared/Globals"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 
 type EndLactationDialogProps = {
@@ -39,7 +39,7 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
                 }
                 reset({ endDate: data.endDate })
             })
-            .catch(() => setError(ConnectionError))
+            .catch(() => setError(CONNECTION_ERROR))
             .finally(() => setLoading(false))
     }, [reset])
 

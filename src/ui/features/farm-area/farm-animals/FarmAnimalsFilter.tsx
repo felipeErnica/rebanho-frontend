@@ -7,7 +7,7 @@ import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
 import { RefObject, useCallback } from "react"
 import { FilterPopover } from "@/ui/shared/filter-controls/FilterPopover"
 import { IFilters } from "@/shared/interfaces/Filter"
-import { searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { searchFather, searchMother, searchPastureByFarm } from "@/shared/GlobalApiCalls"
 
 type FarmAnimalsFilterProps = {
     farmId: string
@@ -27,7 +27,7 @@ export const FarmAnimalsFilter = ({
     anchorEl,
 }: FarmAnimalsFilterProps) => {
 
-    const handlePastureSearch = useCallback(() => searchPasture(farmId), [farmId])
+    const handlePastureSearch = useCallback(() => searchPastureByFarm(farmId), [farmId])
 
     return <FilterPopover
         setFilter={setFilter}

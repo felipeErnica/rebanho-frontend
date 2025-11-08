@@ -11,13 +11,13 @@ import {
     searchFarm, 
     searchFather, 
     searchMother, 
-    searchPasture, 
+    searchPastureByFarm, 
 } from "@/shared/GlobalApiCalls"
 
 export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => {
 
     const [farmsId, setFarmsId] = useState<string[]>([])
-    const handlePastureSearch = useCallback(() => searchPasture(farmsId), [farmsId])
+    const handlePastureSearch = useCallback(() => searchPastureByFarm(farmsId), [farmsId])
 
     return <>
         <AbstractFilterGroup mainTitle="Informações principais">

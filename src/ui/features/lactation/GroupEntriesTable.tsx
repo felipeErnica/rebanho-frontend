@@ -31,7 +31,7 @@ import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import Add from "@mui/icons-material/Add"
 import { APIError } from "@/util/ApiRequest"
-import { ConnectionError } from "@/ui/shared/Globals"
+import { CONNECTION_ERROR } from "@/ui/shared/Globals"
 
 type ErrorContextProps = {
     setApiError: Dispatch<SetStateAction<APIError | undefined>>
@@ -211,7 +211,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                 setRowData(response.json)
                 setEditing(false)
             })
-            .catch(() => setApiError(ConnectionError))
+            .catch(() => setApiError(CONNECTION_ERROR))
             .finally(() => setLoading(false))
     }
 

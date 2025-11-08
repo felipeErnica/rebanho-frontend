@@ -124,7 +124,7 @@ export function deleteLactation(id: string) {
 }
 
 export function deleteLactationAndEntries(id: string) {
-    return apiDelete(LAC_BASE + `delete/${id}/entries`)
+    return apiDelete(LAC_BASE + `delete-entries/${id}`)
 }
 
 export function addLactation(entry: AddLactationStruct) {

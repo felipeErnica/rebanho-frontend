@@ -41,6 +41,7 @@ export type LactationHist = {
 
 export type AddLactationStruct = {
     animalId: string
+    pastureId?: string
     startDate: Date
     calfId?: string
     endDate?: Date

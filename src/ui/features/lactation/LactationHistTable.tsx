@@ -6,7 +6,6 @@ import {
     useCallback,
     useContext,
     useEffect,
-    useMemo,
     useRef,
     useState
 } from "react"
@@ -46,7 +45,7 @@ import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { APIError } from "@/util/ApiRequest"
 import { ErrorDialog, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
-import { API_WARNING, ConnectionError } from "@/ui/shared/Globals"
+import { API_WARNING, CONNECTION_ERROR } from "@/ui/shared/Globals"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -59,40 +58,40 @@ export const LactationHistTablePage = () => {
 
     const defaultSort = "animal_order, start_date"
 
-    const defaultFoot: LactationHistFoot = useMemo(() => ({
+    const DEFAULT_FOOT: LactationHistFoot = {
         totalLacs: 0,
         averageTotal: 0,
         averageInterval: 0,
         averagePeriod: 0,
         averagePeak: 0,
         averageProduction: 0,
-    }), [])
+    }
 
     const [filter, setFilter] = useState<LactationHistFilter>({ isFiltered: false })
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [sort, setSort] = useState(defaultSort)
     const [order, setOrder] = useState('asc')
-    const [foot, setFoot] = useState(defaultFoot)
+    const [foot, setFoot] = useState(DEFAULT_FOOT)
     const [error, setError] = useState<APIError>()
     const [warning, setWarning] = useState<APIError>()
-    const [deletedId, setDeleteId] = useState<string>()
+    const [deleteId, setDeleteId] = useState<string>()
 
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
         getLactationsPageFoot(filter)
             .then(response => setFoot(response.json))
-            .catch(() => setFoot(defaultFoot))
+            .catch(() => setFoot(DEFAULT_FOOT))
         return findLactationsPage(filter, sort, order, cursor)
-    }, [defaultFoot, filter, order, sort])
+    },  [filter, order, sort])
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
     const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
 
     useEffect(() => {
-        if (!deletedId) return
-        deleteLactation(deletedId)
+        if (!deleteId) return
+        deleteLactation(deleteId)
             .then(response => {
                 if (response.error) {
                     const err: APIError = response.json
@@ -103,29 +102,29 @@ export const LactationHistTablePage = () => {
                     setError(err)
                     return
                 }
-                setRows(prev => prev.filter(item => item.id != deletedId))
+                setRows(prev => prev.filter(item => item.id != deleteId))
                 setError(undefined)
                 setWarning(undefined)
                 setDeleteId(undefined)
             })
-            .catch(() => setError(ConnectionError))
-    }, [deletedId, setRows])
+            .catch(() => setError(CONNECTION_ERROR))
+    }, [deleteId, setRows])
 
     const deleteWithEntries = useCallback(() => {
-        if (!deletedId) return
-        deleteLactationAndEntries(deletedId)
+        if (!deleteId) return
+        deleteLactationAndEntries(deleteId)
             .then(response => {
                 if (response.error) {
                     setError(response.json)
                     return
                 }
-                setRows(prev => prev.filter(item => item.id != deletedId))
+                setRows(prev => prev.filter(item => item.id != deleteId))
                 setError(undefined)
                 setWarning(undefined)
-                setDeleteId(undefined)
             })
-            .catch(() => setError(ConnectionError))
-    }, [deletedId, setRows])
+            .catch(() => setError(CONNECTION_ERROR))
+            .finally(() => setDeleteId(undefined))
+    }, [deleteId, setRows])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: defaultSort },
@@ -138,7 +137,6 @@ export const LactationHistTablePage = () => {
         { name: 'Produção Total', value: 'total_production, start_date, animal_order' },
         { name: 'Intervalo de Lactação', value: 'lac_interval, start_date, animal_order' },
     ]
-
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -161,7 +159,10 @@ export const LactationHistTablePage = () => {
             openYesNo={!!warning}
             title={warning?.title}
             content={warning?.message}
-            onClose={() => setWarning(undefined)}
+            onClose={() => {
+                setWarning(undefined)
+                setDeleteId(undefined)
+            }}
             onYes={deleteWithEntries}
         />
     </div>
@@ -303,7 +304,7 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
                 setRowData(res.json)
                 setEditing(false)
             })
-            .catch(() => setError(ConnectionError))
+            .catch(() => setError(CONNECTION_ERROR))
             .finally(() => setLoading(false))
     }
 

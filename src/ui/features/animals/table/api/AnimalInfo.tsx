@@ -1,7 +1,7 @@
 import { ColumnProps } from "@/ui/shared/table/TableCustom"
 import { useCallback, useState } from "react"
 import { SexValues } from "@/shared/entities/enums"
-import { searchFarm, searchFather, searchMother, searchPasture } from "@/shared/GlobalApiCalls"
+import { searchFarm, searchFather, searchMother, searchPastureByFarm } from "@/shared/GlobalApiCalls"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { FormSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
 
@@ -41,7 +41,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
 
     const [farmId, setFarmId] = useState<string>()
 
-    const handlePastureSearch = useCallback((input?: string) => searchPasture(input), [])
+    const handlePastureSearch = useCallback((input?: string) => searchPastureByFarm(input), [])
 
     return [
         {

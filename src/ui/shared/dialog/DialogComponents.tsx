@@ -49,6 +49,7 @@ type YesNoDialogProps = {
 export const YesNoDialog = ({ onYes, openYesNo, content, title, onClose }: YesNoDialogProps) => {
 
     return <Dialog
+        onClose={onClose}
         open={openYesNo}
         onKeyUp={(event) => {
             switch (event.key) {
