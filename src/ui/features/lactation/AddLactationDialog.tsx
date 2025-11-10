@@ -15,14 +15,14 @@ import { addLactation, searchCalfs, searchDryAnimals } from "./Controller"
 import { useForm } from "react-hook-form"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { APIError } from "@/util/ApiRequest"
-import { API_WARNING, CONNECTION_ERROR, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { AddLactationStruct } from "./Entities"
 import { searchPastures } from "@/shared/GlobalApiCalls"
 
 type StartLacDialogProps = {
     openStartLac: boolean
-    closeStartLac: () => void
+    closeStartLac: (changed?: boolean) => void
 }
 
 export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProps) => {
@@ -31,34 +31,25 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
     const [loading, setLoading] = useState(false)
     const [noBirth, setNoBirth] = useState(false)
     const [noPasture, setNoPasture] = useState(false)
+    const [changed, setChanged] = useState(false)
 
     const { control, handleSubmit, reset } = useForm<AddLactationStruct>()
-
-    const errHandling = useCallback((err: APIError) => {
-        if (err.kind == API_WARNING) {
-            return
-        }
-        setError(err)
-    }, [])
 
     const onSubmit = useCallback((data: AddLactationStruct) => {
         setLoading(true)
         addLactation(data)
-            .then(response => {
-                if (response.error) {
-                    errHandling(response.json)
-                    return
-                }
+            .then(() => {
                 reset({ startDate: data.startDate, pastureId: data.pastureId })
+                setChanged(true)
                 setError(undefined)
             })
-            .catch(() => setError(CONNECTION_ERROR))
+            .catch(error => setError(error))
             .finally(() => setLoading(false))
-    }, [errHandling, reset])
+    }, [reset])
 
     const onSave = handleSubmit(onSubmit)
 
-    return <Dialog open={openStartLac}>
+    return <Dialog open={openStartLac} onClose={() => closeStartLac(changed)}>
         <DialogTitle>Adicionar Novas Lactações</DialogTitle>
         <DialogContent>
             <Collapse in={!!error}>
@@ -142,7 +133,7 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                 onSave={onSave}
                 onClose={() => {
                     reset()
-                    closeStartLac()
+                    closeStartLac(changed)
                 }}
             />
         </DialogActions>

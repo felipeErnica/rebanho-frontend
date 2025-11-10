@@ -37,8 +37,7 @@ export const DialogContainer = ({ children, className }: DialogContainerProps) =
     </div>
 }
 
-
-type YesNoDialogProps = {
+export type YesNoDialogProps = {
     openYesNo: boolean
     title: string | undefined
     content: string | undefined

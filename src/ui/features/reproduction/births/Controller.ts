@@ -1,6 +1,7 @@
 import { ApiResponse } from "@/shared/entities/ApiResponse";
 import { apiGet, apiPost } from "@/util/ApiRequest";
-import { BirthEntryFilter } from "./Entities";
+import { BirthEntry, BirthEntryFilter } from "./Entities";
+import { Page } from "@/shared/entities/Page";
 
 const BIRTH_DASHBOARD_BASE = "reproduction/births/dashboard/"
 const BIRTH_TABLE_BASE = "reproduction/births/table/"
@@ -54,11 +55,9 @@ export function findBirthsPage(
     order: string, 
     filter: BirthEntryFilter, 
     cursor?: string
-): Promise<ApiResponse> {
+): Promise<Page<BirthEntry>> {
     const cursorQuery = cursor ? `&cursor=${cursor}` : ''
     const query = BIRTH_TABLE_BASE + `page?sort=${sort}&order=${order}` + cursorQuery
-    console.log('query: ', query)
-    console.log('filter: ', filter)
     return apiPost(query, filter)
 }
 

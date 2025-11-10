@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { SearchBoxItem } from "../form-controls/FormSearchBox"
-import { ApiResponse } from "@/shared/entities/ApiResponse"
 import Autocomplete from "@mui/material/Autocomplete"
 import TextField from "@mui/material/TextField"
 import Checkbox from "@mui/material/Checkbox"
@@ -10,7 +9,7 @@ import Chip from "@mui/material/Chip"
 
 export type MultipleSearchBoxFilterProps = {
     label: string
-    searchOptions: () => Promise<ApiResponse>
+    searchOptions: () => Promise<SearchBoxItem[]>
     className?: string
     disabled?: boolean
     noRenderValue?: boolean
@@ -39,7 +38,7 @@ export const MultipleSearchBoxFilter = ({
 
     useEffect(() => {
         searchOptions()
-            .then(response => setOptions(response.json))
+            .then(response => setOptions(response))
             .catch(() => setOptions([]))
     }, [searchOptions])
 
@@ -117,7 +116,7 @@ export const MultipleSearchBoxFilter = ({
 
 type SearchBoxProps = {
     label: string
-    searchOptions: () => Promise<ApiResponse>
+    searchOptions: () => Promise<SearchBoxItem[]>
     className?: string
     disabled?: boolean
     onChange?: (newValue: SearchBoxItem | null) => void
@@ -141,7 +140,7 @@ export const SearchBoxFilter = ({
 
     useEffect(() => {
         searchOptions()
-            .then(response => setOptions(response.json))
+            .then(response => setOptions(response))
             .catch(() => setOptions([]))
     }, [searchOptions])
 

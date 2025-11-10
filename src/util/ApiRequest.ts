@@ -1,10 +1,11 @@
-import { ApiResponse } from "@/shared/entities/ApiResponse"
 import { User } from "@/shared/entities/User"
+import { ERROR_TYPE } from "@/ui/shared/Globals"
 
 const BASE_URL = "http://localhost:8080/"
 
 export type APIError = {
     kind: string
+    errType: string
     title: string
     message: string
 }
@@ -22,15 +23,30 @@ async function generateRequest(): Promise<RequestInit> {
 }
 
 
-async function buildResponse(response: Response): Promise<ApiResponse> {
-    const json = await response.json()
-    return {
-        error: !response.ok,
-        json: json 
+async function buildResponse(response: Response): Promise<any> {
+    let json: any
+
+    const CONNECTION_ERROR: APIError = {
+        errType: ERROR_TYPE,
+        kind: 'ConnectionError',
+        title: 'Erro de Conexão',
+        message: 'Não foi possível conectar com o servidor!'
     }
+
+    try {
+        json = await response.json()
+    } catch {
+        throw CONNECTION_ERROR
+    }
+
+    if (!response.ok) {
+        throw (json as APIError)
+    }
+
+    return json
 }
 
-export async function authUser(user: User): Promise<ApiResponse> {
+export async function authUser(user: User): Promise<any> {
     const request: RequestInit = {
         method: 'POST',
         signal: AbortSignal.timeout(5000),
@@ -42,7 +58,7 @@ export async function authUser(user: User): Promise<ApiResponse> {
     return buildResponse(response)
 }
 
-export async function apiPost<D>(apiCall: string, object: D): Promise<ApiResponse> {
+export async function apiPost<D>(apiCall: string, object: D): Promise<any> {
     const request = await generateRequest()
     request.method = 'POST'
     request.body = JSON.stringify(object)
@@ -51,7 +67,7 @@ export async function apiPost<D>(apiCall: string, object: D): Promise<ApiRespons
     return buildResponse(response)
 }
 
-export async function apiPut<D>(apiCall: string, object: D): Promise<ApiResponse> {
+export async function apiPut<D>(apiCall: string, object: D): Promise<any> {
     const request = await generateRequest()
     request.method = 'PUT'
     request.body = JSON.stringify(object)
@@ -60,7 +76,7 @@ export async function apiPut<D>(apiCall: string, object: D): Promise<ApiResponse
     return buildResponse(response)
 }
 
-export async function apiGet(apiCall: string): Promise<ApiResponse> {
+export async function apiGet(apiCall: string): Promise<any> {
     const request = await generateRequest()
     request.method = 'GET'
     const url = BASE_URL + apiCall
@@ -68,7 +84,7 @@ export async function apiGet(apiCall: string): Promise<ApiResponse> {
     return buildResponse(response)
 }
 
-export async function apiDelete(apiCall: string): Promise<ApiResponse> {
+export async function apiDelete(apiCall: string): Promise<any> {
     const request = await generateRequest()
     request.method = 'DELETE'
     const url = BASE_URL + "/" + apiCall

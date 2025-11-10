@@ -45,7 +45,7 @@ export const LactationEntriesTablePage = ({ lacId }: LactationEntriesTableProps)
             .then(response => setRows(response.json))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
-    }, [])
+    }, [defaultFoot, lacId])
 
     useEffect(onReload, [onReload])
 

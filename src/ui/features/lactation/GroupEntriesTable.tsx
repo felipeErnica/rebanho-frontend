@@ -31,7 +31,6 @@ import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import Add from "@mui/icons-material/Add"
 import { APIError } from "@/util/ApiRequest"
-import { CONNECTION_ERROR } from "@/ui/shared/Globals"
 
 type ErrorContextProps = {
     setApiError: Dispatch<SetStateAction<APIError | undefined>>
@@ -58,7 +57,7 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTableProps) => 
 
     const getFoot = useCallback(() => {
         getGroupEntriesFoot(new Date(entryDate))
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
     }, [defaultFoot, entryDate])
 
@@ -66,7 +65,7 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTableProps) => 
         setLoading(true)
         getFoot()
         getGroupEntries(new Date(entryDate))
-            .then(response => setRows(response.json))
+            .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [entryDate, getFoot])
@@ -203,15 +202,11 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         setLoading(true)
         updateMilkEntry(data)
             .then(response => {
-                if (response.error) {
-                    setApiError(response.json)
-                    return
-                }
                 setApiError(undefined)
-                setRowData(response.json)
+                setRowData(response)
                 setEditing(false)
             })
-            .catch(() => setApiError(CONNECTION_ERROR))
+            .catch((error) => setApiError(error))
             .finally(() => setLoading(false))
     }
 

@@ -6,6 +6,7 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useRef,
     useState
 } from "react"
@@ -45,7 +46,14 @@ import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { APIError } from "@/util/ApiRequest"
 import { ErrorDialog, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
-import { API_WARNING, CONNECTION_ERROR } from "@/ui/shared/Globals"
+import { CONFLICT_WARNING } from "@/ui/shared/Globals"
+import { Button, ListItemIcon, Menu, MenuItem } from "@mui/material"
+import ExpandMore from "@mui/icons-material/ExpandMore"
+import { CommonMenuProps } from "@/ui/shared/dashboard/Entities"
+import Add from "@mui/icons-material/Add"
+import CalendarMonth from "@mui/icons-material/CalendarMonth"
+import { EndLactationDialog } from "./EndLactationDialog"
+import { AddLacDialog } from "./AddLactationDialog"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -58,14 +66,14 @@ export const LactationHistTablePage = () => {
 
     const defaultSort = "animal_order, start_date"
 
-    const DEFAULT_FOOT: LactationHistFoot = {
+    const DEFAULT_FOOT: LactationHistFoot = useMemo(() => ({
         totalLacs: 0,
         averageTotal: 0,
         averageInterval: 0,
         averagePeriod: 0,
         averagePeak: 0,
         averageProduction: 0,
-    }
+    }), [])
 
     const [filter, setFilter] = useState<LactationHistFilter>({ isFiltered: false })
     const [filterOpen, setFilterOpen] = useState(false)
@@ -77,14 +85,17 @@ export const LactationHistTablePage = () => {
     const [warning, setWarning] = useState<APIError>()
     const [deleteId, setDeleteId] = useState<string>()
 
+    const [menuOpen, setMenuOpen] = useState(false)
+
     const anchorEl = useRef<HTMLButtonElement>(null)
+    const menuAnchor = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
         getLactationsPageFoot(filter)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(DEFAULT_FOOT))
         return findLactationsPage(filter, sort, order, cursor)
-    },  [filter, order, sort])
+    }, [DEFAULT_FOOT, filter, order, sort])
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
     const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
@@ -92,37 +103,30 @@ export const LactationHistTablePage = () => {
     useEffect(() => {
         if (!deleteId) return
         deleteLactation(deleteId)
-            .then(response => {
-                if (response.error) {
-                    const err: APIError = response.json
-                    if (err.kind == API_WARNING) {
-                        setWarning(err)
-                        return
-                    }
-                    setError(err)
-                    return
-                }
+            .then(() => {
                 setRows(prev => prev.filter(item => item.id != deleteId))
                 setError(undefined)
                 setWarning(undefined)
                 setDeleteId(undefined)
             })
-            .catch(() => setError(CONNECTION_ERROR))
+            .catch((err) => {
+                if (err.kind == CONFLICT_WARNING) {
+                    setWarning(err)
+                    return
+                }
+                setError(err)
+            })
     }, [deleteId, setRows])
 
     const deleteWithEntries = useCallback(() => {
         if (!deleteId) return
         deleteLactationAndEntries(deleteId)
-            .then(response => {
-                if (response.error) {
-                    setError(response.json)
-                    return
-                }
+            .then(() => {
                 setRows(prev => prev.filter(item => item.id != deleteId))
                 setError(undefined)
                 setWarning(undefined)
             })
-            .catch(() => setError(CONNECTION_ERROR))
+            .catch((error) => setError(error))
             .finally(() => setDeleteId(undefined))
     }, [deleteId, setRows])
 
@@ -144,6 +148,23 @@ export const LactationHistTablePage = () => {
             filterProps={{ setFilterOpen, anchorEl }}
             orderProps={{ order, setOrder }}
             sortProps={{ sort, sortColumns, setSort, defaultSort }}
+            otherProps={(
+                <>
+                    <Button
+                        onClick={() => setMenuOpen(prev => !prev)}
+                        endIcon={<ExpandMore />}
+                        ref={menuAnchor}
+                    >
+                        Opções
+                    </Button>
+                    <OptionsMenu 
+                        open={menuOpen}
+                        anchorEl={menuAnchor.current}
+                        handleClose={() => setMenuOpen(prev => !prev)}
+                        reloadFunction={(changed?: boolean) => changed && onReload()}
+                    />
+                </>
+            )}
         />
         <ErrorContext value={{ setError, setDeleteId }}>
             <LacTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
@@ -166,6 +187,45 @@ export const LactationHistTablePage = () => {
             onYes={deleteWithEntries}
         />
     </div>
+}
+
+const OptionsMenu = ({ open, anchorEl, handleClose, reloadFunction }: CommonMenuProps) => {
+
+    const [openEndLactation, setOpenEndLactation] = useState(false)
+    const [openStartLac, setOpenStartLac] = useState(false)
+
+    const closeEndLactation = useCallback((changed?: boolean) => {
+        setOpenEndLactation(false)
+        if (reloadFunction) reloadFunction(changed)
+    }, [reloadFunction])
+
+    const closeStartLac = useCallback((changed?: boolean) => {
+        setOpenStartLac(false)
+        if (reloadFunction) reloadFunction(changed)
+    }, [reloadFunction])
+
+    return <>
+        <Menu
+            open={open}
+            anchorEl={anchorEl}
+            onClose={handleClose}
+        >
+            <MenuItem onClick={() => setOpenStartLac(true)}>
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Iniciar Lactações
+            </MenuItem>
+            <MenuItem onClick={() => setOpenEndLactation(true)}>
+                <ListItemIcon>
+                    <CalendarMonth />
+                </ListItemIcon>
+                Secar Vacas
+            </MenuItem>
+        </Menu>
+        <EndLactationDialog {...{ openEndLactation, closeEndLactation }} />
+        <AddLacDialog {...{ openStartLac, closeStartLac }} />
+    </>
 }
 
 type EntriesTableProps = {
@@ -297,14 +357,10 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
         setLoading(true)
         updateLactation(data)
             .then(res => {
-                if (res.error) {
-                    setError(res.json)
-                    return
-                }
                 setRowData(res.json)
                 setEditing(false)
             })
-            .catch(() => setError(CONNECTION_ERROR))
+            .catch((error) => setError(error))
             .finally(() => setLoading(false))
     }
 

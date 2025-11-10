@@ -1,7 +1,6 @@
 import Autocomplete from "@mui/material/Autocomplete"
 import { useEffect, useState } from "react"
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
-import { ApiResponse } from "@/shared/entities/ApiResponse"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 import { Checkbox, Chip, CircularProgress } from "@mui/material"
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -15,7 +14,7 @@ type FormSearchBoxProps<T extends FieldValues> = {
     label?: string
     variant?: TextFieldVariants
     formProps: UseControllerProps<T>
-    searchOptions: () => Promise<ApiResponse>
+    searchOptions: () => Promise<SearchBoxItem[]>
     args?: any[]
     className?: string
     onChange?: (id?: string, label?: string) => void
@@ -36,7 +35,7 @@ export function FormSearchBox<T extends FieldValues>({
     useEffect(() => {
         setLoading(true)
         searchOptions()
-            .then(response => setOptions(response.json))
+            .then(response => setOptions(response))
             .catch(() => setOptions([]))
             .finally(() => setLoading(false))
     }, [searchOptions])
@@ -95,7 +94,7 @@ type MultipleFormSearchBoxProps<T extends FieldValues> = {
     label?: string
     variant?: TextFieldVariants
     formProps: UseControllerProps<T>
-    searchOptions: () => Promise<ApiResponse>
+    searchOptions: () => Promise<SearchBoxItem[]>
     args?: any[]
     className?: string
     disabled?: boolean
@@ -122,7 +121,7 @@ export function FormMultipleSearchBox<T extends FieldValues>({
     useEffect(() => {
         setLoading(true)
         searchOptions()
-            .then(response => setOptions(response.json))
+            .then(response => setOptions(response))
             .catch(() => setOptions([]))
             .finally(() => setLoading(false))
     }, [searchOptions])

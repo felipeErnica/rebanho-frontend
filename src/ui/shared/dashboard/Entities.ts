@@ -17,4 +17,5 @@ export type CommonMenuProps = {
     open: boolean
     anchorEl: Element | PopoverVirtualElement | null | undefined | (() => Element | PopoverVirtualElement | null )
     handleClose: () => void
+    reloadFunction?: (changed?: boolean) => void
 }

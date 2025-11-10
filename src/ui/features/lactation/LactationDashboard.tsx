@@ -218,7 +218,7 @@ const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: Dashboard
         setLoading(true)
         startLoading()
         getLastMilk()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultValue))
             .finally(() => {
                 setLoading(false)
@@ -264,7 +264,7 @@ const AverageMilkCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
         setLoading(true)
         startLoading()
         getLastAverageMilk()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultValue))
             .finally(() => {
                 setLoading(false)
@@ -311,7 +311,7 @@ const AnimalsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInforma
         setLoading(true)
         startLoading()
         getLastCount()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultValue))
             .finally(() => {
                 setLoading(false)
@@ -352,7 +352,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
         startLoading()
         setLoading(true)
         getLastGroups()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -446,10 +446,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
     const onDelete = useCallback((id: string) => {
         if (!setReloadFlag) return
         deleteMilkEntry(id)
-            .then(response => {
-                if (response.error) return
-                setReloadFlag(prev => prev + 1)
-            })
+            .then(() => setReloadFlag(prev => prev + 1))
     }, [setReloadFlag])
 
     const onClose = useCallback(() => {
@@ -463,7 +460,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
         setLoading(true)
         getLastEntries()
             .then(response => {
-                const entries: MilkEntry[] = response.json
+                const entries: MilkEntry[] = response
                 const entryDate = new Date(entries[0].entryDate ?? '')
                 setLastDate(entryDate)
                 setTextDate(dateTransform(entryDate))
@@ -584,7 +581,7 @@ const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: Dashboar
     useEffect(() => {
         startLoading()
         getMilkProduction()
-            .then(results => setDataset(results.json))
+            .then(results => setDataset(results))
             .catch(() => setDataset([]))
             .finally(() => stopLoading())
     }, [reloadFlag, startLoading, stopLoading])
@@ -665,7 +662,7 @@ const YearAverageChart = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
         startLoading()
         setLoading(true)
         getYearAverage()
-            .then(results => setDataset(results.json))
+            .then(results => setDataset(results))
             .catch(() => setDataset(defaultCard))
             .finally(() => {
                 setLoading(false)
@@ -713,7 +710,7 @@ const YearMilkChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInfor
         startLoading()
         setLoading(true)
         getYearProduction()
-            .then(results => setDataset(results.json))
+            .then(results => setDataset(results))
             .catch(() => setDataset(defaultCard))
             .finally(() => {
                 setLoading(false)
@@ -762,7 +759,7 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
         startLoading()
         setLoading(true)
         getRankedAnimals(rankBy)
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -859,7 +856,7 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
         startLoading()
         setLoading(true)
         getParentRatings(rankBy)
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)

@@ -1,9 +1,10 @@
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
-import { HTMLInputTypeAttribute } from "react"
+import { HTMLInputTypeAttribute, ReactNode } from "react"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 
 type FormTextFieldProps<T extends FieldValues> = {
     label?: string
+    size?: "small" | "medium"
     className?: string
     onChange?: (value: any) => void
     formProps: UseControllerProps<T>
@@ -12,10 +13,12 @@ type FormTextFieldProps<T extends FieldValues> = {
     type?: HTMLInputTypeAttribute
     variant?: TextFieldVariants
     maxRows?: number
+    endAdornment?: ReactNode
 }
 
 export const FormTextField = <T extends FieldValues>({
     label,
+    size,
     formProps,
     onChange,
     className,
@@ -23,7 +26,8 @@ export const FormTextField = <T extends FieldValues>({
     maxRows,
     type,
     variant,
-    multiline
+    multiline,
+    endAdornment
 }: FormTextFieldProps<T>) => {
 
     return <Controller
@@ -40,13 +44,18 @@ export const FormTextField = <T extends FieldValues>({
                     field.onChange(event)
                     if (onChange) onChange(event.target.value)
                 }}
+                size={size ?? 'small'}
                 label={label}
                 variant={variant || 'standard'}
-                size="small"
                 multiline={multiline}
                 rows={rows}
                 maxRows={maxRows}
                 fullWidth
+                slotProps={{
+                    input: {
+                        endAdornment: endAdornment
+                    }
+                }}
             />
         )}
     />

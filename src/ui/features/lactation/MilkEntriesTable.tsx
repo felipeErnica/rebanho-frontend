@@ -35,7 +35,6 @@ import { Button } from "@mui/material"
 import Add from "@mui/icons-material/Add"
 import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
 import { APIError } from "@/util/ApiRequest"
-import { CONNECTION_ERROR } from "@/ui/shared/Globals"
 
 type ErrorContextProps = {
     setApiError: Dispatch<SetStateAction<APIError | undefined>>
@@ -66,7 +65,7 @@ export const MilkEntriesTablePage = () => {
 
     const getFoot = useCallback(() => {
         getEntriesPageFoot(filter)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
     }, [defaultFoot, filter])
 
@@ -87,8 +86,7 @@ export const MilkEntriesTablePage = () => {
 
     const onDelete = useCallback((id: string) => {
         deleteMilkEntry(id)
-            .then(response => {
-                if (response.error) return
+            .then(() => {
                 setRows(prev => prev.filter(item => item.id != id))
                 getFoot()
             })
@@ -233,14 +231,10 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         data.quantity = Number(data.quantity)
         updateMilkEntry(data)
             .then(response => {
-                if (response.error) {
-                    setApiError(response.json)
-                    return
-                }
-                setRowData(response.json)
+                setRowData(response)
                 setEditing(false)
             })
-            .catch(() => setApiError(CONNECTION_ERROR))
+            .catch((error) => setApiError(error))
             .finally(() => setLoading(false))
     }
 

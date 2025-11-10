@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { ApiResponse } from "@/shared/entities/ApiResponse"
 import { Page } from "@/shared/entities/Page"
 import { IData } from "@/shared/interfaces/Filter"
 import { Paper } from "@mui/material";
@@ -41,7 +39,7 @@ export function useVirtuosoComponents(colSpan: number) {
         TableBody: forwardRef((props, ref) => <TableBody {...props} ref={ref} />),
         EmptyPlaceholder: () => <VirtuosoNoDataPlaceholder {...{ colSpan }} />
 
-    }), [])
+    }), [colSpan])
 
     return tableComponents
 }
@@ -54,10 +52,10 @@ export type PaginationResponse<T> = {
     onReload: () => void
 }
 
-type PageFetcher = (cursor?: string) => Promise<ApiResponse>
+type PageFetcher<T> = (cursor?: string) => Promise<Page<T>>
 
-type PaginationProps = {
-    fetchPage: PageFetcher
+type PaginationProps<T> = {
+    fetchPage: PageFetcher<T>
     setLoading: (isLoading: boolean) => void
 }
 
@@ -74,12 +72,12 @@ export function useTableResizer(ref: HTMLDivElement | null) {
         handleResize()
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
-    }, [])
+    }, [ref])
 
     return tableWidth
 }
 
-export function usePagination<T>({ fetchPage, setLoading }: PaginationProps): PaginationResponse<T> {
+export function usePagination<T>({ fetchPage, setLoading }: PaginationProps<T>): PaginationResponse<T> {
 
     const [page, setPage] = useState<Page<T>>()
     const [rows, setRows] = useState<T[]>([])
@@ -90,7 +88,7 @@ export function usePagination<T>({ fetchPage, setLoading }: PaginationProps): Pa
         setLoading(true)
         fetchPage()
             .then((result) => {
-                const newPage: Page<T> = result.json
+                const newPage: Page<T> = result
                 setPage(newPage)
                 setRows(newPage.list)
                 putScrollAtTop()
@@ -100,7 +98,7 @@ export function usePagination<T>({ fetchPage, setLoading }: PaginationProps): Pa
                 setRows([])
             })
             .finally(() => setLoading(false))
-    }, [fetchPage])
+    }, [fetchPage, setLoading])
 
     useEffect(onReload, [onReload])
 
@@ -109,7 +107,7 @@ export function usePagination<T>({ fetchPage, setLoading }: PaginationProps): Pa
         setLoading(true)
         fetchPage(page?.nextCursor)
             .then(response => {
-                const newPage: Page<T> = response.json
+                const newPage: Page<T> = response
                 setPage(newPage)
                 setRows(prev => [...prev, ...newPage.list])
             })
