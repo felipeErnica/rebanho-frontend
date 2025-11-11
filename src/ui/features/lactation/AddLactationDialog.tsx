@@ -1,4 +1,4 @@
-import { DialogActionButtons } from "@/ui/shared/dialog/DialogComponents"
+import { DialogActionButtons, DialogContainer } from "@/ui/shared/dialog/DialogComponents"
 import {
     Alert,
     AlertTitle,
@@ -19,6 +19,7 @@ import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { AddLactationStruct } from "./Entities"
 import { searchPastures } from "@/shared/GlobalApiCalls"
+import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 
 type StartLacDialogProps = {
     openStartLac: boolean
@@ -58,7 +59,7 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                     {error?.message}
                 </Alert>
             </Collapse>
-            <div className="flex flex-col gap-8 p-4">
+            <DialogContainer>
                 <FormDatePicker
                     label="Data de Início"
                     disableFuture
@@ -124,7 +125,14 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                         )}
                     />
                 </div>
-            </div>
+                <FormTextField
+                    label="Observações"
+                    formProps={{ name: 'observation', control }}
+                    multiline
+                    maxRows={5}
+                    rows={3}
+                />
+            </DialogContainer>
         </DialogContent>
         <DialogActions>
             <DialogActionButtons

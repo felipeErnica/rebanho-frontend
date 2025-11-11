@@ -357,7 +357,7 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
         setLoading(true)
         updateLactation(data)
             .then(res => {
-                setRowData(res.json)
+                setRowData(res)
                 setEditing(false)
             })
             .catch((error) => setError(error))

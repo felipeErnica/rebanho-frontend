@@ -74,6 +74,7 @@ export type LactationHistFilter = {
     maxLacInterval?: number
     minPeak?: number
     maxPeak?: number
+    observation?: string
 }
 
 export type LactationHistFoot = {

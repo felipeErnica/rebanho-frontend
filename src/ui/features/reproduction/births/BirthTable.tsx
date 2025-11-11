@@ -42,7 +42,7 @@ export const BirthTablePage = () => {
     const fetchPage = useCallback((cursor?: string) => {
         setLoading(true)
         findBirthsPageFooter(filter)
-            .then(response => setFooterData(response.json))
+            .then(response => setFooterData(response))
             .catch(() => setFooterData({ total: 0, intervalAverage: 0 }))
         return findBirthsPage(sort, order, filter, cursor)
     }, [order, sort, filter])

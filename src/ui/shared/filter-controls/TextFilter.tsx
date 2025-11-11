@@ -10,6 +10,9 @@ type TextFilterProps = {
     filter: IFilters
     setFilter: (filter: IFilters) => void
     className?: string
+    multiline?: boolean
+    maxRows?: number
+    rows?: number
 }
 
 export const TextFilter = ({
@@ -19,6 +22,9 @@ export const TextFilter = ({
     fieldName,
     className,
     setFilter,
+    multiline,
+    maxRows,
+    rows
 }: TextFilterProps) => {
 
     const [inputValue, setInputValue] = useState<string>(filter[fieldName])
@@ -29,6 +35,9 @@ export const TextFilter = ({
         variant="standard"
         type="search"
         label={label}
+        multiline={multiline}
+        maxRows={maxRows}
+        rows={rows}
         value={inputValue ?? ''}
         className={className}
         onChange={(event) => {

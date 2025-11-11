@@ -32,7 +32,7 @@ import {
 } from "./Controller"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import { green, lightBlue, pink, red } from "@mui/material/colors"
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { Button, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import { TrendValues } from "@/ui/shared/table/TableComponents"
@@ -54,8 +54,8 @@ export const BirthDashboard = () => {
     const [reloadFlag, setReloadFlag] = useState(0)
     const [activeRequests, setActiveRequests] = useState(0)
 
-    const startLoading = () => setActiveRequests(prev => prev + 1)
-    const stopLoading = () => setActiveRequests(prev => Math.max(prev - 1, 0))
+    const startLoading = useCallback(() => setActiveRequests(prev => prev + 1), [])
+    const stopLoading = useCallback(() => setActiveRequests(prev => Math.max(prev - 1, 0)), [])
 
     return <DashboardContainer>
         <DashboardToolbar  {...{ activeRequests, setReloadFlag }} />
@@ -125,7 +125,7 @@ const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
         trend: 0,
         current: 0,
         hist: [],
-    }), [reloadFlag])
+    }), [])
 
     const [stats, setStats] = useState<CardEntry<BirthNumberEntry>>(defaultStats)
     const [loading, setLoading] = useState(false)
@@ -134,13 +134,13 @@ const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
         startLoading()
         setLoading(true)
         getLastBirthsNumber()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultStats))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultStats])
+    }, [defaultStats, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -177,7 +177,7 @@ const BirthIntervalCard = ({ startLoading, stopLoading, reloadFlag }: DashboardI
         intervalTrend: 0,
         intervalHist: [],
         currentInterval: 0
-    }), [reloadFlag])
+    }), [])
 
     const [stats, setStats] = useState<IntervalStats>(defaultStats)
     const [loading, setLoading] = useState(false)
@@ -186,13 +186,13 @@ const BirthIntervalCard = ({ startLoading, stopLoading, reloadFlag }: DashboardI
         startLoading()
         setLoading(true)
         getBirthIntervalStats()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultStats))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultStats])
+    }, [defaultStats, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -221,11 +221,11 @@ const BirthIntervalCard = ({ startLoading, stopLoading, reloadFlag }: DashboardI
 
 const DeathIndexCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultStats: DeathStats = {
+    const defaultStats: DeathStats = useMemo(() => ({
         currentDeathIndex: 0,
         deathIndexHist: [],
         deathTrend: 0
-    }
+    }), [])
 
     const [stats, setStats] = useState<DeathStats>(defaultStats)
     const [loading, setLoading] = useState(false)
@@ -234,13 +234,13 @@ const DeathIndexCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
         startLoading()
         setLoading(true)
         getDeathIndex()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultStats))
             .finally(() => {
                 stopLoading()
                 setLoading(false)
             })
-    }, [reloadFlag])
+    }, [defaultStats, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -277,13 +277,13 @@ const BirthByDateGraph = ({ stopLoading, startLoading, reloadFlag }: DashboardIn
         startLoading()
         setLoading(true)
         getBirthHistory()
-            .then(response => setDataset(response.json))
+            .then(response => setDataset(response))
             .catch(() => setDataset([]))
             .finally(() => {
                 stopLoading()
                 setLoading(false)
             })
-    }, [reloadFlag])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard className="row-span-2">
         <CardDefaultTitle text="Histórico de Nascimentos" />
@@ -326,7 +326,7 @@ const YearBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
         trend: 0,
         current: 0,
         hist: [],
-    }), [reloadFlag])
+    }), [])
 
     const [stats, setStats] = useState<CardEntry<BirthNumberEntry>>(defaultStats)
     const [loading, setLoading] = useState(false)
@@ -335,13 +335,13 @@ const YearBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
         startLoading()
         setLoading(true)
         getYearBirthsNumber()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultStats))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultStats])
+    }, [defaultStats, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -375,7 +375,7 @@ const YearDeathNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
         trend: 0,
         current: 0,
         hist: [],
-    }), [reloadFlag])
+    }), [])
 
     const [stats, setStats] = useState<CardEntry<DeathNumberEntry>>(defaultStats)
     const [loading, setLoading] = useState(false)
@@ -384,13 +384,13 @@ const YearDeathNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
         startLoading()
         setLoading(true)
         getYearDeathsNumber()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultStats))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultStats])
+    }, [defaultStats, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -428,13 +428,13 @@ const BestIntervalAnimals = ({ stopLoading, startLoading, reloadFlag }: Dashboar
         startLoading()
         setLoading(true)
         getIntervalsRanking(rankBy)
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag, rankBy])
+    }, [reloadFlag, rankBy, startLoading, stopLoading])
 
     const rankItems: ComboBoxItem[] = [
         { name: 'As Melhores Matrizes', value: 'best-intervals' },
@@ -489,13 +489,13 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
         startLoading()
         setLoading(true)
         getLastBirths()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard className="row-span-2">
         <CardDefaultTitle text="Últimos Nascimentos" />
@@ -541,7 +541,7 @@ const BirthBySexGraph = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         setLoading(true)
         getBirthsBySex()
             .then(response => {
-                const newDataset: BirthsBySex[] = response.json
+                const newDataset: BirthsBySex[] = response
                 newDataset.forEach(item => item.birthMonth = new Date(item.birthMonth))
                 setDataset(newDataset)
             })
@@ -550,7 +550,7 @@ const BirthBySexGraph = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                 stopLoading()
                 setLoading(false)
             })
-    }, [reloadFlag])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardDefaultTitle text="Nascimentos por Sexo" />
@@ -571,19 +571,11 @@ const BirthBySexGraph = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                     label: 'Machos',
                     dataKey: 'males',
                     color: lightBlue[800],
-                    // curve: 'linear',
-                    // stack: 'total',
-                    // area: true,
-                    // showMark: false,
                 },
                 {
                     label: "Fêmeas",
                     dataKey: 'females',
                     color: pink[800],
-                    // curve: 'linear',
-                    // stack: 'total',
-                    // area: true,
-                    // showMark: false,
                 }
             ]}
         />
@@ -599,13 +591,13 @@ const YearBirthBySexGraph = ({ reloadFlag, startLoading, stopLoading }: Dashboar
         startLoading()
         setLoading(true)
         getYearBirthsSex()
-            .then(response => setDataset(response.json))
+            .then(response => setDataset(response))
             .catch(() => setDataset([]))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardDefaultTitle text="Nascimentos Anuais por Sexo" />

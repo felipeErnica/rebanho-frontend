@@ -3,6 +3,7 @@ import { DateFilter } from "@/ui/shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover";
 import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter";
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter";
+import { TextFilter } from "@/ui/shared/filter-controls/TextFilter";
 
 export const LacHistFilter = ({ 
     setFilter, 
@@ -75,6 +76,15 @@ export const LacHistFilter = ({
             maxFieldName="maxTotalProduction"
             filter={filter}
             setFilter={setFilter}
+        />
+        <TextFilter 
+            label="Observações"
+            fieldName="observation"
+            setFilter={setFilter}
+            filter={filter}
+            multiline
+            maxRows={5}
+            rows={5}
         />
     </FilterPopover>
 
