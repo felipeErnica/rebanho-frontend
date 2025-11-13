@@ -1,4 +1,4 @@
-import { searchAnimal, searchFather, searchMother } from "@/shared/GlobalApiCalls";
+import { searchAnimal, searchFather, searchAllMothers } from "@/shared/GlobalApiCalls";
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover";
 import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter";
@@ -31,7 +31,7 @@ export const SlaughterFilterPopover = ({
         <MultipleSearchBoxFilter 
             label="Mães"
             fieldName="mothers"
-            searchOptions={searchMother}
+            searchOptions={searchAllMothers}
             setFilter={setFilter}
             filter={filter}
         />

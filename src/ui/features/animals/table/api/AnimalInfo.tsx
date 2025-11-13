@@ -1,7 +1,7 @@
 import { ColumnProps } from "@/ui/shared/table/TableCustom"
 import { useCallback, useState } from "react"
 import { SexValues } from "@/shared/entities/enums"
-import { searchFarm, searchFather, searchMother, searchPastureByFarm } from "@/shared/GlobalApiCalls"
+import { searchFarm, searchFather, searchAllMothers, searchPastureByFarm } from "@/shared/GlobalApiCalls"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
 import { FormSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
 
@@ -86,7 +86,7 @@ export const useColumnsAnimals = (): ColumnProps[] => {
             isEditable: true,
             editComponent: (control, _, setValue) => {
                 return <FormSearchBox
-                    searchOptions={searchMother}
+                    searchOptions={searchAllMothers}
                     variant="standard"
                     onChange={(_, label) => setValue('motherName', label)}
                     formProps={{

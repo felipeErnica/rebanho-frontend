@@ -5,7 +5,7 @@ import { AbstractFilterGroup } from "@/ui/shared/filter-controls/AbstractFilterG
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
 import { PastureEntriesFilter } from "./Entities"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
-import { searchFather, searchMother } from "@/shared/GlobalApiCalls"
+import { searchFather, searchAllMothers } from "@/shared/GlobalApiCalls"
 
 type PastureEntriesFilterProps = {
     filter: PastureEntriesFilter
@@ -41,7 +41,7 @@ export const PastureEntriesFilterPopover = ({
                 <MultipleSearchBoxFilter
                     label="Mães"
                     fieldName="mothers"
-                    searchOptions={searchMother}
+                    searchOptions={searchAllMothers}
                     filter={filter}
                     setFilter={setFilter}
                 />

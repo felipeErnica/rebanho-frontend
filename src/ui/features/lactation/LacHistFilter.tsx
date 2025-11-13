@@ -1,4 +1,4 @@
-import { searchMother } from "@/shared/GlobalApiCalls";
+import { searchAllMothers } from "@/shared/GlobalApiCalls";
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover";
 import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter";
@@ -16,7 +16,7 @@ export const LacHistFilter = ({
     return <FilterPopover {...{ setFilterOpen, setFilter, filterOpen, anchorEl }}>
         <MultipleSearchBoxFilter 
             label="Vacas"
-            searchOptions={searchMother}
+            searchOptions={searchAllMothers}
             setFilter={setFilter}
             filter={filter}
             fieldName="animals"

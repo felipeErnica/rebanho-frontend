@@ -4,7 +4,7 @@ import { MatingEntry } from "./Entities"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { searchMother } from "@/shared/GlobalApiCalls"
+import { searchAllMothers } from "@/shared/GlobalApiCalls"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 
 type AddMatingDialogProps = {
@@ -56,7 +56,7 @@ export const AddMatingDialog = ({
                 />
                 <FormSearchBox
                     label="*Vaca"
-                    searchOptions={searchMother}
+                    searchOptions={searchAllMothers}
                     formProps={{
                         control,
                         name: 'animalId',

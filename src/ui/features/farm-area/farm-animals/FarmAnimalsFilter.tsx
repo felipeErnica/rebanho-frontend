@@ -7,7 +7,7 @@ import { TextFilter } from "@/ui/shared/filter-controls/TextFilter"
 import { RefObject, useCallback } from "react"
 import { FilterPopover } from "@/ui/shared/filter-controls/FilterPopover"
 import { IFilters } from "@/shared/interfaces/Filter"
-import { searchFather, searchMother, searchPastureByFarm } from "@/shared/GlobalApiCalls"
+import { searchFather, searchAllMothers, searchPastureByFarm } from "@/shared/GlobalApiCalls"
 
 type FarmAnimalsFilterProps = {
     farmId: string
@@ -73,7 +73,7 @@ export const FarmAnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchOptions={searchMother}
+                    searchOptions={searchAllMothers}
                     fieldName="mothers"
                     className="col-span-6"
                 />

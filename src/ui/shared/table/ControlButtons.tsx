@@ -20,23 +20,33 @@ type EditControlButtonProps = {
     setEditing?: (isEditing: boolean) => void
     onDelete?: () => void
     onShow?: () => void
+    loading?: boolean
     otherButtons?: ReactNode | ReactNode[]
 }
 
-export const EditControlButtons = ({ setEditing, onDelete, onShow, otherButtons }: EditControlButtonProps) => {
+export const EditControlButtons = ({ setEditing, onDelete, onShow, loading, otherButtons }: EditControlButtonProps) => {
     return <ControlButtonContainer>
         {setEditing &&
-            <IconButton onClick={() => setEditing(true)}>
+            <IconButton
+                onClick={() => setEditing(true)}
+                loading={loading}
+            >
                 <Edit />
             </IconButton>
         }
         {onDelete &&
-            <IconButton onClick={onDelete}>
+            <IconButton
+                onClick={onDelete}
+                loading={loading}
+            >
                 <Delete />
             </IconButton>
         }
         {onShow &&
-            <IconButton onClick={onShow}>
+            <IconButton
+                onClick={onShow}
+                loading={loading}
+            >
                 <Visibility />
             </IconButton>
         }

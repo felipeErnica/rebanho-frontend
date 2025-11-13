@@ -19,7 +19,7 @@ export function searchFather(): Promise<SearchBoxItem[]> {
     return apiGet(query)
 }
 
-export function searchMother(): Promise<SearchBoxItem[]> {
+export function searchAllMothers(): Promise<SearchBoxItem[]> {
     return apiGet(ANIMAL_SEARCH_BASE + "mother")
 }
 

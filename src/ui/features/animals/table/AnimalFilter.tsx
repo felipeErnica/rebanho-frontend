@@ -10,7 +10,7 @@ import { useCallback, useState } from "react"
 import { 
     searchFarm, 
     searchFather, 
-    searchMother, 
+    searchAllMothers, 
     searchPastureByFarm, 
 } from "@/shared/GlobalApiCalls"
 
@@ -58,7 +58,7 @@ export const AnimalFilterElement = ({ filter, setFilter }: FilterModelProps) => 
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchOptions={searchMother}
+                    searchOptions={searchAllMothers}
                     fieldName="mothers"
                     className="col-span-3"
                 />

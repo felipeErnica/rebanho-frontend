@@ -3,7 +3,7 @@ import { TransferEntryFilter, StatusItens } from "./Entities"
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
 import { ComboBoxFilter } from "@/ui/shared/filter-controls/ComboBoxFilter"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
-import { searchMother } from "@/shared/GlobalApiCalls"
+import { searchAllMothers } from "@/shared/GlobalApiCalls"
 import { searchInseminationBulls } from "./Controller"
 import { Chip } from "@mui/material"
 import { ChipColorScheme } from "@/ui/shared/Globals"
@@ -33,7 +33,7 @@ export const TransferFilter = ({
                 label="Vacas"
                 className="col-span-2"
                 fieldName="animals"
-                searchOptions={searchMother}
+                searchOptions={searchAllMothers}
                 filter={filter}
                 setFilter={setFilter}
             />

@@ -28,14 +28,12 @@ export type BirthEntryFilter = {
 }
 
 export type BirthEntrySave = {
-    id: string
+    id?: string
+    birthDate: Date
     motherId: string
-    calfId: string
-    birthInterval?: number
+    fatherId?: string
+    sex?: string
     observation?: string
-    createdAt: Date
-    deletedAt?: Date
-    userId: string
 }
 
 export type BirthFooter = {

@@ -12,7 +12,7 @@ import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormRadioGroup, RadioControlProps } from "@/ui/shared/form-controls/FormRadioGroup"
 import { AnimalType } from "../Entities"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
-import { searchFarm, searchFather, searchMother, searchPastureByFarm } from "@/shared/GlobalApiCalls"
+import { searchFarm, searchFather, searchAllMothers, searchPastureByFarm } from "@/shared/GlobalApiCalls"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 
 type AddAnimalProps = {
@@ -130,7 +130,7 @@ const OtherControls = ({ control }: FormStateProps) => {
                 rules: { required: REQUIRED_FIELD_MSG }
             }}
             label="Mãe*"
-            searchOptions={searchMother}
+            searchOptions={searchAllMothers}
         />
         <FormSearchBox
             formProps={{

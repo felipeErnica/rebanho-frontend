@@ -1,9 +1,10 @@
-import { apiGet, apiPost } from "@/util/ApiRequest";
-import { BirthEntry, BirthEntryFilter, BirthFooter } from "./Entities";
+import { apiDelete, apiGet, apiPost, apiPut } from "@/util/ApiRequest";
+import { BirthEntry, BirthEntryFilter, BirthEntrySave, BirthFooter } from "./Entities";
 import { Page } from "@/shared/entities/Page";
 
 const BIRTH_DASHBOARD_BASE = "reproduction/births/dashboard/"
 const BIRTH_TABLE_BASE = "reproduction/births/table/"
+const BIRTH_BASE = "reproduction/births/"
 
 export function getBirthsBySex() {
     return apiGet(BIRTH_DASHBOARD_BASE + "total-sex")
@@ -49,6 +50,10 @@ export function getBirthHistory() {
     return apiGet(BIRTH_DASHBOARD_BASE + "birth-history")
 }
 
+export function searchMother() {
+    return apiGet("animals/info/search/mother")
+}
+
 export function findBirthsPage(
     sort: string, 
     order: string, 
@@ -62,4 +67,23 @@ export function findBirthsPage(
 
 export function findBirthsPageFooter(filter: BirthEntryFilter): Promise<BirthFooter> {
     return apiPost(BIRTH_TABLE_BASE + "page/footer", filter)
+}
+
+export function addBirth(entry: BirthEntrySave) {
+    return apiPut(BIRTH_BASE + "add", entry)
+}
+
+export function replaceBirth(entry: BirthEntrySave) {
+    return apiPut(BIRTH_BASE + "replace", entry)
+}
+
+export function updateBirth(entry: BirthEntrySave) {
+    return apiPut(BIRTH_BASE + "update", entry)
+}
+
+export function deleteBirth(id: string) {
+    return apiDelete(`animals/delete/${id}`)
+}
+export function deleteBirthNoValidation(id: string) {
+    return apiDelete(`animals/delete-no-validation/${id}`)
 }

@@ -23,7 +23,7 @@ import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
 import { AddTransferDialog } from "./AddTransferDialog"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchMother } from "@/shared/GlobalApiCalls"
+import { searchAllMothers } from "@/shared/GlobalApiCalls"
 
 type GroupEntriesTablePageProps = {
     transferDate: Date
@@ -186,7 +186,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>{rowData.receiverInfo}</TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
-                searchOptions={searchMother}
+                searchOptions={searchAllMothers}
                 formProps={{ control, name: 'donorId' }}
             />
         </TableBodyCell>

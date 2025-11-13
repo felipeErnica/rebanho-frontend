@@ -32,7 +32,7 @@ import { searchBull } from "../../farm-area/main-table/api/DashboardController"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { AddTransferDialog } from "./AddTransferDialog"
 import { TransferFilter } from "./TransferFilter"
-import { searchMother } from "@/shared/GlobalApiCalls"
+import { searchAllMothers } from "@/shared/GlobalApiCalls"
 
 export const EntriesTablePage = () => {
 
@@ -217,7 +217,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell align="center">
             <FormSearchBox
                 formProps={{ control, name: 'donorId' }}
-                searchOptions={searchMother}
+                searchOptions={searchAllMothers}
             />
         </TableBodyCell>
         <TableBodyCell align="center">

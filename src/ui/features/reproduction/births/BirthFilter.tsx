@@ -1,7 +1,7 @@
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
 import { BirthEntryFilter } from "./Entities"
-import { searchFather, searchMother } from "@/shared/GlobalApiCalls"
+import { searchFather, searchAllMothers } from "@/shared/GlobalApiCalls"
 import { ComboBoxFilter } from "@/ui/shared/filter-controls/ComboBoxFilter"
 import { SexValues } from "@/shared/entities/enums"
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
@@ -21,7 +21,7 @@ export const BirthFilter = (props: BirthFilterProps) => {
                 setFilter={props.setFilter}
                 filter={props.filter}
                 fieldName="mothers"
-                searchOptions={searchMother}
+                searchOptions={searchAllMothers}
             />
             <MultipleSearchBoxFilter 
                 className="col-span-2"

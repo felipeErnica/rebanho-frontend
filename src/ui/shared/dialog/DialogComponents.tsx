@@ -41,11 +41,13 @@ export type YesNoDialogProps = {
     openYesNo: boolean
     title: string | undefined
     content: string | undefined
-    onYes: () => void
-    onClose: () => void
+    onYes: (() => void) | undefined
+    onClose: (() => void) | undefined
 }
 
 export const YesNoDialog = ({ onYes, openYesNo, content, title, onClose }: YesNoDialogProps) => {
+
+    if (!onYes || !onClose) return
 
     return <Dialog
         onClose={onClose}
@@ -100,7 +102,7 @@ export const ErrorDialog = ({ onClose, openError, title, content }: ErrorDialogP
         <DialogContent>
             <div className="flex flex-row gap-8 items-center p-4">
                 <Error sx={{ fontSize: 60 }} color="error" />
-                <Typography fontSize={16} variant="body2">
+                <Typography className="whitespace-pre-wrap" fontSize={16} variant="body2">
                     {content ?? 'Sem Informações'}
                 </Typography>
             </div>

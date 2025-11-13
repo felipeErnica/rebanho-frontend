@@ -9,10 +9,21 @@ import {
     VirtuosoResizeHeadCell
 } from "@/ui/shared/table/TableComponents"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
-import { RefObject, useCallback, useEffect, useRef, useState } from "react"
-import { findBirthsPage, findBirthsPageFooter } from "./Controller"
+import {
+    createContext,
+    Dispatch,
+    RefObject,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react"
+import { deleteBirth, deleteBirthNoValidation, findBirthsPage, findBirthsPageFooter, updateBirth } from "./Controller"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
-import { BirthEntry, BirthEntryFilter, BirthFooter } from "./Entities"
+import { BirthEntry, BirthEntryFilter, BirthEntrySave, BirthFooter } from "./Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
@@ -25,18 +36,39 @@ import { searchFather } from "@/shared/GlobalApiCalls"
 import { BirthFilter } from "./BirthFilter"
 import { Button } from "@mui/material"
 import Add from "@mui/icons-material/Add"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
+import { ERROR_TYPE } from "@/ui/shared/Globals"
+
+type ErrorContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
+    defaultWarning: YesNoDialogProps
+}
+
+const ErrorContext = createContext<ErrorContextProps>(undefined!)
 
 export const BirthTablePage = () => {
 
     const DEFAULT_SORT = 'mother_order,calf_birth_date'
 
+    const defaultWarning: YesNoDialogProps = useMemo(() => ({
+        openYesNo: false,
+        title: undefined,
+        content: undefined,
+        onYes: undefined,
+        onClose: undefined
+    }), [])
+
     const [isLoading, setLoading] = useState(false)
     const [sort, setSort] = useState(DEFAULT_SORT)
     const [order, setOrder] = useState('asc')
     const [filter, setFilter] = useState<BirthEntryFilter>({ isFiltered: false })
-    const [isFilterOpen, setFilterOpen] = useState(false)
+    const [filterOpen, setFilterOpen] = useState(false)
     const [footerData, setFooterData] = useState<BirthFooter>({ total: 0, intervalAverage: 0 })
 
+    const [error, setError] = useState<APIError>()
+    const [warningProps, setWarningProps] = useState<YesNoDialogProps>(defaultWarning)
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
@@ -70,8 +102,17 @@ export const BirthTablePage = () => {
             reloadProps={{ loading: isLoading, onReload }}
             otherProps={otherActions}
         />
-        <BirthTable {...{ rows, scrollRef, fetchNextPage, isLoading, footerData }} />
-        <BirthFilter {...{ setFilterOpen, filterOpen: isFilterOpen, filter, setFilter, anchorEl }} />
+        <ErrorContext value={{ setError, setWarningProps, defaultWarning }}>
+            <BirthTable {...{ rows, scrollRef, fetchNextPage, isLoading, footerData }} />
+        </ErrorContext>
+        <BirthFilter {...{ setFilterOpen, filterOpen, filter, setFilter, anchorEl }} />
+        <ErrorDialog
+            openError={!!error}
+            onClose={() => setError(undefined)}
+            title={error?.title}
+            content={error?.message}
+        />
+        <YesNoDialog {...warningProps} />
     </div>
 }
 
@@ -121,8 +162,8 @@ const BirthTable = ({ rows, scrollRef, fetchNextPage, isLoading, footerData }: B
         }}
         fixedFooterContent={() => {
             return <TableFooterRow colSpan={7}>
-                    <FooterContent title="Total" content={footerData.total} />
-                    <FooterContent title="Intervalo Médio" content={decimalTransform(footerData.intervalAverage)} />
+                <FooterContent title="Total" content={footerData.total} />
+                <FooterContent title="Intervalo Médio" content={decimalTransform(footerData.intervalAverage)} />
             </TableFooterRow>
         }}
         itemContent={(_, data) => <BirthRow {...{ data: data as BirthEntry, isLoading }} />}
@@ -138,9 +179,41 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
 
     const [editing, setEditing] = useState(false)
     const [rowData, setRowData] = useState<BirthEntry>(data)
+    const [loadingControls, setLoadingControls] = useState(false)
+
+    const { setError, setWarningProps, defaultWarning } = useContext(ErrorContext)
 
     useEffect(() => setRowData(data), [data])
-    const onDelete = useCallback(() => console.log(data), [data])
+
+    const onDeleteNoValidation = useCallback(() => {
+        deleteBirthNoValidation(data.id)
+            .then(() => setError(undefined))
+            .catch(err => setError(err))
+            .finally(() => setWarningProps(defaultWarning))
+    }, [data.id, defaultWarning, setError, setWarningProps])
+
+    const onDelete = useCallback(() => {
+        setLoadingControls(true)
+        deleteBirth(data.id)
+            .then(() => {
+                setError(undefined)
+                setWarningProps(defaultWarning)
+            })
+            .catch((error: APIError) => {
+                if (error.errType === ERROR_TYPE) {
+                    setError(error)
+                    return
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: error.title,
+                    content: error.message,
+                    onYes: onDeleteNoValidation,
+                    onClose: () => setWarningProps(defaultWarning)
+                })
+            })
+            .finally(() => setLoadingControls(false))
+    }, [data.id, defaultWarning, onDeleteNoValidation, setError, setWarningProps])
 
     if (isLoading) return <TableLoadingCells colSpan={7} />
     if (editing) return <BirthRowEdit {...{ setEditing, rowData, setRowData }} />
@@ -148,6 +221,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
     return <>
         <TableBodyCell>
             <EditControlButtons
+                loading={loadingControls}
                 onDelete={onDelete}
                 setEditing={setEditing}
             />
@@ -169,32 +243,45 @@ type BirthRowEditProps = {
 
 const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) => {
 
-    const { handleSubmit, control, setValue } = useForm<BirthEntry>({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
 
-    const onSave: SubmitHandler<BirthEntry> = (data: BirthEntry) => {
-        setRowData(data)
+    const { handleSubmit, control } = useForm<BirthEntrySave>({ defaultValues: rowData })
+    const { setError } = useContext(ErrorContext)
+
+    const onSave: SubmitHandler<BirthEntrySave> = (data: BirthEntrySave) => {
+        setLoading(true)
+        updateBirth(data)
+            .then(res => {
+                setRowData(res)
+                setError(undefined)
+            })
+            .catch((error: APIError) => setError(error))
+            .finally(() => setLoading(true))
     }
 
     return <>
         <TableBodyCell>
-            <EditingControlButtons setEditing={setEditing} onSave={handleSubmit(onSave)} />
+            <EditingControlButtons
+                setEditing={setEditing}
+                onSave={handleSubmit(onSave)}
+                loading={loading}
+            />
         </TableBodyCell>
         <TableBodyCell>{rowData.motherInfo}</TableBodyCell>
         <TableBodyCell>
-            <FormDatePicker formProps={{ control, name: 'calfBirthDate' }} />
+            <FormDatePicker formProps={{ control, name: 'birthDate' }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.birthInterval ?? '1ª CRIA'}</TableBodyCell>
         <TableBodyCell>
             <FormComboBox
                 items={SexValues}
-                formProps={{ control, name: 'calfSex' }}
+                formProps={{ control, name: 'sex' }}
             />
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
                 searchOptions={searchFather}
-                onChange={(_, value) => setValue('calfFather', value)}
-                formProps={{ control, name: 'calfFatherId' }}
+                formProps={{ control, name: 'fatherId' }}
             />
         </TableBodyCell>
         <TableBodyCell>{rowData.calfName}</TableBodyCell>

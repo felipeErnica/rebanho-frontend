@@ -1,4 +1,4 @@
-import { searchMother } from "@/shared/GlobalApiCalls"
+import { searchAllMothers } from "@/shared/GlobalApiCalls"
 import { ComboBoxFilter } from "@/ui/shared/filter-controls/ComboBoxFilter"
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
@@ -19,7 +19,7 @@ export const BirthTestFilter = ({
             <MultipleSearchBoxFilter
                 className="col-span-2"
                 label="Vacas"
-                searchOptions={searchMother}
+                searchOptions={searchAllMothers}
                 filter={filter}
                 setFilter={setFilter}
                 fieldName="animals"
