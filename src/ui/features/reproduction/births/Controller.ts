@@ -50,9 +50,10 @@ export function getBirthHistory() {
     return apiGet(BIRTH_DASHBOARD_BASE + "birth-history")
 }
 
-export function searchMother() {
-    return apiGet("animals/info/search/mother")
+export function getBirthFather(entry: BirthEntrySave) {
+    return apiPost(BIRTH_BASE + "add/get-father", entry)
 }
+
 
 export function findBirthsPage(
     sort: string, 
@@ -71,6 +72,10 @@ export function findBirthsPageFooter(filter: BirthEntryFilter): Promise<BirthFoo
 
 export function addBirth(entry: BirthEntrySave) {
     return apiPut(BIRTH_BASE + "add", entry)
+}
+
+export function addBirthNoValidation(entry: BirthEntrySave) {
+    return apiPut(BIRTH_BASE + "add-no-validation", entry)
 }
 
 export function replaceBirth(entry: BirthEntrySave) {

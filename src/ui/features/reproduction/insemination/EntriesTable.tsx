@@ -1,14 +1,34 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
-import { RefObject, useCallback, useEffect, useRef, useState } from "react"
-import { findEntriesPage, getEntriesPage } from "./Controller"
+import {
+    createContext,
+    Dispatch,
+    RefObject,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react"
+import {
+    deleteAndChangeFather,
+    deleteInsemination,
+    deleteNoValidate,
+    findEntriesPage,
+    getEntriesPage,
+    searchInseminationBulls,
+    updateInsemination,
+    updateNoValidation
+} from "./Controller"
 import {
     InseminationFooter,
     InseminationEntry,
     InseminationEntryFilter,
     InseminationStatusColorMap,
     InseminationStatusMap,
+    InseminationEntrySave,
 } from "./Entities"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
@@ -30,17 +50,36 @@ import { InseminationFilter } from "./InseminationFilter"
 import Add from "@mui/icons-material/Add"
 import { AddInseminationDialog } from "./AddInseminationDialog"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchBull } from "../../farm-area/main-table/api/DashboardController"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
+import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
+import { APIError } from "@/util/ApiRequest"
+import { ERROR_TYPE } from "@/ui/shared/Globals"
+
+type DeleteContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
+    setRows: Dispatch<SetStateAction<InseminationEntry[]>>
+    defaultWarning: YesNoDialogProps
+}
+
+const DeleteContext = createContext<DeleteContextProps>(undefined!)
 
 export const EntriesTablePage = () => {
 
     const defaultSort = 'insemination_date,animal_order'
 
-    const defaultFoot: InseminationFooter = {
+    const defaultFoot: InseminationFooter = useMemo(() => ({
         totals: 0,
         averageBirthRate: 0,
         averagePregnancyRate: 0
+    }), [])
+
+    const defaultWarning: YesNoDialogProps = {
+        openYesNo: false,
+        title: undefined,
+        content: undefined,
+        onYes: undefined,
+        onClose: undefined
     }
 
     const [filter, setFilter] = useState<InseminationEntryFilter>({ isFiltered: false })
@@ -51,16 +90,24 @@ export const EntriesTablePage = () => {
     const [foot, setFoot] = useState(defaultFoot)
     const [addInseminationOpen, setAddInseminationOpen] = useState(false)
 
+    const [warningProps, setWarningProps] = useState(defaultWarning)
+    const [error, setError] = useState<APIError>()
+
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
         getEntriesPage(filter)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
         return findEntriesPage(filter, sort, order, cursor)
-    }, [filter, order, sort])
+    }, [defaultFoot, filter, order, sort])
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
+
+    const closeAddInsemination = useCallback((added?: boolean) => {
+        setAddInseminationOpen(false)
+        if (added) onReload()
+    }, [onReload])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: 'animal_order, insemination_date' },
@@ -68,7 +115,7 @@ export const EntriesTablePage = () => {
         { name: 'Data de Inseminação', value: defaultSort }
     ]
 
-    const { rows, scrollRef, fetchNextPage } = usePagination<InseminationEntry>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<InseminationEntry>({ setLoading, fetchPage })
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -85,9 +132,18 @@ export const EntriesTablePage = () => {
                 </Button>
             )}
         />
-        <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
+        <DeleteContext value={{ setWarningProps, defaultWarning, setRows, setError }}>
+            <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
+        </DeleteContext>
         <InseminationFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
-        <AddInseminationDialog {...{ addInseminationOpen, setAddInseminationOpen }} />
+        <AddInseminationDialog {...{ addInseminationOpen, closeAddInsemination }} />
+        <YesNoDialog {...warningProps} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </div>
 }
 
@@ -158,14 +214,69 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
     const [rowData, setRowData] = useState<InseminationEntry>(item)
     const [editing, setEditing] = useState(false)
 
+    const { setError, setWarningProps, setRows, defaultWarning } = useContext(DeleteContext)
+
     useEffect(() => setRowData(item), [item])
 
     if (loading) return <TableLoadingCells colSpan={8} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
+    const onDeleteNoValidation = () => {
+        deleteNoValidate(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setWarningProps(defaultWarning)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch((error: APIError) => setError(error))
+            .finally(() => setWarningProps(defaultWarning))
+    }
+
+    const onDeleteAndChangeFather = () => {
+        deleteAndChangeFather(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch((error: APIError) => setError(error))
+            .finally(() => setWarningProps(defaultWarning))
+    }
+
+    const onDelete = () => {
+        deleteInsemination(rowData.id)
+            .then(() => {
+                setWarningProps(defaultWarning)
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch((error: APIError) => {
+                if (error.errType === ERROR_TYPE) {
+                    setError(error)
+                    return
+                }
+                if (error.kind == "ChildrenWarning") {
+                    setWarningProps({
+                        openYesNo: true,
+                        title: error.title,
+                        content: error.message,
+                        onYes: onDeleteAndChangeFather,
+                        onClose: () => setWarningProps(defaultWarning)
+                    })
+                    return
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: error.title,
+                    content: error.message,
+                    onYes: onDeleteNoValidation,
+                    onClose: () => setWarningProps(defaultWarning)
+                })
+            })
+    }
+
     return <>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons {...{ setEditing, onDelete }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.inseminationDate)}</TableBodyCell>
@@ -195,19 +306,53 @@ type EntriesRowEditingProps = {
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<InseminationEntry>({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<InseminationEntry> = (data: InseminationEntry) => {
-        console.log("insemination: ", data)
-        setRowData(data)
-        setEditing(false)
+    const { control, handleSubmit } = useForm<InseminationEntrySave>({ defaultValues: rowData })
+    const { setError, setWarningProps, defaultWarning } = useContext(DeleteContext)
+
+    const onNoValidation: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+        setLoading(true)
+        updateNoValidation(data)
+            .then((result: InseminationEntry) => {
+                setRowData(result)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => {
+                setLoading(false)
+                setWarningProps(defaultWarning)
+            })
+    }
+
+    const onSubmit: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+        setLoading(true)
+        updateInsemination(data)
+            .then((result: InseminationEntry) => {
+                setRowData(result)
+                setEditing(false)
+            })
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: err.title,
+                    content: err.message,
+                    onClose: () => setWarningProps(defaultWarning),
+                    onYes: handleSubmit(onNoValidation)
+                })
+            })
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">
@@ -216,7 +361,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'bullId' }}
-                searchOptions={searchBull}
+                searchOptions={searchInseminationBulls}
             />
         </TableBodyCell>
         <TableBodyCell align="center">

@@ -65,7 +65,7 @@ import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
 import { orange, yellow } from "@mui/material/colors"
 import { CardEntry } from "@/shared/entities/Page"
-import { EditRow, TableRowProp } from "@/ui/shared/table/Entities"
+import { EditRowProps, TableRowProp } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchBull } from "../../farm-area/main-table/api/DashboardController"
@@ -584,7 +584,7 @@ const LastEntriesRow = ({ row }: TableRowProp<EmbryoTransfer>) => {
 
 }
 
-const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRow<EmbryoTransfer>) => {
+const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<EmbryoTransfer>) => {
 
     const { handleSubmit, control } = useForm({ defaultValues: rowData })
 

@@ -31,6 +31,14 @@ export type InseminationEntryFilter = {
     pregnancyStatus?: string
 }
 
+export type InseminationEntrySave = {
+    id?: string
+    animalId: string
+    inseminationDate: Date
+    bullId: string
+    observation?: string
+}
+
 export const InseminationStatusMap: Map<string, string> = new Map([
     ['FAILED', 'Falhou'],
     ['SUCCESS', 'Confirmado'],

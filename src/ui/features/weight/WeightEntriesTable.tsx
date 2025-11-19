@@ -18,7 +18,7 @@ import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { WeightFilterPopover } from "./WeightFilter"
 import { dateTransform, decimalTransform, positiveTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
-import { EditRow } from "@/ui/shared/table/Entities"
+import { EditRowProps } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
@@ -180,7 +180,7 @@ const EntriesRow = ({ loading, item }: EntriesRowProps) => {
     </>
 }
 
-const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRow<WeightEntry>) => {
+const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<WeightEntry>) => {
 
     const { handleSubmit, control } = useForm<WeightEntry>({ defaultValues: rowData })
 

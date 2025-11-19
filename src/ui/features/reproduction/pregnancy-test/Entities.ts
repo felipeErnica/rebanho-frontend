@@ -34,6 +34,14 @@ export type TestEntry = {
     observation?: string
 }
 
+export type TestEntrySave = {
+    id: string
+    testDate: Date
+    animalId: string
+    birthForecast?: Date
+    observation?: string
+}
+
 export type LastEntryProps = {
     testDate: Date
     entries: TestEntry[]

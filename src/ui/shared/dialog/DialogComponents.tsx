@@ -67,7 +67,7 @@ export const YesNoDialog = ({ onYes, openYesNo, content, title, onClose }: YesNo
         <DialogContent>
             <div className="flex flex-row gap-8 items-center p-4">
                 <Warning sx={{ fontSize: 60 }} color="warning" />
-                <Typography fontSize={16} variant="body2">
+                <Typography className="whitespace-pre-wrap" fontSize={16} variant="body2">
                     {content ?? 'Sem Informações'}
                 </Typography>
             </div>

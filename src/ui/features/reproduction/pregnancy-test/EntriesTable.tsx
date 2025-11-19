@@ -1,11 +1,11 @@
-import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { 
-    BirthStatusMap, 
-    PregnancyStatusItems, 
-    PregnancyStatusMap, 
-    TestEntry, 
-    TestEntryFilter, 
-    TestEntryFooter 
+import { createContext, Dispatch, RefObject, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import {
+    BirthStatusMap,
+    PregnancyStatusItems,
+    PregnancyStatusMap,
+    TestEntry,
+    TestEntryFilter,
+    TestEntryFooter
 } from "./Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
@@ -26,10 +26,19 @@ import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
-import { findEntriesPage, getEntriesFoot } from "./Controller"
+import { deleteTest, findEntriesPage, getEntriesFoot, updateTest } from "./Controller"
 import { BirthTestFilter } from "./BirthTestFilter"
 import { ChipColorScheme } from "@/ui/shared/Globals"
 import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
+
+type ErrorContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setRows: Dispatch<SetStateAction<TestEntry[]>>
+}
+
+const ErrorContext = createContext<ErrorContextProps>(undefined!)
 
 export const EntriesTablePage = () => {
 
@@ -48,11 +57,13 @@ export const EntriesTablePage = () => {
     const [order, setOrder] = useState('desc')
     const [foot, setFoot] = useState(defaultFoot)
 
+    const [error, setError] = useState<APIError>()
+
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
         getEntriesFoot(filter)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
         return findEntriesPage(filter, sort, order, cursor)
     }, [defaultFoot, filter, order, sort])
@@ -66,7 +77,7 @@ export const EntriesTablePage = () => {
         { name: 'Data de Previsão', value: "birth_forecast, animal_order" }
     ]
 
-    const { rows, scrollRef, fetchNextPage } = usePagination<TestEntry>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<TestEntry>({ setLoading, fetchPage })
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -75,8 +86,16 @@ export const EntriesTablePage = () => {
             orderProps={{ order, setOrder }}
             sortProps={{ sort, sortColumns, setSort, defaultSort }}
         />
-        <EntriesTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
+        <ErrorContext value={{ setRows, setError }}>
+            <EntriesTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
+        </ErrorContext>
         <BirthTestFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </div>
 }
 
@@ -147,15 +166,29 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     const [rowData, setRowData] = useState<TestEntry>(item)
     const [editing, setEditing] = useState(false)
+    const [loadingButton, setLoading] = useState(false)
+
+    const { setError, setRows } = useContext(ErrorContext)
 
     useEffect(() => setRowData(item), [item])
 
     if (loading) return <TableLoadingCells colSpan={8} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
+    const onDelete = () => {
+        setLoading(true)
+        deleteTest(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }
+
     return <>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading: loadingButton }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.testDate)}</TableBodyCell>
@@ -186,20 +219,30 @@ type EntriesRowEditingProps = {
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
     const [showForecast, setShowForecast] = useState(rowData.pregnancyStatus === 'SUCCESS')
+    const [loading, setLoading] = useState(false)
+
     const { control, handleSubmit, setValue } = useForm<TestEntry>({ defaultValues: rowData })
+    const { setError } = useContext(ErrorContext)
 
     useEffect(() => setShowForecast(rowData.pregnancyStatus === 'SUCCESS'), [rowData])
 
     const onSubmit: SubmitHandler<TestEntry> = (data: TestEntry) => {
-        setRowData(data)
-        setEditing(false)
+        setLoading(true)
+        updateTest(data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+                setError(undefined)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">
@@ -211,10 +254,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                 formProps={{ control, name: 'pregnancyStatus' }}
                 onChange={(value) => {
                     setShowForecast(value === 'SUCCESS')
-                    if (value === 'FAILED') {
-                        setValue('birthStatus', 'FAILED')
-                        setValue('birthForecast', undefined)
-                    }
+                    if (value === 'FAILED') setValue('birthForecast', undefined)
                 }}
                 renderOption={(props, option) => (
                     <li {...props}>

@@ -1,6 +1,7 @@
-import TextField, { TextFieldVariants } from "@mui/material/TextField"
+import { TextFieldVariants } from "@mui/material/TextField"
 import { HTMLInputTypeAttribute, ReactNode } from "react"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
+import { TextComponent } from "../common/TextComponent"
 
 type FormTextFieldProps<T extends FieldValues> = {
     label?: string
@@ -33,9 +34,9 @@ export const FormTextField = <T extends FieldValues>({
     return <Controller
         {...formProps}
         render={({ field, fieldState }) => (
-            <TextField
+            <TextComponent
                 {...field}
-                value={field.value ?? ''}
+                value={field.value}
                 type={type}
                 className={className}
                 error={!!fieldState.error}
@@ -44,18 +45,13 @@ export const FormTextField = <T extends FieldValues>({
                     field.onChange(event)
                     if (onChange) onChange(event.target.value)
                 }}
-                size={size ?? 'small'}
+                size={size}
                 label={label}
-                variant={variant || 'standard'}
+                variant={variant}
                 multiline={multiline}
                 rows={rows}
                 maxRows={maxRows}
-                fullWidth
-                slotProps={{
-                    input: {
-                        endAdornment: endAdornment
-                    }
-                }}
+                endAdornment={endAdornment}
             />
         )}
     />

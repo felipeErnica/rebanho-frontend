@@ -55,15 +55,20 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
     const onReload = useCallback(() => {
         setLoading(true)
         getEntriesByGroupFoot(testDate)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
         findEntriesByGroup(testDate, sort, order)
-            .then(response => setRows(response.json))
+            .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [defaultFoot, order, sort, testDate])
 
     useEffect(onReload, [onReload])
+
+    const closeAddTest = (added?: boolean) => {
+        setAddTestOpen(false)
+        if (added) onReload()
+    }
 
     const otherProps = (
         <Button
@@ -82,7 +87,7 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
             otherProps={otherProps}
         />
         <EntriesTable {...{ rows, loading, foot }} />
-        <AddTestDialog {...{ setAddTestOpen, addTestOpen, testDate }} />
+        <AddTestDialog {...{ addTestOpen, closeAddTest, testDate }} />
     </div>
 }
 

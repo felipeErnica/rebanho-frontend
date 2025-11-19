@@ -57,7 +57,7 @@ import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { CardEntry } from "@/shared/entities/Page"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { EditRow, TableRowProp } from "@/ui/shared/table/Entities"
+import { EditRowProps, TableRowProp } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import {
     BarPlot,
@@ -548,7 +548,7 @@ const EntriesRow = ({ row, onDelete }: TableRowProp<MilkEntry>) => {
 
 }
 
-const EditingEntriesRow = ({ rowData, setRowData, setEditing }: EditRow<MilkEntry>) => {
+const EditingEntriesRow = ({ rowData, setRowData, setEditing }: EditRowProps<MilkEntry>) => {
 
     const { control, handleSubmit } = useForm<MilkEntry>({ defaultValues: rowData })
 

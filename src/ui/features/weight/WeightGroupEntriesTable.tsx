@@ -21,7 +21,7 @@ import { decimalTransform, positiveTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { TrendComponent } from "@/ui/shared/dashboard/DashboardComponents"
-import { EditRow } from "@/ui/shared/table/Entities"
+import { EditRowProps } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 
@@ -170,7 +170,7 @@ const EntriesRow = (row: WeightEntry) => {
 
 }
 
-const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRow<WeightEntry>) => {
+const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<WeightEntry>) => {
 
     const { handleSubmit, control } = useForm<WeightEntry>({ defaultValues: rowData })
 

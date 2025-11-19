@@ -1,6 +1,8 @@
-export type EditRow<T> = {
-    setEditing: (editing: boolean) => void
-    setRowData: (rowData: T) => void
+import { Dispatch, SetStateAction } from "react"
+
+export type EditRowProps<T> = {
+    setEditing: Dispatch<SetStateAction<boolean>>
+    setRowData: Dispatch<SetStateAction<T>>
     rowData: T
 }
 

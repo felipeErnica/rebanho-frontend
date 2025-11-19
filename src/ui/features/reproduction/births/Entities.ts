@@ -29,6 +29,7 @@ export type BirthEntryFilter = {
 
 export type BirthEntrySave = {
     id?: string
+    ringNumber?: string,
     birthDate: Date
     motherId: string
     fatherId?: string

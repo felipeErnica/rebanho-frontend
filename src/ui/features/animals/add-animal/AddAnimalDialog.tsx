@@ -9,11 +9,12 @@ import { useCallback, useEffect, useState } from "react"
 import { AddAnimalForm } from "./api/AddAnimalEntities"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
-import { FormRadioGroup, RadioControlProps } from "@/ui/shared/form-controls/FormRadioGroup"
+import { FormRadioGroup } from "@/ui/shared/form-controls/FormRadioGroup"
 import { AnimalType } from "../Entities"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { searchFarm, searchFather, searchAllMothers, searchPastureByFarm } from "@/shared/GlobalApiCalls"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
+import { RadioControlProps } from "@/ui/shared/common/RadioComponent"
 
 type AddAnimalProps = {
     isAddOpen: boolean

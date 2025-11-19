@@ -8,7 +8,7 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
-import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import {
     getBirthRate,
     getLastEntries,
@@ -17,7 +17,9 @@ import {
     getNextBirths,
     getAnimalsNumber,
     getLastGroups,
-    getRankedResults
+    getRankedResults,
+    deleteTest,
+    updateTest
 } from "./Controller"
 import {
     BarPlot,
@@ -40,6 +42,7 @@ import {
     LastEntryProps,
     NextBirths,
     PregnancyRateStats,
+    PregnancyStatusItems,
     PregnancyStatusMap,
     PregnancyTestsHist,
     TestAnimal,
@@ -55,7 +58,7 @@ import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
 import { TableLoadingRow } from "@/ui/shared/table/TableComponents"
-import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
+import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import Chip from "@mui/material/Chip"
 import { ComboBox, ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
@@ -73,18 +76,41 @@ import IconButton from "@mui/material/IconButton"
 import { CardEntry } from "@/shared/entities/Page"
 import { ChipColorScheme } from "@/ui/shared/Globals"
 import { orange, yellow } from "@mui/material/colors"
+import { EditRowProps, TableRowProp } from "@/ui/shared/table/Entities"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
+import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
+import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
+import { SubmitHandler, useForm } from "react-hook-form"
+
+type ReloadContextProps = {
+    setReloadFlag: Dispatch<SetStateAction<number>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+}
+
+const ReloadContext = createContext<ReloadContextProps>(undefined!)
 
 export const BirthTestDashboard = () => {
 
     const [reloadFlag, setReloadFlag] = useState(0)
     const [activeRequests, setActiveRequests] = useState(0)
 
+    const [error, setError] = useState<APIError>()
+
     const startLoading = useCallback(() => setActiveRequests(prev => prev + 1), [])
     const stopLoading = useCallback(() => setActiveRequests(prev => Math.min(prev - 1)), [])
 
     return <DashboardContainer>
         <DashboardTopBar {...{ setReloadFlag, activeRequests }} />
-        <DashboardInformation {...{ startLoading, stopLoading, reloadFlag }} />
+        <ReloadContext value={{ setReloadFlag, setError }}>
+            <DashboardInformation {...{ startLoading, stopLoading, reloadFlag }} />
+        </ReloadContext>
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </DashboardContainer>
 }
 
@@ -97,6 +123,11 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
 
     const [addTestOpen, setAddTestOpen] = useState(false)
     const { setPageProps } = useContext(PageContext)
+
+    const closeAddTest = (added?: boolean) => {
+        setAddTestOpen(false)
+        if (added) setReloadFlag(prev => prev + 1)
+    }
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -117,7 +148,7 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
         >
             Histórico de Toques
         </Button>
-        <AddTestDialog {...{ addTestOpen, setAddTestOpen }} />
+        <AddTestDialog {...{ addTestOpen, closeAddTest }} />
     </DashboardTopContainer>
 }
 
@@ -159,7 +190,7 @@ const PregnancyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
         setLoading(true)
         startLoading()
         getPregnancyRate()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultValue))
             .finally(() => {
                 setLoading(false)
@@ -206,7 +237,7 @@ const AnimalsNumberCard = ({ stopLoading, startLoading, reloadFlag }: DashboardI
         setLoading(true)
         startLoading()
         getAnimalsNumber()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultValue))
             .finally(() => {
                 setLoading(false)
@@ -251,7 +282,7 @@ const BirthCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
         setLoading(true)
         startLoading()
         getBirthRate()
-            .then(response => setStats(response.json))
+            .then(response => setStats(response))
             .catch(() => setStats(defaultValue))
             .finally(() => {
                 setLoading(false)
@@ -298,7 +329,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         startLoading()
         setLoading(true)
         getRankedResults(rankBy)
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -360,7 +391,7 @@ const TestHistChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
     useEffect(() => {
         startLoading()
         getTestHist()
-            .then(response => setDataset(response.json))
+            .then(response => setDataset(response))
             .catch(() => setDataset([]))
             .finally(() => {
                 stopLoading()
@@ -424,10 +455,9 @@ const NextBirthsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
         startLoading()
         setLoading(true)
         getNextBirths()
-            .then(response => {
-                const json: NextBirths[] = response.json
-                json.forEach(item => item.birthForecast = new Date(item.birthForecast))
-                setData(response.json)
+            .then((response: NextBirths[]) => {
+                response.forEach(item => item.birthForecast = new Date(item.birthForecast))
+                setData(response)
             })
             .catch(() => setData([]))
             .finally(() => {
@@ -473,12 +503,13 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
     const [addTestOpen, setAddTestOpen] = useState(false)
 
     const { setPageProps } = useContext(PageContext)
+    const { setReloadFlag } = useContext(ReloadContext)
 
     useEffect(() => {
         startLoading()
         setLoading(true)
         getLastGroups()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -486,9 +517,14 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
             })
     }, [reloadFlag, startLoading, stopLoading])
 
+    const closeAddTest = (added?: boolean) => {
+        setAddTestOpen(false)
+        if (added) setReloadFlag(prev => prev + 1)
+    }
+
     return <DashboardCard className="col-span-3">
         <CardDefaultTitle text="Últimos Exames de Toque" />
-        <AddTestDialog {...{ addTestOpen, setAddTestOpen, testDate }} />
+        <AddTestDialog {...{ addTestOpen, closeAddTest, testDate }} />
         <Table size="small">
             <TableHead>
                 <TableRow>
@@ -569,11 +605,11 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         startLoading()
         setLoading(true)
         getLastEntries()
-            .then(response => {
-                const json: LastEntryProps = response.json
-                setData(json.entries)
-                setTestDate(new Date(json.testDate))
-                setTextDate(dateTransform(json.testDate))
+            .then((response: LastEntryProps) => {
+                setData(response.entries)
+                const date = new Date(response.testDate)
+                setTestDate(date)
+                setTextDate(dateTransform(date))
             })
             .catch(() => {
                 setData([])
@@ -592,7 +628,9 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             <Table size="small" stickyHeader>
                 <TableHead>
                     <TableRow>
+                        <TableCell />
                         <TableCell>Vaca</TableCell>
+                        <TableCell>Data</TableCell>
                         <TableCell>Resultado</TableCell>
                         <TableCell>Nascimento</TableCell>
                         <TableCell>Previsão de Parto</TableCell>
@@ -603,28 +641,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                         dataset={data}
                         colSpan={5}
                         loadingProps={{ loading, rowSpan: 20 }}
-                        render={item => (
-                            <TableRow>
-                                <TableCell>{item.animalInfo}</TableCell>
-                                <TableCell>
-                                    {item.pregnancyStatus &&
-                                        <Chip
-                                            label={PregnancyStatusMap.get(item.pregnancyStatus)}
-                                            color={ChipColorScheme.get(item.pregnancyStatus)}
-                                        />
-                                    }
-                                </TableCell>
-                                <TableCell>
-                                    {item.birthStatus &&
-                                        <Chip
-                                            label={BirthStatusMap.get(item.birthStatus)}
-                                            color={ChipColorScheme.get(item.birthStatus)}
-                                        />
-                                    }
-                                </TableCell>
-                                <TableCell>{dateTransform(item.birthForecast)}</TableCell>
-                            </TableRow>
-                        )}
+                        render={row => <EntriesRow {...{ row }} />}
                     />
                 </TableBody>
             </Table>
@@ -644,4 +661,120 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             Ver Mais...
         </Button>
     </DashboardCard>
+}
+
+function EntriesRow({ row }: TableRowProp<TestEntry>) {
+
+    const [rowData, setRowData] = useState(row)
+    const [editing, setEditing] = useState(false)
+    const [loading, setLoading] = useState(false)
+
+    const { setError, setReloadFlag } = useContext(ReloadContext)
+
+    const onDelete = () => {
+        setLoading(true)
+        deleteTest(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setReloadFlag(prev => prev + 1)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }
+
+    if (editing) return <EditEntriesRow {...{ setEditing, setRowData, rowData }} />
+
+    return <TableRow>
+        <TableCell>
+            <EditControlButtons {...{ setEditing, onDelete, loading }} />
+        </TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell>{dateTransform(rowData.testDate)}</TableCell>
+        <TableCell>
+            {rowData.pregnancyStatus &&
+                <Chip
+                    label={PregnancyStatusMap.get(rowData.pregnancyStatus)}
+                    color={ChipColorScheme.get(rowData.pregnancyStatus)}
+                />
+            }
+        </TableCell>
+        <TableCell>
+            {rowData.birthStatus &&
+                <Chip
+                    label={BirthStatusMap.get(rowData.birthStatus)}
+                    color={ChipColorScheme.get(rowData.birthStatus)}
+                />
+            }
+        </TableCell>
+        <TableCell>{dateTransform(rowData.birthForecast)}</TableCell>
+    </TableRow>
+
+}
+
+function EditEntriesRow({ setRowData, setEditing, rowData }: EditRowProps<TestEntry>) {
+
+    const [showForecast, setShowForecast] = useState(rowData.pregnancyStatus === 'SUCCESS')
+    const [loading, setLoading] = useState(false)
+
+    const { control, handleSubmit, setValue } = useForm<TestEntry>({ defaultValues: rowData })
+    const { setError } = useContext(ReloadContext)
+
+    useEffect(() => setShowForecast(rowData.pregnancyStatus === 'SUCCESS'), [rowData])
+
+    const onSubmit: SubmitHandler<TestEntry> = (data: TestEntry) => {
+        setLoading(true)
+        updateTest(data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+                setError(undefined)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }
+
+    const onSave = handleSubmit(onSubmit)
+
+    return <TableRow>
+        <TableCell>
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
+        </TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell align="center" width={200}>
+            <FormDatePicker formProps={{ control, name: 'testDate' }} />
+        </TableCell>
+        <TableCell align="center">
+            <FormComboBox
+                items={PregnancyStatusItems}
+                formProps={{ control, name: 'pregnancyStatus' }}
+                onChange={(value) => {
+                    setShowForecast(value === 'SUCCESS')
+                    if (value === 'FAILED') setValue('birthForecast', undefined)
+                }}
+                renderOption={(props, option) => (
+                    <li {...props}>
+                        <Chip
+                            label={PregnancyStatusMap.get(option.value)}
+                            color={ChipColorScheme.get(option.value)}
+                        />
+                    </li>
+                )}
+                renderValue={value => (
+                    <Chip
+                        label={PregnancyStatusMap.get(value.value)}
+                        color={ChipColorScheme.get(value.value)}
+                    />
+                )}
+            />
+        </TableCell>
+        <TableCell align="center">
+            <Chip
+                label={BirthStatusMap.get(rowData.birthStatus)}
+                color={ChipColorScheme.get(rowData.birthStatus)}
+            />
+        </TableCell>
+        <TableCell align="center" width={200}>
+            {showForecast && <FormDatePicker formProps={{ control, name: 'birthForecast' }} />}
+        </TableCell>
+    </TableRow>
 }

@@ -2,6 +2,7 @@ import { TextFieldVariants } from "@mui/material"
 import dayjs, { Dayjs } from "dayjs"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 import { DateComponent } from "../common/DateComponent"
+import { PickerValue } from "@mui/x-date-pickers/internals"
 
 type FormDatePickerProps<T extends FieldValues> = {
     label?: string
@@ -12,6 +13,8 @@ type FormDatePickerProps<T extends FieldValues> = {
     disableFuture?: boolean
     maxDate?: Dayjs
     minDate?: Dayjs
+    onChange?: (value: PickerValue) => void
+    onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
 }
 
 export const FormDatePicker = <T extends FieldValues>({
@@ -22,7 +25,9 @@ export const FormDatePicker = <T extends FieldValues>({
     disablePast,
     disableFuture,
     maxDate,
-    minDate
+    minDate,
+    onChange,
+    onBlur
 }: FormDatePickerProps<T>) => {
 
     return <Controller
@@ -31,12 +36,19 @@ export const FormDatePicker = <T extends FieldValues>({
             <DateComponent
                 {...field}
                 disableFuture={disableFuture}
+                onBlur={(event) => {
+                    field.onBlur()
+                    if (onBlur) onBlur(event)
+                }}
                 disablePast={disablePast}
                 maxDate={maxDate}
                 minDate={minDate}
                 variant={variant}
                 value={field.value ? dayjs(field.value) : null}
-                onChange={(date) => field.onChange(date ? date.toDate() : null)}
+                onChange={(date) => {
+                    field.onChange(date ? date.toDate() : null)
+                    if (onChange) onChange(date)
+                }}
                 label={label}
                 error={error?.message}
                 className={className}

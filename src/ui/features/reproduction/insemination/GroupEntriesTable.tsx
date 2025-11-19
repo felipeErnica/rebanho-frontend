@@ -1,11 +1,31 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react"
 import {
     InseminationEntry,
+    InseminationEntrySave,
     InseminationFooter,
     InseminationStatusColorMap,
     InseminationStatusMap,
 } from "./Entities"
-import { findEntriesByGroup, getEntriesByGroupFoot } from "./Controller"
+import {
+    deleteAndChangeFather,
+    deleteInsemination,
+    deleteNoValidate,
+    findEntriesByGroup,
+    getEntriesByGroupFoot,
+    searchInseminationBulls,
+    updateInsemination,
+    updateNoValidation
+} from "./Controller"
 import Table from "@mui/material/Table"
 import {
     FooterContent,
@@ -27,10 +47,23 @@ import { percentageTransform } from "@/util/Transformations"
 import { AddInseminationDialog } from "./AddInseminationDialog"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
+import { ERROR_TYPE } from "@/ui/shared/Globals"
+import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 
 type GroupEntriesTablePageProps = {
     inseminationDate: Date
 }
+
+type DeleteContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
+    setRows: Dispatch<SetStateAction<InseminationEntry[]>>
+    defaultWarning: YesNoDialogProps
+}
+
+const DeleteContext = createContext<DeleteContextProps>(undefined!)
 
 export const GroupEntriesTablePage = ({ inseminationDate }: GroupEntriesTablePageProps) => {
 
@@ -40,26 +73,43 @@ export const GroupEntriesTablePage = ({ inseminationDate }: GroupEntriesTablePag
         averagePregnancyRate: 0
     }), [])
 
+    const defaultWarning: YesNoDialogProps = {
+        openYesNo: false,
+        title: undefined,
+        content: undefined,
+        onYes: undefined,
+        onClose: undefined
+    }
+
     const [loading, setLoading] = useState(false)
     const [rows, setRows] = useState<InseminationEntry[]>([])
     const [foot, setFoot] = useState<InseminationFooter>(defaultValue)
     const [addInseminationOpen, setAddInseminationOpen] = useState(false)
 
+    const [warningProps, setWarningProps] = useState(defaultWarning)
+    const [error, setError] = useState<APIError>()
+
     const onReload = useCallback(() => {
         setLoading(true)
         getEntriesByGroupFoot(inseminationDate)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultValue))
         findEntriesByGroup(inseminationDate)
-            .then(response => setRows(response.json))
+            .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [defaultValue, inseminationDate])
 
     useEffect(onReload, [onReload])
 
+    const closeAddInsemination = useCallback((added?: boolean) => {
+        setAddInseminationOpen(false)
+        if (added) onReload()
+    }, [onReload])
+
+
     return <div className="w-full h-full overflow-hidden flex flex-col">
-        <AddInseminationDialog {...{ addInseminationOpen, setAddInseminationOpen }} />
+        <AddInseminationDialog {...{ addInseminationOpen, closeAddInsemination }} />
         <TableTopBar
             reloadProps={{ onReload, loading }}
             otherProps={(
@@ -72,7 +122,16 @@ export const GroupEntriesTablePage = ({ inseminationDate }: GroupEntriesTablePag
                 </Button>
             )}
         />
-        <GroupEntriesTable {...{ rows, foot, loading }} />
+        <DeleteContext value={{ setWarningProps, setError, setRows, defaultWarning }}>
+            <GroupEntriesTable {...{ rows, foot, loading }} />
+        </DeleteContext>
+        <YesNoDialog {...warningProps} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </div>
 }
 
@@ -136,14 +195,68 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
     const [rowData, setRowData] = useState<InseminationEntry>(item)
     const [editing, setEditing] = useState(false)
 
+    const { setError, setWarningProps, setRows, defaultWarning } = useContext(DeleteContext)
+
     useEffect(() => setRowData(item), [item])
+
+    const onDeleteNoValidation = () => {
+        deleteNoValidate(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch((error: APIError) => setError(error))
+    }
+
+    const onDeleteAndChangeFather = () => {
+        deleteAndChangeFather(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch((error: APIError) => setError(error))
+    }
+
+    const onDelete = () => {
+        deleteInsemination(rowData.id)
+            .then(() => {
+                setWarningProps(defaultWarning)
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch((error: APIError) => {
+                if (error.errType === ERROR_TYPE) {
+                    setError(error)
+                    return
+                }
+                if (error.kind == "ChildrenWarning") {
+                    setWarningProps({
+                        openYesNo: true,
+                        title: error.title,
+                        content: error.message,
+                        onYes: onDeleteAndChangeFather,
+                        onClose: () => setWarningProps(defaultWarning)
+                    })
+                    return
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: error.title,
+                    content: error.message,
+                    onYes: onDeleteNoValidation,
+                    onClose: () => setWarningProps(defaultWarning)
+                })
+            })
+    }
 
     if (loading) return <TableLoadingRow colSpan={7} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons {...{ setEditing, onDelete }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
@@ -176,23 +289,70 @@ type EntriesRowEditingProps = {
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<InseminationEntry>({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<InseminationEntry> = (data: InseminationEntry) => {
-        setRowData(data)
-        setEditing(false)
+    const { control, handleSubmit } = useForm<InseminationEntry>({ defaultValues: rowData })
+    const { setError, setWarningProps, defaultWarning } = useContext(DeleteContext)
+
+    const onNoValidation: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+        setLoading(true)
+        updateNoValidation(data)
+            .then((result: InseminationEntry) => {
+                setRowData(result)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }
+
+    const onSubmit: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+        setLoading(true)
+        updateInsemination(data)
+            .then((result: InseminationEntry) => {
+                setRowData(result)
+                setEditing(false)
+            })
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: err.title,
+                    content: err.message,
+                    onClose: () => setWarningProps(defaultWarning),
+                    onYes: () => handleSubmit(onNoValidation)
+                })
+            })
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
-        <TableBodyCell>{rowData.bullName}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.pregnancyStatus}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.birthStatus}</TableBodyCell>
+        <TableBodyCell>
+            <FormSearchBox
+                formProps={{ control, name: 'bullId' }}
+                searchOptions={searchInseminationBulls}
+            />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <Chip
+                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
+            />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <Chip
+                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
+            />
+        </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>
             <FormTextField

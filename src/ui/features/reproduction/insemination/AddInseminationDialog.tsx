@@ -1,42 +1,72 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
+import { Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { InseminationEntry } from "./Entities"
+import { InseminationEntrySave } from "./Entities"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { searchAllMothers } from "@/shared/GlobalApiCalls"
+import { searchOwnedMothers } from "@/shared/GlobalApiCalls"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { addInsemiantion, replaceInsemination, searchInseminationBulls } from "./Controller"
+import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
+import { useCallback, useState } from "react"
+import { APIError } from "@/util/ApiRequest"
 
 type AddInseminationDialogProps = {
     addInseminationOpen: boolean
-    setAddInseminationOpen: (addInseminationOpen: boolean) => void
+    closeAddInsemination: (added?: boolean) => void
     bullId?: string
     inseminationDate?: Date
 }
 
 export const AddInseminationDialog = ({
     addInseminationOpen,
-    setAddInseminationOpen,
+    closeAddInsemination,
     bullId,
     inseminationDate
 }: AddInseminationDialogProps) => {
 
-    const { control, handleSubmit, reset, setFocus } = useForm<InseminationEntry>({
+    const [loading, setLoading] = useState(false)
+    const [warning, setWarning] = useState<APIError>()
+    const [added, setAdded] = useState(false)
+
+    const { control, handleSubmit, reset, setFocus } = useForm<InseminationEntrySave>({
         defaultValues: { bullId, inseminationDate }
     })
 
-    const onClose = () => {
+    const onClose = useCallback(() => {
         reset()
-        setAddInseminationOpen(false)
+        closeAddInsemination(added)
+    }, [added, closeAddInsemination, reset])
+
+    const onSubmit: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+        setLoading(true)
+        addInsemiantion(data)
+            .then(() => {
+                reset({
+                    inseminationDate: data.inseminationDate,
+                    bullId: data.bullId
+                })
+                setFocus('animalId')
+                setWarning(undefined)
+                setAdded(true)
+            })
+            .catch(err => setWarning(err))
+            .finally(() => setLoading(false))
     }
 
-    const onSubmit: SubmitHandler<InseminationEntry> = (data: InseminationEntry) => {
-        console.log('AddInseminationDialog salvar: ', data)
-        reset({
-            inseminationDate: data.inseminationDate,
-            bullId: data.bullId
-        })
-        setFocus('animalId')
+    const onReplace: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+        setLoading(true)
+        replaceInsemination(data)
+            .then(() => {
+                reset({
+                    inseminationDate: data.inseminationDate,
+                    bullId: data.bullId
+                })
+                setFocus('animalId')
+                setWarning(undefined)
+                setAdded(true)
+            })
+            .finally(() => setLoading(false))
     }
 
     return <Dialog
@@ -45,7 +75,7 @@ export const AddInseminationDialog = ({
     >
         <DialogTitle>Adicionar Inseminação</DialogTitle>
         <DialogContent>
-            <div className="w-[500] flex flex-col gap-8 p-4">
+            <DialogContainer>
                 <FormDatePicker
                     className="w-[250]"
                     label="*Data de Inseminação"
@@ -56,8 +86,18 @@ export const AddInseminationDialog = ({
                     }}
                 />
                 <FormSearchBox
+                    label="*Touro"
+                    searchOptions={searchInseminationBulls}
+                    formProps={{
+                        control,
+                        name: 'bullId',
+                        rules: { required: REQUIRED_FIELD_MSG }
+                    }}
+                />
+                <FormSearchBox
                     label="*Vaca"
-                    searchOptions={searchAllMothers}
+                    className="w-[400]"
+                    searchOptions={searchOwnedMothers}
                     formProps={{
                         control,
                         name: 'animalId',
@@ -74,15 +114,22 @@ export const AddInseminationDialog = ({
                         name: 'observation'
                     }}
                 />
-            </div>
+            </DialogContainer>
         </DialogContent>
         <DialogActions>
-            <Button onClick={handleSubmit(onSubmit)}>
-                Adicionar
-            </Button>
-            <Button onClick={onClose}>
-                Cancelar
-            </Button>
+            <DialogActionButtons 
+                loading={loading}
+                saveText="Adicionar"
+                onSave={handleSubmit(onSubmit)}
+                onClose={onClose}
+            />
         </DialogActions>
+        <YesNoDialog 
+            openYesNo={!!warning}
+            title={warning?.title}
+            content={warning?.message}
+            onYes={handleSubmit(onReplace)}
+            onClose={() => setWarning(undefined)}
+        />
     </Dialog>
 }

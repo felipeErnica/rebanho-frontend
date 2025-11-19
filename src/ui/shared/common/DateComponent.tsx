@@ -1,3 +1,4 @@
+import { dateTransform } from "@/util/Transformations"
 import { IconButton, InputAdornment, TextField, TextFieldVariants } from "@mui/material"
 import { CalendarIcon, ClearIcon, DateValidationError, PickerChangeHandlerContext } from "@mui/x-date-pickers"
 import { DatePicker, DatePickerFieldProps } from "@mui/x-date-pickers/DatePicker"
@@ -5,7 +6,7 @@ import { useParsedFormat, usePickerContext, useSplitFieldProps } from "@mui/x-da
 import { PickerValue } from "@mui/x-date-pickers/internals"
 import { useValidation, validateDate } from "@mui/x-date-pickers/validation"
 import dayjs, { Dayjs } from "dayjs"
-import { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { RefCallBack } from "react-hook-form"
 
 type DateComponentProps = {
@@ -18,10 +19,11 @@ type DateComponentProps = {
     variant?: TextFieldVariants
     disablePast?: boolean
     disableFuture?: boolean
-    maxDate?: Dayjs 
-    minDate?: Dayjs 
+    maxDate?: Dayjs
+    minDate?: Dayjs
     error?: string
     onChange?: (value: PickerValue, context: PickerChangeHandlerContext<DateValidationError>) => void
+    onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
 }
 
 export const DateComponent = ({
@@ -31,6 +33,7 @@ export const DateComponent = ({
     error,
     ref,
     onChange,
+    onBlur,
     className,
     disabled,
     variant,
@@ -48,31 +51,31 @@ export const DateComponent = ({
     const errorMessage = useMemo(() => {
         switch (validationError) {
             case 'maxDate': {
-                return 'Inválido: A data é maior que a data máxima'
+                return `Inválido: A data não pode ser maior que ${dateTransform(maxDate?.toDate())}.`
             }
             case 'minDate': {
-                return 'Inválido: A data é menor que a data mínima';
+                return `Inválido: A data não pode ser menor que ${dateTransform(minDate?.toDate())}.`;
             }
             case 'invalidDate': {
-                return 'Inválido: formato incorreto';
+                return 'Inválido: Formato incorreto.';
             }
             case 'disablePast': {
-                return 'Inválido: O campo não aceita datas passadas'
+                return 'Inválido: O campo não aceita datas passadas.'
             }
             case 'disableFuture': {
-                return 'Inválido: O campo não aceita datas futuras'
+                return 'Inválido: O campo não aceita datas futuras.'
             }
             default: {
                 return '';
             }
         }
-    }, [validationError]);
+    }, [maxDate, minDate, validationError]);
 
     return <DatePicker
         disableFuture={disableFuture}
+        disablePast={disablePast}
         name={name}
         ref={ref}
-        disablePast={disablePast}
         maxDate={maxDate}
         minDate={minDate}
         value={dateValue}
@@ -93,20 +96,24 @@ export const DateComponent = ({
         slots={{ field: CustomDateField }}
         slotProps={{
             field: {
-                clearable: true,
-                error: !!error,
+                error: !!error || !!validationError,
                 variant: variant || 'standard',
                 helperText: error ?? errorMessage,
+                onBlur: onBlur,
+                disabled: disabled
             } as CustomDateFieldProps
         }}
     />
 }
 
 interface CustomDateFieldProps extends DatePickerFieldProps {
-    clearable: boolean
+    name?: string
+    ref?: RefCallBack
     variant: TextFieldVariants
     helperText?: string
     error?: boolean
+    disabled?: boolean
+    onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
 }
 
 function CustomDateField(props: CustomDateFieldProps) {
@@ -125,8 +132,7 @@ function CustomDateField(props: CustomDateFieldProps) {
         setInputValue(dateValue.format(pickerContext.fieldFormat))
     }, [pickerContext.fieldFormat, pickerContext.value])
 
-
-    const onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    const transformDate = (event: React.FocusEvent<HTMLInputElement>) => {
         const newInputValue = event.target.value.trim();
         if (!newInputValue) {
             pickerContext.setValue(null)
@@ -149,10 +155,14 @@ function CustomDateField(props: CustomDateFieldProps) {
     return <TextField
         {...forwardedProps}
         placeholder={placeholder}
+        disabled={props.disabled}
         size="small"
         value={inputValue}
         onChange={event => setInputValue(event.target.value)}
-        onBlur={onBlur}
+        onBlur={(event: React.FocusEvent<HTMLInputElement>) => {
+            transformDate(event)
+            if (props.onBlur) props.onBlur(event)
+        }}
         inputRef={inputRef}
         error={hasValidationError || forwardedProps.error}
         focused={pickerContext.open}
@@ -164,11 +174,13 @@ function CustomDateField(props: CustomDateFieldProps) {
         fullWidth
         slotProps={{
             input: {
+                sx: { color: props.error ? 'red' : undefined },
                 ref: pickerContext.triggerRef,
                 endAdornment: (
                     <InputAdornment position="end">
                         {inputValue &&
                             <IconButton
+                                disabled={props.disabled}
                                 tabIndex={-1}
                                 onClick={() => {
                                     pickerContext.setValue(null)
@@ -176,15 +188,22 @@ function CustomDateField(props: CustomDateFieldProps) {
                                     inputRef.current?.focus()
                                 }}
                             >
-                                <ClearIcon fontSize="small" />
+                                <ClearIcon
+                                    fontSize="small"
+                                    color={props.error ? 'error' : undefined}
+                                />
                             </IconButton>
                         }
                         <IconButton
                             tabIndex={-1}
+                            disabled={props.disabled}
                             onClick={() => pickerContext.setOpen((prev) => !prev)}
                             edge="end"
                         >
-                            <CalendarIcon fontSize="small" />
+                            <CalendarIcon
+                                fontSize="small"
+                                color={props.error ? 'error' : undefined}
+                            />
                         </IconButton>
                     </InputAdornment>
 

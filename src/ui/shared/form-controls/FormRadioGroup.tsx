@@ -1,16 +1,5 @@
-import FormControl from "@mui/material/FormControl"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import FormHelperText from "@mui/material/FormHelperText"
-import FormLabel from "@mui/material/FormLabel"
-import Radio from "@mui/material/Radio"
-import RadioGroup from "@mui/material/RadioGroup"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
-
-export type RadioControlProps = {
-    value: string
-    label?: string
-    disabled?: boolean
-}
+import { RadioComponent, RadioControlProps } from "../common/RadioComponent"
 
 type FormRadioGroupProps<T extends FieldValues> = {
     label: string
@@ -21,15 +10,6 @@ type FormRadioGroupProps<T extends FieldValues> = {
     controls: RadioControlProps[]
 }
 
-const RadioControl = ({ value, label, disabled }: RadioControlProps) => {
-    return <FormControlLabel
-        value={value}
-        label={label || value}
-        control={<Radio />}
-        disabled={disabled}
-    />
-}
-
 export const FormRadioGroup = <T extends FieldValues>({
     label,
     classname,
@@ -38,26 +18,23 @@ export const FormRadioGroup = <T extends FieldValues>({
     onChange,
     formProps,
 }: FormRadioGroupProps<T>) => {
+
     return <Controller
         {...formProps}
         render={({ field, fieldState: { error } }) => (
-            <FormControl error={!!error} className={classname}>
-                <FormLabel>{label}</FormLabel>
-                <RadioGroup
-                    {...field}
-                    value={field.value ?? null}
-                    onChange={(_, value) => {
-                        console.log("selected: ", value)
-                        if (onChange) onChange(value)
-                        field.onChange(value || null)
-                    }}
-                    row={row}
-                    className="flex flex-wrap gap-2"
-                >
-                    {controls.map(props => <RadioControl {...props} />)}
-                </RadioGroup>
-                <FormHelperText>{error?.message}</FormHelperText>
-            </FormControl>
+            <RadioComponent 
+                {...field}
+                error={!!error}
+                errorText={error?.message}
+                label={label}
+                className={classname}
+                controls={controls}
+                row={row}
+                onChange={(_, value) => {
+                    field.onChange(value)
+                    if (onChange) onChange(value)
+                }}
+            />
         )}
     />
 }

@@ -8,7 +8,7 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
-import React, { Dispatch, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import React, { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import {
     BirthRateStats,
     InseminationBulls,
@@ -20,7 +20,8 @@ import {
     PregnancyRateStats,
     AnimalsNumberEntry,
     LastEntry,
-    FutureBirthsEntry
+    FutureBirthsEntry,
+    InseminationEntrySave
 } from "./Entities"
 import {
     BarPlot,
@@ -43,9 +44,15 @@ import {
     getPregnancyRateStats,
     getAnimalsNumber,
     getFutureBirths,
-    getBestBulls
+    getBestBulls,
+    deleteInsemination,
+    deleteNoValidate,
+    deleteAndChangeFather,
+    searchInseminationBulls,
+    updateInsemination,
+    updateNoValidation
 } from "./Controller"
-import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
+import { ERROR_TYPE, LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import {
     Button,
     Chip,
@@ -56,7 +63,7 @@ import {
     TableRow,
 } from "@mui/material"
 import { dateTransform, percentageTransform } from "@/util/Transformations"
-import { EditControlButtons } from "@/ui/shared/table/ControlButtons"
+import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
@@ -69,19 +76,53 @@ import { AddInseminationDialog } from "./AddInseminationDialog"
 import Add from "@mui/icons-material/Add"
 import { orange, yellow } from "@mui/material/colors"
 import { CardEntry } from "@/shared/entities/Page"
-import { TableRowProp } from "@/ui/shared/table/Entities"
+import { EditRowProps, TableRowProp } from "@/ui/shared/table/Entities"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
+import { SubmitHandler, useForm } from "react-hook-form"
+import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
+import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
+
+type ErrorDialogContextProps = {
+    defaultWarning: YesNoDialogProps
+    setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setReload: () => void
+}
+
+const ErrorDialogContext = createContext<ErrorDialogContextProps>(undefined!)
 
 export const InseminationDasboard = () => {
 
+    const defaultWarning: YesNoDialogProps = {
+        openYesNo: false,
+        title: undefined,
+        content: undefined,
+        onYes: undefined,
+        onClose: undefined
+    }
+
+    const [error, setError] = useState<APIError>()
+    const [warningProps, setWarningProps] = useState<YesNoDialogProps>(defaultWarning)
     const [reloadFlag, setReloadFlag] = useState(0)
     const [activeRequests, setActiveRequests] = useState(0)
 
     const startLoading = useCallback(() => setActiveRequests(prev => prev + 1), [])
     const stopLoading = useCallback(() => setActiveRequests(prev => Math.max(prev - 1, 0)), [])
+    const setReload = useCallback(() => setReloadFlag(prev => prev + 1), [])
 
     return <DashboardContainer>
         <DashboardToolbar {...{ setReloadFlag, activeRequests }} />
-        <DashboardInformation {...{ reloadFlag, startLoading, stopLoading }} />
+        <ErrorDialogContext value={{ setWarningProps, setError, defaultWarning, setReload }}>
+            <DashboardInformation {...{ reloadFlag, startLoading, stopLoading }} />
+        </ErrorDialogContext>
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
+        <YesNoDialog {...warningProps} />
     </DashboardContainer>
 }
 
@@ -93,7 +134,13 @@ type DashboardToolbarProps = {
 const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarProps) => {
 
     const [addInseminationOpen, setAddInseminationOpen] = useState(false)
+
     const { setPageProps } = useContext(PageContext)
+
+    const closeAddInsemination = (added?: boolean) => {
+        setAddInseminationOpen(false)
+        if (added) setReloadFlag(prev => prev + 1)
+    }
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -120,7 +167,7 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
         >
             Histórico de Inseminações
         </Button>
-        <AddInseminationDialog {...{ addInseminationOpen, setAddInseminationOpen }} />
+        <AddInseminationDialog {...{ addInseminationOpen, closeAddInsemination }} />
     </DashboardTopContainer>
 }
 
@@ -162,7 +209,7 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
         startLoading()
         setLoading(true)
         getBirthRateStats()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData(defaultValues))
             .finally(() => {
                 setLoading(false)
@@ -211,7 +258,7 @@ const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardI
         startLoading()
         setLoading(true)
         getPregnancyRateStats()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData(defaultValues))
             .finally(() => {
                 setLoading(false)
@@ -247,11 +294,11 @@ const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardI
 
 const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const defaultData: CardEntry<AnimalsNumberEntry> = {
+    const defaultData: CardEntry<AnimalsNumberEntry> = useMemo(() => ({
         current: 0,
         trend: 0,
         hist: []
-    }
+    }), [])
 
     const [data, setData] = useState<CardEntry<AnimalsNumberEntry>>(defaultData)
     const [loading, setLoading] = useState(false)
@@ -260,13 +307,13 @@ const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: Dashboard
         startLoading()
         setLoading(true)
         getAnimalsNumber()
-            .then((response) => setData(response.json))
+            .then((response) => setData(response))
             .catch(() => setData(defaultData))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag, startLoading, stopLoading])
+    }, [defaultData, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -301,7 +348,7 @@ const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInfo
         startLoading()
         setLoading(true)
         getBestBulls()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -356,10 +403,9 @@ const InseminationHistGraph = ({ reloadFlag, stopLoading, startLoading }: Dashbo
     useEffect(() => {
         startLoading()
         getInseminationHist()
-            .then(response => {
-                const json: InseminationHist[] = response.json
-                json.forEach(item => item.inseminationDate = new Date(item.inseminationDate))
-                setDataset(response.json)
+            .then((response: InseminationHist[]) => {
+                response.forEach(item => item.inseminationDate = new Date(item.inseminationDate))
+                setDataset(response)
             })
             .catch(() => setDataset([]))
             .finally(() => {
@@ -429,7 +475,7 @@ const FutureBirthsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardI
         startLoading()
         setLoading(true)
         getFutureBirths()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -478,7 +524,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         setLoading(true)
         getLastEntries()
             .then(response => {
-                const lastEntry: LastEntry = response.json
+                const lastEntry: LastEntry = response
                 const lastInsemination = new Date(lastEntry.inseminationDate)
                 setInseminationDate(lastInsemination)
                 setLastDate(lastInsemination.toLocaleString('pt-BR', { dateStyle: 'short' }))
@@ -505,6 +551,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                     <TableRow>
                         <TableCell />
                         <TableCell>Vaca</TableCell>
+                        <TableCell>Data</TableCell>
                         <TableCell>Touro</TableCell>
                         <TableCell>Prenhez</TableCell>
                         <TableCell>Nascimento</TableCell>
@@ -512,7 +559,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                 </TableHead>
                 <TableBody>
                     <DashboardTableBody
-                        colSpan={5}
+                        colSpan={6}
                         dataset={data}
                         loadingProps={{ loading, rowSpan: 20 }}
                         render={row => <LastEntriesRow {...{ row }} />}
@@ -539,25 +586,180 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
 
 const LastEntriesRow = ({ row }: TableRowProp<InseminationEntry>) => {
 
-    const onDelete = useCallback(() => console.log(row.id), [row])
+    const [loading, setLoading] = useState(false)
+    const [editing, setEditing] = useState(false)
+    const [rowData, setRowData] = useState(row)
 
+    const { setError, setWarningProps, setReload, defaultWarning } = useContext(ErrorDialogContext)
+
+    useEffect(() => setRowData(row), [row])
+
+    const onDeleteNoValidation = useCallback(() => {
+        setLoading(true)
+        deleteNoValidate(row.id)
+            .then(() => {
+                setError(undefined)
+                setWarningProps(defaultWarning)
+                setReload()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }, [defaultWarning, row.id, setError, setReload, setWarningProps])
+
+    const onDeleteAndChangeFather = useCallback(() => {
+        setLoading(true)
+        deleteAndChangeFather(row.id)
+            .then(() => {
+                setError(undefined)
+                setWarningProps(defaultWarning)
+                setReload()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }, [defaultWarning, row.id, setError, setReload, setWarningProps])
+
+    const onDelete = useCallback(() => {
+        setLoading(true)
+        deleteInsemination(row.id)
+            .then(() => {
+                setError(undefined)
+                setWarningProps(defaultWarning)
+                setReload()
+            })
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                if (err.kind === "ChildreWarning") {
+                    setWarningProps({
+                        openYesNo: true,
+                        title: err.title,
+                        content: err.message,
+                        onYes: onDeleteAndChangeFather,
+                        onClose: () => setWarningProps(defaultWarning)
+                    })
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: err.title,
+                    content: err.message,
+                    onYes: onDeleteNoValidation,
+                    onClose: () => setWarningProps(defaultWarning)
+                })
+            })
+            .finally(() => setLoading(false))
+    }, [defaultWarning, onDeleteAndChangeFather, onDeleteNoValidation, row.id, setError, setReload, setWarningProps])
+
+    if (editing) return <EntriesRowEditing {...{ setEditing, setRowData, rowData }} />
 
     return <TableRow>
         <TableCell>
-            <EditControlButtons {...{ onDelete }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading }} />
         </TableCell>
-        <TableCell>{row.animalInfo}</TableCell>
-        <TableCell>{row.bullName}</TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell>{dateTransform(rowData.inseminationDate)}</TableCell>
+        <TableCell>{rowData.bullName}</TableCell>
         <TableCell>
             <Chip
-                label={InseminationStatusMap.get(row.pregnancyStatus)}
-                color={InseminationStatusColorMap.get(row.pregnancyStatus)}
+                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
+                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
             />
         </TableCell>
         <TableCell>
             <Chip
-                label={InseminationStatusMap.get(row.birthStatus)}
-                color={InseminationStatusColorMap.get(row.birthStatus)}
+                label={InseminationStatusMap.get(rowData.birthStatus)}
+                color={InseminationStatusColorMap.get(rowData.birthStatus)}
+            />
+        </TableCell>
+    </TableRow>
+
+}
+
+const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<InseminationEntry>) => {
+
+    const [loading, setLoading] = useState(false)
+    const { setError, setWarningProps, defaultWarning } = useContext(ErrorDialogContext)
+
+    const { control, handleSubmit } = useForm<InseminationEntrySave>({
+        defaultValues: {
+            id: rowData.id,
+            animalId: rowData.animalId,
+            bullId: rowData.bullId,
+            inseminationDate: rowData.inseminationDate,
+            observation: rowData.observation
+        }
+    })
+
+    const onUpdateNoValidation: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+        setLoading(true)
+        updateNoValidation(data)
+            .then((response: InseminationEntry) => {
+                setRowData(response)
+                setError(undefined)
+                setWarningProps(defaultWarning)
+            })
+            .catch(err => setError(err))
+            .finally(() => {
+                setLoading(false)
+                setEditing(false)
+                setWarningProps(defaultWarning)
+            })
+    }
+
+    const onUpdate: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+        setLoading(true)
+        updateInsemination(data)
+            .then((response: InseminationEntry) => {
+                setRowData(response)
+                setError(undefined)
+                setWarningProps(defaultWarning)
+            })
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: err.title,
+                    content: err.message,
+                    onYes: handleSubmit(onUpdateNoValidation),
+                    onClose: () => setWarningProps(defaultWarning)
+                })
+            })
+            .finally(() => {
+                setLoading(false)
+                setEditing(false)
+            })
+    }
+
+    const onSave = handleSubmit(onUpdate)
+
+    return <TableRow>
+        <TableCell>
+            <EditingControlButtons {...{ setEditing, onSave, loading }} />
+        </TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell width={300}>
+            <FormDatePicker formProps={{ control, name: 'inseminationDate' }} />
+        </TableCell>
+        <TableCell width={400}>
+            <FormSearchBox
+                formProps={{ control, name: 'bullId' }}
+                searchOptions={searchInseminationBulls}
+            />
+        </TableCell>
+        <TableCell>
+            <Chip
+                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
+                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
+            />
+        </TableCell>
+        <TableCell>
+            <Chip
+                label={InseminationStatusMap.get(rowData.birthStatus)}
+                color={InseminationStatusColorMap.get(rowData.birthStatus)}
             />
         </TableCell>
     </TableRow>
@@ -574,7 +776,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         startLoading()
         setLoading(true)
         getLastGroups()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)

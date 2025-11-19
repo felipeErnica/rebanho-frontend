@@ -1,39 +1,94 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
-import { SubmitHandler, useForm } from "react-hook-form"
-import { TestEntry } from "./Entities"
-import { DialogActionButtons, DialogContainer } from "@/ui/shared/dialog/DialogComponents"
+import { Alert, AlertTitle, Collapse, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
+import { Control, SubmitHandler, useForm, UseFormGetValues, UseFormSetValue } from "react-hook-form"
+import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
-import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchAllMothers } from "@/shared/GlobalApiCalls"
+import { searchOwnedMothers } from "@/shared/GlobalApiCalls"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormRadioGroup } from "@/ui/shared/form-controls/FormRadioGroup"
 import { useEffect, useState } from "react"
+import dayjs from "dayjs"
+import { RadioComponent } from "@/ui/shared/common/RadioComponent"
+import { addTest, replaceTest } from "./Controller"
+import { APIError } from "@/util/ApiRequest"
+
+type TestEntryForm = {
+    id: string
+    testDate: Date
+    animalId: string
+    birthForecast?: Date 
+    daysTobirth?: number 
+    forecastType: 'days' | 'date'
+    pregnancyStatus: string
+    observation?: string 
+}
 
 type AddTestDialogProps = {
     addTestOpen: boolean
-    setAddTestOpen: (addTestOpen: boolean) => void
+    closeAddTest: (added?: boolean) => void
     testDate?: Date
 }
 
-export const AddTestDialog = ({ addTestOpen, setAddTestOpen, testDate }: AddTestDialogProps) => {
+export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDialogProps) => {
 
-    const { handleSubmit, control, reset, setValue } = useForm<TestEntry>({
+    const { handleSubmit, control, reset, setValue, getValues } = useForm<TestEntryForm>({
         defaultValues: { testDate }
     })
 
     const [disableForecast, setDisableForecast] = useState(true)
+    const [forecastType, setForecastType] = useState<'days' | 'date'>('days')
+
+    const [added, setAdded] = useState(false)
+    const [warningProps, setWarningProps] = useState<APIError>()
+    const [error, setError] = useState<APIError>()
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => testDate && setValue('testDate', testDate), [setValue, testDate])
 
-    const onSubmit: SubmitHandler<TestEntry> = (data: TestEntry) => {
-        console.log(data)
-        reset({ testDate: data.testDate })
+    const onReplace: SubmitHandler<TestEntryForm> = (data: TestEntryForm) => {
+        setLoading(true)
+        replaceTest(data)
+            .then(() => {
+                reset({
+                    testDate: data.testDate,
+                    pregnancyStatus: data.pregnancyStatus
+                })
+                setAdded(true)
+                setError(undefined)
+                setWarningProps(undefined)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }
+
+    const onSubmit: SubmitHandler<TestEntryForm> = (data: TestEntryForm) => {
+        setLoading(true)
+        addTest(data)
+            .then(() => {
+                reset({
+                    testDate: data.testDate,
+                    pregnancyStatus: data.pregnancyStatus
+                })
+                setAdded(true)
+                setError(undefined)
+                setWarningProps(undefined)
+            })
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                setWarningProps(err)
+            })
+            .finally(() => setLoading(false))
     }
 
     const onClose = () => {
         reset()
-        setAddTestOpen(false)
+        setError(undefined)
+        setWarningProps(undefined)
+        closeAddTest(added)
     }
 
     return <Dialog
@@ -42,9 +97,17 @@ export const AddTestDialog = ({ addTestOpen, setAddTestOpen, testDate }: AddTest
     >
         <DialogTitle>Adicionar Toque</DialogTitle>
         <DialogContent>
-            <DialogContainer className="flex flex-col gap-8">
+            <Collapse in={!!error}>
+                <Alert severity="error" onClose={() => setError(undefined)}>
+                    <AlertTitle>{error?.title}</AlertTitle>
+                    {error?.message}
+                </Alert>
+            </Collapse>
+            <DialogContainer>
                 <FormDatePicker
                     label="Data de Exame"
+                    className="w-[250]"
+                    disableFuture
                     formProps={{
                         control,
                         name: 'testDate',
@@ -53,7 +116,8 @@ export const AddTestDialog = ({ addTestOpen, setAddTestOpen, testDate }: AddTest
                 />
                 <FormSearchBox
                     label="Vaca"
-                    searchOptions={searchAllMothers}
+                    className="w-[400]"
+                    searchOptions={searchOwnedMothers}
                     formProps={{
                         control,
                         rules: { required: REQUIRED_FIELD_MSG },
@@ -74,16 +138,26 @@ export const AddTestDialog = ({ addTestOpen, setAddTestOpen, testDate }: AddTest
                         name: 'pregnancyStatus'
                     }}
                 />
-                <FormDatePicker
-                    label="Data Prevista de Parição"
-                    disablePast
-                    formProps={{
-                        control,
-                        disabled: disableForecast,
-                        rules: { required: REQUIRED_FIELD_MSG },
-                        name: 'birthForecast'
-                    }}
-                />
+                <div className="flex flex-col gap-2">
+                    <RadioComponent
+                        value={forecastType}
+                        disabled={disableForecast}
+                        label="Previsão de Parto"
+                        onChange={(_, value) => setForecastType(value as 'days' | 'date')}
+                        row
+                        controls={[
+                            { value: 'days', label: 'Por Dia' },
+                            { value: 'date', label: 'Por Data' }
+                        ]}
+                    />
+                    <ForecastControl
+                        disableForecast={disableForecast}
+                        control={control}
+                        forecastType={forecastType}
+                        getValue={getValues}
+                        setValue={setValue}
+                    />
+                </div>
                 <FormTextField
                     label="Observações"
                     multiline
@@ -99,8 +173,85 @@ export const AddTestDialog = ({ addTestOpen, setAddTestOpen, testDate }: AddTest
             <DialogActionButtons
                 onClose={onClose}
                 onSave={handleSubmit(onSubmit)}
+                loading={loading}
                 saveText="Adicionar"
             />
         </DialogActions>
+        <YesNoDialog
+            openYesNo={!!warningProps}
+            title={warningProps?.title}
+            content={warningProps?.message}
+            onYes={handleSubmit(onReplace)}
+            onClose={() => setWarningProps(undefined)}
+        />
     </Dialog>
+}
+
+type ForecastControlProps = {
+    setValue: UseFormSetValue<TestEntryForm>
+    getValue: UseFormGetValues<TestEntryForm>
+    forecastType: "date" | "days" | undefined
+    control: Control<TestEntryForm, any, TestEntryForm>
+    disableForecast: boolean
+}
+
+function ForecastControl({ control, setValue, getValue, forecastType, disableForecast }: ForecastControlProps) {
+
+    const PREGNANCY_DURATION_EST = 310
+
+    if (!forecastType) return
+
+    if (forecastType == 'date') {
+        return <FormDatePicker
+            label="Data Prevista"
+            className="w-[200]"
+            minDate={dayjs(getValue('testDate')).add(1, 'day')}
+            formProps={{
+                control,
+                name: 'birthForecast',
+                disabled: disableForecast,
+                rules: { required: REQUIRED_FIELD_MSG }
+            }}
+            onChange={(value) => {
+
+                if (!value) {
+                    setValue('daysTobirth', undefined)
+                    return
+                }
+
+                const testDate = dayjs(getValue('testDate'))
+                const dateDiff = value.diff(testDate, 'days')
+                const daysTobirth = PREGNANCY_DURATION_EST - dateDiff
+                setValue('daysTobirth', daysTobirth)
+            }}
+        />
+    }
+
+    return <FormTextField
+        label="Tempo de Prenhez"
+        className="w-[200]"
+        type="number"
+        formProps={{
+            control,
+            name: 'daysTobirth',
+            disabled: disableForecast,
+            rules: {
+                required: REQUIRED_FIELD_MSG,
+                max: { value: PREGNANCY_DURATION_EST, message: `O número de dias não pode ser maior que ${PREGNANCY_DURATION_EST}.` },
+                min: { value: 1, message: "Insira um número maior que 0." }
+            }
+        }}
+        onChange={(value: number) => {
+
+            if (!value) {
+                setValue('birthForecast', undefined)
+                return
+            }
+
+            const testDate = dayjs(getValue('testDate'))
+            const daysTobirth = PREGNANCY_DURATION_EST - value
+            const birthForecast = testDate.add(daysTobirth, 'days')
+            setValue('birthForecast', birthForecast.toDate())
+        }}
+    />
 }

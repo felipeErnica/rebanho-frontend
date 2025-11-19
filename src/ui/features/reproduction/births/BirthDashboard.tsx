@@ -68,6 +68,12 @@ export const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTop
     const { setPageProps } = useContext(PageContext)
     const [addBirthOpen, setAddBirthOpen] = useState(false)
 
+    const closeBirthDialog = useCallback((added?: boolean) => {
+        setAddBirthOpen(false)
+        if (!added) return
+        setReloadFlag(prev => prev + 1)
+    }, [setReloadFlag])
+
     return <DashboardTopContainer>
         <ReloadButton
             variant="text"
@@ -94,7 +100,7 @@ export const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTop
         >
             Tabela de Parição
         </Button>
-        <AddBirthDialog {...{ addBirthOpen, setAddBirthOpen }} />
+        <AddBirthDialog {...{ addBirthOpen, closeBirthDialog }} />
     </DashboardTopContainer>
 }
 

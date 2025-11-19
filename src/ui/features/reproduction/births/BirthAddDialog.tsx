@@ -10,47 +10,73 @@ import {
 } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { BirthEntrySave } from "./Entities"
-import { searchFather } from "@/shared/GlobalApiCalls"
+import { searchFather, searchOwnedMothers } from "@/shared/GlobalApiCalls"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormRadioGroup } from "@/ui/shared/form-controls/FormRadioGroup"
-import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
-import { useState } from "react"
-import { addBirth, replaceBirth, searchMother } from "./Controller"
+import { DialogActionButtons, DialogContainer, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
+import { useCallback, useMemo, useState } from "react"
+import { addBirth, addBirthNoValidation, getBirthFather, replaceBirth } from "./Controller"
 import { APIError } from "@/util/ApiRequest"
 import { CONFLICT_WARNING, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 
 type AddBirthDialogProps = {
     addBirthOpen: boolean
-    setAddBirthOpen: (addBirthOpen: boolean) => void
+    closeBirthDialog: (added?: boolean) => void
 }
 
-export const AddBirthDialog = ({ addBirthOpen, setAddBirthOpen }: AddBirthDialogProps) => {
+export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialogProps) => {
+
+    const defaultWarning: YesNoDialogProps = useMemo(() => ({
+        openYesNo: false,
+        title: undefined,
+        content: undefined,
+        onYes: undefined,
+        onClose: undefined
+    }), [])
 
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<APIError>()
-    const [warning, setWarning] = useState<APIError>()
+    const [warning, setWarning] = useState<YesNoDialogProps>(defaultWarning)
+    const [added, setAdded] = useState(false)
 
-    const { handleSubmit, control, reset } = useForm<BirthEntrySave>()
+    const { handleSubmit, control, reset, setValue, getValues } = useForm<BirthEntrySave>()
 
-    const onClose = () => {
+    const onClose = useCallback(() => {
         reset()
         setError(undefined)
-        setWarning(undefined)
-        setAddBirthOpen(false)
-    }
+        setWarning(defaultWarning)
+        closeBirthDialog(added)
+    }, [added, closeBirthDialog, defaultWarning, reset])
 
     const onSave: SubmitHandler<BirthEntrySave> = (data: BirthEntrySave) => {
         setLoading(true)
         addBirth(data)
             .then(() => {
-                reset()
                 setError(undefined)
-                setWarning(undefined)
+                setWarning(defaultWarning)
+                setAdded(true)
+                reset()
             })
             .catch((err: APIError) => {
                 if (err.kind == CONFLICT_WARNING) {
-                    setWarning(err)
+                    setWarning({
+                        openYesNo: true,
+                        title: err.title,
+                        content: err.message,
+                        onClose: () => setWarning(defaultWarning),
+                        onYes: handleSubmit(onAddNoValidation)
+                    })
+                    return
+                }
+                if (err.kind == 'RingWarning') {
+                    setWarning({
+                        openYesNo: true,
+                        title: err.title,
+                        content: err.message,
+                        onClose: () => setWarning(defaultWarning),
+                        onYes: handleSubmit(onReplace)
+                    })
                     return
                 }
                 setError(err)
@@ -63,12 +89,41 @@ export const AddBirthDialog = ({ addBirthOpen, setAddBirthOpen }: AddBirthDialog
             .then(() => {
                 reset()
                 setError(undefined)
-                setWarning(undefined)
+                setWarning(defaultWarning)
+                setAdded(true)
             })
             .catch((err: APIError) => {
                 setError(err)
-                setWarning(undefined)
+                setWarning(defaultWarning)
             })
+    }
+
+    const onAddNoValidation: SubmitHandler<BirthEntrySave> = (data: BirthEntrySave) => {
+        addBirthNoValidation(data)
+            .then(() => {
+                reset()
+                setError(undefined)
+                setWarning(defaultWarning)
+                setAdded(true)
+            })
+            .catch((err: APIError) => {
+                setError(err)
+                setWarning(defaultWarning)
+            })
+    }
+
+    const getFatherId = () => {
+        const motherId = getValues('motherId')
+        const birthDate = getValues('birthDate')
+
+        if (!motherId || !birthDate) return
+
+        const entry: BirthEntrySave = {
+            birthDate: birthDate,
+            motherId: motherId
+        }
+
+        getBirthFather(entry).then((response: BirthEntrySave) => setValue('fatherId', response.fatherId))
     }
 
     return <Dialog
@@ -85,18 +140,26 @@ export const AddBirthDialog = ({ addBirthOpen, setAddBirthOpen }: AddBirthDialog
             </Collapse>
             <DialogContainer>
                 <FormDatePicker
-                    label="Data de Nascimento"
+                    label="Data de Nascimento*"
                     className="w-[200]"
+                    onBlur={getFatherId}
+                    disableFuture
                     formProps={{
                         control,
                         name: 'birthDate',
                         rules: { required: REQUIRED_FIELD_MSG }
                     }}
                 />
+                <FormTextField
+                    label="Brinco"
+                    className="w-[200]"
+                    formProps={{ control, name: 'ringNumber' }}
+                />
                 <FormSearchBox
-                    label="Mãe"
+                    label="Mãe*"
                     className="w-[400]"
-                    searchOptions={searchMother}
+                    searchOptions={searchOwnedMothers}
+                    onChange={getFatherId}
                     formProps={{
                         control,
                         name: 'motherId',
@@ -104,7 +167,7 @@ export const AddBirthDialog = ({ addBirthOpen, setAddBirthOpen }: AddBirthDialog
                     }}
                 />
                 <FormRadioGroup
-                    label="Sexo"
+                    label="Sexo*"
                     row
                     controls={[{ label: 'Macho', value: 'M' }, { label: 'Fêmea', value: 'F' }]}
                     formProps={{
@@ -114,7 +177,7 @@ export const AddBirthDialog = ({ addBirthOpen, setAddBirthOpen }: AddBirthDialog
                     }}
                 />
                 <FormSearchBox
-                    label="Pai"
+                    label="Pai*"
                     searchOptions={searchFather}
                     formProps={{
                         control,
@@ -139,12 +202,6 @@ export const AddBirthDialog = ({ addBirthOpen, setAddBirthOpen }: AddBirthDialog
                 saveText="Adicionar"
             />
         </DialogActions>
-        <YesNoDialog
-            openYesNo={!!warning}
-            title={warning?.title}
-            content={warning?.message}
-            onYes={handleSubmit(onReplace)}
-            onClose={() => setWarning(undefined)}
-        />
+        <YesNoDialog {...warning} />
     </Dialog>
 }

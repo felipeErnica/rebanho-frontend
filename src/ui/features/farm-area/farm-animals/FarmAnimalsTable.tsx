@@ -1,6 +1,6 @@
 import { Ref, useEffect, useRef, useState } from "react"
 import { AnimalFarm } from "./Entities"
-import { EditRow, NormalRow } from "@/ui/shared/table/Entities"
+import { EditRowProps, NormalRow } from "@/ui/shared/table/Entities"
 import { dateTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { useForm } from "react-hook-form"
@@ -107,7 +107,7 @@ const AnimalFarmNormalRow = ({ rowValue, setEditing }: NormalRow<AnimalFarm>) =>
     </>
 }
 
-const AnimalFarmEditRow = ({ rowData: rowValue, setEditing, setRowData: setRowValue }: EditRow<AnimalFarm>) => {
+const AnimalFarmEditRow = ({ rowData: rowValue, setEditing, setRowData: setRowValue }: EditRowProps<AnimalFarm>) => {
 
     const { handleSubmit, control, setValue } = useForm({ defaultValues: rowValue })
 

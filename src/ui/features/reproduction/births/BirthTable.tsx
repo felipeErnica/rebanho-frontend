@@ -39,11 +39,13 @@ import Add from "@mui/icons-material/Add"
 import { APIError } from "@/util/ApiRequest"
 import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
 import { ERROR_TYPE } from "@/ui/shared/Globals"
+import { AddBirthDialog } from "./BirthAddDialog"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
     setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
     defaultWarning: YesNoDialogProps
+    setRows: Dispatch<SetStateAction<BirthEntry[]>>
 }
 
 const ErrorContext = createContext<ErrorContextProps>(undefined!)
@@ -67,6 +69,7 @@ export const BirthTablePage = () => {
     const [filterOpen, setFilterOpen] = useState(false)
     const [footerData, setFooterData] = useState<BirthFooter>({ total: 0, intervalAverage: 0 })
 
+    const [addBirthOpen, setAddBirthOpen] = useState(false)
     const [error, setError] = useState<APIError>()
     const [warningProps, setWarningProps] = useState<YesNoDialogProps>(defaultWarning)
     const anchorEl = useRef<HTMLButtonElement>(null)
@@ -80,13 +83,23 @@ export const BirthTablePage = () => {
     }, [order, sort, filter])
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
+
+    const closeBirthDialog = useCallback((added?: boolean) => {
+        setAddBirthOpen(false)
+        if (!added) return
+        onReload()
+    }, [onReload])
+
     const otherActions = (
-        <Button startIcon={<Add />}>
+        <Button
+            startIcon={<Add />}
+            onClick={() => setAddBirthOpen(true)}
+        >
             Adicionar Parição
         </Button>
     )
 
-    const { rows, scrollRef, fetchNextPage } = usePagination<BirthEntry>({ fetchPage, setLoading })
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<BirthEntry>({ fetchPage, setLoading })
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Mãe', value: DEFAULT_SORT },
         { name: 'Nome da Mãe', value: 'mother_name, calf_birth_date' },
@@ -102,7 +115,7 @@ export const BirthTablePage = () => {
             reloadProps={{ loading: isLoading, onReload }}
             otherProps={otherActions}
         />
-        <ErrorContext value={{ setError, setWarningProps, defaultWarning }}>
+        <ErrorContext value={{ setError, setWarningProps, defaultWarning, setRows }}>
             <BirthTable {...{ rows, scrollRef, fetchNextPage, isLoading, footerData }} />
         </ErrorContext>
         <BirthFilter {...{ setFilterOpen, filterOpen, filter, setFilter, anchorEl }} />
@@ -113,6 +126,7 @@ export const BirthTablePage = () => {
             content={error?.message}
         />
         <YesNoDialog {...warningProps} />
+        <AddBirthDialog {...{ addBirthOpen, closeBirthDialog }} />
     </div>
 }
 
@@ -181,16 +195,19 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
     const [rowData, setRowData] = useState<BirthEntry>(data)
     const [loadingControls, setLoadingControls] = useState(false)
 
-    const { setError, setWarningProps, defaultWarning } = useContext(ErrorContext)
+    const { setError, setWarningProps, defaultWarning, setRows } = useContext(ErrorContext)
 
     useEffect(() => setRowData(data), [data])
 
     const onDeleteNoValidation = useCallback(() => {
         deleteBirthNoValidation(data.id)
-            .then(() => setError(undefined))
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != data.id))
+            })
             .catch(err => setError(err))
             .finally(() => setWarningProps(defaultWarning))
-    }, [data.id, defaultWarning, setError, setWarningProps])
+    }, [data.id, defaultWarning, setError, setRows, setWarningProps])
 
     const onDelete = useCallback(() => {
         setLoadingControls(true)
@@ -198,6 +215,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
             .then(() => {
                 setError(undefined)
                 setWarningProps(defaultWarning)
+                setRows(prev => prev.filter(item => item.id != data.id))
             })
             .catch((error: APIError) => {
                 if (error.errType === ERROR_TYPE) {
@@ -213,7 +231,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
                 })
             })
             .finally(() => setLoadingControls(false))
-    }, [data.id, defaultWarning, onDeleteNoValidation, setError, setWarningProps])
+    }, [data.id, defaultWarning, onDeleteNoValidation, setError, setRows, setWarningProps])
 
     if (isLoading) return <TableLoadingCells colSpan={7} />
     if (editing) return <BirthRowEdit {...{ setEditing, rowData, setRowData }} />
@@ -245,7 +263,15 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
 
     const [loading, setLoading] = useState(false)
 
-    const { handleSubmit, control } = useForm<BirthEntrySave>({ defaultValues: rowData })
+    const { handleSubmit, control } = useForm<BirthEntrySave>({
+        defaultValues: {
+            id: rowData.id,
+            birthDate: rowData.calfBirthDate,
+            sex: rowData.calfSex,
+            fatherId: rowData.calfFatherId,
+            observation: rowData.observation
+        }
+    })
     const { setError } = useContext(ErrorContext)
 
     const onSave: SubmitHandler<BirthEntrySave> = (data: BirthEntrySave) => {
@@ -254,9 +280,10 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
             .then(res => {
                 setRowData(res)
                 setError(undefined)
+                setEditing(false)
             })
             .catch((error: APIError) => setError(error))
-            .finally(() => setLoading(true))
+            .finally(() => setLoading(false))
     }
 
     return <>

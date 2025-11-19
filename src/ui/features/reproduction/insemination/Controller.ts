@@ -1,5 +1,5 @@
-import { apiGet, apiPost, buildPageCall } from "@/util/ApiRequest"
-import { InseminationEntryFilter } from "./Entities"
+import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@/util/ApiRequest"
+import { InseminationEntryFilter, InseminationEntrySave } from "./Entities"
 
 const DASHBOARD_BASE = 'reproduction/insemination/dashboard/'
 const GROUP_BASE = 'reproduction/insemination/groups/'
@@ -65,6 +65,34 @@ export function getEntriesByGroupFoot(inseminationDate: Date) {
     return apiGet(GROUP_BASE  + `${inseminationDate.toISOString()}/entries/foot`)
 }
 
-export function searchInseminationBulls(input?: string) {
-    return apiGet(BULLS_BASE  + `search?input=${input}`)
+export function searchInseminationBulls() {
+    return apiGet(BULLS_BASE  + "search")
+}
+
+export function addInsemiantion(entry: InseminationEntrySave) {
+    return apiPut(ENTRY_BASE + "add", entry)
+}
+
+export function deleteInsemination(id: string) {
+    return apiDelete(ENTRY_BASE + `${id}/delete`)
+}
+
+export function deleteNoValidate(id: string) {
+    return apiDelete(ENTRY_BASE + `${id}/delete-no-validation`)
+}
+
+export function deleteAndChangeFather(id: string) {
+    return apiDelete(ENTRY_BASE + `${id}/delete-change-father`)
+}
+
+export function replaceInsemination(entry: InseminationEntrySave) {
+    return apiPut(ENTRY_BASE + "replace", entry)
+}
+
+export function updateInsemination(entry: InseminationEntrySave) {
+    return apiPut(ENTRY_BASE + "update", entry)
+}
+
+export function updateNoValidation(entry: InseminationEntrySave) {
+    return apiPut(ENTRY_BASE + "update-no-validation", entry)
 }

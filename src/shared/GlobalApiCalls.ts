@@ -15,14 +15,16 @@ export function searchFarm(): Promise<SearchBoxItem[]> {
 }
 
 export function searchFather(): Promise<SearchBoxItem[]> {
-    const query = ANIMAL_SEARCH_BASE + 'father'
-    return apiGet(query)
+    return apiGet(ANIMAL_SEARCH_BASE + 'father')
 }
 
 export function searchAllMothers(): Promise<SearchBoxItem[]> {
-    return apiGet(ANIMAL_SEARCH_BASE + "mother")
+    return apiGet(ANIMAL_SEARCH_BASE + "mother-all")
 }
 
+export function searchOwnedMothers() {
+    return apiGet(ANIMAL_SEARCH_BASE + "mother")
+}
 export function searchDairyAnimal(): Promise<SearchBoxItem[]> {
     return apiGet(ANIMAL_SEARCH_BASE + "dairy-animal")
 }

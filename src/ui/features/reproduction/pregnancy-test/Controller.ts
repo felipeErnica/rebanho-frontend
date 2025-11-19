@@ -1,5 +1,5 @@
-import { apiGet, apiPost, buildPageCall } from "@/util/ApiRequest";
-import { TestEntryFilter } from "./Entities";
+import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@/util/ApiRequest";
+import { TestEntryFilter, TestEntrySave } from "./Entities";
 
 const DASHBOARD_BASE = "reproduction/pregnancy-test/dashboard/"
 const ENTRIES_BASE = "reproduction/pregnancy-test/entries/"
@@ -61,4 +61,20 @@ export function findEntriesByGroup(testDate: Date, sort: string, order: string) 
 
 export function getEntriesByGroupFoot(testDate: Date) {
     return apiGet(GROUP_BASE + testDate.toISOString() + "/entries/foot")
+}
+
+export function addTest(entry: TestEntrySave) {
+    return apiPut(ENTRIES_BASE + "add", entry)
+}
+
+export function replaceTest(entry: TestEntrySave) {
+    return apiPut(ENTRIES_BASE + "replace", entry)
+}
+
+export function updateTest(entry: TestEntrySave) {
+    return apiPut(ENTRIES_BASE + "update", entry)
+}
+
+export function deleteTest(id: string) {
+    return apiDelete(ENTRIES_BASE + `${id}/delete`)
 }

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { TestGroup } from "./Entities"
 import { findGroups } from "./Controller"
 import Table from "@mui/material/Table"
@@ -17,6 +17,12 @@ import { BirthTestDashboardPage, BirthTestGroupPage } from "./BirthTestPages"
 import Add from "@mui/icons-material/Add"
 import { AddTestDialog } from "./AddTestDialog"
 
+type ReloadContextProps = {
+    onReload: () => void
+}
+
+const ReloadContext = createContext<ReloadContextProps>(undefined!)
+
 export const GroupTablePage = () => {
 
     const [rows, setRows] = useState<TestGroup[]>([])
@@ -25,7 +31,7 @@ export const GroupTablePage = () => {
     const onReload = useCallback(() => {
         setLoading(true)
         findGroups()
-            .then(response => setRows(response.json))
+            .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [])
@@ -33,7 +39,9 @@ export const GroupTablePage = () => {
     useEffect(onReload, [onReload])
 
     return <div className="w-full h-full flex flex-col">
-        <GroupTable {...{ loading, rows }} />
+        <ReloadContext value={{ onReload }}>
+            <GroupTable {...{ loading, rows }} />
+        </ReloadContext>
     </div>
 }
 
@@ -75,7 +83,14 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
     const [editing, setEditing] = useState(false)
     const [addTestOpen, setAddTestOpen] = useState(false)
 
+    const { onReload } = useContext(ReloadContext)
+
     useEffect(() => setRowData(item), [item])
+
+    const closeAddTest = (added?: boolean) => {
+        setAddTestOpen(false)
+        if (added) onReload()
+    }
 
     if (loading) return <TableLoadingRow colSpan={6} />
     if (editing) return <GroupsRowEditing {...{ rowData, setEditing, setRowData }} />
@@ -114,7 +129,7 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
                 trendProps={{ trend: rowData.birthComparison }}
             />
         </TableBodyCell>
-        <AddTestDialog {...{ addTestOpen, setAddTestOpen, testDate: item.testDate }} />
+        <AddTestDialog {...{ addTestOpen, closeAddTest, testDate: item.testDate }} />
     </TableBodyRow>
 }
 
