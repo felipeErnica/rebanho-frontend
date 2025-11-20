@@ -1,5 +1,6 @@
 import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@/util/ApiRequest";
-import { TestEntryFilter, TestEntrySave } from "./Entities";
+import { TestEntryFilter, TestEntrySave, TestGroup } from "./Entities";
+import { dateToISO } from "@/util/Transformations";
 
 const DASHBOARD_BASE = "reproduction/pregnancy-test/dashboard/"
 const ENTRIES_BASE = "reproduction/pregnancy-test/entries/"
@@ -77,4 +78,8 @@ export function updateTest(entry: TestEntrySave) {
 
 export function deleteTest(id: string) {
     return apiDelete(ENTRIES_BASE + `${id}/delete`)
+}
+
+export function updateBatch(testDate: Date, group: TestGroup) {
+    return apiPut(GROUP_BASE + dateToISO(testDate) + "/update", group)
 }

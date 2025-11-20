@@ -30,3 +30,10 @@ export function dateTransform(value: Date | undefined, options?: Intl.DateTimeFo
     if (dateString == 'Invalid Date') return ""
     return dateString
 }
+
+export function dateToISO(value: Date | undefined) {
+    if (value === undefined) return ""
+    if (!value) return ""
+    value = new Date(value)
+    return value.toISOString()
+}

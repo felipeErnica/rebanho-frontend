@@ -1,4 +1,15 @@
-import { createContext, Dispatch, RefObject, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import {
+    createContext,
+    Dispatch,
+    RefObject,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react"
 import {
     BirthStatusMap,
     PregnancyStatusItems,
@@ -32,6 +43,9 @@ import { ChipColorScheme } from "@/ui/shared/Globals"
 import { FormComboBox } from "@/ui/shared/form-controls/FormComboBox"
 import { APIError } from "@/util/ApiRequest"
 import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
+import { Button } from "@mui/material"
+import Add from "@mui/icons-material/Add"
+import { AddTestDialog } from "./AddTestDialog"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -58,6 +72,7 @@ export const EntriesTablePage = () => {
     const [foot, setFoot] = useState(defaultFoot)
 
     const [error, setError] = useState<APIError>()
+    const [addTestOpen, setAddTestOpen] = useState(false)
 
     const anchorEl = useRef<HTMLButtonElement>(null)
 
@@ -79,12 +94,25 @@ export const EntriesTablePage = () => {
 
     const { rows, scrollRef, fetchNextPage, setRows } = usePagination<TestEntry>({ setLoading, fetchPage })
 
+    const closeAddTest = (added?: boolean) => {
+        setAddTestOpen(false)
+        if (added) onReload()
+    }
+
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
             reloadProps={{ onReload, loading }}
             filterProps={{ setFilterOpen, anchorEl }}
             orderProps={{ order, setOrder }}
             sortProps={{ sort, sortColumns, setSort, defaultSort }}
+            otherProps={(
+                <Button
+                    onClick={() => setAddTestOpen(true)}
+                    startIcon={<Add />}
+                >
+                    Adicionar Toque
+                </Button>
+            )}
         />
         <ErrorContext value={{ setRows, setError }}>
             <EntriesTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
@@ -96,6 +124,8 @@ export const EntriesTablePage = () => {
             content={error?.message}
             onClose={() => setError(undefined)}
         />
+        <AddTestDialog {...{ addTestOpen, closeAddTest }} />
+
     </div>
 }
 

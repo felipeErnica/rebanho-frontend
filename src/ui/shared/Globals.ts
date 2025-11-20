@@ -1,3 +1,5 @@
+import { TimerYesNoDialogProps, YesNoDialogProps } from "./dialog/DialogComponents"
+
 export type ReloadFunction = () => void
 
 export const REQUIRED_FIELD_MSG = 'Este campo é obrigatório!'
@@ -13,6 +15,24 @@ export const ChipColorScheme: Map<string, ColorStrings> = new Map([
     ['STAND_BY', 'warning'],
 ])
 
+
+//Dialogo de Aviso.
+export const DefaultWarning: YesNoDialogProps = {
+    openYesNo: false,
+    title: undefined,
+    content: undefined,
+    onClose: undefined,
+    onYes: undefined
+}
+
+export const DefaultTimerWarning: TimerYesNoDialogProps = {
+    openYesNo: false,
+    waitTime: -1,
+    title: undefined,
+    content: undefined,
+    onClose: undefined,
+    onYes: undefined
+}
 
 //Tipo de Erros de API
 export const ERROR_TYPE = "Error"
