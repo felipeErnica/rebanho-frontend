@@ -13,23 +13,16 @@ import {
     useState
 } from "react"
 import {
-    deleteAndChangeFather,
-    deleteInsemination,
-    deleteNoValidate,
+    deleteBreeding,
+    deleteChangeFather,
+    deleteNoValidation,
     findEntriesPage,
     getEntriesFoot,
-    searchInseminationBulls,
-    updateInsemination,
+    searchBreedingBulls,
+    updateBreeding,
     updateNoValidation
 } from "./Controller"
-import {
-    InseminationFooter,
-    InseminationEntry,
-    InseminationEntryFilter,
-    InseminationStatusColorMap,
-    InseminationStatusMap,
-    InseminationEntrySave,
-} from "./Entities"
+import { BreedingEntry, BreedingEntryFilter, BreedingEntrySave, BreedingFoot, StatusColorMap, StatusMap } from "./Entities"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import {
@@ -46,59 +39,50 @@ import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/Con
 import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { InseminationFilter } from "./InseminationFilter"
 import Add from "@mui/icons-material/Add"
-import { AddInseminationDialog } from "./AddInseminationDialog"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
-import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
+import { AddBreedingDialog } from "./AddBreedingDialog"
+import { BreedingFilter } from "./BreedingFilter"
 import { APIError } from "@/util/ApiRequest"
-import { ERROR_TYPE } from "@/ui/shared/Globals"
+import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
+import { DefaultWarning, ERROR_TYPE, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 
-type DeleteContextProps = {
+type EditContextProps = {
+    setRows: Dispatch<SetStateAction<BreedingEntry[]>>
     setError: Dispatch<SetStateAction<APIError | undefined>>
     setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
-    setRows: Dispatch<SetStateAction<InseminationEntry[]>>
-    defaultWarning: YesNoDialogProps
     loadFoot: () => void
 }
 
-const DeleteContext = createContext<DeleteContextProps>(undefined!)
+const EditContext = createContext<EditContextProps>(undefined!)
 
 export const EntriesTablePage = () => {
 
-    const defaultSort = 'insemination_date,animal_order'
+    const defaultSort = 'breeding_date,animal_order'
 
-    const defaultFoot: InseminationFooter = useMemo(() => ({
+    const defaultFoot: BreedingFoot = useMemo(() => ({
         totals: 0,
         averageBirthRate: 0,
         averagePregnancyRate: 0
     }), [])
 
-    const defaultWarning: YesNoDialogProps = {
-        openYesNo: false,
-        title: undefined,
-        content: undefined,
-        onYes: undefined,
-        onClose: undefined
-    }
-
-    const [filter, setFilter] = useState<InseminationEntryFilter>({ isFiltered: false })
+    const [filter, setFilter] = useState<BreedingEntryFilter>({ isFiltered: false })
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [sort, setSort] = useState(defaultSort)
     const [order, setOrder] = useState('desc')
     const [foot, setFoot] = useState(defaultFoot)
-    const [addInseminationOpen, setAddInseminationOpen] = useState(false)
+    const [addBreedingOpen, setAddBreedingOpen] = useState(false)
 
-    const [warningProps, setWarningProps] = useState(defaultWarning)
     const [error, setError] = useState<APIError>()
+    const [warningProps, setWarningProps] = useState(DefaultWarning)
 
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const loadFoot = useCallback(() => {
         getEntriesFoot(filter)
-            .then(response => setFoot(response))
+            .then(response => setFoot(response.json))
             .catch(() => setFoot(defaultFoot))
     }, [defaultFoot, filter])
 
@@ -109,18 +93,18 @@ export const EntriesTablePage = () => {
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
-    const closeAddInsemination = useCallback((added?: boolean) => {
-        setAddInseminationOpen(false)
+    const closeAddBreeding = useCallback((added?: boolean) => {
         if (added) onReload()
+        setAddBreedingOpen(false)
     }, [onReload])
 
     const sortColumns: ComboBoxItem[] = [
-        { name: 'Brinco da Vaca', value: 'animal_order, insemination_date' },
-        { name: 'Nome da Vaca', value: 'animal_name, insemination_date' },
-        { name: 'Data de Inseminação', value: defaultSort }
+        { name: 'Brinco da Vaca', value: 'animal_order,breeding_date' },
+        { name: 'Nome da Vaca', value: 'name,breeding_date' },
+        { name: 'Data de Monta', value: defaultSort }
     ]
 
-    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<InseminationEntry>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<BreedingEntry>({ setLoading, fetchPage })
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -131,30 +115,30 @@ export const EntriesTablePage = () => {
             otherProps={(
                 <Button
                     startIcon={<Add />}
-                    onClick={() => setAddInseminationOpen(true)}
+                    onClick={() => setAddBreedingOpen(true)}
                 >
-                    Adicionar Inseminação
+                    Adicionar Monta
                 </Button>
             )}
         />
-        <DeleteContext value={{ setWarningProps, defaultWarning, setRows, setError, loadFoot }}>
+        <EditContext value={{ setError, setRows, loadFoot, setWarningProps }}>
             <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
-        </DeleteContext>
-        <InseminationFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
-        <AddInseminationDialog {...{ addInseminationOpen, closeAddInsemination }} />
-        <YesNoDialog {...warningProps} />
+        </EditContext>
+        <BreedingFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
+        <AddBreedingDialog {...{ addBreedingOpen, closeAddBreeding }} />
         <ErrorDialog
             openError={!!error}
             title={error?.title}
             content={error?.message}
             onClose={() => setError(undefined)}
         />
+        <YesNoDialog {...warningProps} />
     </div>
 }
 
 type EntriesTableProps = {
-    rows: InseminationEntry[]
-    foot: InseminationFooter
+    rows: BreedingEntry[]
+    foot: BreedingFoot
     loading: boolean
     scrollRef: RefObject<VirtuosoHandle | null>
     fetchNextPage: () => void
@@ -189,12 +173,12 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
             return <TableHeadRow>
                 <VirtuosoHeadCell width={unit * 10} />
                 <VirtuosoResizeHeadCell width={unit * 10}>Vaca</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Data de Inseminação</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Data de Inseminação</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 10}>Touro</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Prenhez</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Nascimento</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 20}>Informações de Cria</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 25}>Observações</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Prenhez</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Informações de Cria</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 20}>Observações</VirtuosoResizeHeadCell>
             </TableHeadRow>
         }}
         fixedFooterContent={() => (
@@ -204,22 +188,22 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
                 <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.averageBirthRate)} />
             </TableFooterRow>
         )}
-        itemContent={(_, item) => <EntriesRow {...{ item: item as InseminationEntry, loading }} />}
+        itemContent={(_, item) => <EntriesRow {...{ item: item as BreedingEntry, loading }} />}
     />
 
 }
 
 type EntriesRowProps = {
-    item: InseminationEntry
+    item: BreedingEntry
     loading: boolean
 }
 
 const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
-    const [rowData, setRowData] = useState<InseminationEntry>(item)
+    const [rowData, setRowData] = useState<BreedingEntry>(item)
     const [editing, setEditing] = useState(false)
 
-    const { setError, setWarningProps, setRows, defaultWarning, loadFoot } = useContext(DeleteContext)
+    const { setError, setWarningProps, setRows, loadFoot } = useContext(EditContext)
 
     useEffect(() => setRowData(item), [item])
 
@@ -227,32 +211,32 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     const onDeleteNoValidation = () => {
-        deleteNoValidate(rowData.id)
+        deleteNoValidation(rowData.id)
             .then(() => {
                 setError(undefined)
-                setWarningProps(defaultWarning)
+                setWarningProps(DefaultWarning)
                 setRows(prev => prev.filter(item => item.id != rowData.id))
                 loadFoot()
             })
             .catch((error: APIError) => setError(error))
-            .finally(() => setWarningProps(defaultWarning))
+            .finally(() => setWarningProps(DefaultWarning))
     }
 
     const onDeleteAndChangeFather = () => {
-        deleteAndChangeFather(rowData.id)
+        deleteChangeFather(rowData.id)
             .then(() => {
                 setError(undefined)
                 setRows(prev => prev.filter(item => item.id != rowData.id))
                 loadFoot()
             })
             .catch((error: APIError) => setError(error))
-            .finally(() => setWarningProps(defaultWarning))
+            .finally(() => setWarningProps(DefaultWarning))
     }
 
     const onDelete = () => {
-        deleteInsemination(rowData.id)
+        deleteBreeding(rowData.id)
             .then(() => {
-                setWarningProps(defaultWarning)
+                setWarningProps(DefaultWarning)
                 setError(undefined)
                 setRows(prev => prev.filter(item => item.id != rowData.id))
                 loadFoot()
@@ -268,7 +252,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
                         title: error.title,
                         content: error.message,
                         onYes: onDeleteAndChangeFather,
-                        onClose: () => setWarningProps(defaultWarning)
+                        onClose: () => setWarningProps(DefaultWarning)
                     })
                     return
                 }
@@ -277,7 +261,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
                     title: error.title,
                     content: error.message,
                     onYes: onDeleteNoValidation,
-                    onClose: () => setWarningProps(defaultWarning)
+                    onClose: () => setWarningProps(DefaultWarning)
                 })
             })
     }
@@ -287,19 +271,23 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
             <EditControlButtons {...{ setEditing, onDelete }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
-        <TableBodyCell align="center">{dateTransform(rowData.inseminationDate)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.breedingDate)}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
-        <TableBodyCell align="center">
-            <Chip
-                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
-                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
-            />
+        <TableBodyCell>
+            {rowData.pregnancyStatus &&
+                <Chip
+                    label={StatusMap.get(rowData.pregnancyStatus)}
+                    color={StatusColorMap.get(rowData.pregnancyStatus)}
+                />
+            }
         </TableBodyCell>
-        <TableBodyCell align="center">
-            <Chip
-                label={InseminationStatusMap.get(rowData.birthStatus)}
-                color={InseminationStatusColorMap.get(rowData.birthStatus)}
-            />
+        <TableBodyCell>
+            {rowData.birthStatus &&
+                <Chip
+                    label={StatusMap.get(rowData.birthStatus)}
+                    color={StatusColorMap.get(rowData.birthStatus)}
+                />
+            }
         </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>{rowData.observation}</TableBodyCell>
@@ -307,8 +295,8 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 }
 
 type EntriesRowEditingProps = {
-    rowData: InseminationEntry
-    setRowData: (rowData: InseminationEntry) => void
+    rowData: BreedingEntry
+    setRowData: (rowData: BreedingEntry) => void
     setEditing: (editing: boolean) => void
 }
 
@@ -316,13 +304,13 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
 
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit } = useForm<InseminationEntrySave>({ defaultValues: rowData })
-    const { setError, setWarningProps, defaultWarning, loadFoot } = useContext(DeleteContext)
+    const { control, handleSubmit } = useForm<BreedingEntrySave>({ defaultValues: rowData })
+    const { setError, setWarningProps, loadFoot } = useContext(EditContext)
 
-    const onNoValidation: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+    const onNoValidation: SubmitHandler<BreedingEntrySave> = (data: BreedingEntrySave) => {
         setLoading(true)
         updateNoValidation(data)
-            .then((result: InseminationEntry) => {
+            .then((result: BreedingEntry) => {
                 setRowData(result)
                 loadFoot()
                 setEditing(false)
@@ -330,14 +318,14 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             .catch(err => setError(err))
             .finally(() => {
                 setLoading(false)
-                setWarningProps(defaultWarning)
+                setWarningProps(DefaultWarning)
             })
     }
 
-    const onSubmit: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
+    const onSubmit: SubmitHandler<BreedingEntrySave> = (data: BreedingEntrySave) => {
         setLoading(true)
-        updateInsemination(data)
-            .then((result: InseminationEntry) => {
+        updateBreeding(data)
+            .then((result: BreedingEntry) => {
                 setRowData(result)
                 loadFoot()
                 setEditing(false)
@@ -351,7 +339,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                     openYesNo: true,
                     title: err.title,
                     content: err.message,
-                    onClose: () => setWarningProps(defaultWarning),
+                    onClose: () => setWarningProps(DefaultWarning),
                     onYes: handleSubmit(onNoValidation)
                 })
             })
@@ -366,26 +354,22 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">
-            <FormDatePicker formProps={{ control, name: 'inseminationDate' }} />
+            <FormDatePicker
+                formProps={{
+                    control,
+                    name: 'breedingDate',
+                    rules: { required: REQUIRED_FIELD_MSG }
+                }}
+            />
         </TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <FormSearchBox
                 formProps={{ control, name: 'bullId' }}
-                searchOptions={searchInseminationBulls}
+                searchOptions={searchBreedingBulls}
             />
         </TableBodyCell>
-        <TableBodyCell align="center">
-            <Chip
-                label={InseminationStatusMap.get(rowData.pregnancyStatus)}
-                color={InseminationStatusColorMap.get(rowData.pregnancyStatus)}
-            />
-        </TableBodyCell>
-        <TableBodyCell align="center">
-            <Chip
-                label={InseminationStatusMap.get(rowData.birthStatus)}
-                color={InseminationStatusColorMap.get(rowData.birthStatus)}
-            />
-        </TableBodyCell>
+        <TableBodyCell align="center">{rowData.pregnancyStatus}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.birthStatus}</TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'observation' }} />

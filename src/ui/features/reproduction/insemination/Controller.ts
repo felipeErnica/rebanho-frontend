@@ -1,5 +1,6 @@
 import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@/util/ApiRequest"
-import { InseminationEntryFilter, InseminationEntrySave } from "./Entities"
+import { InseminationEntryFilter, InseminationEntrySave, InseminationGroup } from "./Entities"
+import { dateToISO } from "@/util/Transformations"
 
 const DASHBOARD_BASE = 'reproduction/insemination/dashboard/'
 const GROUP_BASE = 'reproduction/insemination/groups/'
@@ -48,7 +49,7 @@ export function findEntriesPage(
     return apiPost(ENTRY_BASE + pageQuery, filter)
 }
 
-export function getEntriesPage(filter: InseminationEntryFilter) {
+export function getEntriesFoot(filter: InseminationEntryFilter) {
     return apiPost(ENTRY_BASE + "page/foot", filter)
 }
 
@@ -95,4 +96,12 @@ export function updateInsemination(entry: InseminationEntrySave) {
 
 export function updateNoValidation(entry: InseminationEntrySave) {
     return apiPut(ENTRY_BASE + "update-no-validation", entry)
+}
+
+export function updateBatch(inseminationDate: Date, group: InseminationGroup) {
+    return apiPut(GROUP_BASE + dateToISO(inseminationDate) + "/update", group)
+}
+
+export function deleteBatch(inseminationDate: Date) {
+    return apiDelete(GROUP_BASE + dateToISO(inseminationDate) + "delete")
 }

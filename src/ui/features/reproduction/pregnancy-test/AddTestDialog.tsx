@@ -12,17 +12,7 @@ import dayjs from "dayjs"
 import { RadioComponent } from "@/ui/shared/common/RadioComponent"
 import { addTest, replaceTest } from "./Controller"
 import { APIError } from "@/util/ApiRequest"
-
-type TestEntryForm = {
-    id: string
-    testDate: Date
-    animalId: string
-    birthForecast?: Date 
-    daysTobirth?: number 
-    forecastType: 'days' | 'date'
-    pregnancyStatus: string
-    observation?: string 
-}
+import { TestEntryForm } from "./Entities"
 
 type AddTestDialogProps = {
     addTestOpen: boolean
@@ -215,14 +205,14 @@ function ForecastControl({ control, setValue, getValue, forecastType, disableFor
             onChange={(value) => {
 
                 if (!value) {
-                    setValue('daysTobirth', undefined)
+                    setValue('pregnancyTime', undefined)
                     return
                 }
 
                 const testDate = dayjs(getValue('testDate'))
                 const dateDiff = value.diff(testDate, 'days')
                 const daysTobirth = PREGNANCY_DURATION_EST - dateDiff
-                setValue('daysTobirth', daysTobirth)
+                setValue('pregnancyTime', daysTobirth)
             }}
         />
     }
@@ -233,7 +223,7 @@ function ForecastControl({ control, setValue, getValue, forecastType, disableFor
         type="number"
         formProps={{
             control,
-            name: 'daysTobirth',
+            name: 'pregnancyTime',
             disabled: disableForecast,
             rules: {
                 required: REQUIRED_FIELD_MSG,

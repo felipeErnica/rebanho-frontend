@@ -639,7 +639,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                 <TableBody>
                     <DashboardTableBody
                         dataset={data}
-                        colSpan={5}
+                        colSpan={6}
                         loadingProps={{ loading, rowSpan: 20 }}
                         render={row => <EntriesRow {...{ row }} />}
                     />

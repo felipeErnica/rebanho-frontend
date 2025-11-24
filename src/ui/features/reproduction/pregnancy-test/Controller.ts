@@ -83,3 +83,7 @@ export function deleteTest(id: string) {
 export function updateBatch(testDate: Date, group: TestGroup) {
     return apiPut(GROUP_BASE + dateToISO(testDate) + "/update", group)
 }
+
+export function deleteBatch(testDate: Date) {
+    return apiDelete(GROUP_BASE + dateToISO(testDate) + "/delete")
+}

@@ -8,7 +8,7 @@ import { searchOwnedMothers } from "@/shared/GlobalApiCalls"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { addInsemiantion, replaceInsemination, searchInseminationBulls } from "./Controller"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { APIError } from "@/util/ApiRequest"
 
 type AddInseminationDialogProps = {
@@ -29,9 +29,14 @@ export const AddInseminationDialog = ({
     const [warning, setWarning] = useState<APIError>()
     const [added, setAdded] = useState(false)
 
-    const { control, handleSubmit, reset, setFocus } = useForm<InseminationEntrySave>({
+    const { control, handleSubmit, reset, setFocus, setValue } = useForm<InseminationEntrySave>({
         defaultValues: { bullId, inseminationDate }
     })
+
+    useEffect(() => {
+        if (!inseminationDate) return
+        setValue('inseminationDate', inseminationDate)
+    }, [inseminationDate, setValue])
 
     const onClose = useCallback(() => {
         reset()

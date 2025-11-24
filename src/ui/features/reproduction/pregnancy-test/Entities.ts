@@ -38,8 +38,20 @@ export type TestEntrySave = {
     id: string
     testDate: Date
     animalId: string
-    birthForecast?: Date
+    pregnancyStatus: string
+    pregnancyTime?: number
     observation?: string
+}
+
+export type TestEntryForm = {
+    id: string
+    testDate: Date
+    animalId: string
+    birthForecast?: Date 
+    pregnancyTime?: number 
+    forecastType: 'days' | 'date'
+    pregnancyStatus: string
+    observation?: string 
 }
 
 export type LastEntryProps = {

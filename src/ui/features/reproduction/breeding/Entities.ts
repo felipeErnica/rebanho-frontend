@@ -19,34 +19,39 @@ export const StatusItens: ComboBoxItem[] = [
     { name: 'Aguardando...', value: 'STAND_BY' },
 ]
 
-export type MatingEntry = {
+export type BreedingEntry = {
     id: string;
     animalId: string;
     animalNumber: string;
     animalInfo: string;
-    matingDate: Date;
+    breedingDate: Date;
     bullId: string;
     bullName: string;
     birthStatus: string;
     pregnancyStatus: string
     observation?: string;
     childInformation?: string;
-    createdAt: Date;
-    deletedAt?: Date;
-    userId: string;
 };
 
-export type MatingEntryFilter = {
+export type BreedingEntrySave = {
+    id: string;
+    animalId: string;
+    breedingDate: Date;
+    bullId: string;
+    observation?: string;
+};
+
+export type BreedingEntryFilter = {
     isFiltered: boolean;
     animals?: string[];
     bulls?: string[];
-    minInseminationDate?: Date;
-    maxInseminationDate?: Date;
+    minBreedingDate?: Date;
+    maxBreedingDate?: Date;
     birthStatus?: string;
     pregnancyStatus?: string;
 };
 
-export type MatingFoot = {
+export type BreedingFoot = {
     totals: number;
     averageBirthRate: number;
     averagePregnancyRate: number;
@@ -59,22 +64,22 @@ export type CardEntry = {
 };
 
 export type BirthRateEntry = {
-    matingDate: Date;
+    breedingDate: Date;
     birthRate: number;
 };
 
 export type PregnancyRateEntry = {
-    matingDate: Date;
+    breedingDate: Date;
     pregnancyRate: number;
 };
 
 export type AnimalsNumberEntry = {
-    matingDate: Date;
+    breedingDate: Date;
     animalsNumber: number;
 };
 
-export type MatingHist = {
-    matingDate: Date;
+export type BreedingHist = {
+    breedingDate: Date;
     animalsNumber: number;
     pregnanciesNumber: number;
     birthsNumber: number;
@@ -94,10 +99,10 @@ export type BestBulls = {
     pregnancyComparisonRate: number;
 };
 
-export type MatingGroup = {
+export type BreedingGroup = {
     bullId?: string;
     bullName: string;
-    matingDate: Date;
+    breedingDate: Date;
     cowNumber: number;
     birthRate: number;
     pregnancyRate: number;
@@ -106,6 +111,6 @@ export type MatingGroup = {
 };
 
 export type LastEntry = {
-    matingDate: Date;
-    entries: MatingEntry[];
+    breedingDate: Date;
+    entries: BreedingEntry[];
 };

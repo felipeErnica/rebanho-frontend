@@ -8,19 +8,29 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
-import React, { Dispatch, useCallback, useContext, useEffect, useMemo, useState } from "react"
-import { 
-    AnimalsNumberEntry, 
-    BestBulls, 
-    BirthRateEntry, 
-    FutureBirths, 
-    LastEntry, 
-    MatingEntry, 
-    MatingGroup, 
-    MatingHist, 
-    PregnancyRateEntry, 
-    StatusColorMap, 
-    StatusMap 
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState
+} from "react"
+import {
+    AnimalsNumberEntry,
+    BestBulls,
+    BirthRateEntry,
+    FutureBirths,
+    LastEntry,
+    BreedingEntry,
+    BreedingGroup,
+    BreedingHist,
+    PregnancyRateEntry,
+    StatusColorMap,
+    StatusMap,
+    BreedingEntrySave
 } from "./Entities"
 import {
     BarPlot,
@@ -43,12 +53,20 @@ import {
     getPregnancyRateStats,
     getAnimalsNumber,
     getFutureBirths,
-    getBestBulls
+    getBestBulls,
+    deleteNoValidation,
+    deleteChangeFather,
+    deleteBreeding,
+    searchBreedingBulls,
+    updateNoValidation,
+    updateBreeding,
+    deleteBatch
 } from "./Controller"
-import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
+import { DefaultTimerWarning, DefaultWarning, ERROR_TYPE, LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import {
     Button,
     Chip,
+    IconButton,
     Table,
     TableBody,
     TableCell,
@@ -68,14 +86,22 @@ import { CardEntry } from "@/shared/entities/Page"
 import { EditRowProps, TableRowProp } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchBull } from "../../farm-area/main-table/api/DashboardController"
-import { GroupsTablePageProps, MatingMainPage } from "./NaturalMatingPages"
+import { GroupsTablePageProps, BreedingMainPage } from "./BreedingPages"
 import { TrendValues } from "@/ui/shared/table/TableComponents"
-import { AddMatingDialog } from "./AddMatingDialog"
+import { AddBreedingDialog } from "./AddBreedingDialog"
 import { EntriesTablePage } from "./EntriesTable"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog, TimerYesNoDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
+import dayjs from "dayjs"
 
-export const MatingDashboard = () => {
+type AddContextProps = {
+    setReloadFlag: Dispatch<SetStateAction<number>>
+}
+
+const AddContext = createContext<AddContextProps>(undefined!)
+
+export const BreedingDashboard = () => {
 
     const [reloadFlag, setReloadFlag] = useState(0)
     const [activeRequests, setActiveRequests] = useState(0)
@@ -83,9 +109,12 @@ export const MatingDashboard = () => {
     const startLoading = useCallback(() => setActiveRequests(prev => prev + 1), [])
     const stopLoading = useCallback(() => setActiveRequests(prev => Math.max(prev - 1, 0)), [])
 
+
     return <DashboardContainer>
         <DashboardToolbar {...{ setReloadFlag, activeRequests }} />
-        <DashboardInformation {...{ reloadFlag, startLoading, stopLoading }} />
+        <AddContext value={{ setReloadFlag }}>
+            <DashboardInformation {...{ reloadFlag, startLoading, stopLoading }} />
+        </AddContext>
     </DashboardContainer>
 }
 
@@ -96,8 +125,13 @@ type DashboardToolbarProps = {
 
 const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarProps) => {
 
-    const [addMatingOpen, setAddMatingOpen] = useState(false)
+    const [addBreedingOpen, setAddBreedingOpen] = useState(false)
     const { setPageProps } = useContext(PageContext)
+
+    const closeAddBreeding = useCallback((added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddBreedingOpen(false)
+    }, [setReloadFlag])
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -107,24 +141,24 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
         <Button
             className="ml-auto"
             startIcon={<Add />}
-            onClick={() => setAddMatingOpen(true)}
+            onClick={() => setAddBreedingOpen(true)}
         >
-            Adicionar Monta Natural
+            Adicionar Cobertura
         </Button>
         <Button
             endIcon={<ChevronRight />}
             onClick={() => {
                 const page: PageProps = {
                     page: <EntriesTablePage />,
-                    title: "Histórico de Montas",
-                    previousPages: [HomePage, MatingMainPage]
+                    title: "Histórico de Coberturas",
+                    previousPages: [HomePage, BreedingMainPage]
                 }
                 if (setPageProps) setPageProps(page)
             }}
         >
-            Histórico de Montas
+            Histórico de Coberturas
         </Button>
-        <AddMatingDialog {...{ addMatingOpen, setAddMatingOpen }} />
+        <AddBreedingDialog {...{ addBreedingOpen, closeAddBreeding }} />
     </DashboardTopContainer>
 }
 
@@ -144,7 +178,7 @@ const DashboardInformation = ({ reloadFlag, stopLoading, startLoading }: Dashboa
             <LastGroupsTable {...{ reloadFlag, startLoading, stopLoading }} />
         </div>
         <div className="grid grid-cols-[1fr_400] grid-rows-[repeat(2,500)] gap-4">
-            <MatingHistGraph {...{ reloadFlag, startLoading, stopLoading }} />
+            <BreedingHistGraph {...{ reloadFlag, startLoading, stopLoading }} />
             <FutureBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <BestBullsTable {...{ reloadFlag, startLoading, stopLoading }} />
         </div>
@@ -189,7 +223,7 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
                     showHighlight
                     valueFormatter={(value) => percentageTransform(value)}
                     xAxis={{
-                        data: data.hist.map(item => new Date(item.matingDate)),
+                        data: data.hist.map(item => new Date(item.breedingDate)),
                         domainLimit: 'strict',
                         scaleType: 'time',
                         valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' })
@@ -238,7 +272,7 @@ const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardI
                     showHighlight
                     valueFormatter={(value) => percentageTransform(value)}
                     xAxis={{
-                        data: data.hist.map(item => new Date(item.matingDate)),
+                        data: data.hist.map(item => new Date(item.breedingDate)),
                         domainLimit: 'strict',
                         scaleType: 'time',
                         valueFormatter: (value: Date) => value.toLocaleDateString('pt-BR', { dateStyle: 'short' })
@@ -251,11 +285,11 @@ const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardI
 
 const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const defaultData: CardEntry<AnimalsNumberEntry> = {
+    const defaultData: CardEntry<AnimalsNumberEntry> = useMemo(() => ({
         current: 0,
         trend: 0,
         hist: []
-    }
+    }), [])
 
     const [data, setData] = useState<CardEntry<AnimalsNumberEntry>>(defaultData)
     const [loading, setLoading] = useState(false)
@@ -270,11 +304,11 @@ const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag, startLoading, stopLoading])
+    }, [defaultData, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
-            title="Nº de Vacas na Monta"
+            title="Nº de Vacas na Cobertura"
             data={data.current}
             loading={loading}
             trendProps={{ trend: data.trend }}
@@ -285,7 +319,7 @@ const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                     showHighlight
                     showTooltip
                     xAxis={{
-                        data: data.hist.map(item => new Date(item.matingDate)),
+                        data: data.hist.map(item => new Date(item.breedingDate)),
                         valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' }),
                         domainLimit: 'strict',
                         scaleType: 'time',
@@ -319,7 +353,7 @@ const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInfo
             <TableHead>
                 <TableRow>
                     <TableCell>Touro</TableCell>
-                    <TableCell align="center">Nº de Montas</TableCell>
+                    <TableCell align="center">Nº de Coberturas</TableCell>
                     <TableCell>Taxa de Prenhez</TableCell>
                     <TableCell>Taxa de Natalidade</TableCell>
                 </TableRow>
@@ -353,9 +387,9 @@ const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInfo
     </DashboardCard>
 }
 
-const MatingHistGraph = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+const BreedingHistGraph = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const [dataset, setDataset] = useState<MatingHist[]>([])
+    const [dataset, setDataset] = useState<BreedingHist[]>([])
 
     useEffect(() => {
         startLoading()
@@ -368,7 +402,7 @@ const MatingHistGraph = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
     }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
-        <CardDefaultTitle text="Histórico de Montas" />
+        <CardDefaultTitle text="Histórico de Coberturas" />
         <div className="h-full flex flex-col items-center">
             <ChartDataProvider
                 localeText={{
@@ -400,7 +434,7 @@ const MatingHistGraph = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
                 ]}
                 xAxis={[{
                     scaleType: 'band',
-                    data: dataset.map(item => new Date(item.matingDate)),
+                    data: dataset.map(item => new Date(item.breedingDate)),
                     domainLimit: 'strict',
                     valueFormatter: (value: Date) => value.toLocaleDateString('pt-BR', { dateStyle: 'short' })
                 }]}
@@ -465,12 +499,24 @@ const FutureBirthsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardI
     </DashboardCard>
 }
 
+type EditContextProps = {
+    setData: Dispatch<SetStateAction<BreedingEntry[]>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
+}
+
+const EditContext = createContext<EditContextProps>(undefined!)
+
 const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const [data, setData] = useState<MatingEntry[]>([])
+    const [data, setData] = useState<BreedingEntry[]>([])
     const [loading, setLoading] = useState(false)
-    const [matingDate, setInseminationDate] = useState(new Date())
+    const [breedingDate, setBreedingDate] = useState(new Date())
     const [lastDate, setLastDate] = useState('Sem dados')
+
+    const [error, setError] = useState<APIError>()
+    const [warningProps, setWarningProps] = useState(DefaultWarning)
+
     const { setPageProps } = useContext(PageContext)
 
     useEffect(() => {
@@ -479,14 +525,14 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         getLastEntries()
             .then(response => {
                 const lastEntry: LastEntry = response.json
-                const lastInsemination = new Date(lastEntry.matingDate)
-                setInseminationDate(lastInsemination)
-                setLastDate(lastInsemination.toLocaleString('pt-BR', { dateStyle: 'short' }))
+                const lastDate = new Date(lastEntry.breedingDate)
+                setBreedingDate(lastDate)
+                setLastDate(lastDate.toLocaleString('pt-BR', { dateStyle: 'short' }))
                 setData(lastEntry.entries)
             })
             .catch(() => {
                 setData([])
-                setInseminationDate(new Date())
+                setBreedingDate(new Date())
                 setLastDate('Sem dados')
             })
             .finally(() => {
@@ -497,37 +543,46 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
 
     return <DashboardCard className="row-span-2">
         <div className="flex flex-row">
-            <CardDefaultTitle text={`Última Monta - ${lastDate}`} />
+            <CardDefaultTitle text={`Última Cobertura - ${lastDate}`} />
         </div>
         <div className="overflow-auto">
-            <Table size="small" stickyHeader>
-                <TableHead>
-                    <TableRow>
-                        <TableCell />
-                        <TableCell>Vaca</TableCell>
-                        <TableCell>Touro</TableCell>
-                        <TableCell>Prenhez</TableCell>
-                        <TableCell>Nascimento</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    <DashboardTableBody
-                        colSpan={5}
-                        dataset={data}
-                        loadingProps={{ loading, rowSpan: 20 }}
-                        render={row => <LastEntriesRow {...{ row }} />}
-                    />
-                </TableBody>
-            </Table>
+            <EditContext value={{ setError, setWarningProps, setData }}>
+                <Table size="small" stickyHeader>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell />
+                            <TableCell>Vaca</TableCell>
+                            <TableCell>Touro</TableCell>
+                            <TableCell>Prenhez</TableCell>
+                            <TableCell>Nascimento</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        <DashboardTableBody
+                            colSpan={5}
+                            dataset={data}
+                            loadingProps={{ loading, rowSpan: 20 }}
+                            render={row => <LastEntriesRow {...{ row }} />}
+                        />
+                    </TableBody>
+                </Table>
+            </EditContext>
+            <ErrorDialog
+                openError={!!error}
+                title={error?.title}
+                content={error?.message}
+                onClose={() => setError(undefined)}
+            />
+            <YesNoDialog {...warningProps} />
         </div>
         <Button
             className="ml-auto"
             startIcon={<ChevronRight />}
             onClick={() => {
                 const page: PageProps = {
-                    page: <GroupEntriesTablePage {...{ matingDate }} />,
-                    title: `Monta - ${lastDate}`,
-                    previousPages: [HomePage, MatingMainPage]
+                    page: <GroupEntriesTablePage {...{ breedingDate }} />,
+                    title: `Cobertura - ${lastDate}`,
+                    previousPages: [HomePage, BreedingMainPage]
                 }
                 if (setPageProps) setPageProps(page)
             }}
@@ -537,15 +592,69 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     </DashboardCard>
 }
 
-const LastEntriesRow = ({ row }: TableRowProp<MatingEntry>) => {
+const LastEntriesRow = ({ row }: TableRowProp<BreedingEntry>) => {
 
     const [editing, setEditing] = useState(false)
-    const [rowData, setRowData] = useState<MatingEntry>(row)
+    const [rowData, setRowData] = useState<BreedingEntry>(row)
+
+    const { setError, setWarningProps, setData } = useContext(EditContext)
 
     useEffect(() => setRowData(row), [row])
-    const onDelete = useCallback(() => console.log(rowData.id), [rowData])
 
     if (editing) return <EditLastEntriesRow {...{ setEditing, setRowData, rowData }} />
+
+    const onDeleteNoValidation = () => {
+        deleteNoValidation(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setWarningProps(DefaultWarning)
+                setData(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch((error: APIError) => setError(error))
+            .finally(() => setWarningProps(DefaultWarning))
+    }
+
+    const onDeleteAndChangeFather = () => {
+        deleteChangeFather(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setData(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch((error: APIError) => setError(error))
+            .finally(() => setWarningProps(DefaultWarning))
+    }
+
+    const onDelete = () => {
+        deleteBreeding(rowData.id)
+            .then(() => {
+                setWarningProps(DefaultWarning)
+                setError(undefined)
+                setData(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch((error: APIError) => {
+                if (error.errType === ERROR_TYPE) {
+                    setError(error)
+                    return
+                }
+                if (error.kind == "ChildrenWarning") {
+                    setWarningProps({
+                        openYesNo: true,
+                        title: error.title,
+                        content: error.message,
+                        onYes: onDeleteAndChangeFather,
+                        onClose: () => setWarningProps(DefaultWarning)
+                    })
+                    return
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: error.title,
+                    content: error.message,
+                    onYes: onDeleteNoValidation,
+                    onClose: () => setWarningProps(DefaultWarning)
+                })
+            })
+    }
 
     return <TableRow>
         <TableCell>
@@ -569,26 +678,61 @@ const LastEntriesRow = ({ row }: TableRowProp<MatingEntry>) => {
 
 }
 
-const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<MatingEntry>) => {
+const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<BreedingEntry>) => {
 
-    const { handleSubmit, control } = useForm({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
 
-    const onSubimt: SubmitHandler<MatingEntry> = (data: MatingEntry) => {
-        setRowData(data)
-        setEditing(false)
+    const { control, handleSubmit } = useForm<BreedingEntrySave>({ defaultValues: rowData })
+    const { setError, setWarningProps } = useContext(EditContext)
+
+    const onNoValidation: SubmitHandler<BreedingEntrySave> = (data: BreedingEntrySave) => {
+        setLoading(true)
+        updateNoValidation(data)
+            .then((result: BreedingEntry) => {
+                setRowData(result)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => {
+                setLoading(false)
+                setWarningProps(DefaultWarning)
+            })
     }
 
-    const onSave = useCallback(handleSubmit(onSubimt), [])
+    const onSubmit: SubmitHandler<BreedingEntrySave> = (data: BreedingEntrySave) => {
+        setLoading(true)
+        updateBreeding(data)
+            .then((result: BreedingEntry) => {
+                setRowData(result)
+                setEditing(false)
+            })
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: err.title,
+                    content: err.message,
+                    onClose: () => setWarningProps(DefaultWarning),
+                    onYes: handleSubmit(onNoValidation)
+                })
+            })
+            .finally(() => setLoading(false))
+    }
+
+    const onSave = handleSubmit(onSubmit)
 
     return <TableRow>
         <TableCell>
-            <EditingControlButtons {...{ setEditing, onSave }} />
+            <EditingControlButtons {...{ setEditing, onSave, loading }} />
         </TableCell>
         <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell>
             <FormSearchBox
                 formProps={{ control, name: 'bullId' }}
-                searchOptions={searchBull}
+                searchOptions={searchBreedingBulls}
             />
         </TableCell>
         <TableCell>
@@ -609,9 +753,22 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<Ma
 
 const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInformationProps) => {
 
-    const [data, setData] = useState<MatingGroup[]>([])
+    const [data, setData] = useState<BreedingGroup[]>([])
     const [loading, setLoading] = useState(false)
     const { setPageProps } = useContext(PageContext)
+    const { setReloadFlag } = useContext(AddContext)
+
+    const [warningProps, setWarningProps] = useState(DefaultTimerWarning)
+    const [error, setError] = useState<APIError>()
+    const [loadingControls, setLoadingControls] = useState(false)
+    const [addBreedingOpen, setAddBreedingOpen] = useState(false)
+    const [breedingDate, setBreedingDate] = useState<Date>()
+
+    const closeAddBreeding = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setBreedingDate(undefined)
+        setAddBreedingOpen(false)
+    }
 
     useEffect(() => {
         startLoading()
@@ -623,15 +780,27 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, setLoading, startLoading, stopLoading])
+
+    const onDelete = (breedingDate: Date) => {
+        setWarningProps(DefaultTimerWarning)
+        setLoadingControls(true)
+        deleteBatch(breedingDate)
+            .then(() => {
+                setError(undefined)
+                setData(prev => prev.filter(item => dayjs(breedingDate).isSame(dayjs(item.breedingDate))))
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }
 
     return <DashboardCard className="col-span-3">
-        <CardDefaultTitle text="As Últimas Montas" />
+        <CardDefaultTitle text="As Últimas Coberturas" />
         <Table size="small">
             <TableHead>
                 <TableRow>
                     <TableCell />
-                    <TableCell align="center">Data de Monta Natural</TableCell>
+                    <TableCell align="center">Data de Cobertura</TableCell>
                     <TableCell align="center">Total de Animais</TableCell>
                     <TableCell>Taxa de Prenhez</TableCell>
                     <TableCell>Taxa de Natalidade</TableCell>
@@ -646,33 +815,45 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                         <TableRow>
                             <TableCell>
                                 <EditControlButtons
+                                    loading={loadingControls}
+                                    onDelete={() => onDelete(new Date(item.breedingDate))}
+                                    otherButtons={(
+                                        <IconButton
+                                            onClick={() => {
+                                                setBreedingDate(new Date(item.breedingDate))
+                                                setAddBreedingOpen(true)
+                                            }}
+                                        >
+                                            <Add />
+                                        </IconButton>
+                                    )}
                                     onShow={() => {
-                                        const matingDate = new Date(item.matingDate)
-                                        const date = matingDate.toLocaleDateString('pt-BR', {
+                                        const breedingDate = new Date(item.breedingDate)
+                                        const date = breedingDate.toLocaleDateString('pt-BR', {
                                             month: 'short',
                                             year: 'numeric'
                                         })
                                         const page: PageProps = {
-                                            page: <GroupEntriesTablePage {...{ matingDate }} />,
-                                            title: `Monta Natural - ${date}`,
-                                            previousPages: [HomePage, MatingMainPage]
+                                            page: <GroupEntriesTablePage {...{ breedingDate }} />,
+                                            title: `Cobertura - ${date}`,
+                                            previousPages: [HomePage, BreedingMainPage]
                                         }
                                         if (setPageProps) setPageProps(page)
                                     }}
                                 />
                             </TableCell>
-                            <TableCell align="center">{dateTransform(item.matingDate)}</TableCell>
+                            <TableCell align="center">{dateTransform(item.breedingDate)}</TableCell>
                             <TableCell align="center">{item.cowNumber}</TableCell>
                             <TableCell>
-                                <TrendValues 
+                                <TrendValues
                                     value={percentageTransform(item.pregnancyRate)}
-                                    trendProps={{ trend: item.pregnancyComparisonRate}}
+                                    trendProps={{ trend: item.pregnancyComparisonRate }}
                                 />
                             </TableCell>
                             <TableCell>
-                                <TrendValues 
+                                <TrendValues
                                     value={percentageTransform(item.pregnancyRate)}
-                                    trendProps={{ trend: item.pregnancyComparisonRate}}
+                                    trendProps={{ trend: item.pregnancyComparisonRate }}
                                 />
                             </TableCell>
                         </TableRow>
@@ -687,5 +868,13 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         >
             Ver Mais...
         </Button>
+        <TimerYesNoDialog {...warningProps} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
+        <AddBreedingDialog {...{ addBreedingOpen, closeAddBreeding, breedingDate }} />
     </DashboardCard>
 }

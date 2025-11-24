@@ -1,31 +1,31 @@
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover"
-import { MatingEntryFilter, StatusItens } from "./Entities"
+import { BreedingEntryFilter, StatusItens } from "./Entities"
 import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
 import { ComboBoxFilter } from "@/ui/shared/filter-controls/ComboBoxFilter"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
 import { searchAllMothers } from "@/shared/GlobalApiCalls"
-import { searchInseminationBulls } from "./Controller"
 import { Chip } from "@mui/material"
 import { ChipColorScheme } from "@/ui/shared/Globals"
+import { searchBreedingBulls } from "./Controller"
 
-type InseminationFilterProps = FilterPopoverProps & {
-    filter: MatingEntryFilter
+type BreedingFilterProps = FilterPopoverProps & {
+    filter: BreedingEntryFilter
 }
 
-export const MatingFilter = ({
+export const BreedingFilter = ({
     filter,
     setFilter,
     filterOpen,
     setFilterOpen,
     anchorEl,
-}: InseminationFilterProps) => {
+}: BreedingFilterProps) => {
     return <FilterPopover {...{ setFilterOpen, setFilter, filterOpen, anchorEl }}>
         <div className="grid grid-cols-2 gap-4">
             <MultipleSearchBoxFilter
                 label="Touros"
                 className="col-span-2"
                 fieldName="bulls"
-                searchOptions={searchInseminationBulls}
+                searchOptions={searchBreedingBulls}
                 filter={filter}
                 setFilter={setFilter}
             />

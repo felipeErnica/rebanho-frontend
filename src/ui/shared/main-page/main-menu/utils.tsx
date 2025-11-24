@@ -25,7 +25,7 @@ import { AnimalDashboardPage } from "@/ui/features/animals/AnimalsPage"
 import { FarmPage } from "@/ui/features/farm-area/FarmPage"
 import { WeightMainPage } from "@/ui/features/weight/WeightPages"
 import { SlaughterMainPage } from "@/ui/features/slaughter/SlaughterPages"
-import { MatingMainPage } from "@/ui/features/reproduction/natural-mating/NaturalMatingPages"
+import { BreedingMainPage } from "@/ui/features/reproduction/breeding/BreedingPages"
 
 export type MenuItem = {
     key: string
@@ -60,7 +60,7 @@ export const buildList = () => {
             key: 'mating',
             title: 'Cobertura',
             icon: <BullIcon />,
-            page: MatingMainPage
+            page: BreedingMainPage
         },
         {
             key: 'embryo-transfer',

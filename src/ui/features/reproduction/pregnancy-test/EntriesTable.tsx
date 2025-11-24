@@ -16,7 +16,8 @@ import {
     PregnancyStatusMap,
     TestEntry,
     TestEntryFilter,
-    TestEntryFooter
+    TestEntryFooter,
+    TestEntrySave
 } from "./Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
@@ -46,6 +47,7 @@ import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
 import { Button } from "@mui/material"
 import Add from "@mui/icons-material/Add"
 import { AddTestDialog } from "./AddTestDialog"
+import dayjs from "dayjs"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -246,17 +248,21 @@ type EntriesRowEditingProps = {
     setEditing: (editing: boolean) => void
 }
 
+type TestEntryForm = TestEntrySave & {
+    birthForecast?: Date
+}
+
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
     const [showForecast, setShowForecast] = useState(rowData.pregnancyStatus === 'SUCCESS')
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit, setValue } = useForm<TestEntry>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue, getValues } = useForm<TestEntryForm>({ defaultValues: rowData })
     const { setError } = useContext(ErrorContext)
 
     useEffect(() => setShowForecast(rowData.pregnancyStatus === 'SUCCESS'), [rowData])
 
-    const onSubmit: SubmitHandler<TestEntry> = (data: TestEntry) => {
+    const onSubmit: SubmitHandler<TestEntryForm> = (data: TestEntryForm) => {
         setLoading(true)
         updateTest(data)
             .then(response => {
@@ -284,7 +290,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                 formProps={{ control, name: 'pregnancyStatus' }}
                 onChange={(value) => {
                     setShowForecast(value === 'SUCCESS')
-                    if (value === 'FAILED') setValue('birthForecast', undefined)
+                    if (value === 'FAILED') setValue('pregnancyTime', undefined)
                 }}
                 renderOption={(props, option) => (
                     <li {...props}>
@@ -309,7 +315,25 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             />
         </TableBodyCell>
         <TableBodyCell align="center">
-            {showForecast && <FormDatePicker formProps={{ control, name: 'birthForecast' }} />}
+            {showForecast &&
+                <FormDatePicker
+                    formProps={{ control, name: 'birthForecast' }}
+                    onChange={(value) => {
+                        
+                        const PREGNANCY_DURATION_EST = 310
+
+                        if (!value) {
+                            setValue('pregnancyTime', undefined)
+                            return
+                        }
+
+                        const testDate = dayjs(getValues('testDate'))
+                        const dateDiff = value.diff(testDate, 'days')
+                        const daysTobirth = PREGNANCY_DURATION_EST - dateDiff
+                        setValue('pregnancyTime', daysTobirth)
+                    }}
+                />
+            }
         </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>

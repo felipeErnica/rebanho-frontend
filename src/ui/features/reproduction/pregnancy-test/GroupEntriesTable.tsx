@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { BirthStatusMap, PregnancyStatusMap, TestEntry, TestEntryFooter } from "./Entities"
-import { findEntriesByGroup, getEntriesByGroupFoot } from "./Controller"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { BirthStatusMap, PregnancyStatusMap, TestEntry, TestEntryFooter, TestEntryForm } from "./Entities"
+import { deleteTest, findEntriesByGroup, getEntriesByGroupFoot, updateTest } from "./Controller"
 import Table from "@mui/material/Table"
 import { Button, Chip, TableBody, TableHead } from "@mui/material"
 import {
@@ -24,10 +24,21 @@ import Add from "@mui/icons-material/Add"
 import { AddTestDialog } from "./AddTestDialog"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { ChipColorScheme } from "@/ui/shared/Globals"
+import dayjs from "dayjs"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
 
 type GroupEntriesTablePageProps = {
     testDate: Date
 }
+
+type EditContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setRows: Dispatch<SetStateAction<TestEntry[]>>
+    loadFoot: () => void
+}
+
+const EditContext = createContext<EditContextProps>(undefined!)
 
 export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) => {
 
@@ -46,22 +57,28 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
     const [sort, setSort] = useState(defaultSort)
     const [order, setOrder] = useState('asc')
 
+    const [error, setError] = useState<APIError>()
+
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: 'animal_order' },
         { name: 'Nome da Vaca', value: 'animal_name' },
         { name: 'Data de Previsão', value: "birth_forecast, animal_order" }
     ]
 
-    const onReload = useCallback(() => {
-        setLoading(true)
+    const loadFoot = useCallback(() => {
         getEntriesByGroupFoot(testDate)
             .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
+    }, [defaultFoot, testDate])
+
+    const onReload = useCallback(() => {
+        setLoading(true)
+        loadFoot()
         findEntriesByGroup(testDate, sort, order)
             .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
-    }, [defaultFoot, order, sort, testDate])
+    }, [loadFoot, order, sort, testDate])
 
     useEffect(onReload, [onReload])
 
@@ -86,8 +103,16 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
             reloadProps={{ onReload }}
             otherProps={otherProps}
         />
-        <EntriesTable {...{ rows, loading, foot }} />
+        <EditContext value={{ setError, setRows, loadFoot }}>
+            <EntriesTable {...{ rows, loading, foot }} />
+        </EditContext>
         <AddTestDialog {...{ addTestOpen, closeAddTest, testDate }} />
+        <ErrorDialog 
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </div>
 }
 
@@ -152,15 +177,30 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     const [rowData, setRowData] = useState<TestEntry>(item)
     const [editing, setEditing] = useState(false)
+    const [loadingControls, setLoadingControls] = useState(false)
+
+    const { setError, setRows, loadFoot } = useContext(EditContext)
 
     useEffect(() => setRowData(item), [item])
 
     if (loading) return <TableLoadingRow colSpan={7} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
+    const onDelete = () => {
+        setLoadingControls(false)
+        deleteTest(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+                loadFoot()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }
+
     return <TableBodyRow>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">
@@ -193,11 +233,21 @@ type EntriesRowEditingProps = {
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<TestEntry>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue, getValues } = useForm<TestEntryForm>({ defaultValues: rowData })
+    const { setError, loadFoot } = useContext(EditContext)
 
-    const onSubmit: SubmitHandler<TestEntry> = (data: TestEntry) => {
-        console.log(data)
-        setRowData(data)
+    const [loading, setLoading] = useState(false)
+
+    const onSubmit: SubmitHandler<TestEntryForm> = (data: TestEntryForm) => {
+        setLoading(true)
+        updateTest(data)
+            .then(response => {
+                setError(undefined)
+                setRowData(response)
+                loadFoot()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
         setEditing(false)
     }
 
@@ -205,7 +255,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell align="center">
@@ -221,7 +271,23 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             />
         </TableBodyCell>
         <TableBodyCell>
-            <FormDatePicker formProps={{ control, name: 'birthForecast' }} />
+            <FormDatePicker
+                formProps={{ control, name: 'birthForecast' }}
+                onChange={(value) => {
+
+                    const PREGNANCY_DURATION_EST = 310
+
+                    if (!value) {
+                        setValue('pregnancyTime', undefined)
+                        return
+                    }
+
+                    const testDate = dayjs(getValues('testDate'))
+                    const dateDiff = value.diff(testDate, 'days')
+                    const daysTobirth = PREGNANCY_DURATION_EST - dateDiff
+                    setValue('pregnancyTime', daysTobirth)
+                }}
+            />
         </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>

@@ -1,13 +1,5 @@
-import React, {
-    createContext,
-    Dispatch,
-    SetStateAction,
-    useContext,
-    useEffect,
-    useRef,
-    useState
-} from "react"
-import { InseminationGroup } from "./Entities"
+import React, { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from "react"
+import { BreedingGroup } from "./Entities"
 import { deleteBatch, findGroups, updateBatch } from "./Controller"
 import { IconButton, Table, TableBody, TableHead } from "@mui/material"
 import {
@@ -25,69 +17,34 @@ import { PageProps } from "@/ui/shared/main-page/PageDisplay"
 import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { HomePage } from "../../home/HomePage"
-import { GroupsTablePageProps, InseminationPage } from "./InseminationPages"
+import { GroupsTablePageProps, BreedingMainPage } from "./BreedingPages"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
-import Add from "@mui/icons-material/Add"
 import { APIError } from "@/util/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
 import { DefaultTimerWarning } from "@/ui/shared/Globals"
-import { AddInseminationDialog } from "./AddInseminationDialog"
+import Add from "@mui/icons-material/Add"
+import { AddBreedingDialog } from "./AddBreedingDialog"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
     setWarningProps: Dispatch<SetStateAction<TimerYesNoDialogProps>>
-    setRows: Dispatch<SetStateAction<InseminationGroup[]>>
-    setAddInseminationOpen: Dispatch<SetStateAction<boolean>>
-    setInseminationDate: Dispatch<SetStateAction<Date | undefined>>
+    setRows: Dispatch<SetStateAction<BreedingGroup[]>>
+    setAddBreedingOpen: Dispatch<SetStateAction<boolean>>
+    setBreedingDate: Dispatch<SetStateAction<Date | undefined>>
 }
 
 const EditContext = createContext<EditContextProps>(undefined!)
 
 export const GroupsTablePage = () => {
 
-    const [rows, setRows] = useState<InseminationGroup[]>([])
     const [loading, setLoading] = useState(false)
     const [reload, setReload] = useState(0)
-    const [error, setError] = useState<APIError>()
-    const [warningProps, setWarningProps] = useState(DefaultTimerWarning)
-
-    const [addInseminationOpen, setAddInseminationOpen] = useState(false)
-    const [inseminationDate, setInseminationDate] = useState<Date>()
-
-    const closeAddInsemination = (added?: boolean) => {
-        setAddInseminationOpen(false)
-        if (added) setReload(prev => prev + 1)
-    }
-
-    useEffect(() => {
-        setLoading(true)
-        findGroups()
-            .then(response => setRows(response))
-            .catch(() => setRows([]))
-            .finally(() => setLoading(false))
-    }, [reload])
 
     return <div className="w-full h-full flex flex-col">
         <GroupsToolBar {...{ setReload, loading }} />
-        <EditContext value={{
-            setError,
-            setWarningProps,
-            setRows,
-            setAddInseminationOpen,
-            setInseminationDate
-        }}>
-            <GroupsTable {...{ reload, loading, rows }} />
-        </EditContext>
-        <TimerYesNoDialog {...warningProps} />
-        <ErrorDialog
-            openError={!!error}
-            title={error?.title}
-            content={error?.message}
-            onClose={() => setError(undefined)}
-        />
-        <AddInseminationDialog {...{ addInseminationOpen, inseminationDate, closeAddInsemination }} />
+        <GroupsTable {...{ reload, loading, setLoading }} />
     </div>
 }
 
@@ -108,66 +65,95 @@ const GroupsToolBar = ({ setReload, loading }: GroupsToolBarProps) => {
 
 type GroupsTableProps = {
     loading: boolean
+    setLoading: (loading: boolean) => void
     reload: number
-    rows: InseminationGroup[]
 }
 
-const GroupsTable = ({ reload, loading, rows }: GroupsTableProps) => {
+const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
 
+    const [rows, setRows] = useState<BreedingGroup[]>([])
     const [unit, setUnit] = useState(0)
+
+    const [error, setError] = useState<APIError>()
+    const [warningProps, setWarningProps] = useState(DefaultTimerWarning)
+
+    const [addBreedingOpen, setAddBreedingOpen] = useState(false)
+    const [breedingDate, setBreedingDate] = useState<Date>()
 
     const tableRef = useRef<HTMLDivElement>(null)
     const { setPageProps } = useContext(PageContext)
 
-    useEffect(() => {
+    const loadRows = useCallback(() => {
+        setLoading(true)
+        findGroups()
+            .then(response => setRows(response.json))
+            .catch(() => setRows([]))
+            .finally(() => setLoading(false))
+    }, [setLoading])
 
+    const closeAddBreeding = useCallback((added?: boolean) => {
+        if (added) loadRows()
+        setBreedingDate(undefined)
+        setAddBreedingOpen(false)
+    }, [loadRows])
+
+    useEffect(() => {
         const handleResize = () => {
             if (!tableRef.current) return
             setUnit(tableRef.current.offsetWidth / 100)
         }
-
+        loadRows()
         handleResize()
-
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
-    }, [reload])
+    }, [loadRows, reload, setLoading])
 
     return <div className="w-max min-w-full flex flex-col" ref={tableRef}>
-        <Table stickyHeader>
-            <TableHead>
-                <TableHeadRow>
-                    <TableHeadCell width={unit * 10} />
-                    <ResizableHeadCell align="center" width={unit * 20}>Data de Inseminação</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 20}>Total de Animais</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 25}>Taxa de Prenhez</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 25}>Taxa de Natalidade</ResizableHeadCell>
-                </TableHeadRow>
-            </TableHead>
-            <TableBody>
-                {rows.map(item => <GroupsRow {...{ item, loading, setPageProps }} />)}
-            </TableBody>
-        </Table>
+        <EditContext value={{ setError, setWarningProps, setBreedingDate, setAddBreedingOpen, setRows }}>
+            <Table stickyHeader>
+                <TableHead>
+                    <TableHeadRow>
+                        <TableHeadCell width={unit * 10} />
+                        <ResizableHeadCell align="center" width={unit * 20}>Data de Cobertura</ResizableHeadCell>
+                        <ResizableHeadCell align="center" width={unit * 20}>Total de Animais</ResizableHeadCell>
+                        <ResizableHeadCell align="center" width={unit * 25}>Taxa de Prenhez</ResizableHeadCell>
+                        <ResizableHeadCell align="center" width={unit * 25}>Taxa de Natalidade</ResizableHeadCell>
+                    </TableHeadRow>
+                </TableHead>
+                <TableBody>
+                    {rows.map(item => <GroupsRow {...{ item, loading, setPageProps }} />)}
+                </TableBody>
+            </Table>
+        </EditContext>
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
+        <TimerYesNoDialog {...warningProps} />
+        <AddBreedingDialog {...{ closeAddBreeding, addBreedingOpen, breedingDate }} />
     </div>
 }
 
 type GroupsRowProps = {
-    item: InseminationGroup
+    item: BreedingGroup
     loading: boolean
     setPageProps: ((page: PageProps) => void) | undefined
 }
 
 const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
 
-    const [rowData, setRowData] = useState<InseminationGroup>(item)
+    const [rowData, setRowData] = useState<BreedingGroup>(item)
     const [editing, setEditing] = useState(false)
     const [loadingControls, setLoadingControls] = useState(false)
 
-    const { 
-        setWarningProps, 
-        setRows, 
-        setError, 
-        setInseminationDate, 
-        setAddInseminationOpen 
+    const {
+        setWarningProps,
+        setRows,
+        setError,
+        setAddBreedingOpen,
+        setBreedingDate
     } = useContext(EditContext)
 
     if (loading) return <TableLoadingRow colSpan={5} />
@@ -176,10 +162,10 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
     const onDelete = () => {
         setWarningProps(DefaultTimerWarning)
         setLoadingControls(true)
-        deleteBatch(rowData.inseminationDate)
+        deleteBatch(rowData.breedingDate)
             .then(() => {
                 setError(undefined)
-                setRows(prev => prev.filter(item => item.inseminationDate != rowData.inseminationDate))
+                setRows(prev => prev.filter(item => item.breedingDate != rowData.breedingDate))
             })
             .catch(err => setError(err))
             .finally(() => setLoadingControls(false))
@@ -188,47 +174,43 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
     return <TableBodyRow>
         <TableBodyCell>
             <EditControlButtons
-                setEditing={setEditing}
                 loading={loadingControls}
-                onDelete={() => {
-                    setWarningProps({
-                        openYesNo: true,
-                        waitTime: 10,
-                        title: "ATENÇÃO: Exclusão em grupo!",
-                        content: `Ao continuar, os registros de inseminação de ${rowData.cowNumber} vacas serão excluídos. ` +
-                            "Tem certeza que deseja continuar?" +
-                            "\n\nIMPORTANTE: Ao continuar, todos os bezerros ligados a estes registros de inseminação trocarão de " +
-                            "pai!",
-                        onYes: onDelete,
-                        onClose: () => setWarningProps(DefaultTimerWarning)
-                    })
-                }}
+                setEditing={setEditing}
                 otherButtons={(
                     <IconButton
                         onClick={() => {
-                            setInseminationDate(new Date(rowData.inseminationDate))
-                            setAddInseminationOpen(true)
+                            setBreedingDate(new Date(rowData.breedingDate))
+                            setAddBreedingOpen(true)
                         }}
                     >
                         <Add />
                     </IconButton>
                 )}
+                onDelete={() => setWarningProps({
+                    openYesNo: true,
+                    waitTime: 10,
+                    title: "ATENÇÃO: Exclusão Data de Cobertura!",
+                    content: `Ao continuar, o registro de ${rowData.cowNumber} coberturas será excluído! ` +
+                        "Deseja proceder mesmo assim?",
+                    onClose: () => setWarningProps(DefaultTimerWarning),
+                    onYes: onDelete
+                })}
                 onShow={() => {
-                    const inseminationDate = new Date(item.inseminationDate)
-                    const dateString = inseminationDate.toLocaleDateString('pt-BR', {
+                    const breedingDate = new Date(item.breedingDate)
+                    const dateString = breedingDate.toLocaleDateString('pt-BR', {
                         month: 'short',
                         year: 'numeric'
                     })
                     const page: PageProps = {
-                        page: <GroupEntriesTablePage {...{ inseminationDate }} />,
-                        title: `Inseminação - ${dateString}`,
-                        previousPages: [HomePage, InseminationPage, GroupsTablePageProps]
+                        page: <GroupEntriesTablePage {...{ breedingDate }} />,
+                        title: `Cobertura - ${dateString}`,
+                        previousPages: [HomePage, BreedingMainPage, GroupsTablePageProps]
                     }
                     if (setPageProps) setPageProps(page)
                 }}
             />
         </TableBodyCell>
-        <TableBodyCell align="center">{dateTransform(rowData.inseminationDate)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.breedingDate)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.cowNumber}</TableBodyCell>
         <TableBodyCell align="center">
             <TrendValues
@@ -246,21 +228,21 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
 }
 
 type GroupsRowEditingProps = {
-    rowData: InseminationGroup
-    setRowData: (rowData: InseminationGroup) => void
+    rowData: BreedingGroup
+    setRowData: (rowData: BreedingGroup) => void
     setEditing: (editing: boolean) => void
 }
 
 const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<InseminationGroup>({ defaultValues: rowData })
+    const { control, handleSubmit } = useForm<BreedingGroup>({ defaultValues: rowData })
     const { setError, setWarningProps } = useContext(EditContext)
     const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<InseminationGroup> = (data: InseminationGroup) => {
+    const onSubmit: SubmitHandler<BreedingGroup> = (data: BreedingGroup) => {
         setWarningProps(DefaultTimerWarning)
         setLoading(true)
-        updateBatch(rowData.inseminationDate, data)
+        updateBatch(rowData.breedingDate, data)
             .then(res => {
                 setRowData(res)
                 setError(undefined)
@@ -275,7 +257,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
             openYesNo: true,
             waitTime: 10,
             title: "ATENÇÃO: Edição de grupo!",
-            content: `Ao continuar, a data de inseminação de ${rowData.cowNumber} vacas será modificada. ` +
+            content: `Ao continuar, o registro de ${rowData.cowNumber} coberturas será modificado. ` +
                 "Tem certeza que deseja continuar?",
             onYes: handleSubmit(onSubmit),
             onClose: () => setWarningProps(DefaultTimerWarning)
@@ -284,21 +266,21 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditingControlButtons {...{ setEditing, loading, onSave }} />
+            <EditingControlButtons {...{ setEditing, onSave, loading }} />
         </TableBodyCell>
         <TableBodyCell>
-            <FormDatePicker formProps={{ control, name: 'inseminationDate' }} />
+            <FormDatePicker formProps={{ control, name: 'breedingDate' }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.cowNumber}</TableBodyCell>
         <TableBodyCell align="center">
             <TrendValues
-                value={percentageTransform(rowData.pregnancyRate)}
+                value={rowData.pregnancyRate}
                 trendProps={{ trend: rowData.pregnancyComparisonRate }}
             />
         </TableBodyCell>
         <TableBodyCell align="center">
             <TrendValues
-                value={percentageTransform(rowData.birthRate)}
+                value={rowData.birthRate}
                 trendProps={{ trend: rowData.birthComparisonRate }}
             />
         </TableBodyCell>

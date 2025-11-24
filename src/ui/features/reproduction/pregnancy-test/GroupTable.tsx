@@ -1,9 +1,24 @@
-import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from "react"
+import { 
+    createContext, 
+    Dispatch, 
+    SetStateAction, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useState 
+} from "react"
 import { TestGroup } from "./Entities"
-import { findGroups, updateBatch } from "./Controller"
+import { deleteBatch, findGroups, updateBatch } from "./Controller"
 import Table from "@mui/material/Table"
 import { IconButton, TableBody, TableHead } from "@mui/material"
-import { TableBodyCell, TableBodyRow, TableHeadCell, TableHeadRow, TableLoadingRow, TrendValues } from "@/ui/shared/table/TableComponents"
+import { 
+    TableBodyCell, 
+    TableBodyRow, 
+    TableHeadCell, 
+    TableHeadRow, 
+    TableLoadingRow, 
+    TrendValues 
+} from "@/ui/shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
@@ -23,6 +38,7 @@ type ReloadContextProps = {
     onReload: () => void
     setWarningProps: Dispatch<SetStateAction<TimerYesNoDialogProps>>
     setError: Dispatch<SetStateAction<APIError | undefined>>
+    setRows: Dispatch<SetStateAction<TestGroup[]>>
 }
 
 const ReloadContext = createContext<ReloadContextProps>(undefined!)
@@ -46,7 +62,7 @@ export const GroupTablePage = () => {
     useEffect(onReload, [onReload])
 
     return <div className="w-full h-full flex flex-col">
-        <ReloadContext value={{ onReload, setWarningProps, setError }}>
+        <ReloadContext value={{ onReload, setWarningProps, setError, setRows }}>
             <GroupTable {...{ loading, rows }} />
         </ReloadContext>
         <TimerYesNoDialog {...warningProps} />
@@ -96,8 +112,9 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
     const [rowData, setRowData] = useState<TestGroup>(item)
     const [editing, setEditing] = useState(false)
     const [addTestOpen, setAddTestOpen] = useState(false)
+    const [loadingControl, setLoadingControl] = useState(false)
 
-    const { onReload } = useContext(ReloadContext)
+    const { onReload, setWarningProps, setError, setRows } = useContext(ReloadContext)
 
     useEffect(() => setRowData(item), [item])
 
@@ -106,12 +123,24 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
         if (added) onReload()
     }
 
+    const onDelete = () => {
+        setLoadingControl(true)
+        deleteBatch(rowData.testDate)
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.testDate != rowData.testDate))
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControl(false))
+    }
+
     if (loading) return <TableLoadingRow colSpan={6} />
     if (editing) return <GroupsRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <TableBodyRow>
         <TableBodyCell>
             <EditControlButtons
+                loading={loadingControl}
                 otherButtons={(
                     <IconButton onClick={() => setAddTestOpen(true)}>
                         <Add />
@@ -127,6 +156,17 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
                     if (setPageProps) setPageProps(page)
                 }}
                 setEditing={setEditing}
+                onDelete={() => setWarningProps({
+                    openYesNo: true,
+                    waitTime: 10,
+                    title: 'ATENÇÃO: Exclusão de Grupo!',
+                    content: `Ao excluir este grupo, o toque de ${rowData.animalsNumber} animais serão excluídos! Deseja continuar?`,
+                    onYes: () => {
+                        setWarningProps(DefaultTimerWarning)
+                        onDelete()
+                    },
+                    onClose: () => setWarningProps(DefaultTimerWarning)
+                })}
             />
         </TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.testDate)}</TableBodyCell>

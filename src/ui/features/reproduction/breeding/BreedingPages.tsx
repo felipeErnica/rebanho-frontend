@@ -1,19 +1,19 @@
 import { PageProps } from "@/ui/shared/main-page/PageDisplay";
 import { HomePage } from "@/ui/features/home/HomePage";
 import { BullIcon } from "@/ui/shared/common/OtherIcons";
-import { MatingDashboard } from "./NaturalMatingDashboard";
+import { BreedingDashboard } from "./BreedingDashboard";
 import { GroupsTablePage } from "./GroupsTable";
 
-export const MatingMainPage: PageProps = {
-    title: "Painel de Monta Natural",
+export const BreedingMainPage: PageProps = {
+    title: "Painel de Coberturas",
     crumbIcon: <BullIcon />,
-    page: <MatingDashboard />,
+    page: <BreedingDashboard />,
     previousPages: [HomePage]
 }
 
 export const GroupsTablePageProps: PageProps = {
     page: <GroupsTablePage />,
-    title: 'Grupos de Monta',
-    previousPages: [HomePage, MatingMainPage]
+    title: 'Datas de Cobertura',
+    previousPages: [HomePage, BreedingMainPage]
 }
 
