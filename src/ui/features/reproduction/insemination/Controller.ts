@@ -105,3 +105,11 @@ export function updateBatch(inseminationDate: Date, group: InseminationGroup) {
 export function deleteBatch(inseminationDate: Date) {
     return apiDelete(GROUP_BASE + dateToISO(inseminationDate) + "delete")
 }
+
+export function searchNonInseminationBulls() {
+    return apiGet(BULLS_BASE + "search-non-insemination")
+}
+
+export function setAsInseminationBull(id: string) {
+    return apiGet(BULLS_BASE + `add/${id}`)
+}

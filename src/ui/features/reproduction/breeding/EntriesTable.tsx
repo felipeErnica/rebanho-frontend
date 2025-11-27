@@ -82,7 +82,7 @@ export const EntriesTablePage = () => {
 
     const loadFoot = useCallback(() => {
         getEntriesFoot(filter)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
     }, [defaultFoot, filter])
 

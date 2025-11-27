@@ -49,8 +49,8 @@ export function TextComponent({
         ref={ref}
         className={className}
         onBlur={onBlur}
-        error={error}
-        helperText={helperText}
+        error={!disabled && error}
+        helperText={!disabled ? helperText : undefined}
         onChange={onChange}
         size={size ?? 'small'}
         label={label}
@@ -62,7 +62,7 @@ export function TextComponent({
         fullWidth
         slotProps={{
             input: {
-                sx: { color: error ? 'red' : undefined },
+                sx: { color: !disabled && error ? 'red' : undefined },
                 endAdornment: endAdornment
             }
         }}

@@ -74,11 +74,15 @@ export function updateNoValidation(entry: BreedingEntrySave) {
 }
 
 export function addBreeding(entry: BreedingEntrySave) {
-    return apiPut(ENTRY_BASE + "update-no-validation", entry)
+    return apiPut(ENTRY_BASE + "add", entry)
 }
 
 export function replaceBreeding(entry: BreedingEntrySave) {
     return apiPut(ENTRY_BASE + "replace", entry)
+}
+
+export function transferBreedingBull(id: string) {
+    return apiGet(BULLS_BASE + `add/${id}`)
 }
 
 export function updateBatch(breedingDate: Date, group: BreedingGroup) {
@@ -104,4 +108,8 @@ export function getEntriesByGroupFoot(inseminationDate: Date) {
 
 export function searchBreedingBulls() {
     return apiGet(BULLS_BASE + "search")
+}
+
+export function searchNonBreedingBulls() {
+    return apiGet(BULLS_BASE + "search-non-breeding")
 }

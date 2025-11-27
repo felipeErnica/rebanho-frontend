@@ -57,7 +57,7 @@ export const GroupEntriesTablePage = ({ breedingDate }: GroupEntriesTablePagePro
 
     const loadFoot = useCallback(() => {
         getEntriesByGroupFoot(breedingDate)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultValue))
     }, [breedingDate, defaultValue])
 
@@ -65,7 +65,7 @@ export const GroupEntriesTablePage = ({ breedingDate }: GroupEntriesTablePagePro
         setLoading(true)
         loadFoot()
         findEntriesByGroup(breedingDate)
-            .then(response => setRows(response.json))
+            .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [loadFoot, breedingDate])

@@ -10,6 +10,9 @@ import { addInsemiantion, replaceInsemination, searchInseminationBulls } from ".
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
 import { useCallback, useEffect, useState } from "react"
 import { APIError } from "@/util/ApiRequest"
+import { AddBullDialog } from "@features/animals/AddBullDialog"
+import { AddCowDialog } from "@features/animals/AddCowDialog"
+import { AddInseminationBullDialog } from "./AddInseminationBull"
 
 type AddInseminationDialogProps = {
     addInseminationOpen: boolean
@@ -28,6 +31,11 @@ export const AddInseminationDialog = ({
     const [loading, setLoading] = useState(false)
     const [warning, setWarning] = useState<APIError>()
     const [added, setAdded] = useState(false)
+    const [reload, setReload] = useState(0)
+
+    const [addInseminationBull, setAddInseminationBull] = useState(false)
+    const [addBullOpen, setAddBullOpen] = useState(false)
+    const [addCowOpen, setAddCowOpen] = useState(false)
 
     const { control, handleSubmit, reset, setFocus, setValue } = useForm<InseminationEntrySave>({
         defaultValues: { bullId, inseminationDate }
@@ -42,6 +50,21 @@ export const AddInseminationDialog = ({
         reset()
         closeAddInsemination(added)
     }, [added, closeAddInsemination, reset])
+
+    const closeAddInseminationBull = (added?: boolean) => {
+        if (added) setReload(prev => prev + 1)
+        setAddInseminationBull(false)
+    }
+
+    const closeAddBull = (added?: boolean) => {
+        if (added) setReload(prev => prev + 1)
+        setAddBullOpen(false)
+    }
+
+    const closeAddCow = (added?: boolean) => {
+        if (added) setReload(prev => prev + 1)
+        setAddCowOpen(false)
+    }
 
     const onSubmit: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
         setLoading(true)
@@ -92,7 +115,20 @@ export const AddInseminationDialog = ({
                 />
                 <FormSearchBox
                     label="*Touro"
+                    reload={reload}
                     searchOptions={searchInseminationBulls}
+                    emptyProps={[
+                        {
+                            id: 'addExistingBull',
+                            title: '+ Adicionar Touro como Touro de Cobertura',
+                            onEmpty: () => setAddInseminationBull(true)
+                        },
+                        {
+                            id: 'newBull',
+                            title: '+ Adicionar Novo Touro',
+                            onEmpty: () => setAddBullOpen(true)
+                        }
+                    ]}
                     formProps={{
                         control,
                         name: 'bullId',
@@ -101,8 +137,14 @@ export const AddInseminationDialog = ({
                 />
                 <FormSearchBox
                     label="*Vaca"
+                    reload={reload}
                     className="w-[400]"
                     searchOptions={searchOwnedMothers}
+                    emptyProps={[{
+                        id: 'newCow',
+                        title: '+ Adicionar Vaca',
+                        onEmpty: () => setAddCowOpen(true)
+                    }]}
                     formProps={{
                         control,
                         name: 'animalId',
@@ -113,13 +155,16 @@ export const AddInseminationDialog = ({
                     label="Observações"
                     multiline
                     rows={5}
-                    maxRows={8}
+                    maxRows={5}
                     formProps={{
                         control,
                         name: 'observation'
                     }}
                 />
             </DialogContainer>
+            <AddInseminationBullDialog {...{ addInseminationBull, closeAddInseminationBull }} />
+            <AddBullDialog {...{ addBullOpen, closeAddBull }} />
+            <AddCowDialog {...{ addCowOpen, closeAddCow }} />
         </DialogContent>
         <DialogActions>
             <DialogActionButtons 

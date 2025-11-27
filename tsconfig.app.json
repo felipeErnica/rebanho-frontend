@@ -14,7 +14,11 @@
         "skipLibCheck": true,
         "paths": {
             "@": ["./src"],
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "@features": ["./src/ui/features"],
+            "@features/*": ["./src/ui/features/*"],
+            "@controls": ["./src/ui/shared"],
+            "@controls/*": ["./src/ui/shared/*"]
         },
         /* Bundler mode */
         "moduleResolution": "bundler",

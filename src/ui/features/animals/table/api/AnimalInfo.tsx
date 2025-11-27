@@ -3,7 +3,8 @@ import { useCallback, useState } from "react"
 import { SexValues } from "@/shared/entities/enums"
 import { searchFarm, searchFather, searchAllMothers, searchPastureByFarm } from "@/shared/GlobalApiCalls"
 import { dateTransform, decimalTransform } from "@/util/Transformations"
-import { FormSearchBox, SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
+import { SearchBoxItem } from "@/ui/shared/dialog/SearchBox"
+import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 
 export type AnimalFilter = {
     isFiltered: boolean,

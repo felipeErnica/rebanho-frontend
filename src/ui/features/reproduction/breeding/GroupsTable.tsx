@@ -86,7 +86,7 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
     const loadRows = useCallback(() => {
         setLoading(true)
         findGroups()
-            .then(response => setRows(response.json))
+            .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [setLoading])

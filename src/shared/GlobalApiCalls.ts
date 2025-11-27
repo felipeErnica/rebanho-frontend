@@ -1,5 +1,5 @@
+import { SearchBoxItem } from "@/ui/shared/dialog/SearchBox"
 import { apiGet } from "@/util/ApiRequest"
-import { SearchBoxItem } from "@/ui/shared/form-controls/FormSearchBox"
 
 const FARM_BASE = 'farm-area/farms/'
 const ANIMAL_BASE = 'animals/info/'
@@ -25,6 +25,11 @@ export function searchAllMothers(): Promise<SearchBoxItem[]> {
 export function searchOwnedMothers() {
     return apiGet(ANIMAL_SEARCH_BASE + "mother")
 }
+
+export function searchBulls() {
+    return apiGet(ANIMAL_SEARCH_BASE + "bull")
+}
+
 export function searchDairyAnimal(): Promise<SearchBoxItem[]> {
     return apiGet(ANIMAL_SEARCH_BASE + "dairy-animal")
 }

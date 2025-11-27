@@ -14,29 +14,37 @@ export type Animal = {
     birthDate?: Date
     deathDate?: Date
     pastureName?: string
-    pastureId?: string
-    farmId?: string
-    farmName?: string
     animalType: string
-    isr?: number
     averageProd?: number
     averageProdInterval?: number
     averageBirthInterval?: number
     averagePeak?: number
+    isInseminationBull?: boolean
+    isTransferBull?: boolean
+    isBreedingBull?: boolean
+    isEmbryoDonor?: boolean
+    isOutsideAnimal?: boolean
+    observation?: string
 }
 
 export type AnimalSave = {
-    name: string
-    color: string
-    weightBirth: number
-    ringNumber: string
+    id?: string
+    ringNumber?: string
+    name?: string
+    weightBirth?: number
     sex: string
-    fatherId: string
-    motherId: string
-    birthDate: Date
-    pastureId: string
-    animalType: AnimalType
-    observation: string
+    fatherId?: string
+    motherId?: string
+    birthDate?: Date
+    deathDate?: Date
+    weaningDate?: Date
+    animalType: string
+    observation?: string
+    isInseminationBull?: boolean
+    isTransferBull?: boolean
+    isBreedingBull?: boolean
+    isEmbryoDonor?: boolean
+    isOutsideAnimal?: boolean
 }
 
 export enum AnimalType {
@@ -55,8 +63,7 @@ const animalTypeMap: Map<string, string> = new Map([
     ["BEEF_ANIMAL", "Animal de Abate"],
     ["DEAD_ANIMAL", "Animal Morto"],
     ["SLAUGHTERED_ANIMAL", "Animal Abatido"],
-    ["OFFSPRING", "Animal Jovem"],
-    ["OUTSIDE_ANIMAL", "Animal Externo"],
+    ["OFFSPRING", "Animal de Cria"],
 ])
 
 export function animalTypeToComboBox(): ComboBoxItem[] {

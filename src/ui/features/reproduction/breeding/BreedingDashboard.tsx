@@ -200,7 +200,7 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
         startLoading()
         setLoading(true)
         getBirthRateStats()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData(defaultValues))
             .finally(() => {
                 setLoading(false)
@@ -249,7 +249,7 @@ const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardI
         startLoading()
         setLoading(true)
         getPregnancyRateStats()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData(defaultValues))
             .finally(() => {
                 setLoading(false)
@@ -298,7 +298,7 @@ const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: Dashboard
         startLoading()
         setLoading(true)
         getAnimalsNumber()
-            .then((response) => setData(response.json))
+            .then((response) => setData(response))
             .catch(() => setData(defaultData))
             .finally(() => {
                 setLoading(false)
@@ -339,7 +339,7 @@ const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInfo
         startLoading()
         setLoading(true)
         getBestBulls()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -394,7 +394,7 @@ const BreedingHistGraph = ({ reloadFlag, stopLoading, startLoading }: DashboardI
     useEffect(() => {
         startLoading()
         getInseminationHist()
-            .then(response => setDataset(response.json))
+            .then(response => setDataset(response))
             .catch(() => setDataset([]))
             .finally(() => {
                 stopLoading()
@@ -463,7 +463,7 @@ const FutureBirthsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardI
         startLoading()
         setLoading(true)
         getFutureBirths()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -524,7 +524,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         setLoading(true)
         getLastEntries()
             .then(response => {
-                const lastEntry: LastEntry = response.json
+                const lastEntry: LastEntry = response
                 const lastDate = new Date(lastEntry.breedingDate)
                 setBreedingDate(lastDate)
                 setLastDate(lastDate.toLocaleString('pt-BR', { dateStyle: 'short' }))
@@ -774,7 +774,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         startLoading()
         setLoading(true)
         getLastGroups()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)

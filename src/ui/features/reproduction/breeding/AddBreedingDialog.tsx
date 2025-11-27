@@ -1,23 +1,26 @@
-import { 
-    Alert, 
-    AlertTitle, 
-    Collapse, 
-    Dialog, 
-    DialogActions, 
-    DialogContent, 
-    DialogTitle 
+import {
+    Alert,
+    AlertTitle,
+    Collapse,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle
 } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { BreedingEntrySave } from "./Entities"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { searchAllMothers } from "@/shared/GlobalApiCalls"
+import { searchOwnedMothers } from "@/shared/GlobalApiCalls"
 import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
 import { useState } from "react"
-import { addBreeding, searchBreedingBulls } from "./Controller"
+import { addBreeding, replaceBreeding, searchBreedingBulls } from "./Controller"
 import { APIError } from "@/util/ApiRequest"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
+import { AddBreddingBullDialog } from "./AddBreedingBull"
+import { AddBullDialog } from "@features/animals/AddBullDialog"
+import { AddCowDialog } from "../../animals/AddCowDialog"
 
 type AddBreeddingDialogProps = {
     addBreedingOpen: boolean
@@ -34,7 +37,11 @@ export const AddBreedingDialog = ({
 }: AddBreeddingDialogProps) => {
 
     const [added, setAdded] = useState(false)
+    const [reload, setReload] = useState(0)
     const [loading, setLoading] = useState(false)
+    const [addBreedingBull, setAddBreedingBull] = useState(false)
+    const [addBullOpen, setAddBullOpen] = useState(false)
+    const [addCowOpen, setAddCowOpen] = useState(false)
 
     const [error, setError] = useState<APIError>()
     const [warning, setWarning] = useState<APIError>()
@@ -48,9 +55,24 @@ export const AddBreedingDialog = ({
         closeAddBreeding(added)
     }
 
+    const closeAddBreedingBull = (added?: boolean) => {
+        if (added) setReload(prev => prev + 1)
+        setAddBreedingBull(false)
+    }
+
+    const closeAddBull = (added?: boolean) => {
+        if (added) setReload(prev => prev + 1)
+        setAddBullOpen(false)
+    }
+
+    const closeAddCow = (added?: boolean) => {
+        if (added) setReload(prev => prev + 1)
+        setAddCowOpen(false)
+    }
+
     const onReplace: SubmitHandler<BreedingEntrySave> = (data: BreedingEntrySave) => {
         setLoading(true)
-        addBreeding(data)
+        replaceBreeding(data)
             .then(() => {
                 setError(undefined)
                 setAdded(true)
@@ -113,21 +135,39 @@ export const AddBreedingDialog = ({
                     }}
                 />
                 <FormSearchBox
-                    label="*Vaca"
-                    className="w-[400]"
-                    searchOptions={searchAllMothers}
+                    label="*Touro"
+                    searchOptions={searchBreedingBulls}
+                    reload={reload}
+                    emptyProps={[
+                        {
+                            id: 'addExistingBull',
+                            title: '+ Adicionar Touro como Touro de Cobertura',
+                            onEmpty: () => setAddBreedingBull(true)
+                        },
+                        {
+                            id: 'newBull',
+                            title: '+ Adicionar Novo Touro',
+                            onEmpty: () => setAddBullOpen(true)
+                        }
+                    ]}
                     formProps={{
                         control,
-                        name: 'animalId',
+                        name: 'bullId',
                         rules: { required: REQUIRED_FIELD_MSG },
                     }}
                 />
                 <FormSearchBox
-                    label="*Touro"
-                    searchOptions={searchBreedingBulls}
+                    label="*Vaca"
+                    className="w-[400]"
+                    searchOptions={searchOwnedMothers}
+                    emptyProps={[{
+                        id: 'newCow',
+                        title: '+ Adicionar Vaca',
+                        onEmpty: () => setAddCowOpen(true)
+                    }]}
                     formProps={{
                         control,
-                        name: 'bullId',
+                        name: 'animalId',
                         rules: { required: REQUIRED_FIELD_MSG },
                     }}
                 />
@@ -146,6 +186,9 @@ export const AddBreedingDialog = ({
                 onYes={handleSubmit(onReplace)}
                 onClose={() => setWarning(undefined)}
             />
+            <AddBreddingBullDialog {...{ addBreedingBull, closeAddBreedingBull }} />
+            <AddBullDialog {...{ addBullOpen, closeAddBull }} />
+            <AddCowDialog {...{ addCowOpen, closeAddCow }} />
         </DialogContent>
         <DialogActions>
             <DialogActionButtons

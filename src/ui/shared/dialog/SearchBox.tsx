@@ -1,62 +1,116 @@
-import Autocomplete from "@mui/material/Autocomplete"
-import { useEffect, useState } from "react"
+import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete"
+import { FocusEventHandler, useEffect, useState } from "react"
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
-import { ApiResponse } from "@/shared/entities/ApiResponse"
-import { CircularProgress } from "@mui/material"
+import { Checkbox, Chip, CircularProgress } from "@mui/material"
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import { RefCallBack } from "react-hook-form"
 
 export type SearchBoxItem = {
     id: string
     label: string
+    addOption?: boolean
+}
+
+export type EmptyProps = {
+    id: string
+    title: string
+    onEmpty: () => void
 }
 
 type SearchBoxProps = {
     label?: string
+    reload?: number
     variant?: TextFieldVariants
-    searchOptions: () => Promise<ApiResponse>
+    searchOptions: () => Promise<SearchBoxItem[]>
     args?: any[]
     className?: string
+    onChange?: (id?: string, label?: string) => void
+    onBlur?: FocusEventHandler<HTMLDivElement>
+    emptyProps?: EmptyProps[]
     disabled?: boolean
-    onChange?: (id: string | undefined, label: string | undefined) => void
+    helperText?: string
+    ref?: RefCallBack
+    name?: string
+    error?: boolean
+    value?: string
 }
 
 export function SearchBox({
     label,
+    reload,
+    emptyProps,
     searchOptions,
     className,
     disabled,
     variant,
     onChange,
+    onBlur,
+    ref,
+    name,
+    error,
+    helperText,
+    value,
 }: SearchBoxProps) {
 
     const [options, setOptions] = useState<SearchBoxItem[]>([])
     const [loading, setLoading] = useState(false)
+    const [controlValue, setControlValue] = useState<SearchBoxItem | null>(null)
+
+    useEffect(() => setControlValue(options.find(item => item.id === value) ?? null), [options, value])
+
+    const filter = createFilterOptions<SearchBoxItem>()
 
     useEffect(() => {
         setLoading(true)
         searchOptions()
-            .then(response => setOptions(response.json))
+            .then(response => setOptions(response))
             .catch(() => setOptions([]))
             .finally(() => setLoading(false))
-    }, [searchOptions])
+    }, [reload, searchOptions])
 
     return <Autocomplete
+        value={controlValue}
         multiple={false}
+        onBlur={onBlur}
         className={className}
         loading={loading}
         loadingText="Carregando..."
         options={options}
         getOptionLabel={(option) => option.label}
         onChange={(_, newValue) => {
+            if (newValue?.addOption && emptyProps) {
+                const selectedOpt = emptyProps.find(item => item.id === newValue.id)
+                selectedOpt?.onEmpty()
+                return
+            }
+            setControlValue(newValue)
             if (onChange) onChange(newValue?.id, newValue?.label)
         }}
         noOptionsText="Nenhum resultado encontrado!"
-        disabled={disabled}
         fullWidth
         filterSelectedOptions
         autoHighlight
         autoSelect
+        disabled={disabled}
+        filterOptions={(options, state) => {
+            const filtered = filter(options, state)
+            if (filtered.length <= 0 && emptyProps) {
+                const addOptions: SearchBoxItem[] = emptyProps.map(item => ({
+                    id: item.id,
+                    label: item.title,
+                    addOption: true
+                }))
+                filtered.push(...addOptions)
+            }
+            return filtered
+        }}
         renderInput={(params) => <TextField
             {...params}
+            name={name}
+            inputRef={ref}
+            error={!disabled && error}
+            disabled={disabled}
+            helperText={helperText}
             size="small"
             label={label}
             variant={variant || 'standard'}
@@ -79,12 +133,19 @@ export function SearchBox({
 type MultipleSearchBoxProps = {
     label?: string
     variant?: TextFieldVariants
-    searchOptions: () => Promise<ApiResponse>
+    searchOptions: () => Promise<SearchBoxItem[]>
     args?: any[]
     className?: string
-    disabled?: boolean
     onChange?: (items: SearchBoxItem[]) => void
+    onBlur?: FocusEventHandler<HTMLDivElement>
     limitTags?: number
+    value?: string[]
+    noRenderValue?: boolean
+    disabled?: boolean
+    name?: string
+    ref?: RefCallBack
+    error?: boolean
+    helperText?: string
 }
 
 export function MultipleSearchBox({
@@ -92,39 +153,90 @@ export function MultipleSearchBox({
     limitTags,
     searchOptions,
     className,
-    disabled,
     variant,
     onChange,
+    onBlur,
+    noRenderValue,
+    value,
+    name,
+    ref,
+    disabled,
+    error,
+    helperText
 }: MultipleSearchBoxProps) {
 
     const [options, setOptions] = useState<SearchBoxItem[]>([])
     const [loading, setLoading] = useState(false)
+    const [selectedValues, setSelectedValues] = useState<SearchBoxItem[]>([])
+
+    useEffect(() => {
+        if (!value) {
+            setSelectedValues([])
+            return
+        }
+        setSelectedValues(options.filter(option => value.includes(option.id)))
+    }, [options, value])
 
     useEffect(() => {
         setLoading(true)
         searchOptions()
-            .then(response => setOptions(response.json))
+            .then(response => setOptions(response))
             .catch(() => setOptions([]))
             .finally(() => setLoading(false))
     }, [searchOptions])
 
     return <Autocomplete
-        multiple={true}
+        multiple
         limitTags={limitTags}
+        value={selectedValues}
+        onBlur={onBlur}
         className={className}
         loading={loading}
         loadingText="Carregando..."
         options={options}
         getOptionLabel={(option) => option.label}
+        isOptionEqualToValue={(option, value) => option.id === value.id}
         onChange={(_, newValue) => {
+            setSelectedValues(newValue)
             if (onChange) onChange(newValue)
         }}
         noOptionsText="Nenhum resultado encontrado!"
+        renderValue={(value, props) => {
+            if (noRenderValue) return
+            if (!limitTags) {
+                return value.map((option, index) => {
+                    const itemProps = props({ index })
+                    return <Chip label={option.label} {...itemProps} />
+                })
+            }
+            return <div className="gap-2">
+                {value.slice(0, limitTags).map((option, index) => {
+                    const itemProps = props({ index })
+                    return <Chip label={option.label} {...itemProps} />
+                })}
+                {value.length > limitTags && `+${value.length - limitTags}`}
+            </div>
+        }}
         disabled={disabled}
-        filterSelectedOptions
+        renderOption={(props, option, { selected }) => (
+            <li {...props}>
+                <Checkbox
+                    style={{ marginRight: 8 }}
+                    checkedIcon={<CheckBoxIcon />}
+                    checked={selected}
+                />
+                {option.label}
+            </li>
+        )}
         fullWidth
+        disableCloseOnSelect
         renderInput={(params) => <TextField
             {...params}
+            name={name}
+            ref={ref}
+            disabled={disabled}
+            error={error}
+            helperText={disabled ? helperText : undefined}
             size="small"
             label={label}
             variant={variant || 'standard'}

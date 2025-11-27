@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
-import { SearchBoxItem } from "../form-controls/FormSearchBox"
 import Autocomplete from "@mui/material/Autocomplete"
 import TextField from "@mui/material/TextField"
 import Checkbox from "@mui/material/Checkbox"
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { IFilters } from "@/shared/interfaces/Filter"
 import Chip from "@mui/material/Chip"
+import { SearchBox, SearchBoxItem } from "../dialog/SearchBox";
 
 export type MultipleSearchBoxFilterProps = {
     label: string
@@ -136,36 +136,20 @@ export const SearchBoxFilter = ({
     fieldName,
 }: SearchBoxProps) => {
 
-    const [options, setOptions] = useState<SearchBoxItem[]>([])
-
-    useEffect(() => {
-        searchOptions()
-            .then(response => setOptions(response))
-            .catch(() => setOptions([]))
-    }, [searchOptions])
-
-    return <Autocomplete
+    return <SearchBox 
         className={className}
-        value={options.find(item => item.id === filter[fieldName])}
-        getOptionLabel={(option) => option.label}
-        filterSelectedOptions
-        options={options}
-        onChange={(_, newValue) => {
-            if (!newValue) {
+        searchOptions={searchOptions}
+        value={filter[fieldName]}
+        onChange={(id, label) => {
+            if (!id) {
                 setFilter({ ...filter, [fieldName]: undefined })
                 return
             }
-            setFilter({ ...filter, isFiltered: true, [fieldName]: newValue.id })
-            if (onChange) onChange(newValue)
+            setFilter({ ...filter, isFiltered: true, [fieldName]: id })
+            if (onChange && label) onChange({id, label})
         }}
-        noOptionsText="Nenhum resultado encontrado!"
         disabled={disabled}
-        renderInput={(params) => <TextField
-            {...params}
-            size="small"
             label={label}
             variant="standard"
-        />}
     />
-
 }
