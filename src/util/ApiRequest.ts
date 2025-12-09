@@ -67,10 +67,14 @@ export async function apiPost<D>(apiCall: string, object: D): Promise<any> {
     return buildResponse(response)
 }
 
-export async function apiPut<D>(apiCall: string, object: D): Promise<any> {
+export async function apiPut<D>(apiCall: string, object?: D): Promise<any> {
     const request = await generateRequest()
     request.method = 'PUT'
-    request.body = JSON.stringify(object)
+
+    if (object) {
+        request.body = JSON.stringify(object)
+    }
+
     const url = BASE_URL + apiCall
     const response = await fetch(url, request)
     return buildResponse(response)

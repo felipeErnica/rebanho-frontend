@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { TransferGroup } from "./Entities"
-import { findGroups } from "./Controller"
-import { Table, TableBody, TableHead } from "@mui/material"
+import { deleteGroup, findGroups, updateGroup } from "./Controller"
+import { IconButton, Table, TableBody, TableHead } from "@mui/material"
 import {
     ResizableHeadCell,
     TableBodyCell,
@@ -16,11 +16,16 @@ import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
 import { dateTransform, percentageTransform } from "@/util/Transformations"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
-import { HomePage } from "../../home/HomePage"
+import { HomePage } from "@features/home/HomePage"
 import { GroupsTablePageProps, TransferMainPage } from "./EmbryoTransferPages"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
+import { DefaultTimerWarning, GROUP_DELETE_TITLE, GROUP_UPDATE_TITLE } from "@/ui/shared/Globals"
+import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
+import { APIError } from "@/util/ApiRequest"
+import Add from "@mui/icons-material/Add"
+import { AddTransferDialog } from "./AddTransferDialog"
 
 export const GroupsTablePage = () => {
 
@@ -35,7 +40,7 @@ export const GroupsTablePage = () => {
 
 type GroupsToolBarProps = {
     loading: boolean
-    setReload: React.Dispatch<React.SetStateAction<number>>
+    setReload: React.Dispatch<SetStateAction<number>>
 }
 
 const GroupsToolBar = ({ setReload, loading }: GroupsToolBarProps) => {
@@ -58,9 +63,33 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
 
     const [rows, setRows] = useState<TransferGroup[]>([])
     const [unit, setUnit] = useState(0)
+    const [warningProps, setWarningProps] = useState(DefaultTimerWarning)
+    const [error, setError] = useState<APIError>()
+
+    const [addTransferOpen, setAddTransferOpen] = useState(false)
+    const [transferDate, setTransferDate] = useState<Date>()
 
     const tableRef = useRef<HTMLDivElement>(null)
     const { setPageProps } = useContext(PageContext)
+
+    const onReload = useCallback(() => {
+        setLoading(true)
+        findGroups()
+            .then(response => setRows(response))
+            .catch(() => setRows([]))
+            .finally(() => setLoading(false))
+    }, [setLoading])
+
+    const closeAddTransfer = (added?: boolean) => {
+        if (added) onReload()
+        setAddTransferOpen(false)
+        setTransferDate(undefined)
+    }
+
+    const openAddTransfer = (date: Date) => {
+        setTransferDate(new Date(date))
+        setAddTransferOpen(true)
+    }
 
     useEffect(() => {
 
@@ -69,16 +98,12 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
             setUnit(tableRef.current.offsetWidth / 100)
         }
 
-        setLoading(true)
-        findGroups()
-            .then(response => setRows(response.json))
-            .catch(() => setRows([]))
-            .finally(() => setLoading(false))
+        onReload()
         handleResize()
 
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
-    }, [reload, setLoading])
+    }, [onReload, reload, setLoading])
 
     return <div className="w-max min-w-full flex flex-col" ref={tableRef}>
         <Table stickyHeader>
@@ -92,9 +117,28 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
                 </TableHeadRow>
             </TableHead>
             <TableBody>
-                {rows.map(item => <GroupsRow {...{ item, loading, setPageProps }} />)}
+                {rows.map(item => (
+                    <GroupsRow {...{
+                        item,
+                        loading,
+                        setPageProps,
+                        setWarningProps,
+                        setRows,
+                        setError,
+                        openAddTransfer
+                    }}
+                    />
+                ))}
             </TableBody>
         </Table>
+        <TimerYesNoDialog {...warningProps} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            onClose={() => setError(undefined)}
+            content={error?.message}
+        />
+        <AddTransferDialog {...{ closeAddTransfer, addTransferOpen, transferDate }} />
     </div>
 }
 
@@ -102,20 +146,65 @@ type GroupsRowProps = {
     item: TransferGroup
     loading: boolean
     setPageProps: ((page: PageProps) => void) | undefined
+    setRows: Dispatch<SetStateAction<TransferGroup[]>>
+    setWarningProps: Dispatch<SetStateAction<TimerYesNoDialogProps>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    openAddTransfer: (date: Date) => void
 }
 
-const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
+const GroupsRow = ({
+    item,
+    loading,
+    setPageProps,
+    setError,
+    setWarningProps,
+    setRows,
+    openAddTransfer
+}: GroupsRowProps) => {
 
     const [rowData, setRowData] = useState<TransferGroup>(item)
     const [editing, setEditing] = useState(false)
+    const [loadingControls, setLoadingControls] = useState(false)
 
     if (loading) return <TableLoadingRow colSpan={5} />
-    if (editing) return <GroupsRowEditing {...{ setEditing, setRowData, rowData }} />
+    if (editing) return <GroupsRowEditing {...{ setEditing, setRowData, rowData, setWarningProps, setError }} />
+
+    const onDelete = () => {
+        setLoadingControls(true)
+        deleteGroup(rowData.transferDate)
+            .then(() => {
+                setError(undefined)
+                setWarningProps(DefaultTimerWarning)
+                setRows(prev => prev.filter(item => item.transferDate != rowData.transferDate))
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }
 
     return <TableBodyRow>
         <TableBodyCell>
             <EditControlButtons
                 setEditing={setEditing}
+                onDelete={() => {
+                    setWarningProps({
+                        openYesNo: true,
+                        waitTime: 10,
+                        onYes: onDelete,
+                        title: GROUP_DELETE_TITLE,
+                        content: `Ao continuar, o registro de ${rowData.cowNumber} transferências serão apagados! ` +
+                            "Deseja continuar?" +
+                            "\n\nOBS.: As parições relacionadas a estas transferências permanecerão, mude os pais por conta própria!",
+                        onClose: () => setWarningProps(DefaultTimerWarning),
+                    })
+                }}
+                otherButtons={(
+                    <IconButton
+                        onClick={() => openAddTransfer(rowData.transferDate)}
+                    >
+                        <Add />
+                    </IconButton>
+                )}
+                loading={loadingControls}
                 onShow={() => {
                     const transferDate = new Date(item.transferDate)
                     const dateString = transferDate.toLocaleDateString('pt-BR', {
@@ -152,19 +241,45 @@ type GroupsRowEditingProps = {
     rowData: TransferGroup
     setRowData: (rowData: TransferGroup) => void
     setEditing: (editing: boolean) => void
+    setWarningProps: Dispatch<SetStateAction<TimerYesNoDialogProps>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
 }
 
-const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingProps) => {
+const GroupsRowEditing = ({ rowData, setRowData, setEditing, setWarningProps, setError }: GroupsRowEditingProps) => {
+
+    const [loading, setLoading] = useState(false)
 
     const { control, handleSubmit } = useForm<TransferGroup>({ defaultValues: rowData })
+
     const onSubmit: SubmitHandler<TransferGroup> = (data: TransferGroup) => {
-        setRowData(data)
-        setEditing(false)
+        setLoading(true)
+        updateGroup(rowData.transferDate, data)
+            .then(response => {
+                setError(undefined)
+                setWarningProps(DefaultTimerWarning)
+                setRowData(response)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }
+
+    const onSave = () => {
+        setWarningProps({
+            openYesNo: true,
+            waitTime: 10,
+            title: GROUP_UPDATE_TITLE,
+            content: `Ao continuar, o registro de ${rowData.cowNumber} transferências terão as datas modificadas! ` +
+                "Deseja continuar?" +
+                "\n\nOBS.: A alteração de data pode causar uma mudança na taxa de prenhez e nascimento!",
+            onYes: handleSubmit(onSubmit),
+            onClose: () => setWarningProps(DefaultTimerWarning)
+        })
     }
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditingControlButtons {...{ setEditing, onSave: handleSubmit(onSubmit) }} />
+            <EditingControlButtons {...{ setEditing, onSave, loading }} />
         </TableBodyCell>
         <TableBodyCell>
             <FormDatePicker formProps={{ control, name: 'transferDate' }} />

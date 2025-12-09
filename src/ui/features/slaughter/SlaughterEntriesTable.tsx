@@ -9,29 +9,50 @@ import {
     VirtuosoResizeHeadCell
 } from "@/ui/shared/table/TableComponents"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
-import { SlaughterEntry, SlaughterEntryFilter, SlaughterFoot } from "./Entities"
-import { RefObject, useCallback, useEffect, useRef, useState } from "react"
+import { SlaughterEntry, SlaughterEntryFilter, SlaughterEntrySave, SlaughterFoot } from "./Entities"
+import { 
+    createContext, 
+    Dispatch, 
+    RefObject, 
+    SetStateAction, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useMemo, 
+    useRef, 
+    useState 
+} from "react"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
-import { findEntriesPage, getEntriesPageFoot, searchSlaughterhouses } from "./Controller"
+import { deleteSlaughter, findEntriesPage, getEntriesPageFoot, searchButcher, updateSlaughter } from "./Controller"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { SlaughterFilterPopover } from "./SlaughterFilterPopover"
-import { dateTransform, decimalTransform, percentageTransform } from "@/util/Transformations"
+import { dateTransform, percentageTransform, transformWeight } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { EditRowProps } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
+
+type EditContextProps = {
+    setRows: Dispatch<SetStateAction<SlaughterEntry[]>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    loadFoot: () => void
+}
+
+const EditContext = createContext<EditContextProps>(undefined!)
 
 export const SlaughterEntriesTable = () => {
 
-    const defaultFoot: SlaughterFoot = {
+    const defaultFoot: SlaughterFoot = useMemo(() => ({
         animalsNumber: 0,
         averageRate: 0,
         averageWeight: 0,
         averageDeadWeight: 0
-    }
+    }), [])
 
     const defaultSort = 'entry_date, animal_order, birth_date'
 
@@ -41,19 +62,23 @@ export const SlaughterEntriesTable = () => {
     const [filter, setFilter] = useState<SlaughterEntryFilter>({ isFiltered: false })
     const [loading, setLoading] = useState(false)
 
+    const [error, setError] = useState<APIError>()
     const [filterOpen, setFilterOpen] = useState(false)
     const anchorEl = useRef<HTMLButtonElement | null>(null)
 
-    const fetchPage = useCallback((cursor?: string) => {
-        setLoading(true)
+    const loadFoot = useCallback(() => {
         getEntriesPageFoot(filter)
-            .then(results => setFoot(results.json))
+            .then(results => setFoot(results))
             .catch(() => setFoot(defaultFoot))
-        return findEntriesPage(filter, sort, order, cursor)
-    }, [filter, order, sort])
+    }, [defaultFoot, filter])
 
-    const { rows, fetchNextPage, scrollRef } = usePagination<SlaughterEntry>({ setLoading, fetchPage })
-    const onReload = useCallback(() => setFilter({ isFiltered: false }), [filter])
+    const fetchPage = useCallback((cursor?: string) => {
+        loadFoot()
+        return findEntriesPage(filter, sort, order, cursor)
+    }, [filter, loadFoot, order, sort])
+
+    const { rows, fetchNextPage, scrollRef, setRows } = usePagination<SlaughterEntry>({ setLoading, fetchPage })
+    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Data de Abate', value: defaultSort },
@@ -72,8 +97,16 @@ export const SlaughterEntriesTable = () => {
             sortProps={{ setSort, sort, defaultSort, sortColumns }}
             filterProps={{ setFilterOpen, anchorEl }}
         />
-        <EntriesTable  {...{ fetchNextPage, rows, scrollRef, loading, foot }} />
+        <EditContext value={{ setRows, setError, loadFoot }}>
+            <EntriesTable  {...{ fetchNextPage, rows, scrollRef, loading, foot }} />
+        </EditContext>
         <SlaughterFilterPopover {...{ setFilter, filter, setFilterOpen, filterOpen, anchorEl }} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </TablePageContainer>
 }
 
@@ -128,15 +161,15 @@ const EntriesTable = ({ rows, fetchNextPage, loading, scrollRef, foot }: Entries
         }}
         fixedFooterContent={() => (
             <TableFooterRow colSpan={11}>
-                    <FooterContent title="Total" content={foot.animalsNumber} />
-                    <FooterContent
-                        title="Peso Médio"
-                        content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
-                    />
-                    <FooterContent
-                        title="Peso de Abate Médio"
-                        content={`${decimalTransform(foot.averageDeadWeight)} (${decimalTransform(foot.averageDeadWeight / 15)}@)`} />
-                    <FooterContent title="Rend. Médio" content={percentageTransform(foot.averageRate)} />
+                <FooterContent title="Total" content={foot.animalsNumber} />
+                <FooterContent
+                    title="Peso Médio"
+                    content={transformWeight(foot.averageWeight)}
+                />
+                <FooterContent
+                    title="Peso de Abate Médio"
+                    content={transformWeight(foot.averageDeadWeight)} />
+                <FooterContent title="Rend. Médio" content={percentageTransform(foot.averageRate)} />
             </TableFooterRow>
         )}
         itemContent={(_, item) => <EntriesRow {...{ item: item as SlaughterEntry, loading }} />}
@@ -153,6 +186,9 @@ const EntriesRow = ({ loading, item }: EntriesRowProps) => {
 
     const [editing, setEditing] = useState(false)
     const [rowData, setRowData] = useState<SlaughterEntry>(item)
+    const [loadingControls, setLoadingControls] = useState(false)
+
+    const { setError, setRows, loadFoot } = useContext(EditContext)
 
     useEffect(() => setRowData(item), [item])
 
@@ -160,54 +196,66 @@ const EntriesRow = ({ loading, item }: EntriesRowProps) => {
     if (editing) return <EntriesEditingRow {...{ setEditing, rowData, setRowData }} />
 
     const onDelete = () => {
-        console.log(rowData.id)
+        setLoadingControls(true)
+        deleteSlaughter(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+                loadFoot()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
     }
 
     return <>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing, onDelete }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.slaughterhouse}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.butcher}</TableBodyCell>
         <TableBodyCell align="center">{percentageTransform(rowData.discountRate)}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
-        <TableBodyCell align="center">
-            {`${decimalTransform(rowData.weight)} (${decimalTransform(rowData.weight / 15)}@)`}
-        </TableBodyCell>
-        <TableBodyCell align="center">
-            {`${decimalTransform(rowData.discountWeight)} (${decimalTransform(rowData.discountWeight / 15)}@)`}
-        </TableBodyCell>
-        <TableBodyCell align="center">
-            {`${decimalTransform(rowData.deadWeight)} (${decimalTransform(rowData.deadWeight / 15)}@)`}
-        </TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.weight)} </TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.discountWeight)} </TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.deadWeight)} </TableBodyCell>
         <TableBodyCell align="center">{percentageTransform(rowData.performanceRate)}</TableBodyCell>
     </>
 }
 
 const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<SlaughterEntry>) => {
 
-    const { handleSubmit, control } = useForm<SlaughterEntry>({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<SlaughterEntry> = (data: SlaughterEntry) => {
-        setRowData(data)
-        setEditing(false)
+    const { handleSubmit, control } = useForm<SlaughterEntrySave>({ defaultValues: rowData })
+    const { setError, loadFoot } = useContext(EditContext)
+
+    const onSubmit: SubmitHandler<SlaughterEntrySave> = (data: SlaughterEntrySave) => {
+        setLoading(true)
+        updateSlaughter(data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+                loadFoot()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <>
         <TableBodyCell>
-            <EditingControlButtons {...{ setEditing, onSave }} />
+            <EditingControlButtons {...{ setEditing, onSave, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
-                formProps={{ control, name: 'slaughterhouseId' }}
-                searchOptions={searchSlaughterhouses}
+                formProps={{ control, name: 'butcherId' }}
+                searchOptions={searchButcher}
             />
         </TableBodyCell>
         <TableBodyCell>
@@ -219,9 +267,8 @@ const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Sla
         <TableBodyCell>
             <FormTextField formProps={{ control, name: "weight" }} type="number" />
         </TableBodyCell>
-        <TableBodyCell align="center">
-            {`${decimalTransform(rowData.discountWeight)} (${decimalTransform(rowData.discountWeight / 15)}@)`}
-        </TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.weight)} </TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.discountWeight)} </TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'deadWeight' }} type="number" />
         </TableBodyCell>

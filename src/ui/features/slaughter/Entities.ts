@@ -6,12 +6,22 @@ export type SlaughterEntry = {
     motherName?: string;
     entryDate: Date;
     discountRate: number;
-    slaughterhouseId: string;
-    slaughterhouse: string;
+    butcherId: string;
+    butcher: string;
     weight: number;
     discountWeight: number;
     deadWeight: number;
     performanceRate: number;
+};
+
+export type SlaughterEntrySave = {
+    id: string;
+    animalId?: string;
+    entryDate: Date;
+    discountRate: number;
+    butcherId: string;
+    weight: number;
+    deadWeight: number;
 };
 
 export type SlaughterFoot = {
@@ -26,7 +36,7 @@ export type SlaughterEntryFilter = {
     animals?: string[];
     fathers?: string[];
     mothers?: string[];
-    slaughterhouses?: string[];
+    butchers?: string[];
     minAnimalBirth?: Date;
     maxAnimalBirth?: Date;
     minEntryDate?: Date;
@@ -37,9 +47,28 @@ export type SlaughterEntryFilter = {
     maxDeadWeight?: number;
 };
 
+export type ButcherEntry = {
+    id: string
+    name: string
+    cnpj?: string
+    address?: string
+    discount?: number
+    animalsNumber: number
+    averageWeight: number
+    averageRate: number
+};
+
+export type ButcherSave = {
+    id: string
+    name: string
+    cnpj?: string
+    address?: string
+    discount?: number
+};
+
 export type SlaughterGroup = {
     entryDate: Date;
-    slaughterhouse: string;
+    butcher: string;
     animalsNumber: number;
     averageWeight: number;
     weightVariation: number;

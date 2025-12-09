@@ -16,6 +16,7 @@ import {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState
 } from "react"
 import {
@@ -66,7 +67,11 @@ import { DefaultTimerWarning, DefaultWarning, ERROR_TYPE, LOADING_MSG, NO_DATA_A
 import {
     Button,
     Chip,
+    Divider,
     IconButton,
+    ListItemIcon,
+    Menu,
+    MenuItem,
     Table,
     TableBody,
     TableCell,
@@ -94,6 +99,10 @@ import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { APIError } from "@/util/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/DialogComponents"
 import dayjs from "dayjs"
+import { OptionMenuProps } from "@/ui/shared/dashboard/Entities"
+import { AddBullDialog } from "../../animals/AddBullDialog"
+import { AddBreddingBullDialog } from "./AddBreedingBull"
+import ExpandMore from "@mui/icons-material/ExpandMore"
 
 type AddContextProps = {
     setReloadFlag: Dispatch<SetStateAction<number>>
@@ -125,13 +134,8 @@ type DashboardToolbarProps = {
 
 const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarProps) => {
 
-    const [addBreedingOpen, setAddBreedingOpen] = useState(false)
-    const { setPageProps } = useContext(PageContext)
-
-    const closeAddBreeding = useCallback((added?: boolean) => {
-        if (added) setReloadFlag(prev => prev + 1)
-        setAddBreedingOpen(false)
-    }, [setReloadFlag])
+    const [openMenu, setOpenMenu] = useState(false)
+    const menuAnchorEl = useRef<HTMLButtonElement>(null)
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -139,27 +143,102 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
             loading={activeRequests > 0}
         />
         <Button
+            ref={menuAnchorEl}
             className="ml-auto"
-            startIcon={<Add />}
-            onClick={() => setAddBreedingOpen(true)}
+            endIcon={<ExpandMore />}
+            onClick={() => setOpenMenu(true)}
         >
-            Adicionar Cobertura
+            Opções
         </Button>
-        <Button
-            endIcon={<ChevronRight />}
-            onClick={() => {
-                const page: PageProps = {
-                    page: <EntriesTablePage />,
-                    title: "Histórico de Coberturas",
-                    previousPages: [HomePage, BreedingMainPage]
-                }
-                if (setPageProps) setPageProps(page)
-            }}
-        >
-            Histórico de Coberturas
-        </Button>
-        <AddBreedingDialog {...{ addBreedingOpen, closeAddBreeding }} />
+        <OptionsMenu 
+            openMenu={openMenu}
+            closeMenu={() => setOpenMenu(false)}
+            menuAnchorEl={menuAnchorEl.current}
+            setReloadFlag={setReloadFlag}
+        />
     </DashboardTopContainer>
+}
+
+type OptionsMenuProps = OptionMenuProps & {
+    setReloadFlag: Dispatch<SetStateAction<number>>
+}
+
+const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionsMenuProps) => {
+
+    const [addBreedingOpen, setAddBreedingOpen] = useState(false)
+    const [addBreedingBull, setAddBreedingBull] = useState(false)
+    const [addBullOpen, setAddBullOpen] = useState(false)
+
+    const { setPageProps } = useContext(PageContext)
+
+    const closeAddBreeding = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddBreedingOpen(false)
+    }
+
+    const closeAddBreedingBull = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddBreedingBull(false)
+    }
+
+    const closeAddBull = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddBullOpen(false)
+    }
+
+    return <>
+        <Menu
+            open={openMenu}
+            anchorEl={menuAnchorEl}
+            onClose={closeMenu}
+        >
+            <MenuItem onClick={() => setAddBreedingOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Transferência
+            </MenuItem>
+            <MenuItem onClick={() => setAddBreedingBull(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Registrar Touro para Cobertura
+            </MenuItem>
+            <MenuItem onClick={() => setAddBullOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Novo Touro
+            </MenuItem>
+            <Divider />
+            <MenuItem
+                onClick={() => {
+                    const page: PageProps = {
+                        page: <EntriesTablePage />,
+                        title: "Histórico de Transferências",
+                        previousPages: [HomePage, BreedingMainPage]
+                    }
+                    if (setPageProps) setPageProps(page)
+                }}
+            >
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Histórico Geral
+            </MenuItem>
+            <MenuItem
+                onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+            >
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Datas de Cobertura
+            </MenuItem>
+        </Menu>
+        <AddBreedingDialog {...{ addBreedingOpen, closeAddBreeding }} />
+        <AddBreddingBullDialog {...{ addBreedingBull, closeAddBreedingBull }} />
+        <AddBullDialog {...{ addBullOpen, closeAddBull, isBreedingBull: true }} />
+    </>
 }
 
 type DashboardInformationProps = {

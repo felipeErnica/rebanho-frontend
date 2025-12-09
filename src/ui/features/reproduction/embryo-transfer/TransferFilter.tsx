@@ -4,9 +4,9 @@ import { DateFilter } from "@/ui/shared/filter-controls/DateFilter"
 import { ComboBoxFilter } from "@/ui/shared/filter-controls/ComboBoxFilter"
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter"
 import { searchAllMothers } from "@/shared/GlobalApiCalls"
-import { searchInseminationBulls } from "./Controller"
 import { Chip } from "@mui/material"
 import { ChipColorScheme } from "@/ui/shared/Globals"
+import { searchTransferBulls } from "./Controller"
 
 type TransferFilterProps = FilterPopoverProps & {
     filter: TransferEntryFilter
@@ -25,7 +25,7 @@ export const TransferFilter = ({
                 label="Touros"
                 className="col-span-2"
                 fieldName="bulls"
-                searchOptions={searchInseminationBulls}
+                searchOptions={searchTransferBulls}
                 filter={filter}
                 setFilter={setFilter}
             />

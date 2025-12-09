@@ -13,9 +13,9 @@ export type DashboardTopBarProps = {
     activeRequests: number
 }
 
-export type CommonMenuProps = {
-    open: boolean
-    anchorEl: Element | PopoverVirtualElement | null | undefined | (() => Element | PopoverVirtualElement | null )
-    handleClose: () => void
-    reloadFunction?: (changed?: boolean) => void
+export type OptionMenuProps = {
+    openMenu: boolean
+    menuAnchorEl: Element | PopoverVirtualElement | (() => Element | PopoverVirtualElement | null) | null | undefined
+    closeMenu: () => void
+    setReloadFlag: Dispatch<SetStateAction<number>>
 }

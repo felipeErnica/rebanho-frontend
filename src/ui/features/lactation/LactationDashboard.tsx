@@ -8,7 +8,7 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
-import { DashboardInformationProps, DashboardTopBarProps, CommonMenuProps } from "@/ui/shared/dashboard/Entities"
+import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@/ui/shared/dashboard/Entities"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
 import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import {
@@ -111,19 +111,19 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
             Opções
         </Button>
         <OptionsMenu
-            anchorEl={optionsEl.current}
-            open={menuOpen}
-            handleClose={() => setMenuOpen(false)}
+            menuAnchorEl={optionsEl.current}
+            openMenu={menuOpen}
+            closeMenu={() => setMenuOpen(false)}
             setReloadFlag={setReloadFlag}
         />
     </DashboardTopContainer>
 }
 
-type OptionsMenuProps = CommonMenuProps & {
+type OptionsMenuProps = OptionMenuProps & {
     setReloadFlag: Dispatch<SetStateAction<number>>
 }
 
-const OptionsMenu = ({ open, anchorEl, handleClose, setReloadFlag }: OptionsMenuProps) => {
+const OptionsMenu = ({ openMenu: open, menuAnchorEl: anchorEl, closeMenu: handleClose, setReloadFlag }: OptionsMenuProps) => {
 
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
     const [openEndLactation, setOpenEndLactation] = useState(false)

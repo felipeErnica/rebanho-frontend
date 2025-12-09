@@ -7,19 +7,21 @@ import {
     DashboardTableBody,
     DashboardTopContainer,
 } from "@/ui/shared/dashboard/DashboardComponents"
-import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from "react"
-import { DashboardInformationProps, DashboardTopBarProps } from "@/ui/shared/dashboard/Entities"
+import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@/ui/shared/dashboard/Entities"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
 import {
     PerformanceRateCard,
     RateHist,
     SlaughterEntry,
+    SlaughterEntrySave,
     SlaughterGroup,
     TableRatings,
     WeightCardEntry,
     WeightHist
 } from "./Entities"
 import {
+    deleteSlaughter,
     getBestRatings,
     getLastAverageWeight,
     getLastDeadWeight,
@@ -27,9 +29,10 @@ import {
     getLastGroups,
     getLastPerformance,
     getRateHist,
-    getWeightHist
+    getWeightHist,
+    updateSlaughter
 } from "./Controller"
-import { dateTransform, decimalTransform, percentageTransform } from "@/util/Transformations"
+import { dateTransform, decimalTransform, percentageTransform, transformWeight } from "@/util/Transformations"
 import Table from "@mui/material/Table"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
@@ -47,10 +50,20 @@ import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { green, yellow } from "@mui/material/colors"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
-import { SlaughterEntriesPage, SlaughterGroupsPage, SlaughterMainPage } from "./SlaughterPages"
+import { ButcherPage, SlaughterEntriesPage, SlaughterGroupsPage, SlaughterMainPage } from "./SlaughterPages"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
 import { SlaughterGroupEntriesTable } from "./SlaughterGroupEntriesTable"
 import { HomePage } from "../home/HomePage"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
+import ExpandMore from "@mui/icons-material/ExpandMore"
+import Menu from "@mui/material/Menu"
+import MenuItem from "@mui/material/MenuItem"
+import ListItemIcon from "@mui/material/ListItemIcon"
+import Add from "@mui/icons-material/Add"
+import Divider from "@mui/material/Divider"
+import { AddSlaughterDialog } from "./AddSlaughterDialog"
+import { AddButcherDialog } from "./AddButcherDialog"
 
 export const SlaughterDashboard = () => {
 
@@ -68,7 +81,10 @@ export const SlaughterDashboard = () => {
 
 const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps) => {
 
-    const { setPageProps } = useContext(PageContext)
+    const [openMenu, setOpenMenu] = useState(false)
+    const menuAnchorEl = useRef<HTMLButtonElement>(null)
+
+    const closeMenu = () => setOpenMenu(false)
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -77,22 +93,84 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTopBarProp
         />
         <Button
             className="ml-auto"
-            endIcon={<ChevronRight />}
-            onClick={() => setPageProps && setPageProps(SlaughterEntriesPage)}
+            ref={menuAnchorEl}
+            endIcon={<ExpandMore />}
+            onClick={() => setOpenMenu(true)}
         >
-            Abates
+            Opções
         </Button>
+        <OptionsMenu {...{ openMenu, menuAnchorEl: menuAnchorEl.current, closeMenu, setReloadFlag }} />
     </DashboardTopContainer>
+}
+
+const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionMenuProps) => {
+
+    const [addSlaughterOpen, setAddSlaughterOpen] = useState(false)
+    const [addButcherOpen, setAddButcherOpen] = useState(false)
+
+    const { setPageProps } = useContext(PageContext)
+
+    const closeAddSlaughter = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddSlaughterOpen(false)
+    }
+
+    const closeAddButcher = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddButcherOpen(false)
+    }
+
+    return <>
+        <Menu
+            open={openMenu}
+            anchorEl={menuAnchorEl}
+            onClose={closeMenu}
+        >
+            <MenuItem onClick={() => setAddSlaughterOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Abate
+            </MenuItem>
+            <MenuItem onClick={() => setAddButcherOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Novo Frigorífico
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={() => setPageProps && setPageProps(SlaughterEntriesPage)}>
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Histórico Geral
+            </MenuItem>
+            <MenuItem onClick={() => setPageProps && setPageProps(SlaughterGroupsPage)}>
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Datas de Abate
+            </MenuItem>
+            <MenuItem onClick={() => setPageProps && setPageProps(ButcherPage)}>
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Frigoríficos
+            </MenuItem>
+        </Menu>
+        <AddSlaughterDialog {...{ addSlaughterOpen, closeAddSlaughter }} />
+        <AddButcherDialog {...{ addButcherOpen, closeAddButcher }} />
+    </>
 }
 
 const DashboardInfo = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[280_280_280_1fr] grid-rows-[180_400] gap-4">
+        <div className="grid grid-cols-[280_280_280_1fr] grid-rows-[180_500] gap-4">
             <WeightCard {...{ reloadFlag, startLoading, stopLoading }} />
             <DeadWeightCard {...{ startLoading, stopLoading, reloadFlag }} />
             <PerformanceCard {...{ stopLoading, startLoading, reloadFlag }} />
-            <BestRatingsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <LastEntriesTable {...{ stopLoading, startLoading, reloadFlag }} />
+            <BestRatingsTable {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
         <div className="grid grid-cols-[720_1fr] grid-rows-[360_360] gap-4">
             <WeightHistChart {...{ startLoading, stopLoading, reloadFlag }} />
@@ -104,11 +182,11 @@ const DashboardInfo = ({ reloadFlag, stopLoading, startLoading }: DashboardInfor
 
 const WeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValues: WeightCardEntry = {
+    const defaultValues: WeightCardEntry = useMemo(() => ({
         trend: 0,
         current: 0,
         hist: []
-    }
+    }), [])
 
     const [data, setData] = useState<WeightCardEntry>(defaultValues)
     const [loading, setLoading] = useState(false)
@@ -117,13 +195,13 @@ const WeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
         setLoading(true)
         startLoading()
         getLastAverageWeight()
-            .then(results => setData(results.json))
+            .then(results => setData(results))
             .catch(() => setData(defaultValues))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag])
+    }, [defaultValues, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -151,11 +229,11 @@ const WeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
 
 const DeadWeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValues: WeightCardEntry = {
+    const defaultValues: WeightCardEntry = useMemo(() => ({
         trend: 0,
         current: 0,
         hist: []
-    }
+    }), [])
 
     const [data, setData] = useState<WeightCardEntry>(defaultValues)
     const [loading, setLoading] = useState(false)
@@ -164,13 +242,13 @@ const DeadWeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
         setLoading(true)
         startLoading()
         getLastDeadWeight()
-            .then(results => setData(results.json))
+            .then(results => setData(results))
             .catch(() => setData(defaultValues))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag])
+    }, [defaultValues, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -199,11 +277,11 @@ const DeadWeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
 
 const PerformanceCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValues: PerformanceRateCard = {
+    const defaultValues: PerformanceRateCard = useMemo(() => ({
         trend: 0,
         current: 0,
         hist: []
-    }
+    }), [])
 
     const [data, setData] = useState<PerformanceRateCard>(defaultValues)
     const [loading, setLoading] = useState(false)
@@ -212,13 +290,13 @@ const PerformanceCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
         setLoading(true)
         startLoading()
         getLastPerformance()
-            .then(results => setData(results.json))
+            .then(results => setData(results))
             .catch(() => setData(defaultValues))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag])
+    }, [defaultValues, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -252,17 +330,19 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
     const [slaughterhouse, setSlaughterhouse] = useState<string>("")
     const [loading, setLoading] = useState(false)
 
+    const [error, setError] = useState<APIError>()
+
     useEffect(() => {
         setLoading(true)
         startLoading()
         getLastEntries()
-            .then(results => {
-                const json: SlaughterEntry[] = results.json
-                const entryDate = new Date(json[0].entryDate)
-                const entrySlaugherhouse = json[0].slaughterhouse
+            .then((results: SlaughterEntry[]) => {
+                const entries = results
+                const entryDate = new Date(entries[0].entryDate)
+                const entrySlaugherhouse = entries[0].butcher
                 setSlaughterhouse(entrySlaugherhouse)
                 setLastDate(dateTransform(entryDate))
-                setResults(json)
+                setResults(entries)
             })
             .catch(() => {
                 setResults([])
@@ -275,7 +355,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             })
     }, [startLoading, stopLoading, reloadFlag])
 
-    return <DashboardCard className="col-span-3">
+    return <DashboardCard className="row-span-2">
         <CardDefaultTitle text={`Último Abate - ${lastDate} (Frig.: ${slaughterhouse})`} />
         <div className="overflow-auto">
             <Table stickyHeader size="small">
@@ -294,76 +374,86 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                         colSpan={5}
                         loadingProps={{ loading: loading, rowSpan: 10 }}
                         dataset={results}
-                        render={row => <LastEntriesRow {...{ row }} />}
+                        render={row => <LastEntriesRow {...{ row, setError }} />}
                     />
                 </TableBody>
             </Table>
+            <ErrorDialog
+                openError={!!error}
+                title={error?.title}
+                content={error?.message}
+                onClose={() => setError(undefined)}
+            />
         </div>
     </DashboardCard>
 }
 
 type LastEntriesRowProps = {
     row: SlaughterEntry
+    setError: Dispatch<SetStateAction<APIError | undefined>>
 }
 
-const LastEntriesRow = ({ row }: LastEntriesRowProps) => {
+const LastEntriesRow = ({ row, setError }: LastEntriesRowProps) => {
 
     const [editing, setEditing] = useState(false)
     const [rowData, setRowData] = useState(row)
+    const [loadingControls, setLoadingControls] = useState(false)
 
     useEffect(() => setRowData(row), [row])
 
-    const onDelete = useCallback(() => console.log(rowData.id), [])
+    const onDelete = useCallback(() => {
+        setLoadingControls(true)
+        deleteSlaughter(rowData.id)
+            .then(() => {
+                setError(undefined)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }, [rowData.id, setError])
 
-    if (editing) return <EditingLastEntriesRow {...{ setEditing, setRowData, rowData }} />
+    if (editing) return <EditingLastEntriesRow {...{ setEditing, setRowData, rowData, setError }} />
 
     return <TableRow>
         <TableCell>
-            <EditControlButtons {...{ setEditing, onDelete }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
         </TableCell>
         <TableCell>{rowData.animalInfo}</TableCell>
-        <TableCell>
-            {`${decimalTransform(rowData.weight)} (${decimalTransform(rowData.weight / 15)}@)`}
-        </TableCell>
-        <TableCell>
-            {`${decimalTransform(rowData.discountWeight)} (${decimalTransform(rowData.discountWeight / 15)}@)`}
-        </TableCell>
-        <TableCell>{
-            `${decimalTransform(rowData.deadWeight)} (${decimalTransform(rowData.deadWeight / 15)}@)`
-        }</TableCell>
+        <TableCell> {transformWeight(rowData.weight)} </TableCell>
+        <TableCell> {transformWeight(rowData.discountWeight)} </TableCell>
+        <TableCell> {transformWeight(rowData.deadWeight)} </TableCell>
         <TableCell>{percentageTransform(rowData.performanceRate)}</TableCell>
     </TableRow>
 }
 
 type EditingLastEntriesRowProps = {
     setEditing: Dispatch<SetStateAction<boolean>>
-    setRowData: Dispatch<SetStateAction<SlaughterEntry>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
     rowData: SlaughterEntry
+    setRowData: Dispatch<SetStateAction<SlaughterEntry>>
 }
 
-const EditingLastEntriesRow = ({ setEditing, rowData, setRowData }: EditingLastEntriesRowProps) => {
+const EditingLastEntriesRow = ({ setEditing, rowData, setRowData, setError }: EditingLastEntriesRowProps) => {
 
-    const { handleSubmit, control } = useForm<SlaughterEntry>({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<SlaughterEntry> = (data: SlaughterEntry) => {
+    const { handleSubmit, control } = useForm<SlaughterEntrySave>({ defaultValues: rowData })
 
-        const discountWeight = data.discountRate ? data.weight * (1 - data.discountRate) : 0
-        const performanceRate = (data.deadWeight / discountWeight) * 100
-
-        console.log(`discountRate: ${data.discountRate} 
-            discountWeight: ${discountWeight} 
-            performanceRate:${performanceRate}
-        `)
-
-        setRowData({ ...data, performanceRate, discountWeight })
-        setEditing(false)
+    const onSubmit: SubmitHandler<SlaughterEntrySave> = (data: SlaughterEntrySave) => {
+        setLoading(true)
+        updateSlaughter(data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <TableRow>
         <TableCell>
-            <EditingControlButtons {...{ setEditing, onSave }} />
+            <EditingControlButtons {...{ setEditing, onSave, loading }} />
         </TableCell>
         <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell>
@@ -372,9 +462,7 @@ const EditingLastEntriesRow = ({ setEditing, rowData, setRowData }: EditingLastE
                 type="number"
             />
         </TableCell>
-        <TableCell>
-            {`${decimalTransform(rowData.discountWeight)} (${decimalTransform(rowData.discountWeight / 15)}@)`}
-        </TableCell>
+        <TableCell> {transformWeight(rowData.discountWeight)} </TableCell>
         <TableCell>
             <FormTextField
                 formProps={{ control, name: 'deadWeight' }}
@@ -402,7 +490,7 @@ const BestRatingsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
         startLoading()
         setLoading(true)
         getBestRatings(rateType)
-            .then(results => setRows(results.json))
+            .then(results => setRows(results))
             .catch(() => setRows([]))
             .finally(() => {
                 setLoading(false)
@@ -410,7 +498,7 @@ const BestRatingsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             })
     }, [startLoading, stopLoading, reloadFlag, rateType])
 
-    return <DashboardCard className="row-span-2">
+    return <DashboardCard className="col-span-3">
         <ComboBox
             className="w-[300]"
             variant="standard"
@@ -473,7 +561,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
         setLoading(true)
         startLoading()
         getLastGroups()
-            .then(results => setResults(results.json))
+            .then(results => setResults(results))
             .catch(() => setResults([]))
             .finally(() => {
                 setLoading(false)
@@ -508,8 +596,8 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                             const entryDate = new Date(row.entryDate)
                                             const dateStr = entryDate.toLocaleString('pt-BR', { dateStyle: 'short' })
                                             const page: PageProps = {
-                                                title: `Abate - ${dateStr} (Frig.: ${row.slaughterhouse})`,
-                                                page: <SlaughterGroupEntriesTable {...{entryDate} } />,
+                                                title: `Abate - ${dateStr} (Frig.: ${row.butcher})`,
+                                                page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
                                                 previousPages: [HomePage, SlaughterMainPage]
                                             }
                                             if (setPageProps) setPageProps(page)
@@ -517,7 +605,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                     />
                                 </TableCell>
                                 <TableCell>{dateTransform(row.entryDate)}</TableCell>
-                                <TableCell>{row.slaughterhouse}</TableCell>
+                                <TableCell>{row.butcher}</TableCell>
                                 <TableCell>{row.animalsNumber}</TableCell>
                                 <TableCell>
                                     <TrendValues
@@ -557,7 +645,7 @@ const WeightHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
         startLoading()
         setLoading(true)
         getWeightHist()
-            .then(results => setDataset(results.json))
+            .then(results => setDataset(results))
             .catch(() => setDataset([]))
             .finally(() => {
                 setLoading(false)
@@ -579,7 +667,7 @@ const WeightHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                     label: "Peso",
                     showMark: false,
                     data: dataset.map(item => item.weight),
-                    valueFormatter: (value) => `${decimalTransform(value)} (${decimalTransform((value || 0) / 15)}@)`,
+                    valueFormatter: (value) => transformWeight(value || 0),
                     curve: 'linear',
                 },
                 {
@@ -587,7 +675,7 @@ const WeightHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                     label: "Peso de Abate",
                     showMark: false,
                     data: dataset.map(item => item.deadWeight),
-                    valueFormatter: (value) => `${decimalTransform(value)} (${decimalTransform((value || 0) / 15)}@)`,
+                    valueFormatter: (value) => transformWeight(value || 0),
                     curve: 'linear',
                 },
             ]}
@@ -613,7 +701,7 @@ const RateHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInfor
         startLoading()
         setLoading(true)
         getRateHist()
-            .then(results => setDataset(results.json))
+            .then(results => setDataset(results))
             .catch(() => setDataset([]))
             .finally(() => {
                 setLoading(false)

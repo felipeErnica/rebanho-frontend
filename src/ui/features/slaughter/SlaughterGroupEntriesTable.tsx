@@ -14,7 +14,7 @@ import Table from "@mui/material/Table"
 import TableBody from "@mui/material/TableBody"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { decimalTransform, percentageTransform } from "@/util/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/ControlButtons"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
@@ -31,12 +31,12 @@ type SlaughterGroupEntriesTableProps = {
 export const SlaughterGroupEntriesTable = ({ entryDate }: SlaughterGroupEntriesTableProps) => {
 
     const defaultSort = 'animal_order, birth_date'
-    const defaultFoot: SlaughterFoot = {
+    const defaultFoot: SlaughterFoot = useMemo(() => ({
         animalsNumber: 0,
         averageWeight: 0,
         averageDeadWeight: 0,
         averageRate: 0,
-    }
+    }), [])
 
     const [foot, setFoot] = useState<SlaughterFoot>(defaultFoot)
 
@@ -49,20 +49,20 @@ export const SlaughterGroupEntriesTable = ({ entryDate }: SlaughterGroupEntriesT
     const onReload = useCallback(() => {
         setLoading(true)
         getEntriesByDateFoot(entryDate)
-            .then(results => setFoot(results.json))
+            .then(results => setFoot(results))
             .catch(() => setFoot(defaultFoot))
         findEntriesByDate(entryDate, sort, order)
-            .then(results => {
-                const json: SlaughterEntry[] = results.json
-                setDiscountRate(json.length != 0 ? json[0].discountRate : 0)
-                setRows(json)
+            .then((results: SlaughterEntry[]) => {
+                const entries = results
+                setDiscountRate(entries.length != 0 ? entries[0]?.discountRate : 0)
+                setRows(entries)
             })
             .catch(() => {
                 setRows([])
                 setDiscountRate(0)
             })
             .finally(() => setLoading(false))
-    }, [order, sort, entryDate])
+    }, [entryDate, sort, order, defaultFoot])
 
     useEffect(onReload, [onReload])
 
@@ -138,19 +138,19 @@ const EntriesTable = ({ rows, loading, foot, discountRate }: EntriesTableProps) 
             </TableBody>
             <StickyTableFooter>
                 <TableFooterRow colSpan={8}>
-                        <FooterContent title="Total" content={foot.animalsNumber} />
-                        <FooterContent
-                            title="Peso Médio"
-                            content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
-                        />
-                        <FooterContent
-                            title="Peso de Abate Médio"
-                            content={`${decimalTransform(foot.averageDeadWeight)} (${decimalTransform(foot.averageDeadWeight / 15)}@)`}
-                        />
-                        <FooterContent
-                            title="Rendimento Médio"
-                            content={percentageTransform(foot.averageRate)}
-                        />
+                    <FooterContent title="Total" content={foot.animalsNumber} />
+                    <FooterContent
+                        title="Peso Médio"
+                        content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
+                    />
+                    <FooterContent
+                        title="Peso de Abate Médio"
+                        content={`${decimalTransform(foot.averageDeadWeight)} (${decimalTransform(foot.averageDeadWeight / 15)}@)`}
+                    />
+                    <FooterContent
+                        title="Rendimento Médio"
+                        content={percentageTransform(foot.averageRate)}
+                    />
                 </TableFooterRow>
             </StickyTableFooter>
         </Table>

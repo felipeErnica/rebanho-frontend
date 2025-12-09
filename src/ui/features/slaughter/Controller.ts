@@ -1,9 +1,10 @@
-import { apiGet, apiPost, buildPageCall } from "@/util/ApiRequest"
-import { SlaughterEntryFilter } from "./Entities"
+import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@/util/ApiRequest"
+import { SlaughterEntryFilter, SlaughterEntrySave, ButcherSave } from "./Entities"
 
 const SLAUGHTER_DASHBOARD = 'slaughter/dashboard/'
-const SLAUGHTER_INFO = 'slaughter/info/'
-const SLAUGHTER_SEARCH = 'slaughter/search/'
+const SLAUGHTER_ENTRIES = 'slaughter/entries/'
+const SLAUGHTER_GROUP = 'slaughter/group/'
+const BUTCHER = 'slaughter/butchers/'
 
 
 export function getLastDeadWeight() {
@@ -45,25 +46,61 @@ export function findEntriesPage(
     cursor?: string,
 ) {
     const pageCall = buildPageCall(sort, order, cursor)
-    return apiPost(SLAUGHTER_INFO + `entries/${pageCall}`, filter)
+    return apiPost(SLAUGHTER_ENTRIES + pageCall, filter)
 }
 
 export function getEntriesPageFoot(filter: SlaughterEntryFilter) {
-    return apiPost(SLAUGHTER_INFO + "entries/page/foot", filter)
+    return apiPost(SLAUGHTER_ENTRIES + "page/foot", filter)
+}
+
+export function deleteSlaughter(id: string) {
+    return apiDelete(SLAUGHTER_ENTRIES + `${id}/delete`)
+}
+
+export function updateSlaughter(entry: SlaughterEntrySave) {
+    return apiPut(SLAUGHTER_ENTRIES + "update", entry)
+}
+
+export function addSlaughter(entry: SlaughterEntrySave) {
+    return apiPut(SLAUGHTER_ENTRIES + "add", entry)
+}
+
+export function replaceSlaughter(entry: SlaughterEntrySave) {
+    return apiPut(SLAUGHTER_ENTRIES + "replace", entry)
+}
+
+export function deleteButcher(id: string) {
+    return apiDelete(BUTCHER + `${id}/delete`)
+}
+
+export function updateButcher(entry: ButcherSave) {
+    return apiPut(BUTCHER + "update", entry)
+}
+
+export function addButcher(entry: ButcherSave) {
+    return apiPut(BUTCHER + "add", entry)
+}
+
+export function replaceButcher(entry: ButcherSave) {
+    return apiPut(BUTCHER + "replace", entry)
+}
+
+export function searchButcher() {
+    return apiGet(BUTCHER + "/search")
+}
+
+export function findButchers() {
+    return apiGet(BUTCHER + "/find-all")
 }
 
 export function findGroups(order: string) {
-    return apiGet(SLAUGHTER_INFO + `groups?order=${order}`)
+    return apiGet(SLAUGHTER_GROUP + `?order=${order}`)
 }
 
 export function findEntriesByDate(entryDate: Date, sort: string, order: string) {
-    return apiGet(SLAUGHTER_INFO + `groups/${entryDate.toISOString()}/entries?sort=${sort}&order=${order}`)
+    return apiGet(SLAUGHTER_GROUP + `${entryDate.toISOString()}/entries?sort=${sort}&order=${order}`)
 }
 
 export function getEntriesByDateFoot(entryDate: Date) {
-    return apiGet(SLAUGHTER_INFO + `groups/${entryDate.toISOString()}/entries/foot`)
-}
-
-export function searchSlaughterhouses() {
-    return apiGet(SLAUGHTER_SEARCH + "/slaughterhouses")
+    return apiGet(SLAUGHTER_GROUP + `${entryDate.toISOString()}/entries/foot`)
 }

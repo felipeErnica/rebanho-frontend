@@ -28,6 +28,7 @@ export const EditControlButtons = ({ setEditing, onDelete, onShow, loading, othe
     return <ControlButtonContainer>
         {setEditing &&
             <IconButton
+                size="small"
                 onClick={() => setEditing(true)}
                 loading={loading}
             >
@@ -36,6 +37,7 @@ export const EditControlButtons = ({ setEditing, onDelete, onShow, loading, othe
         }
         {onDelete &&
             <IconButton
+                size="small"
                 onClick={onDelete}
                 loading={loading}
             >
@@ -44,6 +46,7 @@ export const EditControlButtons = ({ setEditing, onDelete, onShow, loading, othe
         }
         {onShow &&
             <IconButton
+                size="small"
                 onClick={onShow}
                 loading={loading}
             >
@@ -62,10 +65,18 @@ type EditingControlButtonProps = {
 
 export const EditingControlButtons = ({ setEditing, onSave, loading }: EditingControlButtonProps) => {
     return <ControlButtonContainer>
-        <IconButton onClick={onSave} loading={loading}>
+        <IconButton
+            onClick={onSave}
+            size="small"
+            loading={loading}
+        >
             <Check />
         </IconButton >
-        <IconButton onClick={() => setEditing(false)} loading={loading}>
+        <IconButton
+            onClick={() => setEditing(false)}
+            loading={loading}
+            size="small"
+        >
             <Close />
         </IconButton>
     </ControlButtonContainer>

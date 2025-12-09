@@ -1,54 +1,145 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
+import { Alert, AlertTitle, Collapse, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { EmbryoTransfer } from "./Entities"
+import { EmbryoTransferSave } from "./Entities"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
-import { searchAllMothers } from "@/shared/GlobalApiCalls"
-import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { searchOwnedMothers } from "@/shared/GlobalApiCalls"
+import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
+import { addTransfer, replace, searchEmbryoDonors, searchTransferBulls } from "./Controller"
+import { AddTransferBull } from "./AddTransferBull"
+import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
+import { useEffect, useState } from "react"
+import { AddBullDialog } from "@features/animals/AddBullDialog"
+import { AddEmbryoDonorDialog } from "./AddEmbryoDonor"
+import { AddCowDialog } from "@features/animals/AddCowDialog"
+import { APIError } from "@/util/ApiRequest"
 
 type AddTransferDialogProps = {
     addTransferOpen: boolean
-    setAddTransferOpen: (addTransferOpen: boolean) => void
+    closeAddTransfer: (added?: boolean) => void
     bullId?: string
     transferDate?: Date
 }
 
 export const AddTransferDialog = ({
     addTransferOpen,
-    setAddTransferOpen,
+    closeAddTransfer,
     bullId,
     transferDate
 }: AddTransferDialogProps) => {
 
-    const { control, handleSubmit, reset, setFocus } = useForm<EmbryoTransfer>({
-        defaultValues: { donorInfo: bullId, transferDate }
+    const [reloadDonorFlag, setReloadDonorFlag] = useState(0)
+    const [reloadBullFlag, setReloadBullFlag] = useState(0)
+    const [loading, setLoading] = useState(false)
+    const [added, setAdded] = useState(false)
+
+    const [addTransferBullOpen, setAddTransferBullOpen] = useState(false)
+    const [addBullOpen, setAddBullOpen] = useState(false)
+    const [addEmbryoDonorOpen, setAddEmbryoDonorOpen] = useState(false)
+    const [addCowOpen, setAddCowOpen] = useState(false)
+
+    const [error, setError] = useState<APIError>()
+    const [warning, setWarning] = useState<APIError>()
+
+    const { control, handleSubmit, reset, setFocus, setValue } = useForm<EmbryoTransferSave>({
+        defaultValues: { bullId, transferDate }
     })
+
+    useEffect(() => {
+        if (transferDate) setValue('transferDate', transferDate)
+        if (bullId) setValue('bullId', bullId)
+    }, [bullId, setValue, transferDate])
 
     const onClose = () => {
         reset()
-        setAddTransferOpen(false)
+        closeAddTransfer(added)
     }
 
-    const onSubmit: SubmitHandler<EmbryoTransfer> = (data: EmbryoTransfer) => {
-        reset({
-            transferDate: data.transferDate,
-            donorInfo: data.donorInfo,
-            donorId: data.donorId
-        })
-        setFocus('receiverId')
+    const closeAddTransferBull = (added?: boolean) => {
+        if (added) setReloadBullFlag(prev => prev + 1)
+        setAddTransferBullOpen(false)
+    }
+
+    const closeAddBull = (added?: boolean) => {
+        if (added) setReloadBullFlag(prev => prev + 1)
+        setAddBullOpen(false)
+    }
+
+    const closeAddEmbryoDonor = (added?: boolean) => {
+        if (added) setReloadDonorFlag(prev => prev + 1)
+        setAddEmbryoDonorOpen(false)
+    }
+
+    const closeAddCow = (added?: boolean) => {
+        if (added) setReloadDonorFlag(prev => prev + 1)
+        setAddCowOpen(false)
+    }
+
+    const onSubmit: SubmitHandler<EmbryoTransferSave> = (data: EmbryoTransferSave) => {
+        setLoading(true)
+        addTransfer(data)
+            .then(() => {
+                setError(undefined)
+                setWarning(undefined)
+                setAdded(true)
+                reset({
+                    transferDate: data.transferDate,
+                    donorId: data.donorId,
+                    bullId: data.bullId,
+                })
+                setFocus('receiverId')
+            })
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                setWarning(err)
+            })
+            .finally(() => setLoading(false))
+    }
+
+    const onReplace: SubmitHandler<EmbryoTransferSave> = (data: EmbryoTransferSave) => {
+        setLoading(true)
+        replace(data)
+            .then(() => {
+                setError(undefined)
+                setWarning(undefined)
+                setAdded(true)
+                reset({
+                    transferDate: data.transferDate,
+                    donorId: data.donorId,
+                    bullId: data.bullId,
+                })
+                setFocus('receiverId')
+            })
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                setWarning(err)
+            })
+            .finally(() => setLoading(false))
     }
 
     return <Dialog
         open={addTransferOpen}
         onClose={onClose}
     >
-        <DialogTitle>Adicionar Monta</DialogTitle>
+        <DialogTitle>Adicionar Transferência</DialogTitle>
         <DialogContent>
-            <div className="w-[500] flex flex-col gap-8 p-4">
+            <DialogContainer>
+                <Collapse in={!!error}>
+                    <Alert severity="error" onClose={() => setError(undefined)}>
+                        <AlertTitle>{error?.title}</AlertTitle>
+                        {error?.message}
+                    </Alert>
+                </Collapse>
                 <FormDatePicker
                     className="w-[250]"
-                    label="*Data de Monta"
+                    label="*Data de Transferência"
                     formProps={{
                         control,
                         name: 'transferDate',
@@ -56,8 +147,44 @@ export const AddTransferDialog = ({
                     }}
                 />
                 <FormSearchBox
+                    label="*Touro"
+                    className="w-[400]"
+                    reload={reloadBullFlag}
+                    searchOptions={searchTransferBulls}
+                    emptyProps={[
+                        {
+                            id: 'updateBullAsTransfer',
+                            title: '+ Adicionar Touro p/ Transferência',
+                            onEmpty: () => setAddTransferBullOpen(true),
+                        },
+                        {
+                            id: 'newBull',
+                            title: '+ Adicionar Novo Touro',
+                            onEmpty: () => setAddBullOpen(true),
+                        }
+                    ]}
+                    formProps={{
+                        control,
+                        name: 'bullId',
+                        rules: { required: REQUIRED_FIELD_MSG },
+                    }}
+                />
+                <FormSearchBox
                     label="*Doadora"
-                    searchOptions={searchAllMothers}
+                    reload={reloadDonorFlag}
+                    searchOptions={searchEmbryoDonors}
+                    emptyProps={[
+                        {
+                            id: 'addEmbryoDonor',
+                            title: '+ Adicionar Doadora de Embrião',
+                            onEmpty: () => setAddEmbryoDonorOpen(true),
+                        },
+                        {
+                            id: 'addCow',
+                            title: '+ Adicionar Nova Vaca',
+                            onEmpty: () => setAddCowOpen(true),
+                        },
+                    ]}
                     formProps={{
                         control,
                         name: 'donorId',
@@ -66,7 +193,7 @@ export const AddTransferDialog = ({
                 />
                 <FormSearchBox
                     label="*Receptora"
-                    searchOptions={searchAllMothers}
+                    searchOptions={searchOwnedMothers}
                     formProps={{
                         control,
                         name: 'receiverId',
@@ -77,18 +204,29 @@ export const AddTransferDialog = ({
                     label="Observações"
                     multiline
                     rows={5}
-                    maxRows={8}
+                    maxRows={5}
                     formProps={{ control, name: 'observation' }}
                 />
-            </div>
+                <YesNoDialog
+                    openYesNo={!!warning}
+                    title={warning?.title}
+                    content={warning?.message}
+                    onYes={handleSubmit(onReplace)}
+                    onClose={() => setWarning(undefined)}
+                />
+            </DialogContainer>
+            <AddTransferBull {...{ addTransferBullOpen, closeAddTransferBull }} />
+            <AddBullDialog {...{ addBullOpen, closeAddBull, isTransferBull: true }} />
+            <AddEmbryoDonorDialog {...{ addEmbryoDonorOpen, closeAddEmbryoDonor  }} />
+            <AddCowDialog {...{ addCowOpen, closeAddCow, isEmbryoDonor: true }} />
         </DialogContent>
         <DialogActions>
-            <Button onClick={handleSubmit(onSubmit)}>
-                Adicionar
-            </Button>
-            <Button onClick={onClose}>
-                Cancelar
-            </Button>
+            <DialogActionButtons
+                loading={loading}
+                saveText="Adicionar"
+                onSave={handleSubmit(onSubmit)}
+                onClose={() => closeAddTransfer(added)}
+            />
         </DialogActions>
     </Dialog>
 }

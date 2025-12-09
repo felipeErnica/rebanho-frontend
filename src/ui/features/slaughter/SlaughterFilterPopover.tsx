@@ -3,7 +3,7 @@ import { DateFilter } from "@/ui/shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@/ui/shared/filter-controls/FilterPopover";
 import { NumberFilter } from "@/ui/shared/filter-controls/NumberFilter";
 import { MultipleSearchBoxFilter } from "@/ui/shared/filter-controls/SearchBoxFilter";
-import { searchSlaughterhouses } from "./Controller";
+import { searchButcher } from "./Controller";
 
 export const SlaughterFilterPopover = ({
     setFilter,
@@ -38,7 +38,7 @@ export const SlaughterFilterPopover = ({
         <MultipleSearchBoxFilter 
             label="Frigorífico"
             fieldName="slaughterhouses"
-            searchOptions={searchSlaughterhouses}
+            searchOptions={searchButcher}
             setFilter={setFilter}
             filter={filter}
         />

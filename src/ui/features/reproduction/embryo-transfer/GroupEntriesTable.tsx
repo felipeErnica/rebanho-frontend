@@ -1,6 +1,28 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { EmbryoTransfer, TransferFoot, StatusColorMap, StatusMap } from "./Entities"
-import { findEntriesByGroup, getEntriesByGroupFoot, searchInseminationBulls } from "./Controller"
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react"
+import {
+    EmbryoTransfer,
+    TransferFoot,
+    StatusColorMap,
+    StatusMap,
+    EmbryoTransferSave
+} from "./Entities"
+import {
+    deleteTransfer,
+    findEntriesByGroup,
+    getEntriesByGroupFoot,
+    searchTransferBulls,
+    updateTransfer
+} from "./Controller"
 import Table from "@mui/material/Table"
 import {
     FooterContent,
@@ -24,10 +46,19 @@ import Add from "@mui/icons-material/Add"
 import { AddTransferDialog } from "./AddTransferDialog"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { searchAllMothers } from "@/shared/GlobalApiCalls"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
 
 type GroupEntriesTablePageProps = {
     transferDate: Date
 }
+
+type EditContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setRows: Dispatch<SetStateAction<EmbryoTransfer[]>>
+}
+
+const EditContext = createContext<EditContextProps>(undefined!)
 
 export const GroupEntriesTablePage = ({ transferDate }: GroupEntriesTablePageProps) => {
 
@@ -41,19 +72,25 @@ export const GroupEntriesTablePage = ({ transferDate }: GroupEntriesTablePagePro
     const [rows, setRows] = useState<EmbryoTransfer[]>([])
     const [foot, setFoot] = useState<TransferFoot>(defaultValue)
     const [addTransferOpen, setAddTransferOpen] = useState(false)
+    const [error, setError] = useState<APIError>()
 
     const onReload = useCallback(() => {
         setLoading(true)
         getEntriesByGroupFoot(transferDate)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultValue))
         findEntriesByGroup(transferDate)
-            .then(response => setRows(response.json))
+            .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [defaultValue, transferDate])
 
     useEffect(onReload, [onReload])
+
+    const closeAddTransfer = (added?: boolean) => {
+        if (added) onReload()
+        setAddTransferOpen(false)
+    }
 
     return <div className="w-full h-full overflow-hidden flex flex-col">
         <TableTopBar
@@ -67,8 +104,16 @@ export const GroupEntriesTablePage = ({ transferDate }: GroupEntriesTablePagePro
                 </Button>
             )}
         />
-        <GroupEntriesTable {...{ rows, foot, loading }} />
-        <AddTransferDialog {...{ addTransferOpen, setAddTransferOpen }} />
+        <EditContext value={{ setError, setRows }}>
+            <GroupEntriesTable {...{ rows, foot, loading }} />
+        </EditContext>
+        <AddTransferDialog {...{ addTransferOpen, closeAddTransfer, transferDate }} />
+        <ErrorDialog 
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </div>
 }
 
@@ -132,15 +177,30 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     const [rowData, setRowData] = useState<EmbryoTransfer>(item)
     const [editing, setEditing] = useState(false)
+    const [loadingControls, setLoadingControls] = useState(false)
+
+    const { setRows, setError } = useContext(EditContext)
 
     useEffect(() => setRowData(item), [item])
+
+    const onDelete = () => {
+        setLoadingControls(true)
+        deleteTransfer(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }
+
 
     if (loading) return <TableLoadingRow colSpan={7} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.receiverInfo}</TableBodyCell>
         <TableBodyCell>{rowData.donorInfo}</TableBodyCell>
@@ -170,18 +230,29 @@ type EntriesRowEditingProps = {
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<EmbryoTransfer>({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<EmbryoTransfer> = (data: EmbryoTransfer) => {
-        setRowData(data)
-        setEditing(false)
+    const { control, handleSubmit } = useForm<EmbryoTransferSave>({ defaultValues: rowData })
+
+    const { setError } = useContext(EditContext)
+
+    const onSubmit: SubmitHandler<EmbryoTransferSave> = (data: EmbryoTransferSave) => {
+        setLoading(true)
+        updateTransfer(data)
+            .then(response => {
+                setRowData(response)
+                setError(undefined)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.receiverInfo}</TableBodyCell>
         <TableBodyCell>
@@ -192,12 +263,22 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
-                searchOptions={searchInseminationBulls}
+                searchOptions={searchTransferBulls}
                 formProps={{ control, name: 'bullId' }}
             />
         </TableBodyCell>
-        <TableBodyCell align="center">{rowData.pregnancyStatus}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.birthStatus}</TableBodyCell>
+        <TableBodyCell align="center">
+            <Chip
+                label={StatusMap.get(rowData.pregnancyStatus)}
+                color={StatusColorMap.get(rowData.pregnancyStatus)}
+            />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <Chip
+                label={StatusMap.get(rowData.birthStatus)}
+                color={StatusColorMap.get(rowData.birthStatus)}
+            />
+        </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'observation' }} />

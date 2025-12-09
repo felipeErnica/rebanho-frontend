@@ -34,6 +34,15 @@ export type EmbryoTransfer = {
     childInformation?: string;
 };
 
+export type EmbryoTransferSave = {
+    id: string;
+    receiverId: string;
+    donorId: string;
+    bullId: string;
+    transferDate: Date;
+    observation?: string;
+};
+
 export type TransferEntryFilter = {
     isFiltered: boolean;
     animals?: string[];

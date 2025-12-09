@@ -16,7 +16,7 @@ export function decimalTransform(value: any, digitNumbers?: number) {
     return formatter.format(value as number)
 }
 
-export function percentageTransform(value: number | null) {
+export function percentageTransform(value: number | null | undefined) {
     if (value === null || !value) return "0%"
     const formatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 })
     return formatter.format(value) + '%'
@@ -37,3 +37,9 @@ export function dateToISO(value: Date | undefined) {
     value = new Date(value)
     return value.toISOString()
 }
+
+export function transformWeight(weight: number | undefined) {
+    if (!weight) return "0 (0@)"
+    return `${decimalTransform(weight)} (${decimalTransform(weight / 15)}@)`
+}
+

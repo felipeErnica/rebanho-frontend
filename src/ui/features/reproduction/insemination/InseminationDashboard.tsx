@@ -8,7 +8,17 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
-import React, { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { 
+    createContext, 
+    Dispatch, 
+    SetStateAction, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useMemo, 
+    useRef, 
+    useState 
+} from "react"
 import {
     BirthRateStats,
     InseminationBulls,
@@ -56,6 +66,10 @@ import { ERROR_TYPE, LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import {
     Button,
     Chip,
+    Divider,
+    ListItemIcon,
+    Menu,
+    MenuItem,
     Table,
     TableBody,
     TableCell,
@@ -68,7 +82,7 @@ import ChevronRight from "@mui/icons-material/ChevronRight"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
 import { EntriesTablePage } from "./EntriesTable"
-import { HomePage } from "../../home/HomePage"
+import { HomePage } from "@features/home/HomePage"
 import { GroupsTablePageProps, InseminationPage } from "./InseminationPages"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
@@ -82,6 +96,10 @@ import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@/ui/shared/dialog/D
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
+import { OptionMenuProps } from "@/ui/shared/dashboard/Entities"
+import ExpandMore from "@mui/icons-material/ExpandMore"
+import { AddBullDialog } from "@features/animals/AddBullDialog"
+import { AddInseminationBullDialog } from "./AddInseminationBull"
 
 type ErrorDialogContextProps = {
     defaultWarning: YesNoDialogProps
@@ -133,14 +151,8 @@ type DashboardToolbarProps = {
 
 const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarProps) => {
 
-    const [addInseminationOpen, setAddInseminationOpen] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
-
-    const closeAddInsemination = (added?: boolean) => {
-        setAddInseminationOpen(false)
-        if (added) setReloadFlag(prev => prev + 1)
-    }
+    const [openMenu, setOpenMenu] = useState(false)
+    const menuAnchorEl = useRef<HTMLButtonElement>(null)
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -149,28 +161,102 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
         />
         <Button
             className="ml-auto"
-            startIcon={<Add />}
-            onClick={() => setAddInseminationOpen(true)}
+            startIcon={<ExpandMore />}
+            onClick={() => setOpenMenu(true)}
+            ref={menuAnchorEl}
         >
-            Adicionar Inseminação
+            Opções
         </Button>
-        <Button
-            endIcon={<ChevronRight />}
-            onClick={() => {
-                const page: PageProps = {
-                    page: <EntriesTablePage />,
-                    title: "Histórico de Inseminações",
-                    previousPages: [HomePage, InseminationPage]
-                }
-                if (setPageProps) setPageProps(page)
-            }}
-        >
-            Histórico de Inseminações
-        </Button>
-        <AddInseminationDialog {...{ addInseminationOpen, closeAddInsemination }} />
+        <OptionsMenu 
+            openMenu={openMenu}
+            menuAnchorEl={menuAnchorEl.current}
+            closeMenu={() => setOpenMenu(false)}
+            setReloadFlag={setReloadFlag}
+        />
     </DashboardTopContainer>
 }
 
+type OptionsMenuProps = OptionMenuProps & {
+    setReloadFlag: Dispatch<SetStateAction<number>>
+}
+
+const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionsMenuProps) => {
+
+    const [addInseminationOpen, setAddInseminationOpen] = useState(false)
+    const [addInseminationBull, setAddInseminationBull] = useState(false)
+    const [addBullOpen, setAddBullOpen] = useState(false)
+
+    const { setPageProps } = useContext(PageContext)
+
+    const closeAddInsemination = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddInseminationOpen(false)
+    }
+
+    const closeAddInseminationBull = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddInseminationBull(false)
+    }
+
+    const closeAddBull = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddBullOpen(false)
+    }
+
+    return <>
+        <Menu
+            open={openMenu}
+            anchorEl={menuAnchorEl}
+            onClose={closeMenu}
+        >
+            <MenuItem onClick={() => setAddInseminationOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Inseminação
+            </MenuItem>
+            <MenuItem onClick={() => setAddInseminationBull(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Registrar Touro para Inseminação
+            </MenuItem>
+            <MenuItem onClick={() => setAddBullOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Novo Touro
+            </MenuItem>
+            <Divider />
+            <MenuItem
+                onClick={() => {
+                    const page: PageProps = {
+                        page: <EntriesTablePage />,
+                        title: "Histórico de Inseminações",
+                        previousPages: [HomePage, InseminationPage]
+                    }
+                    if (setPageProps) setPageProps(page)
+                }}
+            >
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Histórico de Inseminações
+            </MenuItem>
+            <MenuItem
+                onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+            >
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Datas de Inseminação
+            </MenuItem>
+        </Menu>
+        <AddInseminationDialog {...{ addInseminationOpen, closeAddInsemination }} />
+        <AddInseminationBullDialog {...{ addInseminationBull, closeAddInseminationBull }} />
+        <AddBullDialog {...{ addBullOpen, closeAddBull, isInseminationBull: true }} />
+    </>
+}
 type DashboardInformationProps = {
     reloadFlag: number
     startLoading: () => void

@@ -6,7 +6,7 @@ import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { searchOwnedMothers } from "@/shared/GlobalApiCalls"
 import { REQUIRED_FIELD_MSG } from "@/ui/shared/Globals"
-import { addInsemiantion, replaceInsemination, searchInseminationBulls } from "./Controller"
+import { addInsemination, replaceInsemination, searchInseminationBulls } from "./Controller"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
 import { useCallback, useEffect, useState } from "react"
 import { APIError } from "@/util/ApiRequest"
@@ -68,7 +68,7 @@ export const AddInseminationDialog = ({
 
     const onSubmit: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
         setLoading(true)
-        addInsemiantion(data)
+        addInsemination(data)
             .then(() => {
                 reset({
                     inseminationDate: data.inseminationDate,
@@ -120,7 +120,7 @@ export const AddInseminationDialog = ({
                     emptyProps={[
                         {
                             id: 'addExistingBull',
-                            title: '+ Adicionar Touro como Touro de Cobertura',
+                            title: '+ Adicionar Touro como Touro de Inseminação',
                             onEmpty: () => setAddInseminationBull(true)
                         },
                         {
@@ -163,7 +163,7 @@ export const AddInseminationDialog = ({
                 />
             </DialogContainer>
             <AddInseminationBullDialog {...{ addInseminationBull, closeAddInseminationBull }} />
-            <AddBullDialog {...{ addBullOpen, closeAddBull }} />
+            <AddBullDialog {...{ addBullOpen, closeAddBull, isInseminationBull: true }} />
             <AddCowDialog {...{ addCowOpen, closeAddCow }} />
         </DialogContent>
         <DialogActions>

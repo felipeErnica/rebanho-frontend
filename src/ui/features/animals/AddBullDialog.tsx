@@ -25,7 +25,7 @@ import {
     replaceAnimal,
     searchMaleChildren,
     updateAnimal,
-    updateNoValidation
+    updateNoValidation,
 } from "./Controller"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
@@ -36,11 +36,29 @@ import { RadioComponent } from "@/ui/shared/common/RadioComponent"
 type AddBullDialogProps = {
     addBullOpen: boolean
     closeAddBull: (added?: boolean) => void
+    isInseminationBull?: boolean
+    isTransferBull?: boolean
+    isBreedingBull?: boolean
+    isOutsideAnimal?: boolean
 }
 
-export const AddBullDialog = ({ addBullOpen, closeAddBull }: AddBullDialogProps) => {
+export const AddBullDialog = ({
+    addBullOpen,
+    closeAddBull,
+    isBreedingBull,
+    isTransferBull,
+    isInseminationBull,
+    isOutsideAnimal
+}: AddBullDialogProps) => {
 
-    const { handleSubmit, control, reset, resetField, setValue } = useForm<AnimalSave>()
+    const { handleSubmit, control, reset, resetField, setValue } = useForm<AnimalSave>({
+        defaultValues: {
+            isBreedingBull,
+            isTransferBull,
+            isInseminationBull,
+            isOutsideAnimal
+        }
+    })
 
     const [formType, setFormType] = useState('newAnimal')
     const [error, setError] = useState<APIError>()
@@ -212,7 +230,8 @@ export const AddBullDialog = ({ addBullOpen, closeAddBull }: AddBullDialogProps)
                         resetField('weaningDate')
                         resetField('observation')
                         resetField('weightBirth')
-                        if (formType === 'cattleAnimal') setValue('isOutsideAnimal', false)
+                        resetField('isOutsideAnimal')
+                        setExternalAnimal(false)
                         setFormType(value)
                     }}
                     controls={[

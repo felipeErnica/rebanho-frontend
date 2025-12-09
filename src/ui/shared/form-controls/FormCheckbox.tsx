@@ -69,7 +69,9 @@ const CheckboxControl = <T extends FieldValues>({
                 label={label}
                 control={(
                     <Checkbox
-                        {...field}
+                        ref={field.ref}
+                        disabled={field.disabled}
+                        name={field.name}
                         sx={{
                             color: error ? red[700] : undefined,
                             '&.Mui-checked': { color: error ? red[700] : undefined }
@@ -78,7 +80,7 @@ const CheckboxControl = <T extends FieldValues>({
                             field.onChange(value)
                             if (onChange) onChange(event, value)
                         }}
-                        checked={field.value}
+                        checked={field.value ?? false}
                         onBlur={(event) => {
                             field.onBlur()
                             if (onBlur) onBlur(event)

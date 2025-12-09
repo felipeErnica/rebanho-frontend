@@ -32,15 +32,25 @@ import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { FormCheckboxGroup } from "@/ui/shared/form-controls/FormCheckbox"
 import { RadioComponent } from "@/ui/shared/common/RadioComponent"
+import { FormRadioGroup } from "@/ui/shared/form-controls/FormRadioGroup"
 
 type AddCowDialogProps = {
     addCowOpen: boolean
     closeAddCow: (added?: boolean) => void
+    isEmbryoDonor?: boolean
+    isOutsideAnimal?: boolean
 }
 
-export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => {
+export const AddCowDialog = ({
+    addCowOpen,
+    closeAddCow,
+    isOutsideAnimal,
+    isEmbryoDonor,
+}: AddCowDialogProps) => {
 
-    const { handleSubmit, control, reset, resetField, setValue } = useForm<AnimalSave>()
+    const { handleSubmit, control, reset, resetField, setValue } = useForm<AnimalSave>({
+        defaultValues: { isEmbryoDonor, isOutsideAnimal }
+    })
 
     const [formType, setFormType] = useState('newAnimal')
     const [error, setError] = useState<APIError>()
@@ -52,7 +62,6 @@ export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => 
         const entry: AnimalSave = {
             ...data,
             sex: 'F',
-            animalType: 'DAIRY_ANIMAL',
         }
         setLoading(true)
         addNoValidation(entry)
@@ -71,7 +80,6 @@ export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => 
         const entry: AnimalSave = {
             ...data,
             sex: 'F',
-            animalType: 'DAIRY_ANIMAL',
         }
         setLoading(true)
         replaceAnimal(entry)
@@ -100,7 +108,6 @@ export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => 
         const entry: AnimalSave = {
             ...data,
             sex: 'F',
-            animalType: 'DAIRY_ANIMAL',
         }
         setLoading(true)
         updateNoValidation(entry)
@@ -118,7 +125,6 @@ export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => 
         const entry: AnimalSave = {
             ...data,
             sex: 'F',
-            animalType: 'DAIRY_ANIMAL',
         }
         setLoading(true)
         updateAnimal(entry)
@@ -154,7 +160,6 @@ export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => 
         const entry: AnimalSave = {
             ...data,
             sex: 'F',
-            animalType: 'DAIRY_ANIMAL',
         }
         setLoading(true)
         addAnimal(entry)
@@ -191,7 +196,7 @@ export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => 
             closeAddCow(added)
         }}
     >
-        <DialogTitle>Adicionar Vaca de Leite</DialogTitle>
+        <DialogTitle>Adicionar Vaca</DialogTitle>
         <DialogContent>
             <DialogContainer>
                 <Collapse in={!!error}>
@@ -211,6 +216,7 @@ export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => 
                         resetField('weaningDate')
                         resetField('observation')
                         resetField('weightBirth')
+                        resetField('isOutsideAnimal')
                         setFormType(value)
                     }}
                     controls={[
@@ -219,6 +225,19 @@ export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => 
                     ]}
                 />
                 <FormBody {...{ formType, control, setValue }} />
+                <FormRadioGroup
+                    label="*Tipo de Vaca"
+                    row
+                    controls={[
+                        { label: 'Leiteira', value: 'DAIRY_ANIMAL' },
+                        { label: 'Matriz', value: 'REPRODUCTION_ANIMAL' }
+                    ]}
+                    formProps={{
+                        control,
+                        name: 'animalType',
+                        rules: { required: REQUIRED_FIELD_MSG }
+                    }}
+                />
                 <FormTextField
                     label="Observações"
                     formProps={{ control, name: 'observation' }}
@@ -233,7 +252,12 @@ export const AddCowDialog = ({ addCowOpen, closeAddCow }: AddCowDialogProps) => 
                         {
                             label: 'Doadora de Embrião',
                             formProps: { control, name: 'isEmbryoDonor', }
-                        }
+                        },
+                        {
+                            label: 'Animal Externo',
+                            disabled: formType === 'cattleAnimal',
+                            formProps: { control, name: 'isOutsideAnimal' }
+                        },
                     ]}
                 />
             </DialogContainer>
@@ -368,7 +392,11 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
         <FormSearchBox
             label="Mãe"
             onChange={(id) => setMotherId(id)}
-            formProps={{ control, name: 'motherId' }}
+            formProps={{
+                control,
+                name: 'motherId',
+                rules: { required: false }
+            }}
             searchOptions={searchAllMothers}
         />
     </>

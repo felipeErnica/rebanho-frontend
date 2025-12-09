@@ -98,7 +98,7 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
                                         const entryDate = new Date(row.entryDate)
                                         const dateStr = entryDate.toLocaleString("pt-BR", { dateStyle: 'short' })
                                         const newPage: PageProps = {
-                                            title: `Marcações de Peso - ${dateStr} (Frig.: ${row.slaughterhouse})`,
+                                            title: `Marcações de Peso - ${dateStr} (Frig.: ${row.butcher})`,
                                             page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
                                             previousPages: [HomePage, SlaughterMainPage, SlaughterGroupsPage]
                                         }
@@ -107,7 +107,7 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
                                 />
                             </TableBodyCell>
                             <TableBodyCell align="center">{dateTransform(row.entryDate)}</TableBodyCell>
-                            <TableBodyCell align="center">{row.slaughterhouse}</TableBodyCell>
+                            <TableBodyCell align="center">{row.butcher}</TableBodyCell>
                             <TableBodyCell align="center">{row.animalsNumber}</TableBodyCell>
                             <TableBodyCell align="center">
                                 <TrendValues

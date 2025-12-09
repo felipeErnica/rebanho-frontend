@@ -47,7 +47,7 @@ export const AddBreedingDialog = ({
     const [warning, setWarning] = useState<APIError>()
 
     const { control, handleSubmit, reset, setFocus } = useForm<BreedingEntrySave>({
-        defaultValues: { bullId, breedingDate: breedingDate }
+        defaultValues: { bullId, breedingDate }
     })
 
     const onClose = () => {

@@ -8,7 +8,17 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@/ui/shared/dashboard/DashboardComponents"
-import React, { Dispatch, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react"
 import {
     AnimalsNumberEntry,
     BestAnimals,
@@ -43,12 +53,20 @@ import {
     getPregnancyRateStats,
     getAnimalsNumber,
     getFutureBirths,
-    getBestRanking
+    getBestRanking,
+    searchEmbryoDonors,
+    searchTransferBulls,
+    deleteGroup
 } from "./Controller"
-import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
+import { GROUP_DELETE_TITLE, LOADING_MSG, NO_DATA_AVAILABLE } from "@/ui/shared/Globals"
 import {
     Button,
     Chip,
+    Divider,
+    IconButton,
+    ListItemIcon,
+    Menu,
+    MenuItem,
     Table,
     TableBody,
     TableCell,
@@ -60,7 +78,7 @@ import { EditControlButtons, EditingControlButtons } from "@/ui/shared/table/Con
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { PageContext } from "@/ui/shared/main-page/PageContext"
 import { PageProps } from "@/ui/shared/main-page/PageDisplay"
-import { HomePage } from "../../home/HomePage"
+import { HomePage } from "@features/home/HomePage"
 import { ReloadButton } from "@/ui/shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
 import { orange, yellow } from "@mui/material/colors"
@@ -68,13 +86,26 @@ import { CardEntry } from "@/shared/entities/Page"
 import { EditRowProps, TableRowProp } from "@/ui/shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchBull } from "../../farm-area/main-table/api/DashboardController"
 import { GroupsTablePageProps, TransferMainPage } from "./EmbryoTransferPages"
 import { TrendValues } from "@/ui/shared/table/TableComponents"
 import { AddTransferDialog } from "./AddTransferDialog"
 import { EntriesTablePage } from "./EntriesTable"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { ComboBox, ComboBoxItem } from "@/ui/shared/common/ComboBox"
+import { ErrorDialog, TimerYesNoDialog } from "@/ui/shared/dialog/DialogComponents"
+import { APIError } from "@/util/ApiRequest"
+import { OptionMenuProps } from "@/ui/shared/dashboard/Entities"
+import { AddTransferBull } from "./AddTransferBull"
+import { AddEmbryoDonorDialog } from "./AddEmbryoDonor"
+import { AddCowDialog } from "../../animals/AddCowDialog"
+import { AddBullDialog } from "../../animals/AddBullDialog"
+import ExpandMore from "@mui/icons-material/ExpandMore"
+
+type ReloadContextProps = {
+    setReloadFlag: Dispatch<SetStateAction<number>>
+}
+
+const ReloadContext = createContext<ReloadContextProps>(undefined!)
 
 export const TransferDashboard = () => {
 
@@ -86,7 +117,9 @@ export const TransferDashboard = () => {
 
     return <DashboardContainer>
         <DashboardToolbar {...{ setReloadFlag, activeRequests }} />
-        <DashboardInformation {...{ reloadFlag, startLoading, stopLoading }} />
+        <ReloadContext value={{ setReloadFlag }}>
+            <DashboardInformation {...{ reloadFlag, startLoading, stopLoading }} />
+        </ReloadContext>
     </DashboardContainer>
 }
 
@@ -97,8 +130,8 @@ type DashboardToolbarProps = {
 
 const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarProps) => {
 
-    const [addTransferOpen, setAddTransferOpen] = useState(false)
-    const { setPageProps } = useContext(PageContext)
+    const [openMenu, setOpenMenu] = useState(false)
+    const anchorEl = useRef<HTMLButtonElement>(null)
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -107,26 +140,123 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
         />
         <Button
             className="ml-auto"
-            startIcon={<Add />}
-            onClick={() => setAddTransferOpen(true)}
+            ref={anchorEl}
+            startIcon={<ExpandMore />}
+            onClick={() => setOpenMenu(true)}
         >
-            Adicionar Transferência
+            Opções
         </Button>
-        <Button
-            endIcon={<ChevronRight />}
-            onClick={() => {
-                const page: PageProps = {
-                    page: <EntriesTablePage />,
-                    title: "Histórico de Transferências",
-                    previousPages: [HomePage, TransferMainPage]
-                }
-                if (setPageProps) setPageProps(page)
-            }}
-        >
-            Histórico de Transferências
-        </Button>
-        <AddTransferDialog {...{ addTransferOpen, setAddTransferOpen }} />
+        <OptionsMenu
+            openMenu={openMenu}
+            setReloadFlag={setReloadFlag}
+            closeMenu={() => setOpenMenu(false)}
+            menuAnchorEl={anchorEl.current}
+        />
     </DashboardTopContainer>
+}
+
+const OptionsMenu = ({ openMenu, menuAnchorEl: anchorEl, closeMenu: handleClose, setReloadFlag }: OptionMenuProps) => {
+
+    const [addTransferOpen, setAddTransferOpen] = useState(false)
+    const [addTransferBullOpen, setAddTransferBullOpen] = useState(false)
+    const [addEmbryoDonorOpen, setAddEmbryoDonorOpen] = useState(false)
+    const [addCowOpen, setAddCowOpen] = useState(false)
+    const [addBullOpen, setAddBullOpen] = useState(false)
+
+    const { setPageProps } = useContext(PageContext)
+
+    const closeAddTransfer = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddTransferOpen(false)
+    }
+
+    const closeAddTransferBull = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddTransferBullOpen(false)
+    }
+
+    const closeAddEmbryoDonor = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddEmbryoDonorOpen(false)
+    }
+
+    const closeAddCow = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddCowOpen(false)
+    }
+
+    const closeAddBull = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddBullOpen(false)
+    }
+
+    return <>
+        <Menu
+            open={openMenu}
+            anchorEl={anchorEl}
+            onClose={handleClose}
+        >
+            <MenuItem onClick={() => setAddTransferOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Transferência
+            </MenuItem>
+            <MenuItem onClick={() => setAddEmbryoDonorOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Registrar Vaca para Doação de Embrião
+            </MenuItem>
+            <MenuItem onClick={() => setAddTransferBullOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Registrar Touro para Transferência
+            </MenuItem>
+            <MenuItem onClick={() => setAddCowOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Nova Vaca
+            </MenuItem>
+            <MenuItem onClick={() => setAddBullOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Novo Touro
+            </MenuItem>
+            <Divider />
+            <MenuItem
+                onClick={() => {
+                    const page: PageProps = {
+                        page: <EntriesTablePage />,
+                        title: "Histórico de Transferências",
+                        previousPages: [HomePage, TransferMainPage]
+                    }
+                    if (setPageProps) setPageProps(page)
+                }}
+            >
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Histórico Geral
+            </MenuItem>
+            <MenuItem
+                onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+            >
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Datas de Transferência
+            </MenuItem>
+        </Menu>
+        <AddTransferDialog {...{ addTransferOpen, closeAddTransfer }} />
+        <AddTransferBull {...{ addTransferBullOpen, closeAddTransferBull }} />
+        <AddEmbryoDonorDialog {...{ addEmbryoDonorOpen, closeAddEmbryoDonor }} />
+        <AddCowDialog {...{ addCowOpen, closeAddCow, isEmbryoDonor: true }} />
+        <AddBullDialog {...{ addBullOpen, closeAddBull, isTransferBull: true }} />
+    </>
 }
 
 type DashboardInformationProps = {
@@ -137,7 +267,7 @@ type DashboardInformationProps = {
 
 const DashboardInformation = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(3,250)_1fr] grid-rows-[180_450] gap-4">
+        <div className="grid grid-cols-[repeat(3,260)_1fr] grid-rows-[180_450] gap-4">
             <AnimalsNumbersCard {...{ reloadFlag, startLoading, stopLoading }} />
             <PregnancyRateCard {...{ reloadFlag, stopLoading, startLoading }} />
             <BirthRateCard {...{ reloadFlag, stopLoading, startLoading }} />
@@ -167,7 +297,7 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
         startLoading()
         setLoading(true)
         getBirthRateStats()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData(defaultValues))
             .finally(() => {
                 setLoading(false)
@@ -216,7 +346,7 @@ const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardI
         startLoading()
         setLoading(true)
         getPregnancyRateStats()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData(defaultValues))
             .finally(() => {
                 setLoading(false)
@@ -252,11 +382,11 @@ const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardI
 
 const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const defaultData: CardEntry<AnimalsNumberEntry> = {
+    const defaultData: CardEntry<AnimalsNumberEntry> = useMemo(() => ({
         current: 0,
         trend: 0,
         hist: []
-    }
+    }), [])
 
     const [data, setData] = useState<CardEntry<AnimalsNumberEntry>>(defaultData)
     const [loading, setLoading] = useState(false)
@@ -265,13 +395,13 @@ const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: Dashboard
         startLoading()
         setLoading(true)
         getAnimalsNumber()
-            .then((response) => setData(response.json))
+            .then((response) => setData(response))
             .catch(() => setData(defaultData))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [reloadFlag, startLoading, stopLoading])
+    }, [defaultData, reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -307,7 +437,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         startLoading()
         setLoading(true)
         getBestRanking(ranking)
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -322,7 +452,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     ]
 
     return <DashboardCard className="col-span-2">
-        <ComboBox 
+        <ComboBox
             className="w-[300]"
             value={ranking}
             items={rakingItens}
@@ -373,7 +503,7 @@ const TransferHistGraph = ({ reloadFlag, stopLoading, startLoading }: DashboardI
     useEffect(() => {
         startLoading()
         getInseminationHist()
-            .then(response => setDataset(response.json))
+            .then(response => setDataset(response))
             .catch(() => setDataset([]))
             .finally(() => {
                 stopLoading()
@@ -442,7 +572,7 @@ const FutureBirthsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardI
         startLoading()
         setLoading(true)
         getFutureBirths()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -491,7 +621,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         setLoading(true)
         getLastEntries()
             .then(response => {
-                const lastEntry: LastEntry = response.json
+                const lastEntry: LastEntry = response
                 const lastInsemination = new Date(lastEntry.transferDate)
                 setInseminationDate(lastInsemination)
                 setLastDate(lastInsemination.toLocaleString('pt-BR', { dateStyle: 'short' }))
@@ -593,7 +723,7 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<Em
         setEditing(false)
     }
 
-    const onSave = useCallback(handleSubmit(onSubimt), [])
+    const onSave = handleSubmit(onSubimt)
 
     return <TableRow>
         <TableCell>
@@ -603,13 +733,13 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<Em
         <TableCell>
             <FormSearchBox
                 formProps={{ control, name: 'donorId' }}
-                searchOptions={searchBull}
+                searchOptions={searchEmbryoDonors}
             />
         </TableCell>
         <TableCell>
             <FormSearchBox
                 formProps={{ control, name: 'bullId' }}
-                searchOptions={searchBull}
+                searchOptions={searchTransferBulls}
             />
         </TableCell>
         <TableCell>
@@ -632,13 +762,25 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
 
     const [data, setData] = useState<TransferGroup[]>([])
     const [loading, setLoading] = useState(false)
+
     const { setPageProps } = useContext(PageContext)
+    const { setReloadFlag } = useContext(ReloadContext)
+
+    const [group, setGroup] = useState<TransferGroup>()
+    const [error, setError] = useState<APIError>()
+    const [transferDate, setTransferDate] = useState<Date>()
+    const [addTransferOpen, setAddTransferOpen] = useState(false)
+
+    const closeAddTransfer = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddTransferOpen(false)
+    }
 
     useEffect(() => {
         startLoading()
         setLoading(true)
         getLastGroups()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -651,7 +793,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         <Table size="small">
             <TableHead>
                 <TableRow>
-                    <TableCell />
+                    <TableCell width={10} />
                     <TableCell align="center">Data de Transferência</TableCell>
                     <TableCell align="center">Total de Animais</TableCell>
                     <TableCell>Taxa de Prenhez</TableCell>
@@ -667,6 +809,18 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                         <TableRow>
                             <TableCell>
                                 <EditControlButtons
+                                    onDelete={() => setGroup(item)}
+                                    otherButtons={(
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => {
+                                                setTransferDate(item.transferDate)
+                                                setAddTransferOpen(true)
+                                            }}
+                                        >
+                                            <Add />
+                                        </IconButton>
+                                    )}
                                     onShow={() => {
                                         const transferDate = new Date(item.transferDate)
                                         const date = transferDate.toLocaleDateString('pt-BR', {
@@ -708,5 +862,30 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         >
             Ver Mais...
         </Button>
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
+        <TimerYesNoDialog
+            openYesNo={!!group}
+            waitTime={10}
+            title={GROUP_DELETE_TITLE}
+            onYes={() => {
+                if (!group) return
+                deleteGroup(group.transferDate)
+                    .then(() => setReloadFlag(prev => prev + 1))
+                    .catch(err => setError(err))
+                    .finally(() => setGroup(undefined))
+            }}
+            content={
+                `Ao continuar, o registro de ${group?.cowNumber} transferências serão apagados! ` +
+                "Deseja continuar?" +
+                "\n\nOBS.: As parições relacionadas a estas transferências não serão excluídas, nem modificadas!"
+            }
+            onClose={() => setGroup(undefined)}
+        />
+        <AddTransferDialog {...{ addTransferOpen, closeAddTransfer, transferDate }} />
     </DashboardCard>
 }

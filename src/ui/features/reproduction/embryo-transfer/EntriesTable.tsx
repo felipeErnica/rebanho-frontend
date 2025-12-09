@@ -1,14 +1,32 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useVirtuosoComponents, usePagination } from "@/ui/shared/table/PageTable"
 import { TableTopBar } from "@/ui/shared/table/TableTopBarComponents"
-import { RefObject, useCallback, useEffect, useRef, useState } from "react"
-import { findEntriesPage, getEntriesPage } from "./Controller"
+import {
+    createContext,
+    Dispatch,
+    RefObject,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react"
+import {
+    deleteTransfer,
+    findEntriesPage,
+    getEntriesPage,
+    searchEmbryoDonors,
+    searchTransferBulls,
+    updateTransfer
+} from "./Controller"
 import {
     TransferFoot,
     EmbryoTransfer,
     TransferEntryFilter,
     StatusColorMap,
     StatusMap,
+    EmbryoTransferSave,
 } from "./Entities"
 import { ComboBoxItem } from "@/ui/shared/common/ComboBox"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
@@ -28,21 +46,28 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/ui/shared/form-controls/FormTextField"
 import Add from "@mui/icons-material/Add"
 import { FormSearchBox } from "@/ui/shared/form-controls/FormSearchBox"
-import { searchBull } from "../../farm-area/main-table/api/DashboardController"
 import { FormDatePicker } from "@/ui/shared/form-controls/FormDatePicker"
 import { AddTransferDialog } from "./AddTransferDialog"
 import { TransferFilter } from "./TransferFilter"
-import { searchAllMothers } from "@/shared/GlobalApiCalls"
+import { APIError } from "@/util/ApiRequest"
+import { ErrorDialog } from "@/ui/shared/dialog/DialogComponents"
+
+type EditContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setRows: Dispatch<SetStateAction<EmbryoTransfer[]>>
+}
+
+const EditContext = createContext<EditContextProps>(undefined!)
 
 export const EntriesTablePage = () => {
 
     const defaultSort = 'transfer_date,receiver_order'
 
-    const defaultFoot: TransferFoot = {
+    const defaultFoot: TransferFoot = useMemo(() => ({
         totals: 0,
         averageBirthRate: 0,
         averagePregnancyRate: 0
-    }
+    }), [])
 
     const [filter, setFilter] = useState<TransferEntryFilter>({ isFiltered: false })
     const [filterOpen, setFilterOpen] = useState(false)
@@ -52,14 +77,16 @@ export const EntriesTablePage = () => {
     const [foot, setFoot] = useState(defaultFoot)
     const [addTransferOpen, setAddTransferOpen] = useState(false)
 
+    const [error, setError] = useState<APIError>()
+
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
         getEntriesPage(filter)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
         return findEntriesPage(filter, sort, order, cursor)
-    }, [filter, order, sort])
+    }, [defaultFoot, filter, order, sort])
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
@@ -71,7 +98,12 @@ export const EntriesTablePage = () => {
         { name: 'Data de Transferência', value: defaultSort }
     ]
 
-    const { rows, scrollRef, fetchNextPage } = usePagination<EmbryoTransfer>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<EmbryoTransfer>({ setLoading, fetchPage })
+
+    const closeAddTransfer = (added?: boolean) => {
+        if (added) onReload()
+        setAddTransferOpen(false)
+    }
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -88,9 +120,17 @@ export const EntriesTablePage = () => {
                 </Button>
             )}
         />
-        <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
+        <EditContext value={{ setError, setRows }}>
+            <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
+        </EditContext>
         <TransferFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
-        <AddTransferDialog {...{ addTransferOpen, setAddTransferOpen }} />
+        <AddTransferDialog {...{ addTransferOpen, closeAddTransfer }} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </div>
 }
 
@@ -161,15 +201,29 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     const [rowData, setRowData] = useState<EmbryoTransfer>(item)
     const [editing, setEditing] = useState(false)
+    const [loadingControls, setLoadingControls] = useState(false)
+
+    const { setRows, setError } = useContext(EditContext)
 
     useEffect(() => setRowData(item), [item])
+
+    const onDelete = () => {
+        setLoadingControls(true)
+        deleteTransfer(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }
 
     if (loading) return <TableLoadingCells colSpan={8} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.receiverInfo}</TableBodyCell>
         <TableBodyCell>{rowData.donorInfo}</TableBodyCell>
@@ -199,38 +253,58 @@ type EntriesRowEditingProps = {
 }
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
+    
+    const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit } = useForm<EmbryoTransfer>({ defaultValues: rowData })
+    const { control, handleSubmit } = useForm<EmbryoTransferSave>({ defaultValues: rowData })
+    const { setError } = useContext(EditContext)
 
-    const onSubmit: SubmitHandler<EmbryoTransfer> = (data: EmbryoTransfer) => {
-        setRowData(data)
-        setEditing(false)
+    const onSubmit: SubmitHandler<EmbryoTransferSave> = (data: EmbryoTransferSave) => {
+        setLoading(true)
+        updateTransfer(data)
+            .then(response => {
+                setRowData(response)
+                setError(undefined)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.receiverInfo}</TableBodyCell>
         <TableBodyCell align="center">
             <FormSearchBox
                 formProps={{ control, name: 'donorId' }}
-                searchOptions={searchAllMothers}
+                searchOptions={searchEmbryoDonors}
             />
         </TableBodyCell>
         <TableBodyCell align="center">
             <FormSearchBox
                 formProps={{ control, name: 'bullId' }}
-                searchOptions={searchBull}
+                searchOptions={searchTransferBulls}
             />
         </TableBodyCell>
         <TableBodyCell align="center">
             <FormDatePicker formProps={{ control, name: 'transferDate' }} />
         </TableBodyCell>
-        <TableBodyCell align="center">{rowData.pregnancyStatus}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.birthStatus}</TableBodyCell>
+        <TableBodyCell align="center">
+            <Chip 
+                label={StatusMap.get(rowData.pregnancyStatus)}
+                color={StatusColorMap.get(rowData.pregnancyStatus)}
+            />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <Chip 
+                label={StatusMap.get(rowData.birthStatus)}
+                color={StatusColorMap.get(rowData.birthStatus)}
+            />
+        </TableBodyCell>
         <TableBodyCell>{rowData.childInformation}</TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'observation' }} />

@@ -123,7 +123,7 @@ export const ResizableHeadCell = ({ children, colSpan, className, width, align }
         className={`bg-gray-700 border-none text-white text-nowrap 
           overflow-hidden overflow-ellipsis ${className}`
         }
-        sx={{ width, minWidth: width ?? 80 }}
+        sx={{ width: width ?? 'auto', minWidth: 50 }}
         colSpan={colSpan}
         align={align}
     >
@@ -131,7 +131,7 @@ export const ResizableHeadCell = ({ children, colSpan, className, width, align }
         <div
             ref={handlerRef}
             onMouseDown={handleMouseDown}
-            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[3px] hover:bg-gray-200"
+            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[3] hover:bg-gray-200"
         />
     </TableCell>
 }
@@ -310,4 +310,28 @@ export const TrendValues = ({ value, trendProps }: TrendValuesProps) => {
         {value}
         <TrendComponent {...trendProps} />
     </div>
+}
+
+type TablePageBodyProps<T> = {
+    dataset: T[]
+    render: (row: T) => ReactNode | ReactNode[]
+    loading: boolean
+    colSpan: number
+}
+
+export function TablePageBody<T>({ dataset, render, loading, colSpan }: TablePageBodyProps<T>) {
+
+    if (loading) {
+        return Array(30).fill(<TableLoadingRow colSpan={colSpan} />)
+    }
+
+    if (dataset.length === 0) {
+        return <TableRow>
+            <TableCell colSpan={colSpan}>
+                <Typography align="center" variant="body1">Não há dados disponíveis</Typography>
+            </TableCell>
+        </TableRow>
+    }
+
+    return dataset.map(render)
 }

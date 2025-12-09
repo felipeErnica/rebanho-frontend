@@ -63,8 +63,10 @@ export const PageDisplay = (): JSX.Element => {
             <MainMenu setPage={setPageProps} setOpen={setOpen} />
         </Drawer>
         {pageProps && <BreadCrumbsToolbar {...{ pageProps, setPageProps }} />}
-        <PageContext value={{ pageProps, setPageProps }}>
-            {pageProps?.page}
-        </PageContext>
+        <div className="w-full h-full overflow-auto">
+            <PageContext value={{ pageProps, setPageProps }}>
+                {pageProps?.page}
+            </PageContext>
+        </div>
     </Box>
 }

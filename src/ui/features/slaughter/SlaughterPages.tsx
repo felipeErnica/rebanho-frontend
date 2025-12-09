@@ -4,6 +4,7 @@ import { SlaughterDashboard } from "./SlaughterDashboard";
 import { HomePage } from "../home/HomePage";
 import { SlaughterEntriesTable } from "./SlaughterEntriesTable";
 import { SlaughterGroupsTable } from "./SlaughterGroupsTable";
+import { ButcherTable } from "./ButcherTable";
 
 export const SlaughterMainPage: PageProps = {
     title: "Painel de Abate",
@@ -21,5 +22,11 @@ export const SlaughterEntriesPage: PageProps = {
 export const SlaughterGroupsPage: PageProps = {
     title: "Abates",
     page: <SlaughterGroupsTable />,
+    previousPages: [HomePage, SlaughterMainPage]
+}
+
+export const ButcherPage: PageProps = {
+    title: "Frigoríficos",
+    page: <ButcherTable />,
     previousPages: [HomePage, SlaughterMainPage]
 }

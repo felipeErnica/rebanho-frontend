@@ -49,7 +49,7 @@ import { ErrorDialog, YesNoDialog } from "@/ui/shared/dialog/DialogComponents"
 import { CONFLICT_WARNING } from "@/ui/shared/Globals"
 import { Button, ListItemIcon, Menu, MenuItem } from "@mui/material"
 import ExpandMore from "@mui/icons-material/ExpandMore"
-import { CommonMenuProps } from "@/ui/shared/dashboard/Entities"
+import { OptionMenuProps } from "@/ui/shared/dashboard/Entities"
 import Add from "@mui/icons-material/Add"
 import CalendarMonth from "@mui/icons-material/CalendarMonth"
 import { EndLactationDialog } from "./EndLactationDialog"
@@ -86,6 +86,7 @@ export const LactationHistTablePage = () => {
     const [deleteId, setDeleteId] = useState<string>()
 
     const [menuOpen, setMenuOpen] = useState(false)
+    const [reloadFlag, setReloadFlag] = useState(0)
 
     const anchorEl = useRef<HTMLButtonElement>(null)
     const menuAnchor = useRef<HTMLButtonElement>(null)
@@ -99,6 +100,8 @@ export const LactationHistTablePage = () => {
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
     const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
+
+    useEffect(() => onReload(), [onReload, reloadFlag])
 
     useEffect(() => {
         if (!deleteId) return
@@ -157,11 +160,11 @@ export const LactationHistTablePage = () => {
                     >
                         Opções
                     </Button>
-                    <OptionsMenu 
-                        open={menuOpen}
-                        anchorEl={menuAnchor.current}
-                        handleClose={() => setMenuOpen(prev => !prev)}
-                        reloadFunction={(changed?: boolean) => changed && onReload()}
+                    <OptionsMenu
+                        openMenu={menuOpen}
+                        menuAnchorEl={menuAnchor.current}
+                        closeMenu={() => setMenuOpen(prev => !prev)}
+                        setReloadFlag={setReloadFlag}
                     />
                 </>
             )}
@@ -189,26 +192,24 @@ export const LactationHistTablePage = () => {
     </div>
 }
 
-const OptionsMenu = ({ open, anchorEl, handleClose, reloadFunction }: CommonMenuProps) => {
+const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu }: OptionMenuProps) => {
 
     const [openEndLactation, setOpenEndLactation] = useState(false)
     const [openStartLac, setOpenStartLac] = useState(false)
 
-    const closeEndLactation = useCallback((changed?: boolean) => {
+    const closeEndLactation = useCallback(() => {
         setOpenEndLactation(false)
-        if (reloadFunction) reloadFunction(changed)
-    }, [reloadFunction])
+    }, [])
 
-    const closeStartLac = useCallback((changed?: boolean) => {
+    const closeStartLac = useCallback(() => {
         setOpenStartLac(false)
-        if (reloadFunction) reloadFunction(changed)
-    }, [reloadFunction])
+    }, [])
 
     return <>
         <Menu
-            open={open}
-            anchorEl={anchorEl}
-            onClose={handleClose}
+            open={openMenu}
+            anchorEl={menuAnchorEl}
+            onClose={closeMenu}
         >
             <MenuItem onClick={() => setOpenStartLac(true)}>
                 <ListItemIcon>

@@ -70,7 +70,7 @@ export function searchInseminationBulls() {
     return apiGet(BULLS_BASE  + "search")
 }
 
-export function addInsemiantion(entry: InseminationEntrySave) {
+export function addInsemination(entry: InseminationEntrySave) {
     return apiPut(ENTRY_BASE + "add", entry)
 }
 
