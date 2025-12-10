@@ -131,7 +131,7 @@ export const ResizableHeadCell = ({ children, colSpan, className, width, align }
         <div
             ref={handlerRef}
             onMouseDown={handleMouseDown}
-            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[3] hover:bg-gray-200"
+            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[2] hover:bg-gray-200"
         />
     </TableCell>
 }
@@ -157,7 +157,7 @@ export const VirtuosoHeadCell = ({ children, colSpan, className, width, align }:
 
 export const VirtuosoResizeHeadCell = ({ children, colSpan, className, width, align }: VirtuosoHeadCellProps) => {
 
-    const DEFAULT_MIN_WIDTH = width
+    const DEFAULT_MIN_WIDTH = 50
 
     const handlerRef = useRef<HTMLDivElement>(null)
 
@@ -190,7 +190,7 @@ export const VirtuosoResizeHeadCell = ({ children, colSpan, className, width, al
         className={`relative bg-gray-700 border-none text-white text-nowrap 
           overflow-hidden overflow-ellipsis ${className}`
         }
-        sx={{ minWidth: DEFAULT_MIN_WIDTH, width }}
+        sx={{ minWidth: DEFAULT_MIN_WIDTH, width: width ?? 'auto' }}
         colSpan={colSpan}
         align={align}
     >
@@ -198,7 +198,7 @@ export const VirtuosoResizeHeadCell = ({ children, colSpan, className, width, al
         <div
             ref={handlerRef}
             onMouseDown={handleMouseDown}
-            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[3px] hover:bg-gray-200"
+            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[2] hover:bg-gray-200"
         />
     </TableCell>
 }

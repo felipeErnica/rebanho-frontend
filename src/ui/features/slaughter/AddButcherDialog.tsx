@@ -24,7 +24,7 @@ export const AddButcherDialog = ({
     const [error, setError] = useState<APIError>()
     const [warning, setWarning] = useState<APIError>()
 
-    const { control, handleSubmit, reset, setFocus } = useForm<ButcherSave>()
+    const { control, handleSubmit, reset, setFocus, setValue } = useForm<ButcherSave>()
 
     const onSave: SubmitHandler<ButcherSave> = (data: ButcherSave) => {
         setLoading(true)
@@ -60,15 +60,24 @@ export const AddButcherDialog = ({
             .finally(() => setLoading(false))
     }
 
+    const applyMask = (input: string) => {
+        const onlyNumbers = input.replace(/\D/, "")
+        const cnpjMask = onlyNumbers.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5")
+        setValue('cnpj', cnpjMask)
+    }
+
     return <Dialog
         open={addButcherOpen}
-        onClose={() => closeAddButcher(added)}
+        onClose={() => {
+            reset()
+            closeAddButcher(added)
+        }}
     >
         <DialogTitle>Adicionar Frigorífico</DialogTitle>
         <DialogContent>
             <DialogContainer>
                 <Collapse in={!!error}>
-                    <Alert onClose={() => setError(undefined)}>
+                    <Alert severity="error" onClose={() => setError(undefined)}>
                         <AlertTitle>{error?.title}</AlertTitle>
                         {error?.message}
                     </Alert>
@@ -89,13 +98,22 @@ export const AddButcherDialog = ({
                 <FormTextField
                     label="CNPJ"
                     className="w-[300]"
-                    formProps={{ control, name: 'cnpj' }}
+                    onChange={applyMask}
+                    formProps={{
+                        control,
+                        name: 'cnpj',
+                        rules: { pattern: /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/ }
+                    }}
                 />
                 <FormTextField
                     label="Desconto Padrão"
                     className="w-[300]"
                     type="number"
-                    formProps={{ control, name: 'discount' }}
+                    formProps={{
+                        control,
+                        name: 'discount',
+                        rules: { min: 0, max: 100 }
+                    }}
                 />
             </DialogContainer>
         </DialogContent>
@@ -107,7 +125,7 @@ export const AddButcherDialog = ({
                 onClose={() => closeAddButcher(added)}
             />
         </DialogActions>
-        <YesNoDialog  
+        <YesNoDialog
             openYesNo={!!warning}
             title={warning?.title}
             content={warning?.message}

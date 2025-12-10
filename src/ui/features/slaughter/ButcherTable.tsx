@@ -32,17 +32,13 @@ export const ButcherTable = () => {
 
     const [loading, setLoading] = useState(false)
     const [rows, setRows] = useState<ButcherEntry[]>([])
-    const [error, setError] = useState<APIError>()
     const [addButcherOpen, setAddButcherOpen] = useState(false)
+    const [error, setError] = useState<APIError>()
 
     const onReload = useCallback(() => {
         setLoading(true)
         findButchers()
-            .then((response: ButcherEntry[]) => {
-                response.forEach(item => item.discount = item.discount ? item.discount * 100 : undefined)
-                setRows(response)
-                setError(undefined)
-            })
+            .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [])
@@ -128,9 +124,7 @@ const ButcherRow = ({ row }: TableRowProp<ButcherEntry>) => {
     const onDelete = () => {
         setLoading(true)
         deleteButcher(rowData.id)
-            .then(() => {
-                setRows(prev => prev.filter(item => item.id != rowData.id))
-            })
+            .then(() => setRows(prev => prev.filter(item => item.id != rowData.id)))
             .catch(err => setError(err))
             .finally(() => setLoading(false))
     }
@@ -139,13 +133,13 @@ const ButcherRow = ({ row }: TableRowProp<ButcherEntry>) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing, onDelete, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{row.name}</TableBodyCell>
-        <TableBodyCell>{row.cnpj}</TableBodyCell>
-        <TableBodyCell align="center">{percentageTransform(row.discount)}</TableBodyCell>
-        <TableBodyCell align="center">{row.animalsNumber}</TableBodyCell>
-        <TableBodyCell align="center">{transformWeight(row.averageWeight)}</TableBodyCell>
-        <TableBodyCell align="center">{percentageTransform(row.averageRate)}</TableBodyCell>
-        <TableBodyCell>{row.address}</TableBodyCell>
+        <TableBodyCell>{rowData.name}</TableBodyCell>
+        <TableBodyCell>{rowData.cnpj}</TableBodyCell>
+        <TableBodyCell align="center">{percentageTransform(rowData.discount)}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.animalsNumber}</TableBodyCell>
+        <TableBodyCell align="center">{transformWeight(rowData.averageWeight)}</TableBodyCell>
+        <TableBodyCell align="center">{percentageTransform(rowData.averageRate)}</TableBodyCell>
+        <TableBodyCell>{rowData.address}</TableBodyCell>
     </TableBodyRow>
 
 }
@@ -154,15 +148,19 @@ const EditButcherRow = ({ rowData, setRowData, setEditing }: EditRowProps<Butche
 
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit, setValue } = useForm<ButcherSave>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue } = useForm<ButcherSave>({ defaultValues: rowData, mode: 'onBlur' })
+    const { setError } = useContext(EditContext)
 
     const onSubmit: SubmitHandler<ButcherSave> = (data: ButcherSave) => {
         setLoading(true)
+        console.log("update ", data)
         updateButcher(data)
             .then((response: ButcherEntry) => {
                 setRowData(response)
                 setEditing(false)
+                setError(undefined)
             })
+            .catch(err => setError(err))
             .finally(() => setLoading(false))
     }
 
@@ -187,7 +185,7 @@ const EditButcherRow = ({ rowData, setRowData, setEditing }: EditRowProps<Butche
                 formProps={{
                     control,
                     name: 'cnpj',
-                    rules: { minLength: 14, maxLength: 14 }
+                    rules: { pattern: /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/ }
                 }}
             />
         </TableBodyCell>

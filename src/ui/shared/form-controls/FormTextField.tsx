@@ -1,7 +1,8 @@
 import { TextFieldVariants } from "@mui/material/TextField"
 import { HTMLInputTypeAttribute, ReactNode } from "react"
-import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
-import { TextComponent } from "../common/TextComponent"
+import { Controller, FieldError, FieldValues, UseControllerProps } from "react-hook-form"
+import { TextComponent } from "@controls/common/TextComponent"
+import { REQUIRED_FIELD_MSG } from "@controls/Globals"
 
 type FormTextFieldProps<T extends FieldValues> = {
     label?: string
@@ -31,6 +32,26 @@ export const FormTextField = <T extends FieldValues>({
     endAdornment
 }: FormTextFieldProps<T>) => {
 
+    const treatError = (error: FieldError | undefined) => {
+        if (!error) return undefined
+        switch (error.type) {
+            case "pattern":
+                return "Formato Inválido."
+            case "min":
+                return `O valor deve ser maior que ${formProps.rules?.min}.`
+            case "max":
+                return `O valor deve ser menor que ${formProps.rules?.max}.`
+            case "required":
+                return REQUIRED_FIELD_MSG
+            case "maxLength":
+                return `O valor deve ter menos que ${formProps.rules?.maxLength} caracteres.`
+            case "minLength":
+                return `O valor deve ter mais que ${formProps.rules?.minLength} caracteres.`
+            default:
+                return undefined
+        }
+    }
+
     return <Controller
         {...formProps}
         render={({ field, fieldState }) => (
@@ -40,8 +61,15 @@ export const FormTextField = <T extends FieldValues>({
                 type={type}
                 className={className}
                 error={!!fieldState.error}
-                helperText={fieldState.error?.message}
+                helperText={treatError(fieldState.error)}
                 onChange={(event) => {
+                    if (type == 'number') {
+                        const value = event.target.value
+                        const parsedValue = parseFloat(value)
+                        field.onChange(parsedValue)
+                        if (onChange) onChange(parsedValue)
+                        return
+                    }
                     field.onChange(event)
                     if (onChange) onChange(event.target.value)
                 }}
