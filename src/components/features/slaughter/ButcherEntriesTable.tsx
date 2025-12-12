@@ -1,0 +1,273 @@
+import {
+    FooterContent,
+    TableBodyCell,
+    TableFooterRow,
+    TableHeadControlCell,
+    TableHeadRow,
+    TableLoadingCells,
+    TablePageContainer,
+    VirtuosoResizeHeadCell
+} from "@shared/table/TableComponents"
+import { TableTopBar } from "@shared/table/TableTopBarComponents"
+import { 
+    createContext, 
+    Dispatch, 
+    RefObject, 
+    SetStateAction, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useMemo, 
+    useState 
+} from "react"
+import {SlaughterEntry, SlaughterEntryFilter, SlaughterEntrySave, SlaughterFoot } from "./Entities"
+import { deleteSlaughter, findButcherEntriesFoot, findButchersEntries, updateSlaughter } from "./Controller"
+import { APIError } from "@utils/ApiRequest"
+import { Button } from "@mui/material"
+import { ErrorDialog } from "@shared/dialog/DialogComponents"
+import { EditRowProps } from "@shared/table/Entities"
+import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
+import { dateTransform, percentageTransform, transformWeight } from "@utils/Transformations"
+import { SubmitHandler, useForm } from "react-hook-form"
+import { FormTextField } from "@shared/form-controls/FormTextField"
+import Add from "@mui/icons-material/Add"
+import { usePagination, useVirtuosoComponents } from "@shared/table/PageTable"
+import { ComboBoxItem } from "@shared/common/ComboBox"
+import { AddSlaughterDialog } from "./AddSlaughterDialog"
+import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
+import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
+
+type EditContextProps = {
+    setRows: Dispatch<SetStateAction<SlaughterEntry[]>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    loadFoot: () => void
+}
+
+const EditContext = createContext<EditContextProps>(undefined!)
+
+type ButcherEntriesTableProps = {
+    butcherId: string
+}
+
+export const ButcherEntriesTable = ({ butcherId }: ButcherEntriesTableProps) => {
+
+    const defaultSort = 'entry_date, animal_order'
+    const defaultFoot: SlaughterFoot = useMemo(() => ({
+        animalsNumber: 0,
+        averageDeadWeight: 0,
+        averageRate: 0,
+        averageWeight: 0
+    }), [])
+
+    const [loading, setLoading] = useState(false)
+    const [addSlaughterOpen, setAddSlaughterOpen] = useState(false)
+    const [error, setError] = useState<APIError>()
+
+    const [sort, setSort] = useState(defaultSort)
+    const [order, setOrder] = useState('desc')
+    const [filter, setFilter] = useState<SlaughterEntryFilter>({ isFiltered: false })
+    const [foot, setFoot] = useState(defaultFoot)
+
+    const loadFoot = useCallback(() => {
+        findButcherEntriesFoot(butcherId, filter)
+            .then(response => setFoot(response))
+            .catch(() => setFoot(defaultFoot))
+    }, [butcherId, defaultFoot, filter])
+
+    const fetchPage = useCallback((cursor?: string) => {
+        loadFoot()
+        return findButchersEntries(butcherId, filter, sort, order, cursor)
+    }, [butcherId, filter, loadFoot, order, sort])
+
+    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
+
+    const { rows, setRows, fetchNextPage, scrollRef } = usePagination<SlaughterEntry>({ fetchPage, setLoading })
+
+    const sortColumns: ComboBoxItem[] = [
+        { name: 'Data de Abate', value: defaultSort },
+        { name: 'Brinco', value: 'animal_order, birth_date, entry_date' },
+        { name: 'Nome', value: 'animal_name, animal_order, birth_date, entry_date' },
+        { name: 'Data de Nascimento', value: 'birth_date, animal_order, entry_date' },
+        { name: 'Peso', value: 'weight, entry_date' },
+        { name: 'Peso de Abate', value: 'dead_weight, entry_date' },
+        { name: 'Rendimento', value: 'performance_rate, entry_date' },
+    ]
+
+    const closeAddSlaughter = (added?: boolean) => {
+        if (added) onReload()
+        setAddSlaughterOpen(false)
+    }
+
+    return <TablePageContainer>
+        <TableTopBar
+            reloadProps={{ loading, onReload }}
+            sortProps={{ sort, setSort, sortColumns, defaultSort }}
+            orderProps={{ order, setOrder }}
+            otherProps={(
+                <Button
+                    onClick={() => setAddSlaughterOpen(true)}
+                    startIcon={<Add />}
+                >
+                    Adicionar Abate
+                </Button>
+            )}
+        />
+        <EditContext.Provider value={{ setError, setRows, loadFoot }}>
+            <ButcherTableBody {...{ rows, loading, fetchNextPage, scrollRef, foot }} />
+        </EditContext.Provider>
+        <AddSlaughterDialog {...{ addSlaughterOpen, closeAddSlaughter, butcherId }} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
+    </TablePageContainer>
+
+}
+
+type ButcherTableProps = {
+    rows: SlaughterEntry[]
+    foot: SlaughterFoot
+    loading: boolean
+    fetchNextPage: () => void
+    scrollRef: RefObject<VirtuosoHandle | null>
+}
+
+const ButcherTableBody = ({
+    rows,
+    loading,
+    scrollRef,
+    fetchNextPage,
+    foot,
+}: ButcherTableProps) => {
+
+    return <TableVirtuoso
+        ref={scrollRef}
+        data={rows}
+        components={useVirtuosoComponents(10)}
+        endReached={fetchNextPage}
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <TableHeadControlCell />
+                <VirtuosoResizeHeadCell width={250}>Animal</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={250}>Mãe</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={180}>Pai</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Taxa de Perda</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Data de Abate</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Peso</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Peso (c/ Desconto)</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={150}>Peso de Abate</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={150}>Rend. Médio</VirtuosoResizeHeadCell>
+            </TableHeadRow>
+        )}
+        fixedFooterContent={() => (
+            <TableFooterRow colSpan={10}>
+                <FooterContent title="Total" content={foot.animalsNumber} />
+                <FooterContent
+                    title="Peso Médio"
+                    content={transformWeight(foot.averageWeight)}
+                />
+                <FooterContent
+                    title="Peso de Abate Médio"
+                    content={transformWeight(foot.averageDeadWeight)} />
+                <FooterContent title="Rend. Médio" content={percentageTransform(foot.averageRate)} />
+            </TableFooterRow>
+        )}
+        itemContent={(_, item) => <EntriesRow {...{ item: item as SlaughterEntry, loading }} />}
+    />
+
+}
+
+type EntriesRowProps = {
+    loading: boolean
+    item: SlaughterEntry
+}
+
+const EntriesRow = ({ loading, item }: EntriesRowProps) => {
+
+    const [editing, setEditing] = useState(false)
+    const [rowData, setRowData] = useState<SlaughterEntry>(item)
+    const [loadingControls, setLoadingControls] = useState(false)
+
+    const { setError, setRows, loadFoot } = useContext(EditContext)
+
+    useEffect(() => setRowData(item), [item])
+
+    if (loading) return <TableLoadingCells colSpan={10} />
+    if (editing) return <EntriesEditingRow {...{ setEditing, rowData, setRowData }} />
+
+    const onDelete = () => {
+        setLoadingControls(true)
+        deleteSlaughter(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+                loadFoot()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }
+
+    return <>
+        <TableBodyCell>
+            <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
+        </TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
+        <TableBodyCell>{rowData.motherName}</TableBodyCell>
+        <TableBodyCell>{rowData.fatherName}</TableBodyCell>
+        <TableBodyCell align="center">{percentageTransform(rowData.discountRate)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.weight)} </TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.discountWeight)} </TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.deadWeight)} </TableBodyCell>
+        <TableBodyCell align="center">{percentageTransform(rowData.performanceRate)}</TableBodyCell>
+    </>
+}
+
+const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<SlaughterEntry>) => {
+
+    const [loading, setLoading] = useState(false)
+
+    const { handleSubmit, control } = useForm<SlaughterEntrySave>({ defaultValues: rowData })
+    const { setError, loadFoot } = useContext(EditContext)
+
+    const onSubmit: SubmitHandler<SlaughterEntrySave> = (data: SlaughterEntrySave) => {
+        setLoading(true)
+        updateSlaughter(data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+                loadFoot()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }
+
+    const onSave = handleSubmit(onSubmit)
+
+    return <>
+        <TableBodyCell>
+            <EditingControlButtons {...{ setEditing, onSave, loading }} />
+        </TableBodyCell>
+        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
+        <TableBodyCell>{rowData.motherName}</TableBodyCell>
+        <TableBodyCell>{rowData.fatherName}</TableBodyCell>
+        <TableBodyCell>
+            <FormTextField formProps={{ control, name: 'discountRate' }} type="number" />
+        </TableBodyCell>
+        <TableBodyCell>
+            <FormDatePicker formProps={{ control, name: "entryDate" }} />
+        </TableBodyCell>
+        <TableBodyCell>
+            <FormTextField formProps={{ control, name: "weight" }} type="number" />
+        </TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.weight)} </TableBodyCell>
+        <TableBodyCell align="center"> {transformWeight(rowData.discountWeight)} </TableBodyCell>
+        <TableBodyCell>
+            <FormTextField formProps={{ control, name: 'deadWeight' }} type="number" />
+        </TableBodyCell>
+        <TableBodyCell align="center">{percentageTransform(rowData.performanceRate)}</TableBodyCell>
+    </>
+
+}

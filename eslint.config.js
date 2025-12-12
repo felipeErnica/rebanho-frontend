@@ -1,36 +1,32 @@
-import js from '@eslint/js'
-import globals from 'globals'
+import globals from "globals";
+import tseslint from "typescript-eslint";
 import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
+import pluginReact from "eslint-plugin-react";
+import { defineConfig } from "eslint/config";
+import jsxA11y from "eslint-plugin-jsx-a11y";
+import babelParser from '@typescript-eslint/parser'
 
-export default tseslint.config(
-    { ignores: ['dist'] },
+export default defineConfig([
     {
-        extends: [js.configs.recommended, ...tseslint.configs.recommended],
-        files: ['**/*.{ts,tsx}'],
-        settings: {
-            "react-hooks": {
-                "additionalEffectHooks": "(useMyEffect|useCustomEffect)"
-            }
-        },
+        files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
         languageOptions: {
+            parser: babelParser,
             ecmaVersion: 2020,
             globals: globals.browser,
         },
         plugins: {
-            'react-hooks': reactHooks,
-            'react-refresh': reactRefresh,
+            react: pluginReact,
+            "react-hooks": reactHooks,
+            "jsx-a11y": jsxA11y,
+            "@typescript-eslint": tseslint,
         },
         rules: {
+            "no-unused-vars": [ "warn", { argsIgnorePattern: "^_" } ],
+            "react/react-in-jsx-scope": "off",
             "@typescript-eslint/no-explicit-any": "off",
-            ...reactHooks.configs.recommended.rules,
-            'react-refresh/only-export-components': [
-                'warn',
-                { allowConstantExport: true },
-            ],
-            "react-hooks/rules-of-hooks": "error", 
-            "react-hooks/exhaustive-deps": "warn" 
+
+            "react-hooks/rules-of-hooks": "error",
+            "react-hooks/exhaustive-deps": "warn"
         },
     },
-)
+]);

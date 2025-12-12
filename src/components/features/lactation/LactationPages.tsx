@@ -1,0 +1,32 @@
+import { PageProps } from "@shared/main-page/PageDisplay";
+import { HomePage } from "@features/home/HomePage";
+import { LactationIcon } from "@shared/common/OtherIcons";
+import { MilkEntriesTablePage } from "./MilkEntriesTable";
+import { GroupTablePage } from "./MilkGroupTable";
+import { LactationHistTablePage } from "./LactationHistTable";
+import { LactationDashboard } from "./LactationDashboard";
+
+export const MilkDashboardPage: PageProps = {
+    title: "Painel de Lactação",
+    crumbIcon: <LactationIcon />,
+    page: <LactationDashboard />, 
+    previousPages: [HomePage]
+}
+
+export const MilkEntriesPage: PageProps = {
+    title: "Histórico de Marcações",
+    page: <MilkEntriesTablePage />, 
+    previousPages: [HomePage, MilkDashboardPage]
+}
+
+export const MilkGroupsPage: PageProps = {
+    title: "Dias de Marcação",
+    page: <GroupTablePage />, 
+    previousPages: [HomePage, MilkDashboardPage]
+}
+
+export const LactationHistPage: PageProps = {
+    title: "Histórico de Lactações",
+    page: <LactationHistTablePage />, 
+    previousPages: [HomePage, MilkDashboardPage]
+}

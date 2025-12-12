@@ -1,4 +1,4 @@
-type electronEvents = {
+export type electronEvents = {
     closeLogin: () => void
     openMain: () => void
     closeMain: () => void
@@ -8,6 +8,6 @@ type electronEvents = {
     setAuthToken: (token: string) => void
 }
 
-interface Window {
+export interface Window {
     electronEvents: electronEvents
 }

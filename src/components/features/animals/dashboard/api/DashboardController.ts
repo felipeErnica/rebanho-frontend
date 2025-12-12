@@ -1,0 +1,46 @@
+import { apiPost } from "@utils/ApiRequest"
+import { AnimalDashboardFilter } from "./DashboardEntities"
+
+const BASE_DASHBOARD = 'animals/dashboard/'
+
+export async function getTotalAnimals(filter: AnimalDashboardFilter): Promise<any> {
+    const apiCall = BASE_DASHBOARD + "total-general"
+    const response = await apiPost(apiCall, filter)
+    return response
+}
+
+export async function getGroupByAgeFarm(filter: AnimalDashboardFilter): Promise<any> {
+    filter = {...filter, isFiltered: true, isActive: true}
+    const apiCall = BASE_DASHBOARD + "group-age-farm"
+    const response = await apiPost(apiCall, filter)
+    return response
+}
+
+export async function getGroupByAgePasture(filter: AnimalDashboardFilter, farmId: string): Promise<any> {
+    filter = {...filter, farmId, isFiltered: true, isActive: true}
+    console.log(filter)
+    const apiCall = BASE_DASHBOARD + "group-pasture"
+    const response = await apiPost(apiCall, filter)
+    return response
+}
+
+export async function getGroupByAge(filter: AnimalDashboardFilter): Promise<any> {
+    filter = {...filter, isFiltered: true, isActive: true}
+    const apiCall = BASE_DASHBOARD + "group-age"
+    const response = await apiPost(apiCall, filter)
+    return response
+}
+
+export async function getGroupByYear(filter: AnimalDashboardFilter, minYear: number, maxYear: number): Promise<any> {
+    filter = {...filter, maxBirthDate: undefined, minBirthDate: undefined, animalType: undefined}
+    const apiCall = BASE_DASHBOARD + `group-year?from=${minYear}&to=${maxYear}`
+    const response = await apiPost(apiCall, filter)
+    return response
+}
+
+export async function getTotalByType(filter: AnimalDashboardFilter): Promise<any> {
+    filter = {...filter, isFiltered: true, isActive: true}
+    const apiCall = BASE_DASHBOARD + "types"
+    const response = await apiPost(apiCall, filter)
+    return response
+}

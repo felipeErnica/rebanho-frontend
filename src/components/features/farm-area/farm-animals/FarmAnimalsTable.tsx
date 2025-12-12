@@ -1,0 +1,146 @@
+import { Ref, useEffect, useRef, useState } from "react"
+import { AnimalFarm } from "./Entities"
+import { EditRowProps, NormalRow } from "@shared/table/Entities"
+import { dateTransform } from "@utils/Transformations"
+import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
+import { useForm } from "react-hook-form"
+import {
+    VirtuosoResizeHeadCell,
+    TableBodyCell,
+    TableHeadRow,
+    TableLoadingCells,
+    VirtuosoHeadCell,
+    TableFooterRow,
+    FooterContent,
+} from "@shared/table/TableComponents"
+import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
+import { searchPastureByFarm } from "@utils/GlobalApiCalls"
+import { transformAnimalType } from "@features/animals/Entities"
+import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
+import { useVirtuosoComponents } from "@shared/table/PageTable"
+
+type FarmAnimalsTableProps = {
+    rows: AnimalFarm[]
+    isLoading: boolean
+    scrollRef: Ref<VirtuosoHandle>
+    fetchNextPage: () => void
+    total: number
+}
+
+export const FarmAnimalsTable = ({ 
+    rows, 
+    isLoading, 
+    scrollRef, 
+    fetchNextPage, 
+    total 
+}: FarmAnimalsTableProps) => {
+
+    const [tableWidth, setTableWidth] = useState(0)
+    const tableRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (!tableRef.current) return
+            const table = tableRef.current
+            setTableWidth(table.offsetWidth)
+        }
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+
+    return <TableVirtuoso
+        components={useVirtuosoComponents(9)}
+        ref={scrollRef}
+        scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
+        data={rows}
+        endReached={fetchNextPage}
+        fixedHeaderContent={() => {
+            const unit = tableWidth/100
+            return <TableHeadRow>
+                <VirtuosoHeadCell width={unit*10} />
+                <VirtuosoResizeHeadCell width={unit*5}>Brinco</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*15}>Nome</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*5}>Sexo</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*15}>Data de Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*15}>Mãe</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*10}>Pai</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*15}>Tipo de Animal</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit*20}>Pasto</VirtuosoResizeHeadCell>
+            </TableHeadRow>
+        }}
+        fixedFooterContent={() => (
+            <TableFooterRow colSpan={9}>
+                <FooterContent title="Total de Animais" content={total} />
+            </TableFooterRow>
+        )}
+        itemContent={(_, row) => isLoading ? <TableLoadingCells colSpan={9} /> : <AnimalFarmRow {...row} />}
+    />
+}
+
+const AnimalFarmRow = (row: AnimalFarm) => {
+
+    const [isEditing, setEditing] = useState(false)
+    const [rowValue, setRowValue] = useState(row)
+
+    if (isEditing) return <AnimalFarmEditRow {...{ setRowData: setRowValue, setEditing, rowData: rowValue }} />
+    return <AnimalFarmNormalRow {...{ setEditing, rowValue }} />
+}
+
+const AnimalFarmNormalRow = ({ rowValue, setEditing }: NormalRow<AnimalFarm>) => {
+    return <>
+        <TableBodyCell>
+            <EditControlButtons
+                setEditing={setEditing}
+                onDelete={() => console.log("delete", rowValue.name)}
+            />
+        </TableBodyCell>
+        <TableBodyCell>{rowValue.ringNumber}</TableBodyCell>
+        <TableBodyCell>{rowValue.name}</TableBodyCell>
+        <TableBodyCell>{rowValue.sex}</TableBodyCell>
+        <TableBodyCell>{dateTransform(rowValue.birthDate)}</TableBodyCell>
+        <TableBodyCell>{rowValue.motherName}</TableBodyCell>
+        <TableBodyCell>{rowValue.fatherName}</TableBodyCell>
+        <TableBodyCell>{transformAnimalType(rowValue.animalType, rowValue.sex)}</TableBodyCell>
+        <TableBodyCell>{rowValue.pastureName}</TableBodyCell>
+    </>
+}
+
+const AnimalFarmEditRow = ({ rowData: rowValue, setEditing, setRowData: setRowValue }: EditRowProps<AnimalFarm>) => {
+
+    const { handleSubmit, control, setValue } = useForm({ defaultValues: rowValue })
+
+    const onSubmit = (data: AnimalFarm) => {
+        console.log("data", data)
+        setRowValue(data)
+    }
+
+    const handlePastureSearch = () => searchPastureByFarm(rowValue.farmId)
+
+    return <>
+        <TableBodyCell>
+            <EditingControlButtons
+                setEditing={setEditing}
+                onSave={handleSubmit(onSubmit)}
+            />
+        </TableBodyCell>
+        <TableBodyCell>{rowValue.ringNumber}</TableBodyCell>
+        <TableBodyCell>{rowValue.name}</TableBodyCell>
+        <TableBodyCell>{rowValue.sex}</TableBodyCell>
+        <TableBodyCell>{dateTransform(rowValue.birthDate)}</TableBodyCell>
+        <TableBodyCell>{rowValue.motherName}</TableBodyCell>
+        <TableBodyCell>{rowValue.fatherName}</TableBodyCell>
+        <TableBodyCell>{transformAnimalType(rowValue.animalType, rowValue.sex)}</TableBodyCell>
+        <TableBodyCell>
+            <FormSearchBox
+                searchOptions={handlePastureSearch}
+                onChange={(_, label) => setValue('pastureName', label)}
+                formProps={{
+                    control,
+                    name: 'pastureId'
+                }}
+            />
+        </TableBodyCell>
+    </>
+}
