@@ -3,7 +3,6 @@
         "composite": true,
         "jsx": "react-jsx",
         "baseUrl": ".",
-        "types": [ "./types" ],
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
         "target": "ES2020",
         "useDefineForClassFields": true,
@@ -18,14 +17,12 @@
             "@": [ "src" ],
             "@/*": [ "src/*" ],
             "@features": [ "src/components/features" ],
-            "@features/*": [ "src/components/features/*" ], 
+            "@features/*": [ "src/components/features/*" ],
             "@shared": [ "src/components/shared" ],
             "@shared/*": [ "src/components/shared/*" ],
             "@utils": [ "src/utils" ],
             "@utils/*": [ "src/utils/*" ]
         },
-
-
         /* Bundler mode */
         "moduleResolution": "bundler",
         "allowImportingTsExtensions": true,
@@ -33,8 +30,6 @@
         "moduleDetection": "force",
         "noEmit": true,
         "noImplicityAny": false,
-
-
         /* Linting */
         "strict": false,
         "noUnusedLocals": true,
@@ -43,5 +38,7 @@
         "noUncheckedSideEffectImports": true
     },
     "include": [ "src", "electron" ],
-    "references": [ { "path": "./tsconfig.node.json" } ]
+    "references": [
+        { "path": "./tsconfig.node.json" }
+    ]
 }

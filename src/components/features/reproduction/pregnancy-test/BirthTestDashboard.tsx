@@ -8,7 +8,7 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@shared/dashboard/DashboardComponents"
-import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import {
     getBirthRate,
     getLastEntries,
@@ -64,7 +64,6 @@ import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
 import { PageContext } from "@shared/main-page/PageContext"
 import {
     BirthTestDashboardPage,
-    BirthTestEntriesPage,
     BirthTestGroupPage
 } from "./BirthTestPages"
 import Add from "@mui/icons-material/Add"
@@ -82,6 +81,10 @@ import { ErrorDialog } from "@shared/dialog/DialogComponents"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { FormComboBox } from "@shared/form-controls/FormComboBox"
 import { SubmitHandler, useForm } from "react-hook-form"
+import ExpandMore from "@mui/icons-material/ExpandMore"
+import { OptionMenuProps } from "@/components/shared/dashboard/Entities"
+import { Divider, ListItemIcon, Menu, MenuItem } from "@mui/material"
+import { EntriesTablePage } from "./EntriesTable"
 
 type ReloadContextProps = {
     setReloadFlag: Dispatch<SetStateAction<number>>
@@ -121,13 +124,8 @@ type DashboardTopBarProps = {
 
 const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps) => {
 
-    const [addTestOpen, setAddTestOpen] = useState(false)
-    const { setPageProps } = useContext(PageContext)
-
-    const closeAddTest = (added?: boolean) => {
-        setAddTestOpen(false)
-        if (added) setReloadFlag(prev => prev + 1)
-    }
+    const [openMenu, setOpenMenu] = useState(false)
+    const menuAnchorEl = useRef<HTMLButtonElement>(null)
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -136,20 +134,71 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
             loading={activeRequests > 0}
         />
         <Button
-            startIcon={<Add />}
             className="ml-auto"
-            onClick={() => setAddTestOpen(true)}
+            ref={menuAnchorEl}
+            endIcon={<ExpandMore />}
+            onClick={() => setOpenMenu(true)}
         >
-            Adicionar Toque
+            Opções
         </Button>
-        <Button
-            endIcon={<ChevronRight />}
-            onClick={() => setPageProps && setPageProps(BirthTestEntriesPage)}
-        >
-            Histórico de Toques
-        </Button>
-        <AddTestDialog {...{ addTestOpen, closeAddTest }} />
+        <OptionsMenu 
+            openMenu={openMenu}
+            closeMenu={() => setOpenMenu(false)}
+            menuAnchorEl={menuAnchorEl.current}
+            setReloadFlag={setReloadFlag}
+        />
     </DashboardTopContainer>
+}
+
+const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionMenuProps) => {
+
+    const [addTestOpen, setAddTestOpen] = useState(false)
+    const { setPageProps } = useContext(PageContext)
+
+    const closeAddTest = (added?: boolean) => {
+        setAddTestOpen(false)
+        if (added) setReloadFlag(prev => prev + 1)
+    }
+
+    return <>
+        <Menu
+            open={openMenu}
+            anchorEl={menuAnchorEl}
+            onClose={closeMenu}
+        >
+            <MenuItem onClick={() => setAddTestOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Toque
+            </MenuItem>
+            <Divider />
+            <MenuItem
+                onClick={() => {
+                    const page: PageProps = {
+                        page: <EntriesTablePage />,
+                        title: "Histórico de Toques",
+                        previousPages: [HomePage, BirthTestDashboardPage]
+                    }
+                    setPageProps(page)
+                }}
+            >
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Histórico de Toques
+            </MenuItem>
+            <MenuItem
+                onClick={() => setPageProps(BirthTestGroupPage)}
+            >
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Datas de Toque
+            </MenuItem>
+        </Menu>
+        <AddTestDialog {...{ addTestOpen, closeAddTest }} />
+    </>
 }
 
 type DashboardInformationProps = {
@@ -160,14 +209,14 @@ type DashboardInformationProps = {
 
 const DashboardInformation = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(3,250)_1fr] grid-rows-[180_500] gap-4">
+        <div className="grid grid-cols-[repeat(3,250px)_1fr] grid-rows-[180px_500px] gap-4">
             <AnimalsNumberCard {...{ startLoading, stopLoading, reloadFlag }} />
             <PregnancyCard {...{ stopLoading, startLoading, reloadFlag }} />
             <BirthCard {...{ startLoading, stopLoading, reloadFlag }} />
             <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
             <LastGroupTable {...{ stopLoading, startLoading, reloadFlag }} />
         </div>
-        <div className="grid grid-cols-[1fr_500] grid-rows-[500_1fr] gap-4">
+        <div className="grid grid-cols-[1fr_500px] grid-rows-[500px_1fr] gap-4">
             <TestHistChart {...{ startLoading, stopLoading, reloadFlag }} />
             <NextBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <BestAnimalsTable {...{ stopLoading, startLoading, reloadFlag }} />
@@ -339,7 +388,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
 
     return <DashboardCard className="col-span-2">
         <ComboBox
-            className="max-w-[300]"
+            className="max-w-75"
             variant="standard"
             size="small"
             value={rankBy}
@@ -585,7 +634,7 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
         <Button
             className="ml-auto"
             startIcon={<ChevronRight />}
-            onClick={() => setPageProps && setPageProps(BirthTestGroupPage)}
+            onClick={() => setPageProps(BirthTestGroupPage)}
         >
             Ver Mais...
         </Button>

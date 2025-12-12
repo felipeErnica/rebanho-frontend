@@ -39,7 +39,7 @@ export function AddEmbryoDonorDialog({ addEmbryoDonorOpen, closeAddEmbryoDonor }
                 <SearchBox
                     value={donorId}
                     reload={reload}
-                    className="w-[400]"
+                    className="w-[400px]"
                     label="*Vaca"
                     searchOptions={searchNonEmbryoDonors}
                     error={searchError}

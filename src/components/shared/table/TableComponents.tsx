@@ -142,7 +142,7 @@ export const ResizableHeadCell = ({ children, colSpan, className, width, align }
         <div
             ref={handlerRef}
             onMouseDown={handleMouseDown}
-            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[2] hover:bg-gray-200"
+            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-0.5 hover:bg-gray-200"
         />
     </TableCell>
 }
@@ -208,7 +208,7 @@ export const VirtuosoResizeHeadCell = ({ children, colSpan, className, width, al
         <div
             ref={handlerRef}
             onMouseDown={handleMouseDown}
-            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-[2] hover:bg-gray-200"
+            className="absolute h-full top-0 right-0 bg-gray-400 cursor-col-resize w-0.5 hover:bg-gray-200"
         />
     </TableCell>
 }

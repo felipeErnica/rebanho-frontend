@@ -64,7 +64,7 @@ type SortComboBoxProps = {
 
 const SortComboBox = ({ sort, setSort, sortColumns, defaultSort }: SortComboBoxProps) => {
     return <ComboBox
-        className="w-[250]"
+        className="w-62.5"
         variant="standard"
         label="Ordenar Por"
         items={sortColumns}

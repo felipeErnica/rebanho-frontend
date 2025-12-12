@@ -15,10 +15,10 @@ import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormRadioGroup } from "@shared/form-controls/FormRadioGroup"
 import { DialogActionButtons, DialogContainer, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useState } from "react"
 import { addBirth, addBirthNoValidation, getBirthFather, replaceBirth } from "./Controller"
 import { APIError } from "@utils/ApiRequest"
-import { CONFLICT_WARNING, REQUIRED_FIELD_MSG } from "@shared/Globals"
+import { CONFLICT_WARNING, DefaultWarning, REQUIRED_FIELD_MSG } from "@shared/Globals"
 
 type AddBirthDialogProps = {
     addBirthOpen: boolean
@@ -27,17 +27,9 @@ type AddBirthDialogProps = {
 
 export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialogProps) => {
 
-    const defaultWarning: YesNoDialogProps = useMemo(() => ({
-        openYesNo: false,
-        title: undefined,
-        content: undefined,
-        onYes: undefined,
-        onClose: undefined
-    }), [])
-
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<APIError>()
-    const [warning, setWarning] = useState<YesNoDialogProps>(defaultWarning)
+    const [warning, setWarning] = useState<YesNoDialogProps>(DefaultWarning)
     const [added, setAdded] = useState(false)
 
     const { handleSubmit, control, reset, setValue, getValues } = useForm<BirthEntrySave>()
@@ -45,16 +37,16 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
     const onClose = useCallback(() => {
         reset()
         setError(undefined)
-        setWarning(defaultWarning)
+        setWarning(DefaultWarning)
         closeBirthDialog(added)
-    }, [added, closeBirthDialog, defaultWarning, reset])
+    }, [added, closeBirthDialog, reset])
 
     const onSave: SubmitHandler<BirthEntrySave> = (data: BirthEntrySave) => {
         setLoading(true)
         addBirth(data)
             .then(() => {
                 setError(undefined)
-                setWarning(defaultWarning)
+                setWarning(DefaultWarning)
                 setAdded(true)
                 reset()
             })
@@ -64,7 +56,7 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                         openYesNo: true,
                         title: err.title,
                         content: err.message,
-                        onClose: () => setWarning(defaultWarning),
+                        onClose: () => setWarning(DefaultWarning),
                         onYes: handleSubmit(onAddNoValidation)
                     })
                     return
@@ -74,7 +66,7 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                         openYesNo: true,
                         title: err.title,
                         content: err.message,
-                        onClose: () => setWarning(defaultWarning),
+                        onClose: () => setWarning(DefaultWarning),
                         onYes: handleSubmit(onReplace)
                     })
                     return
@@ -89,12 +81,12 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
             .then(() => {
                 reset()
                 setError(undefined)
-                setWarning(defaultWarning)
+                setWarning(DefaultWarning)
                 setAdded(true)
             })
             .catch((err: APIError) => {
                 setError(err)
-                setWarning(defaultWarning)
+                setWarning(DefaultWarning)
             })
     }
 
@@ -103,12 +95,12 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
             .then(() => {
                 reset()
                 setError(undefined)
-                setWarning(defaultWarning)
+                setWarning(DefaultWarning)
                 setAdded(true)
             })
             .catch((err: APIError) => {
                 setError(err)
-                setWarning(defaultWarning)
+                setWarning(DefaultWarning)
             })
     }
 
@@ -141,7 +133,7 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
             <DialogContainer>
                 <FormDatePicker
                     label="Data de Nascimento*"
-                    className="w-[200]"
+                    className="w-50"
                     onBlur={getFatherId}
                     disableFuture
                     formProps={{
@@ -152,12 +144,12 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                 />
                 <FormTextField
                     label="Brinco"
-                    className="w-[200]"
+                    className="w-50"
                     formProps={{ control, name: 'ringNumber' }}
                 />
                 <FormSearchBox
                     label="Mãe*"
-                    className="w-[400]"
+                    className="w-100"
                     searchOptions={searchOwnedMothers}
                     onChange={getFatherId}
                     formProps={{

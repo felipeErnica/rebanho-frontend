@@ -234,7 +234,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl: anchorEl, closeMenu: handleClose,
                         title: "Histórico de Transferências",
                         previousPages: [HomePage, TransferMainPage]
                     }
-                    if (setPageProps) setPageProps(page)
+                    setPageProps(page)
                 }}
             >
                 <ListItemIcon>
@@ -243,7 +243,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl: anchorEl, closeMenu: handleClose,
                 Histórico Geral
             </MenuItem>
             <MenuItem
-                onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+                onClick={() => setPageProps(GroupsTablePageProps)}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -267,14 +267,14 @@ type DashboardInformationProps = {
 
 const DashboardInformation = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(3,260)_1fr] grid-rows-[180_450] gap-4">
+        <div className="grid grid-cols-[repeat(3,260px)_1fr] grid-rows-[180px_450px] gap-4">
             <AnimalsNumbersCard {...{ reloadFlag, startLoading, stopLoading }} />
             <PregnancyRateCard {...{ reloadFlag, stopLoading, startLoading }} />
             <BirthRateCard {...{ reloadFlag, stopLoading, startLoading }} />
             <LastEntriesTable {...{ reloadFlag, stopLoading, startLoading }} />
             <LastGroupsTable {...{ reloadFlag, startLoading, stopLoading }} />
         </div>
-        <div className="grid grid-cols-[1fr_400] grid-rows-[repeat(2,500)] gap-4">
+        <div className="grid grid-cols-[1fr_400px] grid-rows-[repeat(2,500px)] gap-4">
             <TransferHistGraph {...{ reloadFlag, startLoading, stopLoading }} />
             <FutureBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <BestAnimalsTable {...{ reloadFlag, startLoading, stopLoading }} />
@@ -453,7 +453,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
 
     return <DashboardCard className="col-span-2">
         <ComboBox
-            className="w-[300]"
+            className="w-[300px]"
             value={ranking}
             items={rakingItens}
             onChange={value => setRanking(value ?? 'best-bull')}

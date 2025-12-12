@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useCallback, useContext, useRef, useState } from "react"
 import { TransferGroup } from "./Entities"
 import { deleteGroup, findGroups, updateGroup } from "./Controller"
 import { IconButton, Table, TableBody, TableHead } from "@mui/material"
@@ -6,7 +6,7 @@ import {
     ResizableHeadCell,
     TableBodyCell,
     TableBodyRow,
-    TableHeadCell,
+    TableHeadControlCell,
     TableHeadRow,
     TableLoadingRow,
     TrendValues
@@ -56,13 +56,11 @@ const GroupsToolBar = ({ setReload, loading }: GroupsToolBarProps) => {
 type GroupsTableProps = {
     loading: boolean
     setLoading: (loading: boolean) => void
-    reload: number
 }
 
-const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
+const GroupsTable = ({ loading, setLoading }: GroupsTableProps) => {
 
     const [rows, setRows] = useState<TransferGroup[]>([])
-    const [unit, setUnit] = useState(0)
     const [warningProps, setWarningProps] = useState(DefaultTimerWarning)
     const [error, setError] = useState<APIError>()
 
@@ -91,29 +89,15 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
         setAddTransferOpen(true)
     }
 
-    useEffect(() => {
-
-        const handleResize = () => {
-            if (!tableRef.current) return
-            setUnit(tableRef.current.offsetWidth / 100)
-        }
-
-        onReload()
-        handleResize()
-
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [onReload, reload, setLoading])
-
     return <div className="w-max min-w-full flex flex-col" ref={tableRef}>
         <Table stickyHeader>
             <TableHead>
                 <TableHeadRow>
-                    <TableHeadCell width={unit * 10} />
-                    <ResizableHeadCell align="center" width={unit * 20}>Data de Transferência</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 20}>Total de Animais</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 25}>Taxa de Prenhez</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 25}>Taxa de Natalidade</ResizableHeadCell>
+                    <TableHeadControlCell />
+                    <ResizableHeadCell align="center" width={300}>Data de Transferência</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Total de Animais</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Taxa de Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Taxa de Natalidade</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>

@@ -1,3 +1,4 @@
+import eslint from '@eslint/js';
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -7,6 +8,8 @@ import jsxA11y from "eslint-plugin-jsx-a11y";
 import babelParser from '@typescript-eslint/parser'
 
 export default defineConfig([
+    eslint.configs.recommended,
+    tseslint.configs.recommended,
     {
         files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
         languageOptions: {
@@ -18,12 +21,18 @@ export default defineConfig([
             react: pluginReact,
             "react-hooks": reactHooks,
             "jsx-a11y": jsxA11y,
-            "@typescript-eslint": tseslint,
         },
         rules: {
-            "no-unused-vars": [ "warn", { argsIgnorePattern: "^_" } ],
+            "no-unused-vars": "off",
             "react/react-in-jsx-scope": "off",
             "@typescript-eslint/no-explicit-any": "off",
+            "@typescript-eslint/no-unused-vars": [
+                "warn",
+                {
+                    "argsIgnorePattern": "^_",
+                    "varsIgnorePattern": "^_",
+                }
+            ],
 
             "react-hooks/rules-of-hooks": "error",
             "react-hooks/exhaustive-deps": "warn"

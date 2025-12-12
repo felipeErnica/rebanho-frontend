@@ -242,6 +242,7 @@ export const AddBullDialog = ({
                 <FormBody {...{ formType, control, externalAnimal, setValue }} />
                 <FormTextField
                     label="Observações"
+                    variant="outlined"
                     formProps={{ control, name: 'observation' }}
                     multiline
                     maxRows={5}
@@ -346,7 +347,7 @@ const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps
             />
             <div className="flex flex-row gap-4">
                 <FormTextField
-                    className="w-[200]"
+                    className="w-[200px]"
                     label="*Brinco"
                     formProps={{
                         control,
@@ -355,7 +356,7 @@ const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps
                     }}
                 />
                 <FormTextField
-                    className="w-[400]"
+                    className="w-[400px]"
                     label="*Nome"
                     formProps={{
                         control,
@@ -370,7 +371,7 @@ const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps
     return <>
         <div className="flex flex-row gap-4">
             <FormTextField
-                className="w-[200]"
+                className="w-[200px]"
                 label="*Brinco"
                 formProps={{
                     control,
@@ -380,7 +381,7 @@ const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps
                 }}
             />
             <FormTextField
-                className="w-[400]"
+                className="w-[400px]"
                 label="*Nome"
                 formProps={{
                     control,
@@ -389,17 +390,6 @@ const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps
                 }}
             />
         </div >
-        <FormDatePicker
-            className="w-[300]"
-            label="Data de Nascimento"
-            formProps={{ control, name: 'birthDate' }}
-        />
-        <FormTextField
-            className="w-[300]"
-            type="number"
-            label="Peso do Animal"
-            formProps={{ control, name: 'weightBirth' }}
-        />
         <FormSearchBox
             label="Pai"
             formProps={{ control, name: 'fatherId' }}
@@ -410,6 +400,17 @@ const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps
             onChange={(id) => setMotherId(id)}
             formProps={{ control, name: 'motherId' }}
             searchOptions={searchAllMothers}
+        />
+        <FormDatePicker
+            className="w-[200px]"
+            label="Data de Nascimento"
+            formProps={{ control, name: 'birthDate' }}
+        />
+        <FormTextField
+            className="w-[200px]"
+            type="number"
+            label="Peso do Animal"
+            formProps={{ control, name: 'weightBirth' }}
         />
     </>
 

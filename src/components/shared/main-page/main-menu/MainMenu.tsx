@@ -17,7 +17,7 @@ export const MainMenu = ({ setPage, setOpen }: MenuProps): JSX.Element => {
 
     const mainList = buildList()
 
-    return <div className="h-full overflow-auto w-[400] bg-gray-700">
+    return <div className="h-full overflow-auto w-100 bg-gray-700">
         <AppBar className="shadow-none sticky bg-gray-700 flex flex-col">
             <div className="flex flex-row-reverse py-4 px-2">
                 <IconButton className="text-white hover:bg-gray-600" onClick={() => setOpen(false)}>

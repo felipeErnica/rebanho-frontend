@@ -96,10 +96,10 @@ import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/Dialo
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import { OptionMenuProps } from "@shared/dashboard/Entities"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import { AddBullDialog } from "@features/animals/AddBullDialog"
 import { AddInseminationBullDialog } from "./AddInseminationBull"
+import { OptionMenuProps } from "@/components/shared/dashboard/Entities"
 
 type ErrorDialogContextProps = {
     defaultWarning: YesNoDialogProps
@@ -176,11 +176,7 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
     </DashboardTopContainer>
 }
 
-type OptionsMenuProps = OptionMenuProps & {
-    setReloadFlag: Dispatch<SetStateAction<number>>
-}
-
-const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionsMenuProps) => {
+const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionMenuProps) => {
 
     const [addInseminationOpen, setAddInseminationOpen] = useState(false)
     const [addInseminationBull, setAddInseminationBull] = useState(false)
@@ -235,7 +231,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                         title: "Histórico de Inseminações",
                         previousPages: [HomePage, InseminationPage]
                     }
-                    if (setPageProps) setPageProps(page)
+                    setPageProps(page)
                 }}
             >
                 <ListItemIcon>
@@ -244,7 +240,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 Histórico de Inseminações
             </MenuItem>
             <MenuItem
-                onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+                onClick={() => setPageProps(GroupsTablePageProps)}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -257,6 +253,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
         <AddBullDialog {...{ addBullOpen, closeAddBull, isInseminationBull: true }} />
     </>
 }
+
 type DashboardInformationProps = {
     reloadFlag: number
     startLoading: () => void
@@ -265,14 +262,14 @@ type DashboardInformationProps = {
 
 const DashboardInformation = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(3,250)_1fr] grid-rows-[180_450] gap-4">
+        <div className="grid grid-cols-[repeat(3,250px)_1fr] grid-rows-[180px_450px] gap-4">
             <AnimalsNumbersCard {...{ reloadFlag, startLoading, stopLoading }} />
             <PregnancyRateCard {...{ reloadFlag, stopLoading, startLoading }} />
             <BirthRateCard {...{ reloadFlag, stopLoading, startLoading }} />
             <LastEntriesTable {...{ reloadFlag, stopLoading, startLoading }} />
             <LastGroupsTable {...{ reloadFlag, startLoading, stopLoading }} />
         </div>
-        <div className="grid grid-cols-[1fr_400] grid-rows-[repeat(2,500)] gap-4">
+        <div className="grid grid-cols-[1fr_400px] grid-rows-[repeat(2,500px)] gap-4">
             <InseminationHistGraph {...{ reloadFlag, startLoading, stopLoading }} />
             <FutureBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <BestBullsTable {...{ reloadFlag, startLoading, stopLoading }} />

@@ -96,7 +96,7 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
             <DialogContainer>
                 <FormDatePicker
                     label="Data de Exame"
-                    className="w-[250]"
+                    className="w-45"
                     disableFuture
                     formProps={{
                         control,
@@ -106,7 +106,7 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
                 />
                 <FormSearchBox
                     label="Vaca"
-                    className="w-[400]"
+                    className="w-100"
                     searchOptions={searchOwnedMothers}
                     formProps={{
                         control,
@@ -150,6 +150,7 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
                 </div>
                 <FormTextField
                     label="Observações"
+                    variant="outlined"
                     multiline
                     rows={5}
                     formProps={{
@@ -194,7 +195,7 @@ function ForecastControl({ control, setValue, getValue, forecastType, disableFor
     if (forecastType == 'date') {
         return <FormDatePicker
             label="Data Prevista"
-            className="w-[200]"
+            className="w-50"
             minDate={dayjs(getValue('testDate')).add(1, 'day')}
             formProps={{
                 control,
@@ -219,7 +220,7 @@ function ForecastControl({ control, setValue, getValue, forecastType, disableFor
 
     return <FormTextField
         label="Tempo de Prenhez"
-        className="w-[200]"
+        className="w-50"
         type="number"
         formProps={{
             control,

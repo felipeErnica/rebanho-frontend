@@ -238,13 +238,6 @@ export const AddCowDialog = ({
                         rules: { required: REQUIRED_FIELD_MSG }
                     }}
                 />
-                <FormTextField
-                    label="Observações"
-                    formProps={{ control, name: 'observation' }}
-                    multiline
-                    maxRows={5}
-                    rows={5}
-                />
                 <FormCheckboxGroup
                     label="Informações Extras"
                     row
@@ -259,6 +252,14 @@ export const AddCowDialog = ({
                             formProps: { control, name: 'isOutsideAnimal' }
                         },
                     ]}
+                />
+                <FormTextField
+                    label="Observações"
+                    variant="outlined"
+                    formProps={{ control, name: 'observation' }}
+                    multiline
+                    maxRows={5}
+                    rows={5}
                 />
             </DialogContainer>
             <ErrorDialog
@@ -331,7 +332,7 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
             />
             <div className="flex flex-row gap-4">
                 <FormTextField
-                    className="w-[200]"
+                    className="w-[200px]"
                     label="*Brinco"
                     formProps={{
                         control,
@@ -340,7 +341,7 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
                     }}
                 />
                 <FormTextField
-                    className="w-[400]"
+                    className="w-[400px]"
                     label="*Nome"
                     formProps={{
                         control,
@@ -355,7 +356,7 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
     return <>
         <div className="flex flex-row gap-4">
             <FormTextField
-                className="w-[200]"
+                className="w-[200px]"
                 label="*Brinco"
                 formProps={{
                     control,
@@ -364,7 +365,7 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
                 }}
             />
             <FormTextField
-                className="w-[400]"
+                className="w-[400px]"
                 label="*Nome"
                 formProps={{
                     control,
@@ -374,12 +375,12 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
             />
         </div >
         <FormDatePicker
-            className="w-[300]"
+            className="w-[200px]"
             label="Data de Nascimento"
             formProps={{ control, name: 'birthDate' }}
         />
         <FormTextField
-            className="w-[300]"
+            className="w-[200px]"
             type="number"
             label="Peso do Animal"
             formProps={{ control, name: 'weightBirth' }}

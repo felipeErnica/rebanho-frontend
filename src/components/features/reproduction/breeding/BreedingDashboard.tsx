@@ -63,7 +63,14 @@ import {
     updateBreeding,
     deleteBatch
 } from "./Controller"
-import { DefaultTimerWarning, DefaultWarning, ERROR_TYPE, LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
+import { 
+    DefaultTimerWarning, 
+    DefaultWarning, 
+    ERROR_TYPE, 
+    LOADING_MSG, 
+    NO_DATA_AVAILABLE, 
+    OTHER_ERROR 
+} from "@shared/Globals"
 import {
     Button,
     Chip,
@@ -196,7 +203,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 <ListItemIcon>
                     <Add />
                 </ListItemIcon>
-                Adicionar Transferência
+                Adicionar Cobertura
             </MenuItem>
             <MenuItem onClick={() => setAddBreedingBull(true)} >
                 <ListItemIcon>
@@ -218,7 +225,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                         title: "Histórico de Transferências",
                         previousPages: [HomePage, BreedingMainPage]
                     }
-                    if (setPageProps) setPageProps(page)
+                    setPageProps(page)
                 }}
             >
                 <ListItemIcon>
@@ -227,7 +234,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 Histórico Geral
             </MenuItem>
             <MenuItem
-                onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+                onClick={() => setPageProps(GroupsTablePageProps)}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -249,14 +256,14 @@ type DashboardInformationProps = {
 
 const DashboardInformation = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(3,250)_1fr] grid-rows-[180_450] gap-4">
+        <div className="grid grid-cols-[repeat(3,250px)_1fr] grid-rows-[180px_450px] gap-4">
             <AnimalsNumbersCard {...{ reloadFlag, startLoading, stopLoading }} />
             <PregnancyRateCard {...{ reloadFlag, stopLoading, startLoading }} />
             <BirthRateCard {...{ reloadFlag, stopLoading, startLoading }} />
             <LastEntriesTable {...{ reloadFlag, stopLoading, startLoading }} />
             <LastGroupsTable {...{ reloadFlag, startLoading, stopLoading }} />
         </div>
-        <div className="grid grid-cols-[1fr_400] grid-rows-[repeat(2,500)] gap-4">
+        <div className="grid grid-cols-[1fr_400px] grid-rows-[repeat(2,500px)] gap-4">
             <BreedingHistGraph {...{ reloadFlag, startLoading, stopLoading }} />
             <FutureBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <BestBullsTable {...{ reloadFlag, startLoading, stopLoading }} />
@@ -658,12 +665,21 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             className="ml-auto"
             startIcon={<ChevronRight />}
             onClick={() => {
+                if (lastDate === 'Sem dados') {
+                    setError({ 
+                        kind: OTHER_ERROR,
+                        errType: ERROR_TYPE,
+                        title: 'ATENÇÃO: Não há dados!',
+                        message: 'Não há nenhum dado nesta tabela!',
+                    })
+                    return
+                }
                 const page: PageProps = {
                     page: <GroupEntriesTablePage {...{ breedingDate }} />,
                     title: `Cobertura - ${lastDate}`,
                     previousPages: [HomePage, BreedingMainPage]
                 }
-                if (setPageProps) setPageProps(page)
+                setPageProps(page)
             }}
         >
             Ver Mais...

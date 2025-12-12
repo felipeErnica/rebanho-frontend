@@ -114,12 +114,11 @@ export const GroupEntriesTablePage = ({ inseminationDate }: GroupEntriesTablePag
 
 
     return <div className="w-full h-full overflow-hidden flex flex-col">
-        <AddInseminationDialog {...{ addInseminationOpen, closeAddInsemination }} />
+        <AddInseminationDialog {...{ addInseminationOpen, closeAddInsemination, inseminationDate }} />
         <TableTopBar
             reloadProps={{ onReload, loading }}
             otherProps={(
                 <Button
-                    variant="outlined"
                     startIcon={<Add />}
                     onClick={() => setAddInseminationOpen(true)}
                 >

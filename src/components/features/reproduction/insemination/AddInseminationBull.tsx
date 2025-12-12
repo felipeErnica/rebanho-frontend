@@ -39,7 +39,7 @@ export function AddInseminationBullDialog({ addInseminationBull, closeAddInsemin
                 <SearchBox
                     value={bullId}
                     reload={reload}
-                    className="w-[400]"
+                    className="w-[400px]"
                     label="*Touro"
                     searchOptions={searchNonInseminationBulls}
                     error={searchError}

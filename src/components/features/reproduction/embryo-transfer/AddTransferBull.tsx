@@ -39,7 +39,7 @@ export function AddTransferBull({ addTransferBullOpen, closeAddTransferBull }: A
                 <SearchBox
                     value={bullId}
                     reload={reload}
-                    className="w-[400]"
+                    className="w-[400px]"
                     label="*Touro"
                     searchOptions={searchNonTransferBulls}
                     error={searchError}

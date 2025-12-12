@@ -106,19 +106,19 @@ export const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTop
 
 const DashboardInformations = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(3,270)_1fr] grid-rows-[180_1fr] gap-4">
+        <div className="grid grid-cols-[repeat(3,270px)_1fr] grid-rows-[180px_1fr] gap-4">
             <LastBirthNumberCard {...{ startLoading, stopLoading, reloadFlag }} />
             <BirthIntervalCard {...{ startLoading, stopLoading, reloadFlag }} />
             <DeathIndexCard {...{ startLoading, stopLoading, reloadFlag }} />
             <LastBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <BestIntervalAnimals {...{ stopLoading, startLoading, reloadFlag }} />
         </div>
-        <div className="grid grid-cols-[1fr_350] grid-rows-[repeat(2,200)] gap-4">
+        <div className="grid grid-cols-[1fr_350px] grid-rows-[repeat(2,200px)] gap-4">
             <BirthByDateGraph {...{ startLoading, stopLoading, reloadFlag }} />
             <YearBirthNumberCard {...{ startLoading, stopLoading, reloadFlag }} />
             <YearDeathNumberCard {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
-        <div className="grid grid-cols-[650_1fr] auto-rows-[500] gap-4">
+        <div className="grid grid-cols-[650px_1fr] auto-rows-[500px] gap-4">
             <YearBirthBySexGraph {...{ startLoading, stopLoading, reloadFlag }} />
             <BirthBySexGraph {...{ stopLoading, startLoading, reloadFlag }} />
         </div>
@@ -450,7 +450,7 @@ const BestIntervalAnimals = ({ stopLoading, startLoading, reloadFlag }: Dashboar
     return <DashboardCard className="col-span-3">
         <ComboBox
             variant="standard"
-            className="w-[300]"
+            className="w-75"
             items={rankItems}
             value={rankBy}
             onChange={(value) => setRankBy(value ?? 'worst-intervals')}

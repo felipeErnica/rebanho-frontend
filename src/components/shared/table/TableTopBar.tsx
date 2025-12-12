@@ -41,7 +41,7 @@ export const TableTopBarOld = (props: TableTopBarProps): JSX.Element => {
         </div>
         <div className="flex flex-row gap-2">
             <ComboBox
-                className="min-w-80"
+                className="w-80"
                 items={sortedColumns}
                 onChange={(value) => value && props.setSort(value)}
                 label="Ordenar Por"

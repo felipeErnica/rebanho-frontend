@@ -34,6 +34,7 @@ import {
     FooterContent,
     TableBodyCell,
     TableFooterRow,
+    TableHeadControlCell,
     TableHeadRow,
     TableLoadingCells,
     VirtuosoHeadCell,
@@ -144,42 +145,24 @@ type EntriesTableProps = {
 
 const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTableProps) => {
 
-    const [tableWidth, setTableWidth] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setTableWidth(table.offsetWidth)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
     return <TableVirtuoso
-        scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
         components={useVirtuosoComponents(8)}
         endReached={fetchNextPage}
-        fixedHeaderContent={() => {
-
-            const unit = tableWidth / 100
-
-            return <TableHeadRow>
-                <VirtuosoHeadCell width={unit * 10} />
-                <VirtuosoResizeHeadCell width={unit * 15}>Receptora</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Doadora</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 10}>Touro</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Data de Transferência</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Prenhez</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Nascimento</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Informações de Cria</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 20}>Observações</VirtuosoResizeHeadCell>
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <TableHeadControlCell />
+                <VirtuosoResizeHeadCell width={200}>Receptora</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Doadora</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Touro</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={180}>Data de Transferência</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Prenhez</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Informações de Cria</VirtuosoResizeHeadCell>
+                <VirtuosoHeadCell width={250}>Observações</VirtuosoHeadCell>
             </TableHeadRow>
-        }}
+        )}
         fixedFooterContent={() => (
             <TableFooterRow colSpan={9}>
                 <FooterContent title="Total" content={foot.totals} />
@@ -253,7 +236,7 @@ type EntriesRowEditingProps = {
 }
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
-    
+
     const [loading, setLoading] = useState(false)
 
     const { control, handleSubmit } = useForm<EmbryoTransferSave>({ defaultValues: rowData })
@@ -294,13 +277,13 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             <FormDatePicker formProps={{ control, name: 'transferDate' }} />
         </TableBodyCell>
         <TableBodyCell align="center">
-            <Chip 
+            <Chip
                 label={StatusMap.get(rowData.pregnancyStatus)}
                 color={StatusColorMap.get(rowData.pregnancyStatus)}
             />
         </TableBodyCell>
         <TableBodyCell align="center">
-            <Chip 
+            <Chip
                 label={StatusMap.get(rowData.birthStatus)}
                 color={StatusColorMap.get(rowData.birthStatus)}
             />

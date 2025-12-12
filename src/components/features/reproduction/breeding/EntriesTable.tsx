@@ -117,7 +117,7 @@ export const EntriesTablePage = () => {
                     startIcon={<Add />}
                     onClick={() => setAddBreedingOpen(true)}
                 >
-                    Adicionar Monta
+                    Adicionar Cobertura
                 </Button>
             )}
         />
@@ -173,7 +173,7 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
             return <TableHeadRow>
                 <VirtuosoHeadCell width={unit * 10} />
                 <VirtuosoResizeHeadCell width={unit * 10}>Vaca</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Data de Inseminação</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={unit * 15}>Data de Cobertura</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 10}>Touro</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 15}>Prenhez</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={unit * 15}>Nascimento</VirtuosoResizeHeadCell>

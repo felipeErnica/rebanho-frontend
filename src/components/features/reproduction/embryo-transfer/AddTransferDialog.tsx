@@ -138,7 +138,7 @@ export const AddTransferDialog = ({
                     </Alert>
                 </Collapse>
                 <FormDatePicker
-                    className="w-[250]"
+                    className="w-[200px]"
                     label="*Data de Transferência"
                     formProps={{
                         control,
@@ -148,7 +148,7 @@ export const AddTransferDialog = ({
                 />
                 <FormSearchBox
                     label="*Touro"
-                    className="w-[400]"
+                    className="w-[400px]"
                     reload={reloadBullFlag}
                     searchOptions={searchTransferBulls}
                     emptyProps={[
@@ -202,6 +202,7 @@ export const AddTransferDialog = ({
                 />
                 <FormTextField
                     label="Observações"
+                    variant="outlined"
                     multiline
                     rows={5}
                     maxRows={5}

@@ -116,7 +116,7 @@ export const AddBreedingDialog = ({
         open={addBreedingOpen}
         onClose={onClose}
     >
-        <DialogTitle>Adicionar Monta</DialogTitle>
+        <DialogTitle>Adicionar Cobertura</DialogTitle>
         <DialogContent>
             <DialogContainer>
                 <Collapse in={!!error}>
@@ -126,8 +126,8 @@ export const AddBreedingDialog = ({
                     </Alert>
                 </Collapse>
                 <FormDatePicker
-                    className="w-[250]"
-                    label="*Data de Monta"
+                    className="w-[200px]"
+                    label="*Data de Cobertura"
                     formProps={{
                         control,
                         name: 'breedingDate',
@@ -158,7 +158,7 @@ export const AddBreedingDialog = ({
                 />
                 <FormSearchBox
                     label="*Vaca"
-                    className="w-[400]"
+                    className="w-[400px]"
                     searchOptions={searchOwnedMothers}
                     emptyProps={[{
                         id: 'newCow',
@@ -173,8 +173,9 @@ export const AddBreedingDialog = ({
                 />
                 <FormTextField
                     label="Observações"
+                    variant="outlined"
                     multiline
-                    rows={3}
+                    rows={5}
                     maxRows={5}
                     formProps={{ control, name: 'observation' }}
                 />

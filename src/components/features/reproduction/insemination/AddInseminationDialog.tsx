@@ -105,7 +105,7 @@ export const AddInseminationDialog = ({
         <DialogContent>
             <DialogContainer>
                 <FormDatePicker
-                    className="w-[250]"
+                    className="w-[200px]"
                     label="*Data de Inseminação"
                     formProps={{
                         control,
@@ -138,7 +138,7 @@ export const AddInseminationDialog = ({
                 <FormSearchBox
                     label="*Vaca"
                     reload={reload}
-                    className="w-[400]"
+                    className="w-[400px]"
                     searchOptions={searchOwnedMothers}
                     emptyProps={[{
                         id: 'newCow',
@@ -153,6 +153,7 @@ export const AddInseminationDialog = ({
                 />
                 <FormTextField
                     label="Observações"
+                    variant="outlined"
                     multiline
                     rows={5}
                     maxRows={5}
