@@ -20,7 +20,7 @@ export function useVirtuosoComponents(colSpan: number) {
                 ref={ref}
             />)),
         Table: (props) => <Table {...props} className="min-w-max table-fixed border-separate" />,
-        TableHead,
+        TableHead: forwardRef((props, ref) => <TableHead {...props} ref={ref} />),
         TableRow: (props) => <TableRow className="hover:bg-gray-300" {...props} />,
         TableBody: forwardRef((props, ref) => <TableBody {...props} ref={ref} />),
         EmptyPlaceholder: () => <VirtuosoNoDataPlaceholder {...{ colSpan }} />
@@ -34,7 +34,7 @@ export function useVirtuosoComponents(colSpan: number) {
                 ref={ref}
             />)),
         Table: (props) => <Table {...props} className="min-w-max table-fixed border-separate" />,
-        TableHead,
+        TableHead: forwardRef((props, ref) => <TableHead {...props} ref={ref} />),
         TableRow: (props) => <TableRow className="hover:bg-gray-300" {...props} />,
         TableBody: forwardRef((props, ref) => <TableBody {...props} ref={ref} />),
         EmptyPlaceholder: () => <VirtuosoNoDataPlaceholder {...{ colSpan }} />

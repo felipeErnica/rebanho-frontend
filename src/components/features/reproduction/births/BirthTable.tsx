@@ -3,6 +3,7 @@ import {
     FooterContent,
     TableBodyCell,
     TableFooterRow,
+    TableHeadControlCell,
     TableHeadRow,
     TableLoadingCells,
     VirtuosoHeadCell,
@@ -40,12 +41,14 @@ import { APIError } from "@utils/ApiRequest"
 import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
 import { ERROR_TYPE } from "@shared/Globals"
 import { AddBirthDialog } from "./BirthAddDialog"
+import { FormTextField } from "@/components/shared/form-controls/FormTextField"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
     setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
     defaultWarning: YesNoDialogProps
     setRows: Dispatch<SetStateAction<BirthEntry[]>>
+    loadFoot: () => void
 }
 
 const ErrorContext = createContext<ErrorContextProps>(undefined!)
@@ -74,13 +77,17 @@ export const BirthTablePage = () => {
     const [warningProps, setWarningProps] = useState<YesNoDialogProps>(defaultWarning)
     const anchorEl = useRef<HTMLButtonElement>(null)
 
-    const fetchPage = useCallback((cursor?: string) => {
-        setLoading(true)
+    const loadFoot = useCallback(() => {
         findBirthsPageFooter(filter)
             .then(response => setFooterData(response))
             .catch(() => setFooterData({ total: 0, intervalAverage: 0 }))
+    }, [filter])
+
+    const fetchPage = useCallback((cursor?: string) => {
+        setLoading(true)
+        loadFoot()
         return findBirthsPage(sort, order, filter, cursor)
-    }, [order, sort, filter])
+    }, [loadFoot, sort, order, filter])
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
@@ -115,7 +122,7 @@ export const BirthTablePage = () => {
             reloadProps={{ loading: isLoading, onReload }}
             otherProps={otherActions}
         />
-        <ErrorContext.Provider value={{ setError, setWarningProps, defaultWarning, setRows }}>
+        <ErrorContext.Provider value={{ setError, setWarningProps, defaultWarning, setRows, loadFoot }}>
             <BirthTable {...{ rows, scrollRef, fetchNextPage, isLoading, footerData }} />
         </ErrorContext.Provider>
         <BirthFilter {...{ setFilterOpen, filterOpen, filter, setFilter, anchorEl }} />
@@ -140,42 +147,25 @@ type BirthTableProps = {
 
 const BirthTable = ({ rows, scrollRef, fetchNextPage, isLoading, footerData }: BirthTableProps) => {
 
-    const [tableWidth, setTableWidth] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setTableWidth(table.offsetWidth)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
     return <TableVirtuoso
-        scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         endReached={fetchNextPage}
         data={rows}
-        components={useVirtuosoComponents(7)}
-        fixedHeaderContent={() => {
-
-            const unit = tableWidth / 100
-
-            return <TableHeadRow>
-                <VirtuosoHeadCell width={unit * 10}></VirtuosoHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Mãe</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Data de Nascimento</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Intervalo entre Partos</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Sexo</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Pai</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Informações da Cria</VirtuosoResizeHeadCell>
+        components={useVirtuosoComponents(8)}
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <TableHeadControlCell />
+                <VirtuosoResizeHeadCell width={300}>Mãe</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={200}>Data de Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={180}>Intervalo entre Partos</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={80}>Sexo</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={250}>Pai</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={250}>Informações da Cria</VirtuosoResizeHeadCell>
+                <VirtuosoHeadCell width={600}>Observações</VirtuosoHeadCell>
             </TableHeadRow>
-        }}
+        )}
         fixedFooterContent={() => {
-            return <TableFooterRow colSpan={7}>
+            return <TableFooterRow colSpan={8}>
                 <FooterContent title="Total" content={footerData.total} />
                 <FooterContent title="Intervalo Médio" content={decimalTransform(footerData.intervalAverage)} />
             </TableFooterRow>
@@ -195,7 +185,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
     const [rowData, setRowData] = useState<BirthEntry>(data)
     const [loadingControls, setLoadingControls] = useState(false)
 
-    const { setError, setWarningProps, defaultWarning, setRows } = useContext(ErrorContext)
+    const { setError, setWarningProps, defaultWarning, setRows, loadFoot } = useContext(ErrorContext)
 
     useEffect(() => setRowData(data), [data])
 
@@ -204,10 +194,11 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
             .then(() => {
                 setError(undefined)
                 setRows(prev => prev.filter(item => item.id != data.id))
+                loadFoot()
             })
             .catch(err => setError(err))
             .finally(() => setWarningProps(defaultWarning))
-    }, [data.id, defaultWarning, setError, setRows, setWarningProps])
+    }, [data.id, defaultWarning, loadFoot, setError, setRows, setWarningProps])
 
     const onDelete = useCallback(() => {
         setLoadingControls(true)
@@ -216,6 +207,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
                 setError(undefined)
                 setWarningProps(defaultWarning)
                 setRows(prev => prev.filter(item => item.id != data.id))
+                loadFoot()
             })
             .catch((error: APIError) => {
                 if (error.errType === ERROR_TYPE) {
@@ -231,9 +223,9 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
                 })
             })
             .finally(() => setLoadingControls(false))
-    }, [data.id, defaultWarning, onDeleteNoValidation, setError, setRows, setWarningProps])
+    }, [data.id, defaultWarning, loadFoot, onDeleteNoValidation, setError, setRows, setWarningProps])
 
-    if (isLoading) return <TableLoadingCells colSpan={7} />
+    if (isLoading) return <TableLoadingCells colSpan={8} />
     if (editing) return <BirthRowEdit {...{ setEditing, rowData, setRowData }} />
 
     return <>
@@ -250,6 +242,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
         <TableBodyCell align="center">{rowData.calfSex}</TableBodyCell>
         <TableBodyCell>{rowData.calfFather}</TableBodyCell>
         <TableBodyCell>{rowData.calfName}</TableBodyCell>
+        <TableBodyCell>{rowData.observation}</TableBodyCell>
     </>
 }
 
@@ -268,11 +261,12 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
             id: rowData.id,
             birthDate: rowData.calfBirthDate,
             sex: rowData.calfSex,
+            motherId: rowData.motherId,
             fatherId: rowData.calfFatherId,
             observation: rowData.observation
         }
     })
-    const { setError } = useContext(ErrorContext)
+    const { setError, loadFoot } = useContext(ErrorContext)
 
     const onSave: SubmitHandler<BirthEntrySave> = (data: BirthEntrySave) => {
         setLoading(true)
@@ -280,6 +274,7 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
             .then(res => {
                 setRowData(res)
                 setError(undefined)
+                loadFoot()
                 setEditing(false)
             })
             .catch((error: APIError) => setError(error))
@@ -312,5 +307,8 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
             />
         </TableBodyCell>
         <TableBodyCell>{rowData.calfName}</TableBodyCell>
+        <TableBodyCell>
+            <FormTextField formProps={{ control, name: 'observation' }} />
+        </TableBodyCell>
     </>
 }

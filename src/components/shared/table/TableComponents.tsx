@@ -88,7 +88,7 @@ export const TableHeadControlCell = ({ children, colSpan, className, width, alig
     return <TableCell
         className={`bg-gray-700 border-none text-white text-nowrap ${className}`}
         colSpan={colSpan}
-        sx={{ minWidth: 150, width: width ?? 150 }}
+        sx={{ width: width ?? 200}}
         align={align}
     >
         {children}
@@ -151,7 +151,7 @@ type VirtuosoHeadCellProps = {
     children?: ReactNode
     className?: string
     colSpan?: number
-    width: number
+    width?: number
     align?: 'left' | 'right' | 'center' | 'justify'
 }
 
