@@ -3,7 +3,7 @@
     "private": true,
     "version": "0.1.0",
     "main": "dist-electron/main.js",
-    "preload": "dist-electron/preload.js",
+    "preload": "dist-electron/preload.mjs",
     "type": "module",
     "scripts": {
         "dev": "vite",

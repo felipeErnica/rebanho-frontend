@@ -16,7 +16,7 @@ function createMainWindow() {
         show: false,
         titleBarStyle: 'hidden',
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, 'preload.mjs'),
         }
     })
 
@@ -57,7 +57,7 @@ const createLoginWindow = () => {
         maximizable: false,
         minimizable: false,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, 'preload.mjs'),
         }
     })
 
