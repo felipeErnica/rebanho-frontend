@@ -165,14 +165,14 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
 
 const DashboardInfo = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[280_280_280_1fr] grid-rows-[180_500] gap-4">
+        <div className="grid grid-cols-[repeat(3,280px)_1fr] grid-rows-[180px_500px] gap-4">
             <WeightCard {...{ reloadFlag, startLoading, stopLoading }} />
             <DeadWeightCard {...{ startLoading, stopLoading, reloadFlag }} />
             <PerformanceCard {...{ stopLoading, startLoading, reloadFlag }} />
             <LastEntriesTable {...{ stopLoading, startLoading, reloadFlag }} />
             <BestRatingsTable {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
-        <div className="grid grid-cols-[720_1fr] grid-rows-[360_360] gap-4">
+        <div className="grid grid-cols-[720px_1fr] grid-rows-[repeat(2,360px)] gap-4">
             <WeightHistChart {...{ startLoading, stopLoading, reloadFlag }} />
             <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <RateHistChart {...{ startLoading, stopLoading, reloadFlag }} />
@@ -326,11 +326,13 @@ const PerformanceCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
 const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
     const [results, setResults] = useState<SlaughterEntry[]>([])
+    const [entryDate, setEntryDate] = useState<Date>()
     const [lastDate, setLastDate] = useState<string>("Sem Data")
-    const [slaughterhouse, setSlaughterhouse] = useState<string>("")
+    const [butcher, setButcher] = useState<string>("")
     const [loading, setLoading] = useState(false)
 
     const [error, setError] = useState<APIError>()
+    const { setPageProps } = useContext(PageContext)
 
     useEffect(() => {
         setLoading(true)
@@ -340,14 +342,16 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                 const entries = results
                 const entryDate = new Date(entries[0].entryDate)
                 const entrySlaugherhouse = entries[0].butcher
-                setSlaughterhouse(entrySlaugherhouse)
+                setEntryDate(entryDate)
+                setButcher(entrySlaugherhouse)
                 setLastDate(dateTransform(entryDate))
                 setResults(entries)
             })
             .catch(() => {
                 setResults([])
+                setEntryDate(undefined)
                 setLastDate("Sem Data")
-                setSlaughterhouse("")
+                setButcher("")
             })
             .finally(() => {
                 setLoading(false)
@@ -356,7 +360,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
     }, [startLoading, stopLoading, reloadFlag])
 
     return <DashboardCard className="row-span-2">
-        <CardDefaultTitle text={`Último Abate - ${lastDate} (Frig.: ${slaughterhouse})`} />
+        <CardDefaultTitle text={`Último Abate - ${lastDate} (Frig.: ${butcher})`} />
         <div className="overflow-auto">
             <Table stickyHeader size="small">
                 <TableHead>
@@ -385,6 +389,21 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                 onClose={() => setError(undefined)}
             />
         </div>
+        <Button
+            className="ml-auto"
+            endIcon={<ChevronRight />}
+            onClick={() => {
+                if (!entryDate) return
+                const newPage: PageProps = {
+                    title: `Abate - ${lastDate} (Frig.: ${butcher})`,
+                    page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
+                    previousPages: [HomePage, SlaughterMainPage]
+                }
+                setPageProps(newPage)
+            }}
+        >
+            Ver Mais...
+        </Button>
     </DashboardCard>
 }
 
@@ -600,7 +619,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                                 page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
                                                 previousPages: [HomePage, SlaughterMainPage]
                                             }
-                                            if (setPageProps) setPageProps(page)
+                                            setPageProps(page)
                                         }}
                                     />
                                 </TableCell>
@@ -628,7 +647,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
         <div className="flex flex-row-reverse">
             <Button
                 endIcon={<ChevronRight />}
-                onClick={() => setPageProps && setPageProps(SlaughterGroupsPage)}
+                onClick={() => setPageProps(SlaughterGroupsPage)}
             >
                 Ver Mais...
             </Button>

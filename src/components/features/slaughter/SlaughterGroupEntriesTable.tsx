@@ -6,7 +6,7 @@ import {
     TableBodyContainer,
     TableBodyRow,
     TableFooterRow,
-    TableHeadCell,
+    TableHeadControlCell,
     TablePageContainer,
 } from "@shared/table/TableComponents"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
@@ -14,15 +14,25 @@ import Table from "@mui/material/Table"
 import TableBody from "@mui/material/TableBody"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { decimalTransform, percentageTransform } from "@utils/Transformations"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { percentageTransform, transformWeight } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { EditRowProps } from "@shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@shared/form-controls/FormTextField"
-import { SlaughterEntry, SlaughterFoot } from "./Entities"
-import { findEntriesByDate, getEntriesByDateFoot } from "./Controller"
+import { SlaughterEntry, SlaughterEntrySave, SlaughterFoot } from "./Entities"
+import { deleteSlaughter, findEntriesByDate, getEntriesByDateFoot, updateSlaughter } from "./Controller"
+import { APIError } from "@/utils/ApiRequest"
+import { ErrorDialog } from "@/components/shared/dialog/DialogComponents"
+
+type EditContextProps = {
+    setRows: Dispatch<SetStateAction<SlaughterEntry[]>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    loadFoot: () => void
+}
+
+const EditContext = createContext<EditContextProps>(undefined!)
 
 type SlaughterGroupEntriesTableProps = {
     entryDate: Date
@@ -46,23 +56,28 @@ export const SlaughterGroupEntriesTable = ({ entryDate }: SlaughterGroupEntriesT
     const [loading, setLoading] = useState(false)
     const [discountRate, setDiscountRate] = useState(0)
 
-    const onReload = useCallback(() => {
-        setLoading(true)
+    const [error, setError] = useState<APIError>()
+
+    const loadFoot = useCallback(() => {
         getEntriesByDateFoot(entryDate)
             .then(results => setFoot(results))
             .catch(() => setFoot(defaultFoot))
+    }, [defaultFoot, entryDate])
+
+    const onReload = useCallback(() => {
+        setLoading(true)
+        loadFoot()
         findEntriesByDate(entryDate, sort, order)
             .then((results: SlaughterEntry[]) => {
-                const entries = results
-                setDiscountRate(entries.length != 0 ? entries[0]?.discountRate : 0)
-                setRows(entries)
+                setDiscountRate(results.length != 0 ? results[0]?.discountRate : 0)
+                setRows(results)
             })
             .catch(() => {
                 setRows([])
                 setDiscountRate(0)
             })
             .finally(() => setLoading(false))
-    }, [entryDate, sort, order, defaultFoot])
+    }, [loadFoot, entryDate, sort, order])
 
     useEffect(onReload, [onReload])
 
@@ -81,7 +96,15 @@ export const SlaughterGroupEntriesTable = ({ entryDate }: SlaughterGroupEntriesT
             orderProps={{ order, setOrder }}
             sortProps={{ sort, setSort, sortColumns, defaultSort }}
         />
-        <EntriesTable {...{ discountRate, rows, loading, foot }} />
+        <EditContext.Provider value={{ setRows, setError, loadFoot }}>
+            <EntriesTable {...{ discountRate, rows, loading, foot }} />
+        </EditContext.Provider>
+        <ErrorDialog 
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </TablePageContainer>
 
 }
@@ -95,43 +118,26 @@ type EntriesTableProps = {
 
 const EntriesTable = ({ rows, loading, foot, discountRate }: EntriesTableProps) => {
 
-    const [unit, setUnit] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setUnit(table.offsetWidth / 100)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    return <div
-        className="overflow-auto"
-        ref={tableRef}
-    >
+    return <div className="overflow-auto" >
         <Table className="w-max min-w-full" stickyHeader>
             <TableHead>
                 <TableRow>
-                    <TableHeadCell width={unit * 10} />
-                    <ResizableHeadCell width={unit * 15}>Animal</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Mãe</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Pai</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 10}>Peso</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 15}>
+                    <TableHeadControlCell />
+                    <ResizableHeadCell>Animal</ResizableHeadCell>
+                    <ResizableHeadCell width={200}>Mãe</ResizableHeadCell>
+                    <ResizableHeadCell width={200}>Pai</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Peso</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>
                         {`Peso (Desc.: ${percentageTransform(discountRate)})`}
                     </ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 10}>Peso de Abate</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 10}>Rendimento</ResizableHeadCell>
+                    <ResizableHeadCell width={150}>Peso de Abate</ResizableHeadCell>
+                    <ResizableHeadCell width={150}>Rendimento</ResizableHeadCell>
                 </TableRow>
             </TableHead>
             <TableBody>
                 <TableBodyContainer
                     colSpan={8}
-                    loadingProps={{ loading, rowSpan: 30 }}
+                    loading={loading}
                     dataset={rows}
                     render={row => <EntriesRow {...row} />}
                 />
@@ -141,11 +147,11 @@ const EntriesTable = ({ rows, loading, foot, discountRate }: EntriesTableProps) 
                     <FooterContent title="Total" content={foot.animalsNumber} />
                     <FooterContent
                         title="Peso Médio"
-                        content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
+                        content={transformWeight(foot.averageWeight)}
                     />
                     <FooterContent
                         title="Peso de Abate Médio"
-                        content={`${decimalTransform(foot.averageDeadWeight)} (${decimalTransform(foot.averageDeadWeight / 15)}@)`}
+                        content={transformWeight(foot.averageDeadWeight)}
                     />
                     <FooterContent
                         title="Rendimento Médio"
@@ -161,29 +167,37 @@ const EntriesRow = (row: SlaughterEntry) => {
 
     const [rowData, setRowData] = useState<SlaughterEntry>(row)
     const [editing, setEditing] = useState(false)
+    const [loadingControls, setLoadingControls] = useState(false)
+
+    const { setError, setRows, loadFoot } = useContext(EditContext)
 
     useEffect(() => setRowData(row), [row])
 
-    const onDelete = useCallback(() => console.log(rowData.id), [rowData])
+    const onDelete = () => {
+        setLoadingControls(true)
+        deleteSlaughter(rowData.id)
+            .then(() => {
+                setError(undefined)
+                setRows(prev => prev.filter(item => item.id != rowData.id))
+                loadFoot()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }
+
 
     if (editing) return <EntriesRowEditing {...{ rowData, setRowData, setEditing }} />
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing, onDelete }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
-        <TableBodyCell align="center">
-            {`${decimalTransform(rowData.weight)} (${decimalTransform(rowData.weight / 15)}@)`}
-        </TableBodyCell>
-        <TableBodyCell align="center">
-            {`${decimalTransform(rowData.discountWeight)} (${decimalTransform(rowData.discountWeight / 15)}@)`}
-        </TableBodyCell>
-        <TableBodyCell align="center">
-            {`${decimalTransform(rowData.deadWeight)} (${decimalTransform(rowData.deadWeight / 15)}@)`}
-        </TableBodyCell>
+        <TableBodyCell align="center">{transformWeight(rowData.weight)}</TableBodyCell>
+        <TableBodyCell align="center">{transformWeight(rowData.discountWeight)}</TableBodyCell>
+        <TableBodyCell align="center">{transformWeight(rowData.deadWeight)}</TableBodyCell>
         <TableBodyCell align="center">{percentageTransform(rowData.performanceRate)}</TableBodyCell>
     </TableBodyRow>
 
@@ -191,18 +205,28 @@ const EntriesRow = (row: SlaughterEntry) => {
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<SlaughterEntry>) => {
 
-    const { handleSubmit, control } = useForm<SlaughterEntry>({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<SlaughterEntry> = (data: SlaughterEntry) => {
-        setRowData(data)
-        setEditing(false)
+    const { handleSubmit, control } = useForm<SlaughterEntry>({ defaultValues: rowData })
+    const { setError, loadFoot } = useContext(EditContext)
+
+    const onSubmit: SubmitHandler<SlaughterEntrySave> = (data: SlaughterEntrySave) => {
+        setLoading(true)
+        updateSlaughter(data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+                loadFoot()
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
     }
 
     const onSave = handleSubmit(onSubmit)
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditingControlButtons {...{ setEditing, onSave }} />
+            <EditingControlButtons {...{ setEditing, onSave, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
@@ -210,9 +234,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<Sla
         <TableBodyCell>
             <FormTextField formProps={{ control, name: "weight" }} type="number" />
         </TableBodyCell>
-        <TableBodyCell align="center">
-            {`${decimalTransform(rowData.discountWeight)} (${decimalTransform(rowData.discountWeight / 15)}@)`}
-        </TableBodyCell>
+        <TableBodyCell align="center">{transformWeight(rowData.discountWeight)}</TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'deadWeight' }} type="number" />
         </TableBodyCell>

@@ -6,6 +6,7 @@ import {
     TableHeadRow,
     TableLoadingCells,
     TablePageContainer,
+    VirtuosoHeadCell,
     VirtuosoResizeHeadCell
 } from "@shared/table/TableComponents"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
@@ -150,15 +151,15 @@ const ButcherTableBody = ({
         fixedHeaderContent={() => (
             <TableHeadRow>
                 <TableHeadControlCell />
-                <VirtuosoResizeHeadCell width={250}>Animal</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell>Animal</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={250}>Mãe</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={180}>Pai</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={150}>Taxa de Perda</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={150}>Data de Abate</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={150}>Peso</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={150}>Peso (c/ Desconto)</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={150}>Peso de Abate</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={150}>Rend. Médio</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={180}>Peso (c/ Desconto)</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Peso de Abate</VirtuosoResizeHeadCell>
+                <VirtuosoHeadCell align="center" width={150}>Rend. Médio</VirtuosoHeadCell>
             </TableHeadRow>
         )}
         fixedFooterContent={() => (
@@ -259,7 +260,7 @@ const EntriesEditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Sla
         <TableBodyCell>
             <FormDatePicker formProps={{ control, name: "entryDate" }} />
         </TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <FormTextField formProps={{ control, name: "weight" }} type="number" />
         </TableBodyCell>
         <TableBodyCell align="center"> {transformWeight(rowData.weight)} </TableBodyCell>

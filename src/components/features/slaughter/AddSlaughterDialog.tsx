@@ -107,29 +107,10 @@ export const AddSlaughterDialog = ({
                         {error?.message}
                     </Alert>
                 </Collapse>
-                <FormDatePicker
-                    label="*Data de Abate"
-                    className="w-[300]"
-                    formProps={{
-                        control,
-                        name: 'entryDate',
-                        rules: { required: REQUIRED_FIELD_MSG }
-                    }}
-                />
-                <FormTextField
-                    label="*Taxa de Perda"
-                    className="w-[300]"
-                    type="number"
-                    formProps={{
-                        control,
-                        name: 'discountRate',
-                        rules: { required: REQUIRED_FIELD_MSG, max: 100, min: 0 }
-                    }}
-                />
                 <FormSearchBox
                     label="*Frigorífico"
                     reload={reloadFlag}
-                    className="w-[500]"
+                    className="w-[500px]"
                     searchOptions={searchButcher}
                     emptyProps={[{
                         id: "newSlaughterhouse",
@@ -142,13 +123,32 @@ export const AddSlaughterDialog = ({
                         rules: { required: REQUIRED_FIELD_MSG }
                     }}
                 />
+                <FormDatePicker
+                    label="*Data de Abate"
+                    className="w-[200px]"
+                    formProps={{
+                        control,
+                        name: 'entryDate',
+                        rules: { required: REQUIRED_FIELD_MSG }
+                    }}
+                />
+                <FormTextField
+                    label="*Taxa de Perda"
+                    className="w-[200px]"
+                    type="number"
+                    formProps={{
+                        control,
+                        name: 'discountRate',
+                        rules: { required: REQUIRED_FIELD_MSG, max: 100, min: 0 }
+                    }}
+                />
                 <FormSearchBox
                     label="Animal"
                     searchOptions={searchAnimal}
                     formProps={{ control, name: 'animalId' }}
                 />
                 <FormTextField
-                    className="w-[300]"
+                    className="w-[200px]"
                     label="*Peso"
                     formProps={{
                         control,
@@ -158,7 +158,7 @@ export const AddSlaughterDialog = ({
                     type="number"
                 />
                 <FormTextField
-                    className="w-[300]"
+                    className="w-[200px]"
                     label="Peso Morto"
                     formProps={{
                         control,

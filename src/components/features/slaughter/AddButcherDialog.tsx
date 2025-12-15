@@ -84,7 +84,7 @@ export const AddButcherDialog = ({
                 </Collapse>
                 <FormTextField
                     label="*Nome"
-                    className="w-[500]"
+                    className="w-[500px]"
                     formProps={{
                         control,
                         name: 'name',
@@ -97,7 +97,7 @@ export const AddButcherDialog = ({
                 />
                 <FormTextField
                     label="CNPJ"
-                    className="w-[300]"
+                    className="w-[300px]"
                     onChange={applyMask}
                     formProps={{
                         control,
@@ -106,8 +106,8 @@ export const AddButcherDialog = ({
                     }}
                 />
                 <FormTextField
-                    label="Desconto Padrão"
-                    className="w-[300]"
+                    label="Taxa de Perda Padrão"
+                    className="w-[300px]"
                     type="number"
                     formProps={{
                         control,

@@ -116,7 +116,7 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
             <TableBody>
                 <TableBodyContainer
                     colSpan={7}
-                    loadingProps={{ loading, rowSpan: 30 }}
+                    loading={loading}
                     dataset={rows}
                     render={row => <EntriesRow {...row} />}
                 />

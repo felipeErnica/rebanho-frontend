@@ -2,6 +2,7 @@ import {
     FooterContent,
     TableBodyCell,
     TableFooterRow,
+    TableHeadControlCell,
     TableHeadRow,
     TableLoadingCells,
     TablePageContainer,
@@ -10,17 +11,17 @@ import {
 } from "@shared/table/TableComponents"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { SlaughterEntry, SlaughterEntryFilter, SlaughterEntrySave, SlaughterFoot } from "./Entities"
-import { 
-    createContext, 
-    Dispatch, 
-    RefObject, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useMemo, 
-    useRef, 
-    useState 
+import {
+    createContext,
+    Dispatch,
+    RefObject,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
 } from "react"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
@@ -120,45 +121,27 @@ type EntriesTableProps = {
 
 const EntriesTable = ({ rows, fetchNextPage, loading, scrollRef, foot }: EntriesTableProps) => {
 
-    const [tableWidth, setTableWidth] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setTableWidth(table.offsetWidth)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
     return <TableVirtuoso
-        scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
         components={useVirtuosoComponents(11)}
         endReached={fetchNextPage}
-        fixedHeaderContent={() => {
-
-            const unit = tableWidth / 100
-
-            return <TableHeadRow>
-                <VirtuosoHeadCell width={unit * 10} />
-                <VirtuosoResizeHeadCell width={unit * 15}>Animal</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Mãe</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Pai</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Frigorífico</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Taxa de Perda</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Data de Abate</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Peso</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Peso (c/ Desconto)</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 10}>Peso de Abate</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 10}>Rend. Médio</VirtuosoResizeHeadCell>
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <TableHeadControlCell />
+                <VirtuosoResizeHeadCell width={220}>Animal</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Mãe</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Pai</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={200}>Frigorífico</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Taxa de Perda</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Data de Abate</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Peso</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={180}>Peso (c/ Desconto)</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={150}>Peso de Abate</VirtuosoResizeHeadCell>
+                <VirtuosoHeadCell>Rend. Médio</VirtuosoHeadCell>
             </TableHeadRow>
 
-        }}
+        )}
         fixedFooterContent={() => (
             <TableFooterRow colSpan={11}>
                 <FooterContent title="Total" content={foot.animalsNumber} />

@@ -3,12 +3,13 @@ import {
     TableBodyContainer,
     TableBodyRow,
     TableHeadCell,
+    TableHeadControlCell,
     TablePageContainer,
     TrendValues
 } from "@shared/table/TableComponents"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { SlaughterGroup } from "./Entities"
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import { useCallback, useContext, useEffect, useState } from "react"
 import { findGroups } from "./Controller"
 import { PageContext } from "@shared/main-page/PageContext"
 import Table from "@mui/material/Table"
@@ -31,7 +32,7 @@ export const SlaughterGroupsTable = () => {
     const onReload = useCallback(() => {
         setLoading(true)
         findGroups(order)
-            .then(results => setRows(results.json))
+            .then(results => setRows(results))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [order])
@@ -54,41 +55,25 @@ type GroupTableProps = {
 
 const GroupTable = ({ rows, loading }: GroupTableProps) => {
 
-    const [unit, setUnit] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
     const { setPageProps } = useContext(PageContext)
 
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setUnit(table.offsetWidth / 100)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    return <div
-        className="overflow-auto"
-        ref={tableRef}
-    >
+    return <div className="overflow-auto">
         <Table stickyHeader>
             <TableHead>
                 <TableRow>
-                    <TableHeadCell width={unit * 10} />
-                    <TableHeadCell align="center" width={unit * 15}>Data</TableHeadCell>
-                    <TableHeadCell align="center" width={unit * 15}>Frigorífico</TableHeadCell>
-                    <TableHeadCell align="center" width={unit * 15}>Nº de Animais</TableHeadCell>
-                    <TableHeadCell align="center" width={unit * 15}>Peso</TableHeadCell>
-                    <TableHeadCell align="center" width={unit * 15}>Peso de Abate</TableHeadCell>
-                    <TableHeadCell align="center" width={unit * 15}>Rendimento</TableHeadCell>
+                    <TableHeadControlCell />
+                    <TableHeadCell>Data</TableHeadCell>
+                    <TableHeadCell width={300}>Frigorífico</TableHeadCell>
+                    <TableHeadCell align="center" width={280}>Nº de Animais</TableHeadCell>
+                    <TableHeadCell align="center" width={280}>Peso</TableHeadCell>
+                    <TableHeadCell align="center" width={280}>Peso de Abate</TableHeadCell>
+                    <TableHeadCell align="center" width={280}>Rendimento</TableHeadCell>
                 </TableRow>
             </TableHead>
             <TableBody>
                 <TableBodyContainer
                     colSpan={7}
-                    loadingProps={{ loading, rowSpan: 30 }}
+                    loading={loading}
                     dataset={rows}
                     render={row => (
                         <TableBodyRow>
@@ -98,7 +83,7 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
                                         const entryDate = new Date(row.entryDate)
                                         const dateStr = entryDate.toLocaleString("pt-BR", { dateStyle: 'short' })
                                         const newPage: PageProps = {
-                                            title: `Marcações de Peso - ${dateStr} (Frig.: ${row.butcher})`,
+                                            title: `Abate - ${dateStr} (Frig.: ${row.butcher})`,
                                             page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
                                             previousPages: [HomePage, SlaughterMainPage, SlaughterGroupsPage]
                                         }
@@ -106,8 +91,8 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
                                     }}
                                 />
                             </TableBodyCell>
-                            <TableBodyCell align="center">{dateTransform(row.entryDate)}</TableBodyCell>
-                            <TableBodyCell align="center">{row.butcher}</TableBodyCell>
+                            <TableBodyCell>{dateTransform(row.entryDate)}</TableBodyCell>
+                            <TableBodyCell>{row.butcher}</TableBodyCell>
                             <TableBodyCell align="center">{row.animalsNumber}</TableBodyCell>
                             <TableBodyCell align="center">
                                 <TrendValues

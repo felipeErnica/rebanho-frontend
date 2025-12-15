@@ -1,9 +1,10 @@
 import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@utils/ApiRequest"
 import { SlaughterEntryFilter, SlaughterEntrySave, ButcherSave } from "./Entities"
+import { dateToISO } from "@/utils/Transformations"
 
 const SLAUGHTER_DASHBOARD = 'slaughter/dashboard/'
 const SLAUGHTER_ENTRIES = 'slaughter/entries/'
-const SLAUGHTER_GROUP = 'slaughter/group/'
+const SLAUGHTER_GROUP = 'slaughter/groups/'
 const BUTCHER = 'slaughter/butchers/'
 
 
@@ -86,11 +87,11 @@ export function replaceButcher(entry: ButcherSave) {
 }
 
 export function searchButcher() {
-    return apiGet(BUTCHER + "/search")
+    return apiGet(BUTCHER + "search")
 }
 
 export function findButchers() {
-    return apiGet(BUTCHER + "/find-all")
+    return apiGet(BUTCHER + "find-all")
 }
 
 export function findButchersEntries(
@@ -105,17 +106,17 @@ export function findButchersEntries(
 }
 
 export function findButcherEntriesFoot(id: string, filter: SlaughterEntryFilter) {
-    return apiPost(SLAUGHTER_ENTRIES + `${id}/entries/foot`, filter)
+    return apiPost(BUTCHER + `${id}/entries/page/foot`, filter)
 }
 
 export function findGroups(order: string) {
-    return apiGet(SLAUGHTER_GROUP + `?order=${order}`)
+    return apiGet(SLAUGHTER_GROUP + `page?order=${order}`)
 }
 
 export function findEntriesByDate(entryDate: Date, sort: string, order: string) {
-    return apiGet(SLAUGHTER_GROUP + `${entryDate.toISOString()}/entries?sort=${sort}&order=${order}`)
+    return apiGet(SLAUGHTER_GROUP + `${dateToISO(entryDate)}/entries?sort=${sort}&order=${order}`)
 }
 
 export function getEntriesByDateFoot(entryDate: Date) {
-    return apiGet(SLAUGHTER_GROUP + `${entryDate.toISOString()}/entries/foot`)
+    return apiGet(SLAUGHTER_GROUP + `${dateToISO(entryDate)}/entries/foot`)
 }

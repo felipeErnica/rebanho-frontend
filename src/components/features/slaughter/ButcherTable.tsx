@@ -3,6 +3,7 @@ import {
     TableBodyCell,
     TableBodyRow,
     TableHeadCell,
+    TableHeadControlCell,
     TablePageBody,
     TablePageContainer
 } from "@shared/table/TableComponents"
@@ -92,8 +93,8 @@ const ButcherTableBody = ({ rows, loading }: ButcherTableProps) => {
         <Table className="w-max min-w-full" stickyHeader>
             <TableHead>
                 <TableRow>
-                    <TableHeadCell width={150} />
-                    <ResizableHeadCell width={400}>Frigorífico</ResizableHeadCell>
+                    <TableHeadControlCell />
+                    <ResizableHeadCell width={200}>Frigorífico</ResizableHeadCell>
                     <ResizableHeadCell width={300}>CNPJ</ResizableHeadCell>
                     <ResizableHeadCell align="center" width={150}>Taxa de Perda Média</ResizableHeadCell>
                     <ResizableHeadCell align="center" width={120}>Nº de Animais Enviados</ResizableHeadCell>

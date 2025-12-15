@@ -87,7 +87,7 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
             <TableBody>
                 <TableBodyContainer
                     colSpan={5}
-                    loadingProps={{ loading, rowSpan: 30 }}
+                    loading={loading}
                     dataset={rows}
                     render={row => (
                         <TableBodyRow>

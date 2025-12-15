@@ -23,24 +23,17 @@ export const VirtuosoNoDataPlaceholder = ({ colSpan }: NoDataPlaceholderProps) =
     </TableCell>
 }
 
-type LoadingProps = {
-    loading: boolean
-    rowSpan: number
-}
-
 type TableBodyContainerProps<T> = {
     dataset: T[]
     colSpan: number
     render: (row: T) => ReactNode | ReactNode[]
-    loadingProps?: LoadingProps
+    loading?: boolean
 }
 
-export function TableBodyContainer<T>({ dataset, render, loadingProps, colSpan }: TableBodyContainerProps<T>) {
-    if (loadingProps !== undefined && loadingProps.loading) {
-        return Array(loadingProps.rowSpan).fill(<TableLoadingRow colSpan={colSpan} />)
-    }
+export function TableBodyContainer<T>({ dataset, render, loading, colSpan }: TableBodyContainerProps<T>) {
+    if (loading) return Array(30).fill(<TableLoadingRow colSpan={colSpan} />)
 
-    if (dataset.length === 0) return <NoDataPlaceholder {...{ colSpan }} />
+    if (!dataset || dataset.length === 0) return <NoDataPlaceholder {...{ colSpan }} />
     return dataset.map(render)
 }
 
