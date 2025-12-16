@@ -8,7 +8,7 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@shared/dashboard/DashboardComponents"
-import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import {
     AnimalRating,
     AverageWeight,
@@ -28,10 +28,10 @@ import {
     getWeightHist
 } from "./Controller"
 import Table from "@mui/material/Table"
-import { Button, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
+import { Button, Divider, ListItemIcon, Menu, MenuItem, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import { TrendValues } from "@shared/table/TableComponents"
-import { dateTransform, decimalTransform, positiveTransform } from "@utils/Transformations"
-import { DashboardInformationProps, DashboardTopBarProps } from "@shared/dashboard/Entities"
+import { dateTransform, decimalTransform, positiveTransform, transformWeight } from "@utils/Transformations"
+import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import { LineChart, SparkLineChart } from "@mui/x-charts"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
@@ -46,6 +46,9 @@ import { WeightEntriesPage, WeightGroupsPage, WeightMainPage } from "./WeightPag
 import { PageProps } from "@shared/main-page/PageDisplay"
 import { WeightGroupEntriesTable } from "./WeightGroupEntriesTable"
 import { HomePage } from "../home/HomePage"
+import Add from "@mui/icons-material/Add"
+import { AddWeightDialog } from "./AddWeightDialog"
+import ExpandMore from "@mui/icons-material/ExpandMore"
 
 export const WeightDashboard = () => {
 
@@ -63,7 +66,10 @@ export const WeightDashboard = () => {
 
 const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps) => {
 
-    const { setPageProps } = useContext(PageContext)
+    const [openMenu, setOpenMenu] = useState(false)
+
+    const menuAnchorEl = useRef<HTMLButtonElement>(null)
+    const closeMenu = () => setOpenMenu(false)
 
     return <DashboardTopContainer>
         <ReloadButton
@@ -71,24 +77,68 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
             loading={activeRequests > 0}
         />
         <Button
+            ref={menuAnchorEl}
             className="ml-auto"
-            startIcon={<ChevronRight />}
-            onClick={() => setPageProps && setPageProps(WeightEntriesPage)}
+            endIcon={<ExpandMore />}
+            onClick={() => setOpenMenu(true)}
         >
-            Marcações de Peso
+            Opções
         </Button>
+        <OptionsMenu {...{ openMenu, menuAnchorEl, setReloadFlag, closeMenu }} />
     </DashboardTopContainer>
 }
 
+const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionMenuProps) => {
+
+    const [addWeightOpen, setAddWeightOpen] = useState(false)
+
+    const { setPageProps } = useContext(PageContext)
+
+    const closeAddWeight = (added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddWeightOpen(false)
+    }
+
+    return <>
+        <Menu
+            open={openMenu}
+            anchorEl={menuAnchorEl.current}
+            onClose={closeMenu}
+        >
+            <MenuItem onClick={() => setAddWeightOpen(true)} >
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Pesagem
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={() => setPageProps(WeightEntriesPage)}>
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Histórico Geral
+            </MenuItem>
+            <MenuItem onClick={() => setPageProps(WeightGroupsPage)}>
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Datas de Pesagem
+            </MenuItem>
+        </Menu>
+        <AddWeightDialog {...{ addWeightOpen, closeAddWeight }} />
+    </>
+}
+
+
 const DashboardInfo = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid gap-4 grid-cols-[420_420_1fr] grid-rows-[180_400]">
+        <div className="grid gap-4 grid-cols-[repeat(2,350px)_1fr] grid-rows-[180px_400px]">
             <LastWeightCard {...{ startLoading, stopLoading, reloadFlag }} />
             <LastGainCard {...{ startLoading, stopLoading, reloadFlag }} />
-            <BestAnimalsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <BestAnimalsTable {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
-        <div className="grid grid-cols-[800_1fr] gap-4">
+        <div className="grid grid-cols-[800px_1fr] gap-4">
             <GainHistChart {...{ startLoading, stopLoading, reloadFlag }} />
             <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <WeightHistChart {...{ startLoading, stopLoading, reloadFlag }} />
@@ -111,7 +161,7 @@ const LastWeightCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
         setLoading(true)
         startLoading()
         getLastWeight()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData(defaultValue))
             .finally(() => {
                 setLoading(false)
@@ -122,16 +172,15 @@ const LastWeightCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
     return <DashboardCard>
         <CardChartContent
             title="Peso Médio (Kg)"
-            data={`${decimalTransform(data.current)} (${decimalTransform(data.current / 15)}@)`}
+            data={transformWeight(data.current)}
             trendProps={{ trend: data.trend }}
             loading={loading}
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.averageWeight)}
-                    height={80}
-                    valueFormatter={(value) => `${decimalTransform(value || 0)} (${decimalTransform((value || 0) / 15)}@)`}
+                    height={90}
+                    valueFormatter={(value) => transformWeight(value)}
                     color={yellow[800]}
-                    area
                     showTooltip
                     showHighlight
                     xAxis={{
@@ -159,7 +208,7 @@ const LastGainCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInform
         setLoading(true)
         startLoading()
         getLastWeightGain()
-            .then(response => setData(response.json))
+            .then(response => setData(response))
             .catch(() => setData(defaultValue))
             .finally(() => {
                 setLoading(false)
@@ -176,11 +225,10 @@ const LastGainCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInform
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.averageGain)}
-                    height={80}
+                    height={90}
                     valueFormatter={(value) => decimalTransform(value || 0)}
                     showTooltip
                     showHighlight
-                    area
                     xAxis={{
                         data: data.hist.map(item => new Date(item.entryDate)),
                         valueFormatter: (value: Date) => dateTransform(value)
@@ -206,7 +254,7 @@ const BestAnimalsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
         startLoading()
         setLoading(true)
         getAnimalsRating(rateType)
-            .then(results => setRows(results.json))
+            .then(results => setRows(results))
             .catch(() => setRows([]))
             .finally(() => {
                 setLoading(false)
@@ -214,9 +262,9 @@ const BestAnimalsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             })
     }, [startLoading, stopLoading, reloadFlag, rateType])
 
-    return <DashboardCard className="row-span-2">
+    return <DashboardCard className="col-span-2">
         <ComboBox
-            className="w-[300]"
+            className="w-[300px]"
             variant="standard"
             size="small"
             value={rateType}
@@ -235,7 +283,7 @@ const BestAnimalsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                 <DashboardTableBody
                     dataset={rows}
                     colSpan={3}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell>{item.animalName}</TableCell>
@@ -258,17 +306,20 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
 
     const [results, setResults] = useState<WeightEntry[]>([])
     const [lastDate, setLastDate] = useState<string>("Sem Data")
+    const [entryDate, setEntryDate] = useState<Date>()
     const [loading, setLoading] = useState(false)
+
+    const { setPageProps } = useContext(PageContext)
 
     useEffect(() => {
         setLoading(true)
         startLoading()
         getLastEntries()
             .then(results => {
-                const json: WeightEntry[] = results.json
-                const entryDate = new Date(json[0].entryDate)
+                const entryDate = new Date(results[0].entryDate)
                 setLastDate(dateTransform(entryDate))
-                setResults(json)
+                setEntryDate(entryDate)
+                setResults(results)
             })
             .catch(() => {
                 setResults([])
@@ -280,7 +331,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             })
     }, [startLoading, stopLoading, reloadFlag])
 
-    return <DashboardCard className="col-span-2">
+    return <DashboardCard className="row-span-2">
         <CardDefaultTitle text={`Última Marcação de Peso - ${lastDate}`} />
         <div className="overflow-auto">
             <Table stickyHeader size="small">
@@ -288,21 +339,36 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                     <TableRow>
                         <TableCell />
                         <TableCell>Animal</TableCell>
-                        <TableCell>Peso</TableCell>
+                        <TableCell align="center">Peso</TableCell>
                         <TableCell align="center">Ganho de Peso (Kg/dia)</TableCell>
-                        <TableCell>Variação de Peso</TableCell>
+                        <TableCell align="center">Variação de Peso</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     <DashboardTableBody
                         colSpan={5}
-                        loadingProps={{ loading: loading, rowSpan: 10 }}
+                        loading={loading}
                         dataset={results}
                         render={row => <LastEntriesRow {...{ row }} />}
                     />
                 </TableBody>
             </Table>
         </div>
+        <Button
+            className="ml-auto"
+            endIcon={<ChevronRight />}
+            onClick={() => {
+                if (!entryDate) return
+                const page: PageProps = {
+                    title: `Pesagem - ${lastDate}`,
+                    page: <WeightGroupEntriesTable {...{ entryDate }} />,
+                    previousPages: [HomePage, WeightMainPage]
+                }
+                setPageProps(page)
+            }}
+        >
+            Ver Mais...
+        </Button>
     </DashboardCard>
 }
 
@@ -326,11 +392,9 @@ const LastEntriesRow = ({ row }: LastEntriesRowProps) => {
             <EditControlButtons {...{ setEditing, onDelete }} />
         </TableCell>
         <TableCell>{data.animalInfo}</TableCell>
-        <TableCell>{
-            `${decimalTransform(data.weight)} (${decimalTransform(data.weight / 15)}@)`
-        }</TableCell>
+        <TableCell align="center">{transformWeight(data.weight)}</TableCell>
         <TableCell align="center">{decimalTransform(data.weightGain)}</TableCell>
-        <TableCell>
+        <TableCell align="center">
             <TrendComponent
                 trend={data.weightVariation}
                 text={positiveTransform(data.weightVariation)}
@@ -392,7 +456,7 @@ const GainHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInfor
         startLoading()
         setLoading(true)
         getGainHist()
-            .then(results => setDataset(results.json))
+            .then(results => setDataset(results))
             .catch(() => setDataset([]))
             .finally(() => {
                 setLoading(false)
@@ -444,7 +508,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
         setLoading(true)
         startLoading()
         getLastGroups()
-            .then(results => setResults(results.json))
+            .then(results => setResults(results))
             .catch(() => setResults([]))
             .finally(() => {
                 setLoading(false)
@@ -459,15 +523,15 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                 <TableRow>
                     <TableCell />
                     <TableCell>Data</TableCell>
-                    <TableCell>Nº de Animais</TableCell>
-                    <TableCell align="center">Peso</TableCell>
-                    <TableCell align="center">Ganho de Peso (Kg/dia)</TableCell>
+                    <TableCell align="center">Nº de Animais</TableCell>
+                    <TableCell>Peso</TableCell>
+                    <TableCell>Ganho de Peso (Kg/dia)</TableCell>
                 </TableRow>
             </TableHead>
             <TableBody>
                 <DashboardTableBody
                     colSpan={5}
-                    loadingProps={{ loading, rowSpan: 5 }}
+                    loading={loading}
                     dataset={results}
                     render={row => (
                         <TableRow>
@@ -478,7 +542,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                         const dateStr = entryDate.toLocaleDateString("pt-BR", { dateStyle: 'short' })
                                         const newPage: PageProps = {
                                             title: `Peso - ${dateStr}`,
-                                            page: <WeightGroupEntriesTable {...{entryDate}} />,
+                                            page: <WeightGroupEntriesTable {...{ entryDate }} />,
                                             previousPages: [HomePage, WeightMainPage]
                                         }
                                         if (setPageProps) setPageProps(newPage)
@@ -486,7 +550,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                 />
                             </TableCell>
                             <TableCell>{dateTransform(row.entryDate)}</TableCell>
-                            <TableCell>{row.animalsNumber}</TableCell>
+                            <TableCell align="center">{row.animalsNumber}</TableCell>
                             <TableCell>
                                 <TrendValues
                                     value={decimalTransform(row.averageWeight)}
@@ -524,7 +588,7 @@ const WeightHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
         startLoading()
         setLoading(true)
         getWeightHist()
-            .then(results => setDataset(results.json))
+            .then(results => setDataset(results))
             .catch(() => setDataset([]))
             .finally(() => {
                 setLoading(false)

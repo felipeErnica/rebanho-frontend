@@ -160,7 +160,7 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
         <OptionsMenu 
             openMenu={openMenu}
             closeMenu={() => setOpenMenu(false)}
-            menuAnchorEl={menuAnchorEl.current}
+            menuAnchorEl={menuAnchorEl}
             setReloadFlag={setReloadFlag}
         />
     </DashboardTopContainer>
@@ -196,7 +196,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
     return <>
         <Menu
             open={openMenu}
-            anchorEl={menuAnchorEl}
+            anchorEl={menuAnchorEl.current}
             onClose={closeMenu}
         >
             <MenuItem onClick={() => setAddBreedingOpen(true)} >
@@ -448,7 +448,7 @@ const BestBullsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInfo
                 <DashboardTableBody
                     colSpan={4}
                     dataset={data}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell>{item.bullName}</TableCell>
@@ -570,7 +570,7 @@ const FutureBirthsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardI
                 <DashboardTableBody
                     colSpan={2}
                     dataset={data}
-                    loadingProps={{ loading, rowSpan: 12 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell align="center">
@@ -647,7 +647,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                         <DashboardTableBody
                             colSpan={5}
                             dataset={data}
-                            loadingProps={{ loading, rowSpan: 20 }}
+                            loading={loading}
                             render={row => <LastEntriesRow {...{ row }} />}
                         />
                     </TableBody>
@@ -905,7 +905,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                 <DashboardTableBody
                     colSpan={5}
                     dataset={data}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell>

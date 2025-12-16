@@ -59,7 +59,7 @@ type DashboardCardProps = {
 export const DashboardCard = ({ className, children }: DashboardCardProps) => {
     return <Card
         variant="outlined"
-        className={`min-h-[180] p-4 flex flex-col gap-4 ${className}`}
+        className={`flex flex-col p-4 gap-2 ${className}`}
     >
         {children}
     </Card>
@@ -92,7 +92,7 @@ export const CardDefaultText = ({ children, className, loading }: CardDefaultTex
 
     return <Typography
         variant="h4"
-        fontSize={24}
+        fontSize={22}
         className={className}
     >
         {children ?? 0}
@@ -131,7 +131,7 @@ export const TrendComponent = ({ trend, text, inverse, className, loading }: Tre
         }
     }
 
-    return <div className={`flex flex-row gap-2 ${className}`}>
+    return <div className={`inline-flex items-center gap-2 ${className}`}>
         {!loading ? <TrendIcon /> : <Skeleton width={20} animation='wave' variant="text" />}
         {!loading
             ? <Typography
@@ -156,34 +156,27 @@ export type CardWithGraphProps = {
 export const CardChartContent = ({ trendProps, data, chart, title, loading }: CardWithGraphProps) => {
     return <>
         <CardDefaultTitle text={title} />
-        <div className="flex flex-col gap-2">
-            <div className="flex flex-row gap-4">
-                <CardDefaultText loading={loading}>{data}</CardDefaultText>
-                <TrendComponent {...{ ...trendProps, loading }} />
-            </div>
-            <div>
-                {loading ? <Skeleton className="h-full w-full" animation='wave' variant="rounded" /> : chart}
-            </div>
+        <div className="flex flex-row gap-4">
+            <CardDefaultText loading={loading}>{data}</CardDefaultText>
+            <TrendComponent {...{ ...trendProps, loading }} />
+        </div>
+        <div>
+            {!loading ? chart : <Skeleton className="h-[80px] w-full" animation='wave' variant="rounded" />}
         </div>
     </>
-}
-
-type LoadingProps = {
-    loading: boolean
-    rowSpan: number
 }
 
 type DashboardTableBodyProps<T> = {
     dataset: T[]
     colSpan: number
     render: (row: T) => ReactNode | ReactNode[]
-    loadingProps?: LoadingProps
+    loading: boolean
 }
 
-export function DashboardTableBody<T>({ dataset, render, loadingProps, colSpan }: DashboardTableBodyProps<T>) {
+export function DashboardTableBody<T>({ dataset, render, loading, colSpan }: DashboardTableBodyProps<T>) {
 
-    if (loadingProps !== undefined && loadingProps.loading) {
-        return Array(loadingProps.rowSpan).fill(<TableLoadingRow colSpan={colSpan} />)
+    if (loading) {
+        return Array(20).fill(<TableLoadingRow colSpan={colSpan} />)
     }
 
     if (dataset.length === 0) {

@@ -130,8 +130,8 @@ const EntriesTable = ({ rows, loading, foot, discountRate }: EntriesTableProps) 
                     <ResizableHeadCell align="center" width={150}>
                         {`Peso (Desc.: ${percentageTransform(discountRate)})`}
                     </ResizableHeadCell>
-                    <ResizableHeadCell width={150}>Peso de Abate</ResizableHeadCell>
-                    <ResizableHeadCell width={150}>Rendimento</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Peso de Abate</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Rendimento</ResizableHeadCell>
                 </TableRow>
             </TableHead>
             <TableBody>

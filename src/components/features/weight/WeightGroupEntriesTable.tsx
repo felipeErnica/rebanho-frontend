@@ -7,6 +7,7 @@ import {
     TableBodyRow,
     TableFooterRow,
     TableHeadCell,
+    TableHeadControlCell,
     TablePageContainer,
 } from "@shared/table/TableComponents"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
@@ -14,10 +15,10 @@ import Table from "@mui/material/Table"
 import TableBody from "@mui/material/TableBody"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { WeightEntry, WeightFoot } from "./Entities"
 import { findEntriesByDate, getEntriesFootByDate } from "./Controller"
-import { decimalTransform, positiveTransform } from "@utils/Transformations"
+import { decimalTransform, positiveTransform, transformWeight } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { TrendComponent } from "@shared/dashboard/DashboardComponents"
@@ -45,16 +46,20 @@ export const WeightGroupEntriesTable = ({ entryDate }: WeightGroupEntriesTablePr
     const [sort, setSort] = useState(defaultSort)
     const [loading, setLoading] = useState(false)
 
+    const loadFoot = useCallback(() => {
+        getEntriesFootByDate(entryDate)
+            .then(results => setFoot(results))
+            .catch(() => setFoot(defaultFoot))
+    }, [defaultFoot, entryDate])
+
     const onReload = useCallback(() => {
         setLoading(true)
-        getEntriesFootByDate(entryDate)
-            .then(results => setFoot(results.json))
-            .catch(() => setFoot(defaultFoot))
+        loadFoot()
         findEntriesByDate(entryDate, order, sort)
-            .then(results => setRows(results.json))
+            .then(results => setRows(results))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
-    }, [defaultFoot, entryDate, order, sort])
+    }, [entryDate, loadFoot, order, sort])
 
     useEffect(onReload, [onReload])
 
@@ -83,34 +88,17 @@ type EntriesTableProps = {
 
 const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
 
-    const [unit, setUnit] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setUnit(table.offsetWidth / 100)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    return <div
-        className="overflow-auto"
-        ref={tableRef}
-    >
+    return <div className="overflow-auto">
         <Table className="w-max min-w-full" stickyHeader>
             <TableHead>
                 <TableRow>
-                    <TableHeadCell width={unit * 10} />
-                    <ResizableHeadCell width={unit * 20}>Animal</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Mãe</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Pai</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 10}>Peso</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 15}>Ganho de Peso Diário (Kg/dia)</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Varição de Peso</ResizableHeadCell>
+                    <TableHeadControlCell />
+                    <ResizableHeadCell>Animal</ResizableHeadCell>
+                    <ResizableHeadCell width={300}>Mãe</ResizableHeadCell>
+                    <ResizableHeadCell width={300}>Pai</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={200}>Peso</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={200}>Ganho de Peso Diário (Kg/dia)</ResizableHeadCell>
+                    <TableHeadCell width={200} align="center">Varição de Peso</TableHeadCell>
                 </TableRow>
             </TableHead>
             <TableBody>
@@ -126,7 +114,7 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
                     <FooterContent title="Total" content={foot.animalsNumber} />
                     <FooterContent
                         title="Peso Médio"
-                        content={`${decimalTransform(foot.averageWeight)} (${decimalTransform(foot.averageWeight / 15)}@)`}
+                        content={transformWeight(foot.averageWeight)}
                     />
                     <FooterContent
                         title="Ganho de Peso Médio"
@@ -156,11 +144,9 @@ const EntriesRow = (row: WeightEntry) => {
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
-        <TableBodyCell align="center">
-            {`${decimalTransform(rowData.weight)} (${decimalTransform(rowData.weight / 15)}@)`}
-        </TableBodyCell>
+        <TableBodyCell align="center">{transformWeight(rowData.weight)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.weightGain)}</TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <TrendComponent
                 trend={rowData.weightVariation}
                 text={positiveTransform(rowData.weightVariation)}

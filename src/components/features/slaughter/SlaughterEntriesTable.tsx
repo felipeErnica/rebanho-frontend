@@ -138,7 +138,7 @@ const EntriesTable = ({ rows, fetchNextPage, loading, scrollRef, foot }: Entries
                 <VirtuosoResizeHeadCell align="center" width={150}>Peso</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={180}>Peso (c/ Desconto)</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={150}>Peso de Abate</VirtuosoResizeHeadCell>
-                <VirtuosoHeadCell>Rend. Médio</VirtuosoHeadCell>
+                <VirtuosoHeadCell align="center">Rend. Médio</VirtuosoHeadCell>
             </TableHeadRow>
 
         )}

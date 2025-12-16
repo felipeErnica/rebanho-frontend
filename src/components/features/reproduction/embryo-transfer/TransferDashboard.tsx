@@ -150,12 +150,12 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
             openMenu={openMenu}
             setReloadFlag={setReloadFlag}
             closeMenu={() => setOpenMenu(false)}
-            menuAnchorEl={anchorEl.current}
+            menuAnchorEl={anchorEl}
         />
     </DashboardTopContainer>
 }
 
-const OptionsMenu = ({ openMenu, menuAnchorEl: anchorEl, closeMenu: handleClose, setReloadFlag }: OptionMenuProps) => {
+const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu: handleClose, setReloadFlag }: OptionMenuProps) => {
 
     const [addTransferOpen, setAddTransferOpen] = useState(false)
     const [addTransferBullOpen, setAddTransferBullOpen] = useState(false)
@@ -193,7 +193,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl: anchorEl, closeMenu: handleClose,
     return <>
         <Menu
             open={openMenu}
-            anchorEl={anchorEl}
+            anchorEl={menuAnchorEl.current}
             onClose={handleClose}
         >
             <MenuItem onClick={() => setAddTransferOpen(true)} >
@@ -471,7 +471,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                 <DashboardTableBody
                     colSpan={4}
                     dataset={data}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell>{item.animalName}</TableCell>
@@ -593,7 +593,7 @@ const FutureBirthsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardI
                 <DashboardTableBody
                     colSpan={2}
                     dataset={data}
-                    loadingProps={{ loading, rowSpan: 12 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell align="center">
@@ -658,7 +658,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                     <DashboardTableBody
                         colSpan={6}
                         dataset={data}
-                        loadingProps={{ loading, rowSpan: 20 }}
+                        loading={loading}
                         render={row => <LastEntriesRow {...{ row }} />}
                     />
                 </TableBody>
@@ -673,7 +673,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                     title: `Transferência - ${lastDate}`,
                     previousPages: [HomePage, TransferMainPage]
                 }
-                if (setPageProps) setPageProps(page)
+                setPageProps(page)
             }}
         >
             Ver Mais...
@@ -804,7 +804,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                 <DashboardTableBody
                     colSpan={5}
                     dataset={data}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell>

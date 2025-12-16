@@ -309,7 +309,7 @@ type TrendValuesProps = {
 }
 
 export const TrendValues = ({ value, trendProps }: TrendValuesProps) => {
-    return <div className="flex flex-row items-center gap-2">
+    return <div className="inline-flex items-center gap-2">
         {value}
         <TrendComponent {...trendProps} />
     </div>

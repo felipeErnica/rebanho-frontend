@@ -465,7 +465,7 @@ const BestIntervalAnimals = ({ stopLoading, startLoading, reloadFlag }: Dashboar
             </TableHead>
             <TableBody>
                 <DashboardTableBody
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     dataset={data}
                     colSpan={3}
                     render={item => (
@@ -519,7 +519,7 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                 <DashboardTableBody
                     dataset={data}
                     colSpan={5}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     render={row => (
                         <TableRow>
                             <TableCell>{row.motherInfo}</TableCell>

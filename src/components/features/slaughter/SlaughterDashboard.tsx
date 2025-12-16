@@ -99,7 +99,7 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTopBarProp
         >
             Opções
         </Button>
-        <OptionsMenu {...{ openMenu, menuAnchorEl: menuAnchorEl.current, closeMenu, setReloadFlag }} />
+        <OptionsMenu {...{ openMenu, menuAnchorEl, closeMenu, setReloadFlag }} />
     </DashboardTopContainer>
 }
 
@@ -123,7 +123,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
     return <>
         <Menu
             open={openMenu}
-            anchorEl={menuAnchorEl}
+            anchorEl={menuAnchorEl.current}
             onClose={closeMenu}
         >
             <MenuItem onClick={() => setAddSlaughterOpen(true)} >
@@ -139,19 +139,19 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 Adicionar Novo Frigorífico
             </MenuItem>
             <Divider />
-            <MenuItem onClick={() => setPageProps && setPageProps(SlaughterEntriesPage)}>
+            <MenuItem onClick={() => setPageProps(SlaughterEntriesPage)}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Histórico Geral
             </MenuItem>
-            <MenuItem onClick={() => setPageProps && setPageProps(SlaughterGroupsPage)}>
+            <MenuItem onClick={() => setPageProps(SlaughterGroupsPage)}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Datas de Abate
             </MenuItem>
-            <MenuItem onClick={() => setPageProps && setPageProps(ButcherPage)}>
+            <MenuItem onClick={() => setPageProps(ButcherPage)}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
@@ -212,13 +212,12 @@ const WeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.averageWeight)}
-                    valueFormatter={value => `${decimalTransform(value)} (${decimalTransform((value || 0) / 15)}@)`}
+                    valueFormatter={value => transformWeight(value)}
                     showTooltip
                     showHighlight
-                    height={50}
+                    height={90}
                     xAxis={{
                         data: data.hist.map(item => new Date(item.entryDate)),
-                        scaleType: 'time',
                         valueFormatter: (value: Date) => value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
                     }}
                 />
@@ -259,14 +258,13 @@ const DeadWeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.averageWeight)}
-                    valueFormatter={value => `${decimalTransform(value)} (${decimalTransform((value || 0) / 15)}@)`}
+                    valueFormatter={value => transformWeight(value)}
                     color={yellow[800]}
+                    height={90}
                     showTooltip
                     showHighlight
-                    height={50}
                     xAxis={{
                         data: data.hist.map(item => new Date(item.entryDate)),
-                        scaleType: 'time',
                         valueFormatter: (value: Date) => value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
                     }}
                 />
@@ -307,14 +305,13 @@ const PerformanceCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
             chart={(
                 <SparkLineChart
                     data={data.hist.map(item => item.performanceRate)}
-                    valueFormatter={value => `${decimalTransform(value)} (${decimalTransform((value || 0) / 15)}@)`}
+                    valueFormatter={value => transformWeight(value)}
+                    height={90}
                     showTooltip
                     showHighlight
                     color={green[800]}
-                    height={50}
                     xAxis={{
                         data: data.hist.map(item => new Date(item.entryDate)),
-                        scaleType: 'time',
                         valueFormatter: (value: Date) => value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
                     }}
                 />
@@ -376,7 +373,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                 <TableBody>
                     <DashboardTableBody
                         colSpan={5}
-                        loadingProps={{ loading: loading, rowSpan: 10 }}
+                        loading={loading}
                         dataset={results}
                         render={row => <LastEntriesRow {...{ row, setError }} />}
                     />
@@ -519,9 +516,8 @@ const BestRatingsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
 
     return <DashboardCard className="col-span-3">
         <ComboBox
-            className="w-[300]"
+            className="w-[300px]"
             variant="standard"
-            size="small"
             value={rateType}
             items={rateItems}
             onChange={(value) => setRateType(value || 'best-fathers')}
@@ -542,7 +538,7 @@ const BestRatingsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                     <DashboardTableBody
                         dataset={rows}
                         colSpan={4}
-                        loadingProps={{ loading, rowSpan: 10 }}
+                        loading={loading}
                         render={item => (
                             <TableRow>
                                 <TableCell>{item.name}</TableCell>
@@ -605,7 +601,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                 <TableBody>
                     <DashboardTableBody
                         colSpan={6}
-                        loadingProps={{ loading, rowSpan: 5 }}
+                        loading={loading}
                         dataset={results}
                         render={row => (
                             <TableRow>

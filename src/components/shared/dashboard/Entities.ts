@@ -1,5 +1,4 @@
-import { PopoverVirtualElement } from "@mui/material"
-import { Dispatch, SetStateAction } from "react"
+import { Dispatch, RefObject, SetStateAction } from "react"
 
 export type DashboardInformationProps = {
     startLoading: () => void
@@ -15,7 +14,7 @@ export type DashboardTopBarProps = {
 
 export type OptionMenuProps = {
     openMenu: boolean
-    menuAnchorEl: Element | PopoverVirtualElement | (() => Element | PopoverVirtualElement | null) | null | undefined
+    menuAnchorEl: RefObject<HTMLButtonElement>
     closeMenu: () => void
     setReloadFlag: Dispatch<SetStateAction<number>>
 }

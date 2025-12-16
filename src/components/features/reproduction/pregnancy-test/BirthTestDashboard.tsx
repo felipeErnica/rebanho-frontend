@@ -8,7 +8,17 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@shared/dashboard/DashboardComponents"
-import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { 
+    createContext, 
+    Dispatch, 
+    SetStateAction, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useMemo, 
+    useRef, 
+    useState 
+} from "react"
 import {
     getBirthRate,
     getLastEntries,
@@ -144,7 +154,7 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
         <OptionsMenu 
             openMenu={openMenu}
             closeMenu={() => setOpenMenu(false)}
-            menuAnchorEl={menuAnchorEl.current}
+            menuAnchorEl={menuAnchorEl}
             setReloadFlag={setReloadFlag}
         />
     </DashboardTopContainer>
@@ -163,7 +173,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
     return <>
         <Menu
             open={openMenu}
-            anchorEl={menuAnchorEl}
+            anchorEl={menuAnchorEl.current}
             onClose={closeMenu}
         >
             <MenuItem onClick={() => setAddTestOpen(true)} >
@@ -408,7 +418,7 @@ const BestAnimalsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                 <DashboardTableBody
                     dataset={data}
                     colSpan={4}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell>{item.animalName}</TableCell>
@@ -588,7 +598,7 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
                 <DashboardTableBody
                     dataset={data}
                     colSpan={5}
-                    loadingProps={{ loading, rowSpan: 20 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell>
@@ -689,7 +699,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                     <DashboardTableBody
                         dataset={data}
                         colSpan={6}
-                        loadingProps={{ loading, rowSpan: 20 }}
+                        loading={loading}
                         render={row => <EntriesRow {...{ row }} />}
                     />
                 </TableBody>

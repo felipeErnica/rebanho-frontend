@@ -111,7 +111,7 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
             Opções
         </Button>
         <OptionsMenu
-            menuAnchorEl={optionsEl.current}
+            menuAnchorEl={optionsEl}
             openMenu={menuOpen}
             closeMenu={() => setMenuOpen(false)}
             setReloadFlag={setReloadFlag}
@@ -123,7 +123,7 @@ type OptionsMenuProps = OptionMenuProps & {
     setReloadFlag: Dispatch<SetStateAction<number>>
 }
 
-const OptionsMenu = ({ openMenu: open, menuAnchorEl: anchorEl, closeMenu: handleClose, setReloadFlag }: OptionsMenuProps) => {
+const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, setReloadFlag }: OptionsMenuProps) => {
 
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
     const [openEndLactation, setOpenEndLactation] = useState(false)
@@ -141,7 +141,7 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl: anchorEl, closeMenu: handle
     return <>
         <Menu
             open={open}
-            anchorEl={anchorEl}
+            anchorEl={menuAnchorEl.current}
             onClose={handleClose}
         >
             <MenuItem onClick={() => setAddMilkEntryOpen(true)}>
@@ -178,7 +178,7 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl: anchorEl, closeMenu: handle
         </Menu>
         <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose }} />
         <EndLactationDialog {...{ openEndLactation, closeEndLactation }} />
-        <AddLacDialog {...{openStartLac, closeStartLac }} />
+        <AddLacDialog {...{ openStartLac, closeStartLac }} />
     </>
 }
 
@@ -376,7 +376,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
                 <DashboardTableBody
                     colSpan={5}
                     dataset={data}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     render={item => (
                         <TableRow>
                             <TableCell>
@@ -492,7 +492,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
                 <TableBody>
                     <DashboardTableBody
                         colSpan={4}
-                        loadingProps={{ loading, rowSpan: 20 }}
+                        loading={loading}
                         dataset={data}
                         render={row => <EntriesRow {...{ row, onDelete }} />}
                     />
@@ -800,7 +800,7 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
             <TableBody>
                 <DashboardTableBody
                     colSpan={6}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     dataset={data}
                     render={item => (
                         <TableRow>
@@ -897,7 +897,7 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
             <TableBody>
                 <DashboardTableBody
                     dataset={data}
-                    loadingProps={{ loading, rowSpan: 10 }}
+                    loading={loading}
                     colSpan={6}
                     render={item => (
                         <TableRow>
