@@ -184,14 +184,14 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag, setReloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(3,270)_1fr] grid-rows-[180_450] gap-4">
+        <div className="grid grid-cols-[repeat(3,270px)_1fr] grid-rows-[180px_450px] gap-4">
             <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
             <AverageMilkCard {...{ stopLoading, startLoading, reloadFlag }} />
             <AnimalsCard {...{ startLoading, stopLoading, reloadFlag }} />
             <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag, setReloadFlag }} />
             <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
-        <div className="grid grid-rows-2 grid-cols-[1fr_500] gap-4">
+        <div className="grid grid-rows-2 grid-cols-[1fr_500px] gap-4">
             <MilkProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
             <YearMilkChart {...{ startLoading, stopLoading, reloadFlag }} />
             <YearAverageChart {...{ startLoading, stopLoading, reloadFlag }} />
@@ -235,7 +235,7 @@ const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: Dashboard
                 <SparkLineChart
                     data={stats.hist.map(item => item.totalMilk)}
                     valueFormatter={(value) => decimalTransform(value ?? 0)}
-                    height={50}
+                    height={90}
                     showHighlight
                     showTooltip
                     xAxis={{
@@ -283,7 +283,7 @@ const AverageMilkCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                     valueFormatter={(value) => decimalTransform(value ?? 0)}
                     showHighlight
                     color={green[800]}
-                    height={50}
+                    height={90}
                     showTooltip
                     xAxis={{
                         data: stats.hist.map(item => new Date(item.entryDate)),
@@ -327,7 +327,7 @@ const AnimalsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInforma
             chart={(
                 <SparkLineChart
                     data={stats.hist.map(item => item.animalsNumber)}
-                    height={50}
+                    height={90}
                     color={yellow[800]}
                     showHighlight
                     showTooltip

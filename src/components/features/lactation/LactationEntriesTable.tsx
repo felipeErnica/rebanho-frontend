@@ -39,10 +39,10 @@ export const LactationEntriesTablePage = ({ lacId }: LactationEntriesTableProps)
     const onReload = useCallback(() => {
         setLoading(true)
         getLactationEntriesFoot(lacId)
-            .then(response => setFoot(response.json))
+            .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
         getLactationEntries(lacId)
-            .then(response => setRows(response.json))
+            .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [defaultFoot, lacId])
@@ -95,7 +95,7 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
                 <TableBodyContainer
                     dataset={rows}
                     colSpan={5}
-                    loadingProps={{ loading, rowSpan: 20 }}
+                    loading={loading}
                     render={item => <EntriesRow {...{ item }} />}
                 />
             </TableBody>

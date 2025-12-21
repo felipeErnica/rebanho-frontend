@@ -57,11 +57,11 @@ export function findGroups() {
 }
 
 export function findEntriesByGroup(testDate: Date, sort: string, order: string) {
-    return apiGet(GROUP_BASE + testDate.toISOString() + `/entries?sort=${sort}&order=${order}`)
+    return apiGet(GROUP_BASE + dateToISO(testDate) + `/entries?sort=${sort}&order=${order}`)
 }
 
 export function getEntriesByGroupFoot(testDate: Date) {
-    return apiGet(GROUP_BASE + testDate.toISOString() + "/entries/foot")
+    return apiGet(GROUP_BASE + dateToISO(testDate) + "/entries/foot")
 }
 
 export function addTest(entry: TestEntrySave) {

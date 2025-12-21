@@ -4,7 +4,7 @@ import { dateToISO } from "@/utils/Transformations"
 
 const WEIGHT_DASHBOARD = "weight/dashboard/"
 const WEIGHT_ENTRIES = "weight/entries/"
-const WEIGHT_GROUP = "weight/group/"
+const WEIGHT_GROUP = "weight/groups/"
 
 export function getGainHist() {
     return apiGet(WEIGHT_DASHBOARD + "gain-hist")
