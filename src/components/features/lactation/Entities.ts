@@ -23,7 +23,8 @@ export type MilkEntryFoot = {
     averageMilk: number
 }
 
-export type AddMilkEntryType = {
+export type MilkEntrySave = {
+    id?: string
     animalId: string
     pastureId?: string
     entryDate?: Date
@@ -122,6 +123,10 @@ export type LactationGroup = {
     totalRate: number
     averageMilk: number
     averageRate: number
+}
+
+export type LactationGroupSave = {
+    entryDate: Date
 }
 
 export type LactationGroupFilter = {

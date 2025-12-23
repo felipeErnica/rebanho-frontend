@@ -1,12 +1,12 @@
 import { SubmitHandler, useForm } from "react-hook-form"
-import { SlaughterEntrySave } from "./Entities"
+import { ButcherEntry, SlaughterEntrySave } from "./Entities"
 import { Alert, AlertTitle, Collapse, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import { useEffect, useState } from "react"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-import { addSlaughter, replaceSlaughter, searchButcher } from "./Controller"
+import { addSlaughter, findButcherById, replaceSlaughter, searchButcher } from "./Controller"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
 import { searchAnimal } from "@utils/GlobalApiCalls"
 import { APIError } from "@utils/ApiRequest"
@@ -48,6 +48,7 @@ export const AddSlaughterDialog = ({
     }, [butcherId, entryDate, setValue])
 
     const closeAddButcher = (added?: boolean) => {
+        reset()
         if (added) setReloadFlag(prev => prev + 1)
         setButcherOpen(false)
     }
@@ -112,6 +113,11 @@ export const AddSlaughterDialog = ({
                     reload={reloadFlag}
                     className="w-[500px]"
                     searchOptions={searchButcher}
+                    onChange={(id) => {
+                        findButcherById(id)
+                            .then((response: ButcherEntry) => setValue('discountRate', response.discount))
+                            .catch(() => setValue('discountRate', undefined))
+                    }}
                     emptyProps={[{
                         id: "newSlaughterhouse",
                         title: '+ Novo Frigorífico',

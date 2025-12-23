@@ -2,6 +2,27 @@ import { apiGet, apiPut } from "@utils/ApiRequest";
 import { AnimalSave } from "./Entities";
 
 const ANIMAL_BASE = "animals/"
+const ANIMAL_DASHBOARD = "animals/dashboard/"
+
+export function getBirthHist() {
+    return apiGet(ANIMAL_DASHBOARD + "birth-hist")
+}
+
+export function getDeathHist() {
+    return apiGet(ANIMAL_DASHBOARD + "death-hist")
+}
+
+export function getDairyHist() {
+    return apiGet(ANIMAL_DASHBOARD + "dairy-hist")
+}
+
+export function getSlaughterHist() {
+    return apiGet(ANIMAL_DASHBOARD + "slaughter-hist")
+}
+
+export function getAnimalByTypes() {
+    return apiGet(ANIMAL_DASHBOARD + "animal-types")
+}
 
 export function updateAnimal(entry: AnimalSave) {
     return apiPut(ANIMAL_BASE + "update", entry)

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { MilkEntry, MilkEntryFoot } from "./Entities"
-import { getLactationEntries, getLactationEntriesFoot } from "./Controller"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { MilkEntry, MilkEntryFoot, MilkEntrySave } from "./Entities"
+import { deleteMilkEntry, getLactationEntries, getLactationEntriesFoot, updateMilkEntry } from "./Controller"
 import Table from "@mui/material/Table"
 import { TableBody, TableHead } from "@mui/material"
 import {
@@ -11,6 +11,7 @@ import {
     TableBodyRow,
     TableFooterRow,
     TableHeadCell,
+    TableHeadControlCell,
     TableHeadRow,
 } from "@shared/table/TableComponents"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
@@ -19,10 +20,20 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
+import { APIError } from "@/utils/ApiRequest"
+import { ErrorDialog } from "@/components/shared/dialog/DialogComponents"
 
 type LactationEntriesTableProps = {
     lacId: string
 }
+
+type ErrorContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setRows: Dispatch<SetStateAction<MilkEntry[]>>
+    loadFoot: () => void
+}
+
+const EditContext = createContext<ErrorContextProps>(undefined!)
 
 export const LactationEntriesTablePage = ({ lacId }: LactationEntriesTableProps) => {
 
@@ -35,23 +46,36 @@ export const LactationEntriesTablePage = ({ lacId }: LactationEntriesTableProps)
     const [foot, setFoot] = useState<MilkEntryFoot>(defaultFoot)
     const [rows, setRows] = useState<MilkEntry[]>([])
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<APIError>(undefined)
 
-    const onReload = useCallback(() => {
-        setLoading(true)
+    const loadFoot = useCallback(() => {
         getLactationEntriesFoot(lacId)
             .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
+    }, [defaultFoot, lacId])
+
+    const onReload = useCallback(() => {
+        setLoading(true)
+        loadFoot()
         getLactationEntries(lacId)
             .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
-    }, [defaultFoot, lacId])
+    }, [lacId, loadFoot])
 
     useEffect(onReload, [onReload])
 
     return <div className="w-full h-full overflow-hidden flex flex-col">
         <TableTopBar reloadProps={{ onReload }} />
-        <EntriesTable {...{ rows, loading, foot }} />
+        <EditContext.Provider value={{ setError, setRows, loadFoot }}>
+            <EntriesTable {...{ rows, loading, foot }} />
+        </EditContext.Provider>
+        <ErrorDialog 
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </div>
 }
 
@@ -63,44 +87,26 @@ type EntriesTableProps = {
 
 const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
 
-    const [unit, setUnit] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setUnit(table.offsetWidth / 100)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    return <div
-        className="overflow-auto"
-        ref={tableRef}
-    >
+    return <div className="overflow-auto">
         <Table stickyHeader>
             <TableHead>
                 <TableHeadRow>
-                    <TableHeadCell width={unit * 10} />
-                    <TableHeadCell width={unit * 20}>Vaca</TableHeadCell>
-                    <TableHeadCell width={unit * 20}>Data da Marcação</TableHeadCell>
-                    <TableHeadCell width={unit * 30}>Pasto</TableHeadCell>
-                    <TableHeadCell width={unit * 20}>Quantidade</TableHeadCell>
+                    <TableHeadControlCell />
+                    <TableHeadCell>Pasto</TableHeadCell>
+                    <TableHeadCell align="center">Data da Marcação</TableHeadCell>
+                    <TableHeadCell align="center">Quantidade</TableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>
                 <TableBodyContainer
                     dataset={rows}
-                    colSpan={5}
+                    colSpan={4}
                     loading={loading}
                     render={item => <EntriesRow {...{ item }} />}
                 />
             </TableBody>
             <StickyTableFooter>
-                <TableFooterRow colSpan={5}>
+                <TableFooterRow colSpan={4}>
                     <FooterContent title="Total" content={foot.animalsNumber} />
                     <FooterContent title="Produção Média" content={decimalTransform(foot.averageMilk)} />
                     <FooterContent title="Produção Total" content={decimalTransform(foot.totalMilk)} />
@@ -118,19 +124,33 @@ const EntriesRow = ({ item }: EntriesRowProps) => {
 
     const [rowData, setRowData] = useState<MilkEntry>(item)
     const [editing, setEditing] = useState(false)
+    const [loading, setLoading] = useState(false)
+
+    const { setError, setRows, loadFoot } = useContext(EditContext)
 
     useEffect(() => setRowData(item), [item])
 
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
+    const onDelete = () => { 
+        setLoading(true)
+        deleteMilkEntry(rowData.id)
+            .then(() => {
+                setRows(rows => rows.filter(item => item.id != rowData.id))
+                loadFoot()
+                setError(undefined)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }
+
     return <TableBodyRow>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
-        <TableBodyCell>{dateTransform(rowData.entryDate)}</TableBodyCell>
         <TableBodyCell>{rowData.pastureName}</TableBodyCell>
-        <TableBodyCell>{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
     </TableBodyRow>
 }
 
@@ -142,26 +162,39 @@ type EntriesRowEditingProps = {
 
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<MilkEntry>({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
+        
+    const { control, handleSubmit } = useForm<MilkEntrySave>({ defaultValues: rowData })
+    const { setError } = useContext(EditContext)
 
-    const onSubmit: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
-        setRowData(data)
-        setEditing(false)
+    const onSubmit: SubmitHandler<MilkEntrySave> = (data: MilkEntrySave) => {
+        setLoading(true)
+        updateMilkEntry(data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+            })
+            .catch((error) => setError(error))
+            .finally(() => setLoading(false))
     }
+
 
     const onSave = handleSubmit(onSubmit)
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
-        </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
-        <TableBodyCell>
-            <FormDatePicker formProps={{ name: 'entryDate' , control }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.pastureName}</TableBodyCell>
-        <TableBodyCell>
-            <FormTextField type="number" formProps={{ control, name: 'quantity' }} />
+        <TableBodyCell align="center">
+            <FormDatePicker formProps={{ name: 'entryDate', control }} />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <FormTextField
+                className="w-[80px]"
+                type="number"
+                formProps={{ control, name: 'quantity' }}
+            />
         </TableBodyCell>
     </TableBodyRow>
 }

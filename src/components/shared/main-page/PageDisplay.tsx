@@ -9,6 +9,8 @@ import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Button from "@mui/material/Button";
 import NavigateNext from "@mui/icons-material/NavigateNext";
 import { HomePage } from "@features/home/HomePage";
+import { Divider, IconButton } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 
 export type PageProps = {
     title: string
@@ -25,6 +27,10 @@ type BreadCrumbsToolbarProps = {
 const BreadCrumbsToolbar = ({ pageProps: { previousPages, title, crumbIcon }, setPageProps }: BreadCrumbsToolbarProps) => {
 
     return <Toolbar className="border border-gray-200">
+        <IconButton>
+            <MenuIcon />
+        </IconButton>
+        <Divider />
         <Breadcrumbs separator={<NavigateNext />}>
             {previousPages?.map(previousPage => (
                 <Button
@@ -50,7 +56,7 @@ const BreadCrumbsToolbar = ({ pageProps: { previousPages, title, crumbIcon }, se
 
 export const PageDisplay = (): JSX.Element => {
 
-    const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState(true)
     const [pageProps, setPageProps] = useState<PageProps | undefined>(HomePage)
 
     return <Box className="w-screen h-screen flex flex-col">

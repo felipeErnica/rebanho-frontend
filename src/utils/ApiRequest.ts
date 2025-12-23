@@ -91,7 +91,7 @@ export async function apiGet(apiCall: string): Promise<any> {
 export async function apiDelete(apiCall: string): Promise<any> {
     const request = await generateRequest()
     request.method = 'DELETE'
-    const url = BASE_URL + "/" + apiCall
+    const url = BASE_URL + apiCall
     const response = await fetch(url, request)
     return buildResponse(response)
 }

@@ -94,6 +94,10 @@ export function findButchers() {
     return apiGet(BUTCHER + "find-all")
 }
 
+export function findButcherById(id: string) {
+    return apiGet(BUTCHER + id)
+}
+
 export function findButchersEntries(
     id: string,
     filter: SlaughterEntryFilter,

@@ -12,14 +12,16 @@ import {
 import { SubmitHandler, useForm } from "react-hook-form"
 import { DialogActionButtons, DialogContainer, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import { CONFLICT_WARNING, REQUIRED_FIELD_MSG, ERROR_TYPE } from "@shared/Globals"
+import { CONFLICT_WARNING, REQUIRED_FIELD_MSG, ERROR_TYPE, DefaultWarning } from "@shared/Globals"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { searchDairyAnimal, searchPastures } from "@utils/GlobalApiCalls"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { AddMilkEntryType } from "./Entities"
+import { useCallback, useEffect,  useState } from "react"
+import { MilkEntrySave } from "./Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { APIError } from "@utils/ApiRequest"
-import { addMilkAndTransferPasture, addMilkEntry, addMilkNoTransfer, replaceMilkEntry } from "./Controller"
+import { addMilkEntry, replaceMilkEntry } from "./Controller"
+import { transferPastureEntry } from "@features/farm-area/pasture-entries/Controller"
+import { PastureEntrySave } from "@features/farm-area/pasture-entries/Entities"
 
 type AddTestDialogProps = {
     addMilkEntryOpen: boolean
@@ -29,18 +31,9 @@ type AddTestDialogProps = {
 
 export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: AddTestDialogProps) => {
 
-    const defaultWarning: YesNoDialogProps = useMemo(() => ({
-        openYesNo: false,
-        title: undefined,
-        content: undefined,
-        onYes: () => { },
-        onClose: () => { }
-    }), [])
-
     const [error, setError] = useState<APIError>()
-    const [warningProps, setWarningProps] = useState<YesNoDialogProps>(defaultWarning)
+    const [warningProps, setWarningProps] = useState<YesNoDialogProps>(DefaultWarning)
     const [loading, setLoading] = useState(false)
-    const [resetFlag, setResetFlag] = useState(0)
     const [added, setAdded] = useState(false)
     const [noPasture, setNoPasture] = useState(false)
 
@@ -51,138 +44,103 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
         setValue,
         getValues,
         setFocus
-    } = useForm<AddMilkEntryType>({ defaultValues: { entryDate } })
+    } = useForm<MilkEntrySave>({ defaultValues: { entryDate } })
 
     useEffect(() => setValue('entryDate', entryDate), [setValue, entryDate])
 
-    useEffect(() => {
+    const resetForm = useCallback(() => {
         reset({ entryDate: getValues('entryDate'), pastureId: getValues('pastureId') })
         setFocus('animalId')
-    }, [getValues, reset, resetFlag, setFocus])
+    }, [getValues, reset, setFocus])
 
-    const onReplace: SubmitHandler<AddMilkEntryType> = useCallback((data: AddMilkEntryType) => {
-        data.quantity = Number(data.quantity)
+    const onTransfer = useCallback((data: MilkEntrySave) => {
+
+        const pastureEntry: PastureEntrySave = {
+            entryDate: data.entryDate,
+            animalId: data.animalId,
+            pastureId: data.pastureId
+        }
+
+        transferPastureEntry(pastureEntry)
+            .then(() => {
+                setAdded(true)
+                setError(undefined)
+                setWarningProps(DefaultWarning)
+                resetForm()
+            })
+            .catch(error => setError(error))
+    }, [resetForm])
+
+    const onReplace = useCallback((data: MilkEntrySave) => {
         replaceMilkEntry(data)
             .then(() => {
                 setAdded(true)
                 setError(undefined)
+                resetForm()
             })
-            .catch(error => setError(error))
-            .finally(() => {
-                setResetFlag(prev => prev + 1)
-                setWarningProps(defaultWarning)
-            })
-    }, [defaultWarning])
+            .catch((error: APIError) => {
 
-    const onTransfer: SubmitHandler<AddMilkEntryType> = useCallback((data: AddMilkEntryType) => {
-        data.quantity = Number(data.quantity)
-        addMilkAndTransferPasture(data)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-                setWarningProps(defaultWarning)
-                setResetFlag(prev => prev + 1)
-            })
-            .catch(error => {
                 if (error.errType == ERROR_TYPE) {
                     setError(error)
-                    setWarningProps(defaultWarning)
-                    setResetFlag(prev => prev + 1)
                     return
                 }
+
                 setWarningProps({
                     title: error.title,
                     content: error.message,
                     openYesNo: true,
-                    onYes: handleSubmit(onReplace),
-                    onClose: () => {
-                        setWarningProps(defaultWarning)
-                        setResetFlag(prev => prev + 1)
-                    }
+                    onYes: () => onTransfer(data),
+                    onClose: () => setWarningProps(DefaultWarning)
                 })
-            })
-    }, [defaultWarning, handleSubmit, onReplace])
 
-    const onSubmitNoTransfer: SubmitHandler<AddMilkEntryType> = useCallback((data: AddMilkEntryType) => {
-        data.quantity = Number(data.quantity)
-        addMilkNoTransfer(data)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-                setWarningProps(defaultWarning)
-                setResetFlag(prev => prev + 1)
             })
-            .catch(error => {
-                if (error.errType == ERROR_TYPE) {
-                    setError(error)
-                    setWarningProps(defaultWarning)
-                    setResetFlag(prev => prev + 1)
-                    return
-                }
-                setWarningProps({
-                    title: error.title,
-                    content: error.message,
-                    openYesNo: true,
-                    onYes: handleSubmit(onReplace),
-                    onClose: () => {
-                        setWarningProps(defaultWarning)
-                        setResetFlag(prev => prev + 1)
-                    }
-                })
-            })
-    }, [defaultWarning, handleSubmit, onReplace])
+            .finally(() => setWarningProps(DefaultWarning))
+    }, [onTransfer, resetForm])
 
-    const errHandling = useCallback((err: APIError) => {
-        if (err.errType == ERROR_TYPE) {
-            setError(err)
-            return
-        }
-        if (err.kind === CONFLICT_WARNING) {
-            setWarningProps({
-                title: err.title,
-                content: err.message,
-                openYesNo: true,
-                onYes: handleSubmit(onReplace),
-                onClose: () => {
-                    setWarningProps(defaultWarning)
-                    setResetFlag(prev => prev + 1)
-                }
-            })
-            return
-        }
-        setWarningProps({
-            title: err.title,
-            content: err.message,
-            openYesNo: true,
-            onYes: handleSubmit(onTransfer),
-            onClose: handleSubmit(onSubmitNoTransfer)
-        })
-    }, [defaultWarning, handleSubmit, onReplace, onSubmitNoTransfer, onTransfer])
-
-
-    const onSubmit: SubmitHandler<AddMilkEntryType> = (data: AddMilkEntryType) => {
-        data.quantity = Number(data.quantity)
+    const onSubmit: SubmitHandler<MilkEntrySave> = (data: MilkEntrySave) => {
         setLoading(true)
         addMilkEntry(data)
             .then(() => {
                 setAdded(true)
                 setError(undefined)
-                reset({ entryDate: data.entryDate, pastureId: data.pastureId })
-                setFocus('animalId')
+                resetForm()
             })
-            .catch(err => errHandling(err))
+            .catch((err: APIError) => {
+                if (err.errType == ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+
+                const commonWarning: YesNoDialogProps = {
+                    openYesNo: true,
+                    title: err.title,
+                    content: err.message,
+                    onClose: () => setWarningProps(DefaultWarning),
+                    onYes: undefined,
+                }
+
+                if (err.kind == CONFLICT_WARNING) {
+                    setWarningProps({
+                        ...commonWarning,
+                        onYes: () => onReplace(data)
+                    })
+                    return
+                }
+
+                setWarningProps({
+                    ...commonWarning,
+                    onYes: () => onTransfer(data)
+                })
+
+            })
             .finally(() => setLoading(false))
     }
 
     const handleClose = () => {
-        setWarningProps(defaultWarning)
+        setWarningProps(DefaultWarning)
         setError(undefined)
         reset()
         onClose(added)
-    }
-
-    const alertOnClose = () => {
-        setError(undefined)
     }
 
     return <Dialog
@@ -192,7 +150,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
         <DialogTitle>Adicionar Marcação de Leite</DialogTitle>
         <DialogContent>
             <Collapse in={!!error}>
-                <Alert severity="error" onClose={alertOnClose}>
+                <Alert severity="error" onClose={() => setError(undefined)}>
                     <AlertTitle>{error?.title}</AlertTitle>
                     {error?.message}
                 </Alert>
@@ -200,7 +158,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
             <DialogContainer>
                 <FormDatePicker
                     label="Data de Marcação"
-                    className="w-[200]"
+                    className="w-[200px]"
                     disableFuture
                     formProps={{
                         control,
@@ -232,7 +190,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                 <div className="flex flex-row gap-4">
                     <FormSearchBox
                         label="Vaca"
-                        className="w-[400]"
+                        className="w-[400px]"
                         searchOptions={searchDairyAnimal}
                         formProps={{
                             control,
@@ -243,7 +201,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                     <FormTextField
                         label="Quantidade"
                         type="number"
-                        className="w-[100]"
+                        className="w-[100px]"
                         formProps={{
                             control,
                             name: 'quantity',

@@ -2,10 +2,11 @@ import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@utils/ApiReq
 import { 
     AddLactationStruct,  
     LactationGroupFilter, 
-    MilkEntry, 
     LactationHist, 
-    AddMilkEntryType 
+    MilkEntrySave, 
+    LactationGroupSave
 } from "./Entities";
+import { dateToISO } from "@/utils/Transformations";
 
 export const DASHBOARD_BASE = "lactation/dashboard/"
 export const GROUP_BASE = "lactation/groups/"
@@ -50,33 +51,6 @@ export function getParentRatings(ratingOption: string) {
 
 export function getLastGroups() {
     return apiGet(DASHBOARD_BASE + "last-groups")
-}
-
-export function findGroupsPage(filter: LactationGroupFilter, order: string, cursor?: string) {
-    const pageQuery = `page?order=${order}${cursor ? `&cursor=${cursor}` : ''}`
-    return apiPost(GROUP_BASE + pageQuery, filter)
-}
-
-export function getGroupEntries(entryDate: Date) {
-    const pageQuery = `entries?entryDate=${entryDate.toISOString()}`
-    return apiGet(GROUP_BASE + pageQuery)
-}
-export function getGroupEntriesFoot(entryDate: Date) {
-    const pageQuery = `entries/foot?entryDate=${entryDate.toISOString()}`
-    return apiGet(GROUP_BASE + pageQuery)
-}
-export function findEntriesPage(
-    filter: LactationGroupFilter,
-    sort: string,
-    order: string,
-    cursor?: string,
-) {
-    const pageQuery = buildPageCall(sort, order, cursor)
-    return apiPost(ENTRIES_BASE + pageQuery, filter)
-}
-
-export function getEntriesPageFoot(filter: LactationGroupFilter) {
-    return apiPost(ENTRIES_BASE + "page/foot", filter)
 }
 
 export function findLactationsPage(
@@ -129,34 +103,68 @@ export function deleteLactation(id: string) {
     return apiDelete(LAC_BASE + `delete/${id}`)
 }
 
-export function deleteLactationAndEntries(id: string) {
-    return apiDelete(LAC_BASE + `delete-entries/${id}`)
-}
-
 export function addLactation(entry: AddLactationStruct) {
     return apiPut(LAC_BASE + "add", entry)
 }
 
-export function updateMilkEntry(entry: MilkEntry) {
+export function findGroupsPage(filter: LactationGroupFilter, order: string, cursor?: string) {
+    const pageQuery = `page?order=${order}${cursor ? `&cursor=${cursor}` : ''}`
+    return apiPost(GROUP_BASE + pageQuery, filter)
+}
+
+export function getGroupEntries(entryDate: Date) {
+    const pageQuery = `${dateToISO(entryDate)}/entries`
+    return apiGet(GROUP_BASE + pageQuery)
+}
+
+export function getGroupEntriesFoot(entryDate: Date) {
+    const pageQuery = `${dateToISO(entryDate)}/entries/foot`
+    return apiGet(GROUP_BASE + pageQuery)
+}
+
+export function updateMilkGroup(entryDate: Date, group: LactationGroupSave) {
+    const pageQuery = `${dateToISO(entryDate)}/update`
+    return apiPut(GROUP_BASE + pageQuery, group)
+}
+
+export function deleteMilkGroup(entryDate: Date) {
+    return apiDelete(GROUP_BASE + `${dateToISO(entryDate)}/delete`)
+}
+
+export function findEntriesPage(
+    filter: LactationGroupFilter,
+    sort: string,
+    order: string,
+    cursor?: string,
+) {
+    const pageQuery = buildPageCall(sort, order, cursor)
+    return apiPost(ENTRIES_BASE + pageQuery, filter)
+}
+
+export function getEntriesPageFoot(filter: LactationGroupFilter) {
+    return apiPost(ENTRIES_BASE + "page/foot", filter)
+}
+
+export function updateMilkEntry(entry: MilkEntrySave) {
     return apiPut(ENTRIES_BASE + `update`, entry)
 }
 
-export function replaceMilkEntry(entry: AddMilkEntryType) {
+export function replaceMilkEntry(entry: MilkEntrySave) {
     return apiPut(ENTRIES_BASE + "replace", entry)
 }
 
-export function addMilkEntry(entry: AddMilkEntryType) {
+export function addMilkEntry(entry: MilkEntrySave) {
     return apiPut(ENTRIES_BASE + "add", entry)
 }
 
-export function addMilkAndTransferPasture(entry: AddMilkEntryType) {
+export function addMilkAndTransferPasture(entry: MilkEntrySave) {
     return apiPut(ENTRIES_BASE + "add-and-transfer", entry)
 }
 
-export function addMilkNoTransfer(entry: AddMilkEntryType) {
+export function addMilkNoTransfer(entry: MilkEntrySave) {
     return apiPut(ENTRIES_BASE + "add-no-transfer", entry)
 }
 
 export function deleteMilkEntry(id: string) {
-    return apiDelete(ENTRIES_BASE + `delete/${id}`)
+    return apiDelete(ENTRIES_BASE + `${id}/delete`)
 }

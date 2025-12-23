@@ -58,8 +58,8 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
             </Collapse>
             <DialogContainer>
                 <FormDatePicker
-                    className="w-[250]"
-                    label="Data do Fim da Lactação"
+                    className="w-[200px]"
+                    label="Data da Secagem"
                     disableFuture
                     formProps={{ control, name: 'endDate' }}
                 />
@@ -87,7 +87,7 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
                 </div>
                 <FormSearchBox
                     formProps={{ control, name: 'id' }}
-                    className="w-[400]"
+                    className="w-[400px]"
                     label="Vaca"
                     searchOptions={searchLactating}
                 />

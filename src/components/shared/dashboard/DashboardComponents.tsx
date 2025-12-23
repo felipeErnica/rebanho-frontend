@@ -27,7 +27,7 @@ export const DashboardContainer = ({ className, children }: DashboardContainerPr
 }
 
 export const DashboardInfoContainer = ({ children, className }: DashboardContainerProps) => {
-    return <div className={`p-4 overflow-auto ${className}`}>
+    return <div className={`h-full p-4 overflow-auto ${className}`}>
         {children}
     </div>
 }

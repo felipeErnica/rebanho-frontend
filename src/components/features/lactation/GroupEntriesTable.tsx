@@ -9,7 +9,7 @@ import {
     useRef, 
     useState 
 } from "react"
-import { MilkEntry, MilkEntryFoot } from "./Entities"
+import { MilkEntry, MilkEntryFoot, MilkEntrySave } from "./Entities"
 import { deleteMilkEntry, getGroupEntries, getGroupEntriesFoot, updateMilkEntry } from "./Controller"
 import Table from "@mui/material/Table"
 import { Button, TableBody, TableHead } from "@mui/material"
@@ -143,7 +143,7 @@ const EntriesTable = ({ rows, loading, foot, onDelete }: EntriesTableProps) => {
                 <TableBodyContainer
                     dataset={rows}
                     colSpan={4}
-                    loadingProps={{ loading, rowSpan: 20 }}
+                    loading={loading}
                     render={item => <EntriesRow {...{ item, onDelete }} />}
                 />
             </TableBody>
@@ -195,10 +195,10 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
 
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit } = useForm<MilkEntry>({ defaultValues: rowData })
+    const { control, handleSubmit } = useForm<MilkEntrySave>({ defaultValues: rowData })
     const { setApiError } = useContext(ErrorContext)
 
-    const onSubmit: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
+    const onSubmit: SubmitHandler<MilkEntrySave> = (data: MilkEntrySave) => {
         setLoading(true)
         updateMilkEntry(data)
             .then(response => {

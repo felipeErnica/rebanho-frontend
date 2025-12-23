@@ -156,7 +156,7 @@ const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
             chart={(
                 <SparkLineChart
                     data={stats.hist.map(item => item.birthTotal)}
-                    height={90}
+                    height={80}
                     color={green[800]}
                     showTooltip
                     showHighlight
@@ -208,7 +208,7 @@ const BirthIntervalCard = ({ startLoading, stopLoading, reloadFlag }: DashboardI
             chart={(
                 <SparkLineChart
                     data={stats ? stats.intervalHist.map(item => item.intervalAverage) : []}
-                    height={90}
+                    height={80}
                     valueFormatter={(value: number | null) => decimalTransform(value ?? 0)}
                     showTooltip
                     showHighlight
@@ -257,7 +257,7 @@ const DeathIndexCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
                 <SparkLineChart
                     data={stats.deathIndexHist.map(item => item.deathIndex)}
                     color={red[800]}
-                    height={90}
+                    height={80}
                     valueFormatter={(value) => decimalTransform(value ?? 0)}
                     xAxis={{
                         scaleType: 'time',

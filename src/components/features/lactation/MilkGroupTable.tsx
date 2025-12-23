@@ -1,11 +1,12 @@
-import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react"
-import { LactationGroup, LactationGroupFilter } from "./Entities"
-import { findGroupsPage } from "./Controller"
+import { createContext, Dispatch, RefObject, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from "react"
+import { LactationGroup, LactationGroupFilter, LactationGroupSave } from "./Entities"
+import { deleteMilkGroup, findGroupsPage, updateMilkGroup } from "./Controller"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import {
     TableBodyCell,
+    TableHeadControlCell,
     TableHeadRow,
     TableLoadingCells,
     TrendValues,
@@ -20,8 +21,19 @@ import { MilkGroupFilter } from "./MilkGroupFilter"
 import { PageContext } from "@shared/main-page/PageContext"
 import { PageProps } from "@shared/main-page/PageDisplay"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
-import { HomePage } from "../home/HomePage"
+import { HomePage } from "@features/home/HomePage"
 import { MilkDashboardPage, MilkGroupsPage } from "./LactationPages"
+import { APIError } from "@/utils/ApiRequest"
+import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
+import { DefaultTimerWarning, GROUP_DELETE_TITLE, GROUP_UPDATE_TITLE } from "@/components/shared/Globals"
+
+type EditContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setWarning: Dispatch<SetStateAction<TimerYesNoDialogProps>>
+    setRows: Dispatch<SetStateAction<LactationGroup[]>>
+}
+
+const EditContext = createContext<EditContextProps>(undefined!)
 
 export const GroupTablePage = () => {
 
@@ -29,6 +41,8 @@ export const GroupTablePage = () => {
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [order, setOrder] = useState("desc")
+    const [error, setError] = useState<APIError>()
+    const [warning, setWarning] = useState(DefaultTimerWarning)
 
     const anchorEl = useRef<HTMLButtonElement>(null)
 
@@ -38,7 +52,7 @@ export const GroupTablePage = () => {
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
-    const { rows, scrollRef, fetchNextPage } = usePagination<LactationGroup>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationGroup>({ setLoading, fetchPage })
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -46,8 +60,17 @@ export const GroupTablePage = () => {
             orderProps={{ order, setOrder }}
             filterProps={{ setFilterOpen, anchorEl }}
         />
-        <GroupsTable {...{ rows, loading, scrollRef, fetchNextPage }} />
+        <EditContext.Provider value={{ setWarning, setError, setRows }}>
+            <GroupsTable {...{ rows, loading, scrollRef, fetchNextPage }} />
+        </EditContext.Provider>
         <MilkGroupFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
+        <TimerYesNoDialog {...warning} />
     </div>
 }
 
@@ -60,39 +83,20 @@ type GroupTableProps = {
 
 const GroupsTable = ({ rows, loading, scrollRef, fetchNextPage }: GroupTableProps) => {
 
-    const [tableWidth, setTableWidth] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setTableWidth(table.offsetWidth)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
     return <TableVirtuoso
-        scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
         components={useVirtuosoComponents(5)}
         endReached={fetchNextPage}
-        fixedHeaderContent={() => {
-
-            const unit = tableWidth / 100
-
-            return <TableHeadRow>
-                <VirtuosoHeadCell width={unit * 10} />
-                <VirtuosoResizeHeadCell width={unit * 20}>Data da Marcação</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 20}>Nº de Animais</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 20}>Produção Total</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 30}>Média de Produção</VirtuosoResizeHeadCell>
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <TableHeadControlCell />
+                <VirtuosoResizeHeadCell align="center">Data da Marcação</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={420}>Nº de Animais</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={420}>Produção Total</VirtuosoResizeHeadCell>
+                <VirtuosoHeadCell align="center" width={420}>Média de Produção</VirtuosoHeadCell>
             </TableHeadRow>
-
-        }}
+        )}
         itemContent={(_, item) => <GroupsRow {...{ item: item as LactationGroup, loading }} />}
     />
 
@@ -107,41 +111,71 @@ const GroupsRow = ({ item, loading }: GroupsRowProps) => {
 
     const [rowData, setRowData] = useState<LactationGroup>(item)
     const [editing, setEditing] = useState(false)
+    const [loadingControls, setLoadingControls] = useState(false)
+
     const { setPageProps } = useContext(PageContext)
+    const { setError, setWarning, setRows } = useContext(EditContext)
 
     useEffect(() => setRowData(item), [item])
 
     if (loading) return <TableLoadingCells colSpan={5} />
     if (editing) return <GroupsRowEditing {...{ rowData, setEditing, setRowData }} />
 
+    const deleteGroup = () => {
+        setLoadingControls(true)
+        deleteMilkGroup(rowData.entryDate)
+            .then(() => {
+                setRows(rows => rows.filter(item => item.entryDate != rowData.entryDate))
+                setError(undefined)
+            })
+            .catch(err => setError(err))
+            .finally(() => {
+                setLoadingControls(false)
+                setWarning(DefaultTimerWarning)
+            })
+    }
+
+    const onDelete = () => {
+        setWarning({
+            openYesNo: true,
+            waitTime: 10,
+            title: GROUP_DELETE_TITLE,
+            content: `Ao confirmar, ${rowData.animalsNumber} registros de leite serão excluídos!`,
+            onClose: () => setWarning(DefaultTimerWarning),
+            onYes: () => deleteGroup()
+        })
+    }
+
     return <>
         <TableBodyCell>
             <EditControlButtons
                 setEditing={setEditing}
+                onDelete={onDelete}
+                loading={loadingControls}
                 onShow={() => {
                     const page: PageProps = {
                         title: `Leite - ${dateTransform(rowData.entryDate)}`,
                         page: <GroupEntriesTablePage {...{ entryDate: rowData.entryDate }} />,
                         previousPages: [HomePage, MilkDashboardPage, MilkGroupsPage]
                     }
-                    if (setPageProps) setPageProps(page)
+                    setPageProps(page)
                 }}
             />
         </TableBodyCell>
-        <TableBodyCell>{dateTransform(rowData.entryDate)}</TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
+        <TableBodyCell align="center">
             <TrendValues
                 value={rowData.animalsNumber}
-                trendProps={{ trend: rowData.numberDifference, text: rowData.numberDifference.toString()}}
+                trendProps={{ trend: rowData.numberDifference, text: rowData.numberDifference.toString() }}
             />
         </TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <TrendValues
                 value={decimalTransform(rowData.totalMilk)}
                 trendProps={{ trend: rowData.totalRate }}
             />
         </TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <TrendValues
                 value={decimalTransform(rowData.averageMilk)}
                 trendProps={{ trend: rowData.averageRate }}
@@ -158,40 +192,56 @@ type GroupsRowEditingProps = {
 
 const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<LactationGroup>({ defaultValues: rowData })
+    const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<LactationGroup> = (data: LactationGroup) => {
-        setRowData(data)
-        setEditing(false)
+    const { control, handleSubmit } = useForm<LactationGroupSave>({ defaultValues: rowData })
+    const { setError, setWarning } = useContext(EditContext)
+
+    const onSubmit: SubmitHandler<LactationGroupSave> = (data: LactationGroupSave) => {
+        setLoading(true)
+        updateMilkGroup(rowData.entryDate, data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => {
+                setLoading(false)
+                setWarning(DefaultTimerWarning)
+            })
     }
 
-    const onSave = handleSubmit(onSubmit)
+    const onSave = () => {
+        setWarning({
+            openYesNo: true,
+            title: GROUP_UPDATE_TITLE,
+            content: `Ao confirmar, ${rowData.animalsNumber} registros terão a data modificada! Deseja continuar?`,
+            waitTime: 10,
+            onYes: handleSubmit(onSubmit),
+            onClose: () => setWarning(DefaultTimerWarning),
+        })
+    }
 
     return <>
         <TableBodyCell>
-            <EditingControlButtons {...{ onSave, setEditing }} />
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
         <TableBodyCell>
-            <FormDatePicker
-                formProps={{
-                    control,
-                    name: 'entryDate'
-                }}
-            />
+            <FormDatePicker formProps={{ control, name: 'entryDate' }} />
         </TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <TrendValues
                 value={rowData.animalsNumber}
-                trendProps={{ trend: rowData.numberDifference, text: rowData.numberDifference.toString()}}
+                trendProps={{ trend: rowData.numberDifference, text: rowData.numberDifference.toString() }}
             />
         </TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <TrendValues
                 value={decimalTransform(rowData.totalMilk)}
                 trendProps={{ trend: rowData.totalRate }}
             />
         </TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <TrendValues
                 value={decimalTransform(rowData.averageMilk)}
                 trendProps={{ trend: rowData.averageRate }}

@@ -165,7 +165,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
 
 const DashboardInfo = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(3,280px)_1fr] grid-rows-[180px_500px] gap-4">
+        <div className="grid grid-cols-[repeat(3,280px)_1fr] grid-rows-[190px_500px] gap-4">
             <WeightCard {...{ reloadFlag, startLoading, stopLoading }} />
             <DeadWeightCard {...{ startLoading, stopLoading, reloadFlag }} />
             <PerformanceCard {...{ stopLoading, startLoading, reloadFlag }} />

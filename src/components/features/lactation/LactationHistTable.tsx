@@ -13,7 +13,6 @@ import {
 import { LactationHist, LactationHistFilter, LactationHistFoot } from "./Entities"
 import {
     deleteLactation,
-    deleteLactationAndEntries,
     findLactationsPage,
     getLactationsPageFoot,
     searchCalfs,
@@ -27,6 +26,7 @@ import {
     FooterContent,
     TableBodyCell,
     TableFooterRow,
+    TableHeadControlCell,
     TableHeadRow,
     TableLoadingCells,
     VirtuosoHeadCell,
@@ -45,8 +45,7 @@ import { PageContext } from "@shared/main-page/PageContext"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { APIError } from "@utils/ApiRequest"
-import { ErrorDialog, YesNoDialog } from "@shared/dialog/DialogComponents"
-import { CONFLICT_WARNING } from "@shared/Globals"
+import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@shared/dialog/DialogComponents"
 import { Button, ListItemIcon, Menu, MenuItem } from "@mui/material"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import { OptionMenuProps } from "@shared/dashboard/Entities"
@@ -54,10 +53,12 @@ import Add from "@mui/icons-material/Add"
 import CalendarMonth from "@mui/icons-material/CalendarMonth"
 import { EndLactationDialog } from "./EndLactationDialog"
 import { AddLacDialog } from "./AddLactationDialog"
+import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Globals"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
-    setDeleteId: Dispatch<SetStateAction<string | undefined>>
+    setRows: Dispatch<SetStateAction<LactationHist[]>>
+    setWarning: Dispatch<SetStateAction<TimerYesNoDialogProps>>
 }
 
 const ErrorContext = createContext<EditContextProps>(undefined!)
@@ -81,10 +82,9 @@ export const LactationHistTablePage = () => {
     const [sort, setSort] = useState(defaultSort)
     const [order, setOrder] = useState('asc')
     const [foot, setFoot] = useState(DEFAULT_FOOT)
-    const [error, setError] = useState<APIError>()
-    const [warning, setWarning] = useState<APIError>()
-    const [deleteId, setDeleteId] = useState<string>()
 
+    const [error, setError] = useState<APIError>()
+    const [warning, setWarning] = useState(DefaultTimerWarning)
     const [menuOpen, setMenuOpen] = useState(false)
     const [reloadFlag, setReloadFlag] = useState(0)
 
@@ -102,36 +102,6 @@ export const LactationHistTablePage = () => {
     const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
 
     useEffect(() => onReload(), [onReload, reloadFlag])
-
-    useEffect(() => {
-        if (!deleteId) return
-        deleteLactation(deleteId)
-            .then(() => {
-                setRows(prev => prev.filter(item => item.id != deleteId))
-                setError(undefined)
-                setWarning(undefined)
-                setDeleteId(undefined)
-            })
-            .catch((err) => {
-                if (err.kind == CONFLICT_WARNING) {
-                    setWarning(err)
-                    return
-                }
-                setError(err)
-            })
-    }, [deleteId, setRows])
-
-    const deleteWithEntries = useCallback(() => {
-        if (!deleteId) return
-        deleteLactationAndEntries(deleteId)
-            .then(() => {
-                setRows(prev => prev.filter(item => item.id != deleteId))
-                setError(undefined)
-                setWarning(undefined)
-            })
-            .catch((error) => setError(error))
-            .finally(() => setDeleteId(undefined))
-    }, [deleteId, setRows])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: defaultSort },
@@ -162,14 +132,14 @@ export const LactationHistTablePage = () => {
                     </Button>
                     <OptionsMenu
                         openMenu={menuOpen}
-                        menuAnchorEl={menuAnchor.current}
+                        menuAnchorEl={menuAnchor}
                         closeMenu={() => setMenuOpen(prev => !prev)}
                         setReloadFlag={setReloadFlag}
                     />
                 </>
             )}
         />
-        <ErrorContext.Provider value={{ setError, setDeleteId }}>
+        <ErrorContext.Provider value={{ setError, setRows, setWarning }}>
             <LacTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
         </ErrorContext.Provider>
         <LacHistFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
@@ -179,16 +149,7 @@ export const LactationHistTablePage = () => {
             onClose={() => setError(undefined)}
             openError={!!error}
         />
-        <YesNoDialog
-            openYesNo={!!warning}
-            title={warning?.title}
-            content={warning?.message}
-            onClose={() => {
-                setWarning(undefined)
-                setDeleteId(undefined)
-            }}
-            onYes={deleteWithEntries}
-        />
+        <TimerYesNoDialog {...warning} />
     </div>
 }
 
@@ -208,7 +169,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu }: OptionMenuProps) => 
     return <>
         <Menu
             open={openMenu}
-            anchorEl={menuAnchorEl}
+            anchorEl={menuAnchorEl.current}
             onClose={closeMenu}
         >
             <MenuItem onClick={() => setOpenStartLac(true)}>
@@ -239,45 +200,26 @@ type EntriesTableProps = {
 
 const LacTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTableProps) => {
 
-    const [tableWidth, setTableWidth] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setTableWidth(table.offsetWidth)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
     return <TableVirtuoso
-        scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
         components={useVirtuosoComponents(11)}
         endReached={fetchNextPage}
-        fixedHeaderContent={() => {
-
-            const unit = tableWidth / 100
-
-            return <TableHeadRow>
-                <VirtuosoHeadCell width={unit * 10} />
-                <VirtuosoResizeHeadCell width={unit * 15}>Vaca</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Bezerro</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Início de Lactação</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Fim de Lactação</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 18}>Intervalo entre Lactações (dias)</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Período em Lactação (dias)</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Média de Produção Diária</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Pico de Produção</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Total Produzido</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 25}>Observações</VirtuosoResizeHeadCell>
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <TableHeadControlCell />
+                <VirtuosoResizeHeadCell width={220}>Vaca</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={300}>Bezerro</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Início de Lactação</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Fim de Lactação</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={200}>Intervalo entre Lactações</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={180}>Período em Lactação</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={180}>Média de Produção</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={80}>Pico</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Total Produzido</VirtuosoResizeHeadCell>
+                <VirtuosoHeadCell width={600}>Observações</VirtuosoHeadCell>
             </TableHeadRow>
-
-        }}
+        )}
         fixedFooterContent={() => (
             <TableFooterRow colSpan={11}>
                 <FooterContent title="Total" content={foot.totalLacs} />
@@ -302,21 +244,43 @@ const LacRow = ({ item, loading }: LacRowProps) => {
 
     const [rowData, setRowData] = useState<LactationHist>(item)
     const [editing, setEditing] = useState(false)
+    const [loadingControls, setLoadingControls] = useState(false)
+
     const { setPageProps } = useContext(PageContext)
-    const { setDeleteId } = useContext(ErrorContext)
+    const { setRows, setError, setWarning } = useContext(ErrorContext)
 
     useEffect(() => setRowData(item), [item])
 
     if (loading) return <TableLoadingCells colSpan={11} />
     if (editing) return <LacRowEditing {...{ rowData, setEditing, setRowData }} />
 
-    const onDelete = () => setDeleteId(rowData.id)
+    const deleteLac = () => {
+        setLoadingControls(true)
+        deleteLactation(rowData.id)
+            .then(() => {
+                setRows(rows => rows.filter(item => item.id != rowData.id))
+                setError(undefined)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }
+
+    const onDelete = () => setWarning({
+        openYesNo: true,
+        waitTime: 10,
+        title: GROUP_DELETE_TITLE,
+        content: `Ao confirmar, todas as marcações da ${rowData.animalName}, dos dias ${dateTransform(rowData.startDate)} ` +
+                `até ${rowData.endDate ? dateTransform(rowData.endDate) : 'hoje'}, serão excluídas. Deseja continuar?`,
+        onClose: () => setWarning(DefaultTimerWarning),
+        onYes: deleteLac
+    })
 
     return <>
         <TableBodyCell>
             <EditControlButtons
                 setEditing={setEditing}
                 onDelete={onDelete}
+                loading={loadingControls}
                 onShow={() => {
                     const startDate = dateTransform(rowData.startDate)
                     const endDate = rowData.endDate ? ` Fim: ${dateTransform(rowData.endDate)}` : ""
@@ -325,7 +289,7 @@ const LacRow = ({ item, loading }: LacRowProps) => {
                         page: <LactationEntriesTablePage {...{ lacId: rowData.id }} />,
                         previousPages: [HomePage, MilkDashboardPage, LactationHistPage]
                     }
-                    if (setPageProps) setPageProps(page)
+                    setPageProps(page)
                 }}
             />
         </TableBodyCell>

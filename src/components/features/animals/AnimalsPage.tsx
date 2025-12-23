@@ -1,8 +1,7 @@
 import { CowHeadIcon } from "@shared/common/OtherIcons";
 import { PageProps } from "@shared/main-page/PageDisplay";
 import { HomePage } from "@features/home/HomePage";
-import { AnimalsDashboard } from "./dashboard/AnimalsDashboard";
-import { AnimalsTable } from "./table/AnimalTable";
+import { AnimalsDashboard } from "./AnimalsDashboard";
 
 export const AnimalDashboardPage: PageProps = {
     title: "Animais",
@@ -13,6 +12,6 @@ export const AnimalDashboardPage: PageProps = {
 
 export const AnimalTablePage: PageProps = {
     title: "Histórico de Rebanho",
-    page: <AnimalsTable />,
+    page: <div />,
     previousPages: [HomePage, AnimalDashboardPage]
 }

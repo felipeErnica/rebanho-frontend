@@ -63,7 +63,7 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                 <FormDatePicker
                     label="Data de Início"
                     disableFuture
-                    className="w-[200]"
+                    className="w-[150px]"
                     formProps={{
                         control,
                         name: 'startDate',
@@ -74,7 +74,7 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                     <FormSearchBox
                         label="Pasto"
                         searchOptions={searchPastures}
-                        className="w-[350]"
+                        className="w-[400px]"
                         formProps={{
                             control,
                             disabled: noPasture,
@@ -99,7 +99,7 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                         rules: { required: REQUIRED_FIELD_MSG }
                     }}
                     label="Vaca"
-                    className="w-[400]"
+                    className="w-[400px]"
                     searchOptions={searchDryAnimals}
                 />
                 <div className="flex flex-col">
@@ -111,7 +111,7 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                             rules: { required: REQUIRED_FIELD_MSG }
                         }}
                         label="Bezerro"
-                        className="w-[400]"
+                        className="w-[400px]"
                         searchOptions={searchCalfs}
                     />
                     <FormControlLabel
@@ -127,10 +127,11 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                 </div>
                 <FormTextField
                     label="Observações"
+                    variant="outlined"
                     formProps={{ name: 'observation', control }}
                     multiline
                     maxRows={5}
-                    rows={3}
+                    rows={5}
                 />
             </DialogContainer>
         </DialogContent>

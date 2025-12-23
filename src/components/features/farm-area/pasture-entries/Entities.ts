@@ -10,6 +10,13 @@ export type PastureEntry = {
     entryDate?: Date
 }
 
+export type PastureEntrySave = {
+    id?: string
+    pastureId: string
+    animalId: string
+    entryDate?: Date
+}
+
 export type PastureEntriesFilter = {
     isFiltered: boolean
     animalRingNumber?: string

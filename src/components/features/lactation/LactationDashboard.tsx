@@ -10,12 +10,13 @@ import {
 } from "@shared/dashboard/DashboardComponents"
 import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
-import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import {
     AnimalsAverageHist as AnimalsNumberHist,
     AnimalsRating,
     AverageMilkHist,
     LactationGroup,
+    LactationGroupSave,
     MilkEntry,
     MilkProductionHist,
     ParentsRating,
@@ -33,6 +34,8 @@ import {
     getRankedAnimals,
     getMilkProduction,
     deleteMilkEntry,
+    deleteMilkGroup,
+    updateMilkGroup,
 } from "./Controller"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
@@ -50,7 +53,7 @@ import { EditControlButtons, EditingControlButtons } from "@shared/table/Control
 import { PageProps } from "@shared/main-page/PageDisplay"
 import { GroupTablePage } from "./MilkGroupTable"
 import { HomePage } from "../home/HomePage"
-import { LactationHistPage, MilkDashboardPage, MilkEntriesPage } from "./LactationPages"
+import { LactationHistPage, MilkDashboardPage, MilkEntriesPage, MilkGroupsPage } from "./LactationPages"
 import { PageContext } from "@shared/main-page/PageContext"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
@@ -71,11 +74,14 @@ import {
     LineHighlightPlot,
     LinePlot
 } from "@mui/x-charts"
-import { LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
+import { DefaultTimerWarning, GROUP_DELETE_TITLE, GROUP_UPDATE_TITLE, LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { green, yellow } from "@mui/material/colors"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import { EndLactationDialog } from "./EndLactationDialog"
 import { AddLacDialog } from "./AddLactationDialog"
+import { APIError } from "@/utils/ApiRequest"
+import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
+import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
 
 export const LactationDashboard = () => {
 
@@ -163,13 +169,19 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
                 Secar Vacas
             </MenuItem>
             <Divider />
-            <MenuItem onClick={() => setPageProps && setPageProps(MilkEntriesPage)}>
+            <MenuItem onClick={() => setPageProps(MilkEntriesPage)}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Histórico de Leite
             </MenuItem>
-            <MenuItem onClick={() => setPageProps && setPageProps(LactationHistPage)}>
+            <MenuItem onClick={() => setPageProps(MilkGroupsPage)}>
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Dias de Marcação
+            </MenuItem>
+            <MenuItem onClick={() => setPageProps(LactationHistPage)}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
@@ -342,18 +354,29 @@ const AnimalsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInforma
     </DashboardCard>
 }
 
+type EditContextProps = {
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setWarning: Dispatch<SetStateAction<TimerYesNoDialogProps>>
+    setRows: Dispatch<SetStateAction<LactationGroup[]>>
+}
+
+const EditContext = createContext<EditContextProps>(undefined!)
+
 const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const [data, setData] = useState<LactationGroup[]>([])
+    const [rows, setRows] = useState<LactationGroup[]>([])
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<APIError>()
+    const [warning, setWarning] = useState(DefaultTimerWarning)
+
     const { setPageProps } = useContext(PageContext)
 
     useEffect(() => {
         startLoading()
         setLoading(true)
         getLastGroups()
-            .then(response => setData(response))
-            .catch(() => setData([]))
+            .then(response => setRows(response))
+            .catch(() => setRows([]))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
@@ -362,59 +385,27 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
 
     return <DashboardCard className="col-span-3">
         <CardDefaultTitle text="As Últimas Marcações" />
-        <Table size="small" stickyHeader>
-            <TableHead>
-                <TableRow>
-                    <TableCell />
-                    <TableCell>Data da Marcação</TableCell>
-                    <TableCell>Nº de Animais</TableCell>
-                    <TableCell>Leite Produzido</TableCell>
-                    <TableCell>Média de Produção</TableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                <DashboardTableBody
-                    colSpan={5}
-                    dataset={data}
-                    loading={loading}
-                    render={item => (
-                        <TableRow>
-                            <TableCell>
-                                <EditControlButtons
-                                    onShow={() => {
-                                        const pageProps: PageProps = {
-                                            title: `Leite - ${dateTransform(item.entryDate)}`,
-                                            page: <GroupEntriesTablePage {...{ entryDate: item.entryDate }} />,
-                                            previousPages: [HomePage, MilkDashboardPage]
-                                        }
-                                        if (setPageProps) setPageProps(pageProps)
-                                    }}
-                                />
-                            </TableCell>
-                            <TableCell>{dateTransform(item.entryDate)}</TableCell>
-                            <TableCell>
-                                <TrendValues
-                                    value={item.animalsNumber}
-                                    trendProps={{ trend: item.numberDifference, text: item.numberDifference.toString() }}
-                                />
-                            </TableCell>
-                            <TableCell>
-                                <TrendValues
-                                    value={decimalTransform(item.totalMilk, 1)}
-                                    trendProps={{ trend: item.totalRate }}
-                                />
-                            </TableCell>
-                            <TableCell>
-                                <TrendValues
-                                    value={decimalTransform(item.averageMilk)}
-                                    trendProps={{ trend: item.averageRate }}
-                                />
-                            </TableCell>
-                        </TableRow>
-                    )}
-                />
-            </TableBody>
-        </Table>
+        <EditContext.Provider value={{ setError, setWarning, setRows }}>
+            <Table size="small" stickyHeader>
+                <TableHead>
+                    <TableRow>
+                        <TableCell />
+                        <TableCell>Data da Marcação</TableCell>
+                        <TableCell>Nº de Animais</TableCell>
+                        <TableCell>Leite Produzido</TableCell>
+                        <TableCell>Média de Produção</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    <DashboardTableBody
+                        colSpan={5}
+                        dataset={rows}
+                        loading={loading}
+                        render={item => <GroupsRow {...{ loading, item }} />}
+                    />
+                </TableBody>
+            </Table>
+        </EditContext.Provider>
         <Button
             className="ml-auto"
             variant="text"
@@ -430,7 +421,161 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
         >
             Ver Mais...
         </Button>
+        <ErrorDialog 
+            openError={!!error}
+            title={error?.title}
+            content={error?.message}
+            onClose={() => setError(undefined)}
+        />
+        <TimerYesNoDialog {...warning} />
     </DashboardCard>
+}
+
+type GroupsRowProps = {
+    item: LactationGroup
+    loading: boolean
+}
+
+const GroupsRow = ({ item }: GroupsRowProps) => {
+
+    const [rowData, setRowData] = useState<LactationGroup>(item)
+    const [editing, setEditing] = useState(false)
+    const [loading, setLoading] = useState(false)
+
+    const { setPageProps } = useContext(PageContext)
+    const { setError, setWarning, setRows } = useContext(EditContext)
+
+    useEffect(() => setRowData(item), [item])
+
+    if (editing) return <GroupsRowEditing {...{ rowData, setEditing, setRowData }} />
+
+    const deleteGroup = () => {
+        setLoading(true)
+        deleteMilkGroup(rowData.entryDate)
+            .then(() => {
+                setRows(rows => rows.filter(item => item.entryDate != rowData.entryDate))
+                setError(undefined)
+            })
+            .catch(err => setError(err))
+            .finally(() => {
+                setLoading(false)
+                setWarning(DefaultTimerWarning)
+            })
+    }
+
+    const onDelete = () => {
+        setWarning({
+            openYesNo: true,
+            waitTime: 10,
+            title: GROUP_DELETE_TITLE,
+            content: `Ao confirmar, ${rowData.animalsNumber} registros de leite serão excluídos!`,
+            onClose: () => setWarning(DefaultTimerWarning),
+            onYes: () => deleteGroup()
+        })
+    }
+
+    return <TableRow>
+        <TableCell>
+            <EditControlButtons
+                setEditing={setEditing}
+                onDelete={onDelete}
+                loading={loading}
+                onShow={() => {
+                    const page: PageProps = {
+                        title: `Leite - ${dateTransform(rowData.entryDate)}`,
+                        page: <GroupEntriesTablePage {...{ entryDate: rowData.entryDate }} />,
+                        previousPages: [HomePage, MilkDashboardPage, MilkGroupsPage]
+                    }
+                    setPageProps(page)
+                }}
+            />
+        </TableCell>
+        <TableCell>{dateTransform(rowData.entryDate)}</TableCell>
+        <TableCell>
+            <TrendValues
+                value={rowData.animalsNumber}
+                trendProps={{ trend: rowData.numberDifference, text: rowData.numberDifference.toString() }}
+            />
+        </TableCell>
+        <TableCell>
+            <TrendValues
+                value={decimalTransform(rowData.totalMilk)}
+                trendProps={{ trend: rowData.totalRate }}
+            />
+        </TableCell>
+        <TableCell>
+            <TrendValues
+                value={decimalTransform(rowData.averageMilk)}
+                trendProps={{ trend: rowData.averageRate }}
+            />
+        </TableCell>
+    </TableRow>
+}
+
+type GroupsRowEditingProps = {
+    rowData: LactationGroup
+    setRowData: (rowData: LactationGroup) => void
+    setEditing: (editing: boolean) => void
+}
+
+const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingProps) => {
+
+    const [loading, setLoading] = useState(false)
+
+    const { control, handleSubmit } = useForm<LactationGroupSave>({ defaultValues: rowData })
+    const { setError, setWarning } = useContext(EditContext)
+
+    const onSubmit: SubmitHandler<LactationGroupSave> = (data: LactationGroupSave) => {
+        setLoading(true)
+        updateMilkGroup(rowData.entryDate, data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => {
+                setLoading(false)
+                setWarning(DefaultTimerWarning)
+            })
+    }
+
+    const onSave = () => {
+        setWarning({
+            openYesNo: true,
+            title: GROUP_UPDATE_TITLE,
+            content: `Ao confirmar, ${rowData.animalsNumber} registros terão a data modificada! Deseja continuar?`,
+            waitTime: 10,
+            onYes: handleSubmit(onSubmit),
+            onClose: () => setWarning(DefaultTimerWarning),
+        })
+    }
+
+    return <TableRow>
+        <TableCell>
+            <EditingControlButtons {...{ onSave, setEditing, loading }} />
+        </TableCell>
+        <TableCell>
+            <FormDatePicker formProps={{ control, name: 'entryDate' }} />
+        </TableCell>
+        <TableCell>
+            <TrendValues
+                value={rowData.animalsNumber}
+                trendProps={{ trend: rowData.numberDifference, text: rowData.numberDifference.toString() }}
+            />
+        </TableCell>
+        <TableCell>
+            <TrendValues
+                value={decimalTransform(rowData.totalMilk)}
+                trendProps={{ trend: rowData.totalRate }}
+            />
+        </TableCell>
+        <TableCell>
+            <TrendValues
+                value={decimalTransform(rowData.averageMilk)}
+                trendProps={{ trend: rowData.averageRate }}
+            />
+        </TableCell>
+    </TableRow>
 }
 
 const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag }: DashboardInformationProps) => {
@@ -768,9 +913,9 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
     }, [reloadFlag, startLoading, stopLoading, rankBy])
 
     return <DashboardCard className="h-[500]">
-        <div className="flex flex-row gap-4">
+        <div className="flex flex-row">
             <ComboBox
-                className="w-[300]"
+                className="w-[300px]"
                 variant="standard"
                 size="small"
                 value={rankBy}
@@ -781,7 +926,7 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 className="ml-auto"
                 variant="text"
                 startIcon={<ChevronRight />}
-                onClick={() => setPageProps && setPageProps(LactationHistPage)}
+                onClick={() => setPageProps(LactationHistPage)}
             >
                 Ver Histórico de Lactação
             </Button>
@@ -865,9 +1010,9 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
     }, [reloadFlag, startLoading, stopLoading, rankBy])
 
     return <DashboardCard className="h-[500]">
-        <div className="flex flex-row gap-4">
+        <div className="flex flex-row">
             <ComboBox
-                className="w-[300]"
+                className="w-[300px]"
                 variant="standard"
                 size="small"
                 value={rankBy}

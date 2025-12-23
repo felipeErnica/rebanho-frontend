@@ -1,16 +1,16 @@
-import { 
-    createContext, 
-    Dispatch, 
-    RefObject, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useMemo, 
-    useRef, 
-    useState 
+import {
+    createContext,
+    Dispatch,
+    RefObject,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
 } from "react"
-import { MilkEntry, MilkEntryFilter, MilkEntryFoot } from "./Entities"
+import { MilkEntry, MilkEntryFilter, MilkEntryFoot, MilkEntrySave } from "./Entities"
 import { deleteMilkEntry, findEntriesPage, getEntriesPageFoot, updateMilkEntry } from "./Controller"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
@@ -20,6 +20,7 @@ import {
     FooterContent,
     TableBodyCell,
     TableFooterRow,
+    TableHeadControlCell,
     TableHeadRow,
     TableLoadingCells,
     VirtuosoHeadCell
@@ -37,7 +38,7 @@ import { ErrorDialog } from "@shared/dialog/DialogComponents"
 import { APIError } from "@utils/ApiRequest"
 
 type ErrorContextProps = {
-    setApiError: Dispatch<SetStateAction<APIError | undefined>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
 }
 
 const ErrorContext = createContext<ErrorContextProps>(undefined!)
@@ -59,7 +60,7 @@ export const MilkEntriesTablePage = () => {
     const [order, setOrder] = useState('desc')
     const [foot, setFoot] = useState(defaultFoot)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
-    const [apiError, setApiError] = useState<APIError>()
+    const [error, setError] = useState<APIError>()
 
     const anchorEl = useRef<HTMLButtonElement>(null)
 
@@ -107,11 +108,11 @@ export const MilkEntriesTablePage = () => {
                 </Button>
             )}
         />
-        <ErrorContext.Provider value={{ setApiError }}>
+        <ErrorContext.Provider value={{ setError }}>
             <EntriesTable {...{ rows, foot, loading, scrollRef, fetchNextPage, onDelete }} />
         </ErrorContext.Provider>
         <MilkEntriesFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
-        <AddMilkEntryDialog 
+        <AddMilkEntryDialog
             addMilkEntryOpen={addMilkEntryOpen}
             onClose={(added: boolean) => {
                 setAddMilkEntryOpen(false)
@@ -119,10 +120,10 @@ export const MilkEntriesTablePage = () => {
             }}
         />
         <ErrorDialog
-            openError={!!apiError}
-            onClose={() => setApiError(undefined)}
-            title={apiError?.title}
-            content={apiError?.message}
+            openError={!!error}
+            onClose={() => setError(undefined)}
+            title={error?.title}
+            content={error?.message}
         />
     </div>
 }
@@ -138,39 +139,20 @@ type EntriesTableProps = {
 
 const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot, onDelete }: EntriesTableProps) => {
 
-    const [tableWidth, setTableWidth] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setTableWidth(table.offsetWidth)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
     return <TableVirtuoso
-        scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
         components={useVirtuosoComponents(5)}
         endReached={fetchNextPage}
-        fixedHeaderContent={() => {
-
-            const unit = tableWidth / 100
-
-            return <TableHeadRow>
-                <VirtuosoHeadCell width={unit * 10} />
-                <VirtuosoHeadCell width={unit * 20}>Vaca</VirtuosoHeadCell>
-                <VirtuosoHeadCell width={unit * 20}>Data da Marcação</VirtuosoHeadCell>
-                <VirtuosoHeadCell width={unit * 30}>Pasto</VirtuosoHeadCell>
-                <VirtuosoHeadCell width={unit * 20}>Quantidade</VirtuosoHeadCell>
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <TableHeadControlCell />
+                <VirtuosoHeadCell>Vaca</VirtuosoHeadCell>
+                <VirtuosoHeadCell align="center" width={400}>Data da Marcação</VirtuosoHeadCell>
+                <VirtuosoHeadCell width={500}>Pasto</VirtuosoHeadCell>
+                <VirtuosoHeadCell align="center" width={200}>Quantidade</VirtuosoHeadCell>
             </TableHeadRow>
-
-        }}
+        )}
         fixedFooterContent={() => (
             <TableFooterRow colSpan={5}>
                 <FooterContent title="Total" content={foot.animalsNumber} />
@@ -201,15 +183,15 @@ const EntriesRow = ({ item, loading, onDelete }: EntriesRowProps) => {
 
     return <>
         <TableBodyCell>
-            <EditControlButtons 
+            <EditControlButtons
                 setEditing={setEditing}
                 onDelete={() => onDelete(item.id)}
             />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
-        <TableBodyCell>{dateTransform(rowData.entryDate)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
         <TableBodyCell>{rowData.pastureName}</TableBodyCell>
-        <TableBodyCell>{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
     </>
 }
 
@@ -223,18 +205,17 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
 
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit } = useForm<MilkEntry>({ defaultValues: rowData })
-    const { setApiError } = useContext(ErrorContext)
+    const { control, handleSubmit } = useForm<MilkEntrySave>({ defaultValues: rowData })
+    const { setError } = useContext(ErrorContext)
 
-    const onSubmit: SubmitHandler<MilkEntry> = (data: MilkEntry) => {
+    const onSubmit: SubmitHandler<MilkEntrySave> = (data: MilkEntrySave) => {
         setLoading(true)
-        data.quantity = Number(data.quantity)
         updateMilkEntry(data)
             .then(response => {
                 setRowData(response)
                 setEditing(false)
             })
-            .catch((error) => setApiError(error))
+            .catch((error) => setError(error))
             .finally(() => setLoading(false))
     }
 
@@ -245,11 +226,11 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <FormDatePicker formProps={{ control, name: 'entryDate' }} />
         </TableBodyCell>
         <TableBodyCell>{rowData.pastureName}</TableBodyCell>
-        <TableBodyCell>
+        <TableBodyCell align="center">
             <FormTextField
                 type="number"
                 formProps={{ control, name: 'quantity' }}

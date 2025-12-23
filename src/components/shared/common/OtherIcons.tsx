@@ -12,8 +12,8 @@ export const FarmIcon = () => {
         xmlSpace="preserve"
         fill="currentColor"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <g>
                 <path
@@ -59,8 +59,8 @@ export const FarmMainIcon = () => {
         aria-hidden="true"
         xmlns="http://www.w3.org/2000/svg"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <path d="m 10.652174,1.117445 -1.460768,0.573709 -0.8870582,0.913043 0,1.1464 c -0.038231,-0.0017 -0.2508524,-0.0081 
                 -0.5217391,-0.01427 l 0,-0.245074 c 0,-0.156522 -0.1043478,-0.26087 -0.2608696,-0.26087 -0.1565217,0 -0.2608695,0.104348 
@@ -112,8 +112,8 @@ export const FenceIcon = () => {
         viewBox="0 0 41.263 41.264"
         xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <g>
                 <g>
@@ -146,8 +146,8 @@ export const CowHeadIcon = (): JSX.Element => {
         viewBox="0 0 512 512"
         xmlSpace="preserve"
         fill="currentColor">
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier"><g>
             <path fill="currentColor"
                 d="M426.031,156.824c6.125-9.891,10.438-20.141,12.422-30.188c7.953-40.094-17.984-86.156-63.75-103.547 
@@ -474,8 +474,8 @@ export const BullIcon = () => {
         viewBox="0 0 588.619 588.619"
         xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <g>
                 <g>
@@ -558,8 +558,8 @@ export const CowIcon = () => {
         xmlnsXlink="http://www.w3.org/1999/xlink"
         viewBox="0 0 475.695 475.696" xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"> </g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"> </g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <g>
                 <polygon points="473.006,155.496 421.754,102.028 444.061,87.801 445.363,76.713 435.016,76.096 408.182,95.397 374.697,95.426 
@@ -590,8 +590,8 @@ export const InseminationIcon = () => {
         viewBox="0 0 208.776 208.776"
         xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <path d="M203.289,50.917L149.938,1.848c-2.822-2.596-7.208-2.438-9.836,0.354l-1.647,1.75c-2.671,2.838-2.51,7.312,0.359,9.95 
                 l1.148,1.055L11.517,151.411c-5.63,5.98-8.567,13.795-8.271,22.003s3.788,15.791,9.833,21.351l6.479,5.96 
@@ -614,8 +614,8 @@ export const ReproductionIcon = () => {
         xmlnsXlink="http://www.w3.org/1999/xlink"
         viewBox="0 0 207.062 207.062" xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <path d="M206.324,44.826c-0.635-0.629-1.556-0.875-2.417-0.638l-41.751,11.354c-0.862,0.234-1.533,0.91-1.761,1.774 
                 c-0.228,0.863,0.022,1.783,0.656,2.412l7.061,7.009l-6.455,6.48c-6.772-4.53-14.451-7.603-22.501-8.977 
@@ -656,8 +656,8 @@ export const BirthTestIcon = () => {
         viewBox="0 0 210.26 210.26"
         xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <path d="M178.824,32.695L146.763,0.635c-0.846-0.846-2.218-0.846-3.064,0l-1.908,1.908c-0.846,0.846-0.846,2.218,0,3.064l2.03,2.03 
                 L79.835,71.623l-2.03-2.03c-0.846-0.846-2.218-0.846-3.064,0l-1.908,1.908c-0.846,0.846-0.846,2.218,0,3.064l32.061,32.061 
@@ -685,8 +685,8 @@ export const PregnancyLossIcon = () => {
         width={24}
         xmlns="http://www.w3.org/2000/svg"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier"> <title>desert-skull</title>
             <path d="M29.675 5.672c-0.496 6.193-4.838 4.911-4.838 0.634h-0c0-3.378-3.592-4.621-4.712-0.885-2.528-2.585-5.845-2.54-8.347 
                 0.133-1.058-3.951-4.762-2.723-4.762 0.707 0 4.278-4.342 5.559-4.838-0.634-2.32 2.631-2.031 5.597 0.077 7.705 1.519 1.519 
@@ -709,8 +709,8 @@ export const SlaughterIcon = () => {
         width={24}
         fill="currentColor"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <path
                 fill="currentColor"
@@ -733,8 +733,8 @@ export const SlaughterhouseIcon = () => {
         width={24}
         xmlns="http://www.w3.org/2000/svg"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <path d="M17 10V6l-5 4V6l-5 4V4H2v16h20V6l-5 4zm-8 7H7v-3h2v3zm5 0h-2v-3h2v3zm5 0h-2v-3h2v3z"></path>
         </g>
@@ -752,8 +752,8 @@ export const EmbryoIcon = () => {
         xmlnsXlink="http://www.w3.org/1999/xlink"
         viewBox="0 0 512 512" xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <g>
                 <g>
@@ -789,8 +789,8 @@ export const LactationIcon = () => {
         viewBox="0 0 550.9 550.9"
         xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <g>
                 <path d="M275.15,133.5L275.15,133.5c-102.2,0-185.4,28.8-185.4,63.6l43.5,304.8c0,26.899,63.6,49,142,49c78.4,0,142-22,142-49 
@@ -817,8 +817,8 @@ export const LactationHistIcon = () => {
         viewBox="0 0 512 512"
         xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <g>
                 <g>
@@ -892,8 +892,8 @@ export const MilkIcon = () => {
         viewBox="0 0 513.021 513.021"
         xmlSpace="preserve"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <g>
                 <g>
@@ -928,12 +928,12 @@ export const MaximizeIcon = () => {
         width={15}
         fill="none"
         xmlns="http://www.w3.org/2000/svg">
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
             <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
+                fillRule="evenodd"
+                clipRule="evenodd"
                 d="M22 5C22 3.34315 20.6569 2 19 2H5C3.34315 2 2 3.34315 2 5V19C2 20.6569 3.34315 22 5 22H19C20.6569 22 22 20.6569 22 
                 19V5ZM20 5C20 4.44772 19.5523 4 19 4H5C4.44772 4 4 4.44772 4 5V19C4 19.5523 4.44772 20 5 20H19C19.5523 20 20 
                 19.5523 20 19V5Z"
@@ -951,8 +951,8 @@ export const MinimizeIcon = () => {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
     >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
         <g id="SVGRepo_iconCarrier"> <path d="M6 11H18V13H6V11Z" fill="currentColor"></path> </g>
     </svg>
 }
