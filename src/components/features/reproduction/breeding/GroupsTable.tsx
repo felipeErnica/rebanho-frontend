@@ -21,12 +21,8 @@ import {
     TrendValues
 } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { PageContext } from "@shared/main-page/PageContext"
-import { AppRoute } from "@shared/main-page/PageDisplay"
+import { useNavigate } from "react-router"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
-import { HomePage } from "@features/home/HomePage"
-import { GroupsTablePageProps, BreedingMainPage } from "./BreedingPages"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
@@ -90,7 +86,7 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
     const [breedingDate, setBreedingDate] = useState<Date>()
 
     const tableRef = useRef<HTMLDivElement>(null)
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     const loadRows = useCallback(() => {
         setLoading(true)
@@ -130,7 +126,7 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
                     </TableHeadRow>
                 </TableHead>
                 <TableBody>
-                    {rows.map(item => <GroupsRow {...{ item, loading, setPageProps }} />)}
+                    {rows.map(item => <GroupsRow {...{ item, loading, navigate }} />)}
                 </TableBody>
             </Table>
         </EditContext.Provider>
@@ -148,10 +144,10 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
 type GroupsRowProps = {
     item: BreedingGroup
     loading: boolean
-    setPageProps: ((page: AppRoute) => void) | undefined
+    navigate: ReturnType<typeof useNavigate>
 }
 
-const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
+const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
 
     const [rowData, setRowData] = useState<BreedingGroup>(item)
     const [editing, setEditing] = useState(false)
@@ -206,16 +202,8 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
                 })}
                 onShow={() => {
                     const breedingDate = new Date(item.breedingDate)
-                    const dateString = breedingDate.toLocaleDateString('pt-BR', {
-                        month: 'short',
-                        year: 'numeric'
-                    })
-                    const page: AppRoute = {
-                        page: <GroupEntriesTablePage {...{ breedingDate }} />,
-                        title: `Cobertura - ${dateString}`,
-                        previousPages: [HomePage, BreedingMainPage, GroupsTablePageProps]
-                    }
-                    if (setPageProps) setPageProps(page)
+                    const dateStr = breedingDate.toISOString().split('T')[0]
+                    navigate(`groups/${dateStr}`)
                 }}
             />
         </TableBodyCell>

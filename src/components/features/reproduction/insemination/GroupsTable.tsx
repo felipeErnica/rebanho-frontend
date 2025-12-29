@@ -20,12 +20,8 @@ import {
     TrendValues
 } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { PageContext } from "@shared/main-page/PageContext"
-import { AppRoute } from "@shared/main-page/PageDisplay"
+import { useNavigate } from "react-router"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
-import { HomePage } from "../../home/HomePage"
-import { GroupsTablePageProps, InseminationPage } from "./InseminationPages"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
@@ -117,7 +113,7 @@ const GroupsTable = ({ reload, loading, rows }: GroupsTableProps) => {
     const [unit, setUnit] = useState(0)
 
     const tableRef = useRef<HTMLDivElement>(null)
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
 
@@ -144,7 +140,7 @@ const GroupsTable = ({ reload, loading, rows }: GroupsTableProps) => {
                 </TableHeadRow>
             </TableHead>
             <TableBody>
-                {rows.map(item => <GroupsRow {...{ item, loading, setPageProps }} />)}
+                {rows.map(item => <GroupsRow {...{ item, loading, navigate }} />)}
             </TableBody>
         </Table>
     </div>
@@ -153,10 +149,10 @@ const GroupsTable = ({ reload, loading, rows }: GroupsTableProps) => {
 type GroupsRowProps = {
     item: InseminationGroup
     loading: boolean
-    setPageProps: ((page: AppRoute) => void) | undefined
+    navigate: ReturnType<typeof useNavigate>
 }
 
-const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
+const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
 
     const [rowData, setRowData] = useState<InseminationGroup>(item)
     const [editing, setEditing] = useState(false)
@@ -215,16 +211,8 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
                 )}
                 onShow={() => {
                     const inseminationDate = new Date(item.inseminationDate)
-                    const dateString = inseminationDate.toLocaleDateString('pt-BR', {
-                        month: 'short',
-                        year: 'numeric'
-                    })
-                    const page: AppRoute = {
-                        page: <GroupEntriesTablePage {...{ inseminationDate }} />,
-                        title: `Inseminação - ${dateString}`,
-                        previousPages: [HomePage, InseminationPage, GroupsTablePageProps]
-                    }
-                    if (setPageProps) setPageProps(page)
+                    const dateStr = inseminationDate.toISOString().split('T')[0]
+                    navigate(`groups/${dateStr}`)
                 }}
             />
         </TableBodyCell>

@@ -41,11 +41,7 @@ import { EditControlButtons, EditingControlButtons } from "@shared/table/Control
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { PageContext } from "@shared/main-page/PageContext"
-import { WeightEntriesPage, WeightGroupsPage, WeightMainPage } from "./WeightPages"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { WeightGroupEntriesTable } from "./WeightGroupEntriesTable"
-import { HomePage } from "../home/HomePage"
+import { useNavigate } from "react-router"
 import Add from "@mui/icons-material/Add"
 import { AddWeightDialog } from "./AddWeightDialog"
 import ExpandMore from "@mui/icons-material/ExpandMore"
@@ -91,8 +87,7 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
 const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionMenuProps) => {
 
     const [addWeightOpen, setAddWeightOpen] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     const closeAddWeight = (added?: boolean) => {
         if (added) setReloadFlag(prev => prev + 1)
@@ -112,13 +107,13 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 Adicionar Pesagem
             </MenuItem>
             <Divider />
-            <MenuItem onClick={() => setPageProps(WeightEntriesPage)}>
+            <MenuItem onClick={() => navigate("entries")}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Histórico Geral
             </MenuItem>
-            <MenuItem onClick={() => setPageProps(WeightGroupsPage)}>
+            <MenuItem onClick={() => navigate("groups")}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
@@ -308,8 +303,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
     const [lastDate, setLastDate] = useState<string>("Sem Data")
     const [entryDate, setEntryDate] = useState<Date>()
     const [loading, setLoading] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         setLoading(true)
@@ -359,12 +353,8 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             endIcon={<ChevronRight />}
             onClick={() => {
                 if (!entryDate) return
-                const page: AppRoute = {
-                    title: `Pesagem - ${lastDate}`,
-                    page: <WeightGroupEntriesTable {...{ entryDate }} />,
-                    previousPages: [HomePage, WeightMainPage]
-                }
-                setPageProps(page)
+                const dateStr = entryDate.toISOString().split('T')[0]
+                navigate(`groups/${dateStr}`)
             }}
         >
             Ver Mais...
@@ -501,8 +491,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
 
     const [results, setResults] = useState<WeightGroup[]>([])
     const [loading, setLoading] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         setLoading(true)
@@ -539,13 +528,8 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                 <EditControlButtons
                                     onShow={() => {
                                         const entryDate = new Date(row.entryDate)
-                                        const dateStr = entryDate.toLocaleDateString("pt-BR", { dateStyle: 'short' })
-                                        const newPage: AppRoute = {
-                                            title: `Peso - ${dateStr}`,
-                                            page: <WeightGroupEntriesTable {...{ entryDate }} />,
-                                            previousPages: [HomePage, WeightMainPage]
-                                        }
-                                        if (setPageProps) setPageProps(newPage)
+                                        const dateStr = entryDate.toISOString().split('T')[0]
+                                        navigate(`groups/${dateStr}`)
                                     }}
                                 />
                             </TableCell>
@@ -571,7 +555,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
         <div className="flex flex-row-reverse">
             <Button
                 endIcon={<ChevronRight />}
-                onClick={() => setPageProps && setPageProps(WeightGroupsPage)}
+                onClick={() => navigate("groups")}
             >
                 Ver Mais...
             </Button>

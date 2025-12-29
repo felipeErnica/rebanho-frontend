@@ -76,9 +76,7 @@ import {
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { PageContext } from "@shared/main-page/PageContext"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { HomePage } from "@features/home/HomePage"
+import { useNavigate } from "react-router"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
 import { orange, yellow } from "@mui/material/colors"
@@ -86,11 +84,8 @@ import { CardEntry } from "@utils/Entities"
 import { EditRowProps, TableRowProp } from "@shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-import { GroupsTablePageProps, TransferMainPage } from "./EmbryoTransferPages"
 import { TrendValues } from "@shared/table/TableComponents"
 import { AddTransferDialog } from "./AddTransferDialog"
-import { EntriesTablePage } from "./EntriesTable"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
 import { ErrorDialog, TimerYesNoDialog } from "@shared/dialog/DialogComponents"
 import { APIError } from "@utils/ApiRequest"
@@ -162,8 +157,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu: handleClose, setReload
     const [addEmbryoDonorOpen, setAddEmbryoDonorOpen] = useState(false)
     const [addCowOpen, setAddCowOpen] = useState(false)
     const [addBullOpen, setAddBullOpen] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     const closeAddTransfer = (added?: boolean) => {
         if (added) setReloadFlag(prev => prev + 1)
@@ -228,14 +222,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu: handleClose, setReload
             </MenuItem>
             <Divider />
             <MenuItem
-                onClick={() => {
-                    const page: AppRoute = {
-                        page: <EntriesTablePage />,
-                        title: "Histórico de Transferências",
-                        previousPages: [HomePage, TransferMainPage]
-                    }
-                    setPageProps(page)
-                }}
+                onClick={() => navigate("entries")}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -243,7 +230,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu: handleClose, setReload
                 Histórico Geral
             </MenuItem>
             <MenuItem
-                onClick={() => setPageProps(GroupsTablePageProps)}
+                onClick={() => navigate("groups")}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -614,7 +601,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     const [loading, setLoading] = useState(false)
     const [transferDate, setInseminationDate] = useState(new Date())
     const [lastDate, setLastDate] = useState('Sem dados')
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         startLoading()
@@ -668,12 +655,8 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             className="ml-auto"
             startIcon={<ChevronRight />}
             onClick={() => {
-                const page: AppRoute = {
-                    page: <GroupEntriesTablePage {...{ transferDate }} />,
-                    title: `Transferência - ${lastDate}`,
-                    previousPages: [HomePage, TransferMainPage]
-                }
-                setPageProps(page)
+                const dateStr = transferDate.toISOString().split('T')[0]
+                navigate(`groups/${dateStr}`)
             }}
         >
             Ver Mais...
@@ -762,8 +745,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
 
     const [data, setData] = useState<TransferGroup[]>([])
     const [loading, setLoading] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
     const { setReloadFlag } = useContext(ReloadContext)
 
     const [group, setGroup] = useState<TransferGroup>()
@@ -823,16 +805,8 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                                     )}
                                     onShow={() => {
                                         const transferDate = new Date(item.transferDate)
-                                        const date = transferDate.toLocaleDateString('pt-BR', {
-                                            month: 'short',
-                                            year: 'numeric'
-                                        })
-                                        const page: AppRoute = {
-                                            page: <GroupEntriesTablePage {...{ transferDate }} />,
-                                            title: `Transferência - ${date}`,
-                                            previousPages: [HomePage, TransferMainPage]
-                                        }
-                                        if (setPageProps) setPageProps(page)
+                                        const dateStr = transferDate.toISOString().split('T')[0]
+                                        navigate(`groups/${dateStr}`)
                                     }}
                                 />
                             </TableCell>
@@ -858,7 +832,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         <Button
             className="ml-auto"
             endIcon={<ChevronRight />}
-            onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+            onClick={() => navigate("groups")}
         >
             Ver Mais...
         </Button>

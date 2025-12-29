@@ -9,19 +9,15 @@ import {
 } from "@shared/table/TableComponents"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { SlaughterGroup } from "./Entities"
-import { useCallback, useContext, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { findGroups } from "./Controller"
-import { PageContext } from "@shared/main-page/PageContext"
 import Table from "@mui/material/Table"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TableBody from "@mui/material/TableBody"
 import { EditControlButtons } from "@shared/table/ControlButtons"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
-import { HomePage } from "../home/HomePage"
-import { SlaughterGroupsPage, SlaughterMainPage } from "./SlaughterPages"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { SlaughterGroupEntriesTable } from "./SlaughterGroupEntriesTable"
+import { useNavigate } from "react-router"
 
 export const SlaughterGroupsTable = () => {
 
@@ -55,7 +51,7 @@ type GroupTableProps = {
 
 const GroupTable = ({ rows, loading }: GroupTableProps) => {
 
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     return <div className="overflow-auto">
         <Table stickyHeader>
@@ -81,13 +77,8 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
                                 <EditControlButtons
                                     onShow={() => {
                                         const entryDate = new Date(row.entryDate)
-                                        const dateStr = entryDate.toLocaleString("pt-BR", { dateStyle: 'short' })
-                                        const newPage: AppRoute = {
-                                            title: `Abate - ${dateStr} (Frig.: ${row.butcher})`,
-                                            page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
-                                            previousPages: [HomePage, SlaughterMainPage, SlaughterGroupsPage]
-                                        }
-                                        if (setPageProps) setPageProps(newPage)
+                                        const dateStr = entryDate.toISOString().split('T')[0]
+                                        navigate(`groups/${dateStr}`)
                                     }}
                                 />
                             </TableBodyCell>

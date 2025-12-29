@@ -31,7 +31,6 @@ import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import Add from "@mui/icons-material/Add"
 import { APIError } from "@utils/ApiRequest"
-import { useParams } from "react-router"
 
 type ErrorContextProps = {
     setApiError: Dispatch<SetStateAction<APIError | undefined>>
@@ -39,8 +38,11 @@ type ErrorContextProps = {
 
 const ErrorContext = createContext<ErrorContextProps>(undefined!)
 
+type GroupEntriesTablePageProps = {
+    entryDate: Date
+}
 
-export const GroupEntriesTablePage = () => {
+export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTablePageProps) => {
 
     const defaultFoot: MilkEntryFoot = useMemo(() => ({
         animalsNumber: 0,
@@ -53,10 +55,8 @@ export const GroupEntriesTablePage = () => {
     const [loading, setLoading] = useState(false)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
 
-    const { entryDate } = useParams<{ entryDate: string }>()
-
     const getFoot = useCallback(() => {
-        getGroupEntriesFoot(new Date(entryDate))
+        getGroupEntriesFoot(entryDate)
             .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
     }, [defaultFoot, entryDate])
@@ -64,7 +64,7 @@ export const GroupEntriesTablePage = () => {
     const onReload = useCallback(() => {
         setLoading(true)
         getFoot()
-        getGroupEntries(new Date(entryDate))
+        getGroupEntries(entryDate)
             .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
@@ -99,7 +99,7 @@ export const GroupEntriesTablePage = () => {
             )}
         />
         <EntriesTable {...{ rows, loading, foot, onDelete }} />
-        <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose, entryDate: new Date(entryDate) }} />
+        <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose, entryDate }} />
     </div>
 }
 

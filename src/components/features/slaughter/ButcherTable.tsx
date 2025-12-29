@@ -21,11 +21,7 @@ import { percentageTransform, transformWeight } from "@utils/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import Add from "@mui/icons-material/Add"
-import { PageContext } from "@shared/main-page/PageContext"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { ButcherEntriesTable } from "./ButcherEntriesTable"
-import { HomePage } from "../home/HomePage"
-import { ButcherPage, SlaughterMainPage } from "./SlaughterPages"
+import { useNavigate } from "react-router"
 
 type EditContextProps = {
     setRows: Dispatch<SetStateAction<ButcherEntry[]>>
@@ -122,7 +118,7 @@ const ButcherRow = ({ row }: TableRowProp<ButcherEntry>) => {
     const [loading, setLoading] = useState(false)
 
     const { setError, setRows } = useContext(EditContext)
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => setRowData(row), [row])
 
@@ -137,13 +133,7 @@ const ButcherRow = ({ row }: TableRowProp<ButcherEntry>) => {
     }
 
     const onShow = () => {
-        if (!setPageProps) return
-        const page: AppRoute = {
-            title: `Abate - ${rowData.name}`,
-            page: <ButcherEntriesTable {...{ butcherId: rowData.id }} />,
-            previousPages: [HomePage, SlaughterMainPage, ButcherPage]
-        }
-        setPageProps(page)
+        navigate(`butchers/${rowData.id}`)
     }
 
     return <TableBodyRow>

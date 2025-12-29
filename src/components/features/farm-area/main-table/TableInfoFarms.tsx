@@ -20,14 +20,8 @@ import { useForm } from "react-hook-form"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { ControlButtonContainer, EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { HomePage } from "@features/home/HomePage"
-import { FarmPage } from "../FarmPage"
-import { PageContext } from "@shared/main-page/PageContext"
+import { useNavigate } from "react-router"
 import { TableBodyCell, TableBodyRow, TableHeadCell, TableHeadRow, TableLoadingRow } from "@shared/table/TableComponents"
-import { FarmAnimalsPage } from "../farm-animals/FarmAnimalsPage"
-import { PastureAnimalsPage } from "../pasture-animals/PastureAnimalsPage"
-import { PastureEntriesPage } from "../pasture-entries/PastureEntriesPage"
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 export const TableInfoFarms = () => {
@@ -83,7 +77,7 @@ const FarmsNormalRow = ({
 }: FarmsNormalRowProps) => {
 
     const [isOpen, setOpen] = useState(false)
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     return <>
         <TableBodyRow>
@@ -96,12 +90,7 @@ const FarmsNormalRow = ({
                         setEditing={setEditing}
                         onDelete={() => console.log("delete: ", farmName)}
                         onShow={() => {
-                            const nextPage: AppRoute = {
-                                title: `Rebanho - ${farmName}`,
-                                page: <FarmAnimalsPage {...{ farmId }} />,
-                                previousPages: [HomePage, FarmPage]
-                            }
-                            if (setPageProps) setPageProps(nextPage)
+                            navigate(`farms/${farmId}/animals`)
                         }}
                     />
                 </ControlButtonContainer>
@@ -254,7 +243,7 @@ type PastureShowMenuProps = {
 
 const PastureShowMenu = ({ isShowMenuOpen, setShowMenuOpen, pastureName, pastureId, anchorEl }: PastureShowMenuProps) => {
 
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     return <Menu
         anchorEl={anchorEl}
@@ -265,12 +254,7 @@ const PastureShowMenu = ({ isShowMenuOpen, setShowMenuOpen, pastureName, pasture
             <MenuItem>
                 <Button
                     onClick={() => {
-                        const page: AppRoute = {
-                            title: `Histórico de Entradas - ${pastureName}`,
-                            page: <PastureEntriesPage {...{ pastureId }} />,
-                            previousPages: [HomePage, FarmPage],
-                        }
-                        if (setPageProps) setPageProps(page)
+                        navigate(`pastures/${pastureId}/entries`)
                     }}
                 >
                     Ver Histórico de Entradas
@@ -279,12 +263,7 @@ const PastureShowMenu = ({ isShowMenuOpen, setShowMenuOpen, pastureName, pasture
             <MenuItem>
                 <Button
                     onClick={() => {
-                        const page: AppRoute = {
-                            title: `Rebanho - ${pastureName}`,
-                            page: <PastureAnimalsPage {...{ pastureId }} />,
-                            previousPages: [HomePage, FarmPage],
-                        }
-                        if (setPageProps) setPageProps(page)
+                        navigate(`pastures/${pastureId}/animals`)
                     }}
                 >
                     Ver Rebanho no Pasto

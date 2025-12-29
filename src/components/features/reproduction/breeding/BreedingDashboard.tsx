@@ -88,9 +88,7 @@ import {
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { PageContext } from "@shared/main-page/PageContext"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { HomePage } from "../../home/HomePage"
+import { useNavigate } from "react-router"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
 import { orange, yellow } from "@mui/material/colors"
@@ -98,11 +96,8 @@ import { CardEntry } from "@utils/Entities"
 import { EditRowProps, TableRowProp } from "@shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-import { GroupsTablePageProps, BreedingMainPage } from "./BreedingPages"
 import { TrendValues } from "@shared/table/TableComponents"
 import { AddBreedingDialog } from "./AddBreedingDialog"
-import { EntriesTablePage } from "./EntriesTable"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { APIError } from "@utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
 import dayjs from "dayjs"
@@ -175,8 +170,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
     const [addBreedingOpen, setAddBreedingOpen] = useState(false)
     const [addBreedingBull, setAddBreedingBull] = useState(false)
     const [addBullOpen, setAddBullOpen] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     const closeAddBreeding = (added?: boolean) => {
         if (added) setReloadFlag(prev => prev + 1)
@@ -219,14 +213,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
             </MenuItem>
             <Divider />
             <MenuItem
-                onClick={() => {
-                    const page: AppRoute = {
-                        page: <EntriesTablePage />,
-                        title: "Histórico de Transferências",
-                        previousPages: [HomePage, BreedingMainPage]
-                    }
-                    setPageProps(page)
-                }}
+                onClick={() => navigate("entries")}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -234,7 +221,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 Histórico Geral
             </MenuItem>
             <MenuItem
-                onClick={() => setPageProps(GroupsTablePageProps)}
+                onClick={() => navigate("groups")}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -602,8 +589,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
 
     const [error, setError] = useState<APIError>()
     const [warningProps, setWarningProps] = useState(DefaultWarning)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         startLoading()
@@ -674,12 +660,8 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                     })
                     return
                 }
-                const page: AppRoute = {
-                    page: <GroupEntriesTablePage {...{ breedingDate }} />,
-                    title: `Cobertura - ${lastDate}`,
-                    previousPages: [HomePage, BreedingMainPage]
-                }
-                setPageProps(page)
+                const dateStr = breedingDate.toISOString().split('T')[0]
+                navigate(`groups/${dateStr}`)
             }}
         >
             Ver Mais...
@@ -850,7 +832,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
 
     const [data, setData] = useState<BreedingGroup[]>([])
     const [loading, setLoading] = useState(false)
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
     const { setReloadFlag } = useContext(AddContext)
 
     const [warningProps, setWarningProps] = useState(DefaultTimerWarning)
@@ -924,16 +906,8 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                                     )}
                                     onShow={() => {
                                         const breedingDate = new Date(item.breedingDate)
-                                        const date = breedingDate.toLocaleDateString('pt-BR', {
-                                            month: 'short',
-                                            year: 'numeric'
-                                        })
-                                        const page: AppRoute = {
-                                            page: <GroupEntriesTablePage {...{ breedingDate }} />,
-                                            title: `Cobertura - ${date}`,
-                                            previousPages: [HomePage, BreedingMainPage]
-                                        }
-                                        if (setPageProps) setPageProps(page)
+                                        const dateStr = breedingDate.toISOString().split('T')[0]
+                                        navigate(`groups/${dateStr}`)
                                     }}
                                 />
                             </TableCell>
@@ -959,7 +933,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         <Button
             className="ml-auto"
             endIcon={<ChevronRight />}
-            onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+            onClick={() => navigate("groups")}
         >
             Ver Mais...
         </Button>

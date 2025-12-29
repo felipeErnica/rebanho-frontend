@@ -4,6 +4,10 @@ import { LoginDisplay } from "./components/features/auth/LoginDisplay"
 import { PageDisplay } from "./components/shared/main-page/PageDisplay"
 import { lactationRoutes } from "./components/features/lactation/Routes"
 import { reproductionRoutes } from "./components/features/reproduction/Routes"
+import { homeRoutes } from "./components/features/home/Routes"
+import { farmAreaRoutes } from "./components/features/farm-area/Routes"
+import { weightRoutes } from "./components/features/weight/Routes"
+import { slaughterRoutes } from "./components/features/slaughter/Routes"
 
 export type RouteHandle = {
     title: string | ((params: Record<string, string>, data?: any) => string)
@@ -28,8 +32,12 @@ export const routes: AppRoute[] = [
         element: <PageDisplay />,
         errorElement: <PageDisplay />,
         children: [
-            ...lactationRoutes,
-            ...reproductionRoutes,
+            homeRoutes,
+            farmAreaRoutes,
+            reproductionRoutes,
+            lactationRoutes,
+            weightRoutes,
+            slaughterRoutes,
         ]
     }
 ]

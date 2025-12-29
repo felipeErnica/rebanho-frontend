@@ -49,7 +49,7 @@ import CalendarMonth from "@mui/icons-material/CalendarMonth"
 import { EndLactationDialog } from "./EndLactationDialog"
 import { AddLacDialog } from "./AddLactationDialog"
 import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Globals"
-import { Link } from "react-router"
+import { useNavigate } from "react-router"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -241,6 +241,7 @@ const LacRow = ({ item, loading }: LacRowProps) => {
     const [rowData, setRowData] = useState<LactationHist>(item)
     const [editing, setEditing] = useState(false)
     const [loadingControls, setLoadingControls] = useState(false)
+    const navigate = useNavigate()
 
     const { setRows, setError, setWarning } = useContext(ErrorContext)
 
@@ -276,7 +277,7 @@ const LacRow = ({ item, loading }: LacRowProps) => {
                 setEditing={setEditing}
                 onDelete={onDelete}
                 loading={loadingControls}
-                onShow={() => <Link to={`lactation/history/${rowData.id}`} />}
+                onShow={() => navigate(rowData.id)}
             />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>

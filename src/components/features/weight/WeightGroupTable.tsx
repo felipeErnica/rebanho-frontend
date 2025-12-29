@@ -11,16 +11,12 @@ import Table from "@mui/material/Table"
 import TableBody from "@mui/material/TableBody"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { WeightGroup } from "./Entities"
 import { findGroups } from "./Controller"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { EditControlButtons } from "@shared/table/ControlButtons"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { HomePage } from "../home/HomePage"
-import { WeightGroupsPage, WeightMainPage } from "./WeightPages"
-import { PageContext } from "@shared/main-page/PageContext"
-import { WeightGroupEntriesTable } from "./WeightGroupEntriesTable"
+import { useNavigate } from "react-router"
 
 export const WeightGroupTable = () => {
 
@@ -57,7 +53,7 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
 
     const [unit, setUnit] = useState(0)
     const tableRef = useRef<HTMLDivElement>(null)
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         const handleResize = () => {
@@ -95,13 +91,8 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
                                 <EditControlButtons
                                     onShow={() => {
                                         const entryDate = new Date(row.entryDate)
-                                        const dateStr = entryDate.toLocaleString("pt-BR", { dateStyle: 'short' })
-                                        const newPage: AppRoute = {
-                                            title: `Marcações de Peso - ${dateStr}`,
-                                            page: <WeightGroupEntriesTable {...{ entryDate }} />,
-                                            previousPages: [HomePage, WeightMainPage, WeightGroupsPage]
-                                        }
-                                        if (setPageProps) setPageProps(newPage)
+                                        const dateStr = entryDate.toISOString().split('T')[0]
+                                        navigate(`groups/${dateStr}`)
                                     }}
                                 />
                             </TableBodyCell>

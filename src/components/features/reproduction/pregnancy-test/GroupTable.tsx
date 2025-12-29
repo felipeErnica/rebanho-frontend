@@ -23,11 +23,7 @@ import { EditControlButtons, EditingControlButtons } from "@shared/table/Control
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import { PageContext } from "@shared/main-page/PageContext"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
-import { HomePage } from "@features/home/HomePage"
-import { BirthTestDashboardPage, BirthTestGroupPage } from "./BirthTestPages"
+import { useNavigate } from "react-router"
 import Add from "@mui/icons-material/Add"
 import { AddTestDialog } from "./AddTestDialog"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@shared/dialog/DialogComponents"
@@ -82,7 +78,7 @@ type GroupTableProps = {
 
 const GroupTable = ({ loading, rows }: GroupTableProps) => {
 
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     return <Table>
         <TableHead>
@@ -95,7 +91,7 @@ const GroupTable = ({ loading, rows }: GroupTableProps) => {
             </TableHeadRow>
         </TableHead>
         <TableBody>
-            {rows.map(item => <GroupsRow {...{ item, loading, setPageProps }} />)}
+            {rows.map(item => <GroupsRow {...{ item, loading, navigate }} />)}
         </TableBody>
     </Table>
 
@@ -104,10 +100,10 @@ const GroupTable = ({ loading, rows }: GroupTableProps) => {
 type GroupsRowProps = {
     item: TestGroup
     loading: boolean
-    setPageProps?: (pageProps: AppRoute) => void
+    navigate: ReturnType<typeof useNavigate>
 }
 
-const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
+const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
 
     const [rowData, setRowData] = useState<TestGroup>(item)
     const [editing, setEditing] = useState(false)
@@ -148,12 +144,8 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
                 )}
                 onShow={() => {
                     const testDate = new Date(rowData.testDate)
-                    const page: AppRoute = {
-                        title: `Toque - ${dateTransform(testDate)}`,
-                        page: <GroupEntriesTablePage {...{ testDate }} />,
-                        previousPages: [HomePage, BirthTestDashboardPage, BirthTestGroupPage]
-                    }
-                    if (setPageProps) setPageProps(page)
+                    const dateStr = testDate.toISOString().split('T')[0]
+                    navigate(`groups/${dateStr}`)
                 }}
                 setEditing={setEditing}
                 onDelete={() => setWarningProps({

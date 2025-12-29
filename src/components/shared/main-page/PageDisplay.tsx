@@ -10,7 +10,7 @@ import NavigateNext from "@mui/icons-material/NavigateNext";
 import { Divider, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Link, Outlet, UIMatch, useMatches  } from "react-router";
-import { RouteHandle } from "../../../Routes";
+import { RouteHandle } from "@/Routes";
 
 type BreadCrumbsToolbarProps = {
     setOpen: Dispatch<SetStateAction<boolean>>

@@ -79,12 +79,7 @@ import {
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { PageContext } from "@shared/main-page/PageContext"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { EntriesTablePage } from "./EntriesTable"
-import { HomePage } from "@features/home/HomePage"
-import { GroupsTablePageProps, InseminationPage } from "./InseminationPages"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
+import { useNavigate } from "react-router"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import { AddInseminationDialog } from "./AddInseminationDialog"
 import Add from "@mui/icons-material/Add"
@@ -181,8 +176,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
     const [addInseminationOpen, setAddInseminationOpen] = useState(false)
     const [addInseminationBull, setAddInseminationBull] = useState(false)
     const [addBullOpen, setAddBullOpen] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     const closeAddInsemination = (added?: boolean) => {
         if (added) setReloadFlag(prev => prev + 1)
@@ -225,14 +219,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
             </MenuItem>
             <Divider />
             <MenuItem
-                onClick={() => {
-                    const page: AppRoute = {
-                        page: <EntriesTablePage />,
-                        title: "Histórico de Inseminações",
-                        previousPages: [HomePage, InseminationPage]
-                    }
-                    setPageProps(page)
-                }}
+                onClick={() => navigate("entries")}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -240,7 +227,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 Histórico de Inseminações
             </MenuItem>
             <MenuItem
-                onClick={() => setPageProps(GroupsTablePageProps)}
+                onClick={() => navigate("groups")}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -600,7 +587,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     const [loading, setLoading] = useState(false)
     const [inseminationDate, setInseminationDate] = useState(new Date())
     const [lastDate, setLastDate] = useState('Sem dados')
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         startLoading()
@@ -654,12 +641,8 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             className="ml-auto"
             startIcon={<ChevronRight />}
             onClick={() => {
-                const page: AppRoute = {
-                    page: <GroupEntriesTablePage {...{ inseminationDate }} />,
-                    title: `Inseminação - ${lastDate}`,
-                    previousPages: [HomePage, InseminationPage]
-                }
-                if (setPageProps) setPageProps(page)
+                const dateStr = inseminationDate.toISOString().split('T')[0]
+                navigate(`groups/${dateStr}`)
             }}
         >
             Ver Mais...
@@ -853,7 +836,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
 
     const [data, setData] = useState<InseminationGroup[]>([])
     const [loading, setLoading] = useState(false)
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         startLoading()
@@ -890,16 +873,8 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                                 <EditControlButtons
                                     onShow={() => {
                                         const inseminationDate = new Date(item.inseminationDate)
-                                        const date = inseminationDate.toLocaleDateString('pt-BR', {
-                                            month: 'short',
-                                            year: 'numeric'
-                                        })
-                                        const page: AppRoute = {
-                                            page: <GroupEntriesTablePage {...{ inseminationDate }} />,
-                                            title: `Inseminação - ${date}`,
-                                            previousPages: [HomePage, InseminationPage]
-                                        }
-                                        if (setPageProps) setPageProps(page)
+                                        const dateStr = inseminationDate.toISOString().split('T')[0]
+                                        navigate(`groups/${dateStr}`)
                                     }}
                                 />
                             </TableCell>
@@ -925,7 +900,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         <Button
             className="ml-auto"
             endIcon={<ChevronRight />}
-            onClick={() => setPageProps && setPageProps(GroupsTablePageProps)}
+            onClick={() => navigate("groups")}
         >
             Ver Mais...
         </Button>

@@ -27,20 +27,16 @@ import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
 import { MilkEntry } from "@features/lactation/Entities"
-import { PageContext } from "@/components/shared/main-page/PageContext"
+import { useNavigate } from "react-router"
 import { deleteMilkEntry, getLastEntries } from "@features/lactation/Controller"
 import Button from "@mui/material/Button"
 import Add from "@mui/icons-material/Add"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { AppRoute } from "@/components/shared/main-page/PageDisplay"
-import { GroupEntriesTablePage } from "@features/lactation/GroupEntriesTable"
-import { MilkDashboardPage } from "@/components/features/lactation/Routes"
 import { AddMilkEntryDialog } from "@features/lactation/AddMilkEntryDialog"
 import { EditRowProps, TableRowProp } from "@/components/shared/table/Entities"
 import { EditControlButtons, EditingControlButtons } from "@/components/shared/table/ControlButtons"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/components/shared/form-controls/FormTextField"
-import { HomePage } from "@features/home/HomePage"
 
 type EditContextProps = {
     setReloadFlag: Dispatch<SetStateAction<number>>
@@ -357,8 +353,7 @@ const LastLacTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInform
     const [textDate, setTextDate] = useState('Sem dados')
     const [loading, setLoading] = useState(false)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
     const { setReloadFlag } = useContext(EditContext)
 
     const onDelete = useCallback((id: string) => {
@@ -425,12 +420,8 @@ const LastLacTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInform
             <Button
                 endIcon={<ChevronRight />}
                 onClick={() => {
-                    const page: AppRoute = {
-                        title: `Leite - ${textDate}`,
-                        page: <GroupEntriesTablePage {...{ entryDate: lastDate }} />,
-                        previousPages: [HomePage, MilkDashboardPage]
-                    }
-                    setPageProps(page)
+                    const dateStr = lastDate.toISOString().split('T')[0]
+                    navigate(`lactation/milk/${dateStr}`)
                 }}
             >
                 Ver Mais...

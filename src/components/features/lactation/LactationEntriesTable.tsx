@@ -22,7 +22,6 @@ import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog } from "@/components/shared/dialog/DialogComponents"
-import { useParams } from "react-router"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -32,7 +31,11 @@ type ErrorContextProps = {
 
 const EditContext = createContext<ErrorContextProps>(undefined!)
 
-export const LactationEntriesTablePage = () => {
+type LactationEntriesTablePageProps = {
+    lactationId: string
+}
+
+export const LactationEntriesTablePage = ({ lactationId }: LactationEntriesTablePageProps) => {
 
     const defaultFoot: MilkEntryFoot = useMemo(() => ({
         animalsNumber: 0,
@@ -44,8 +47,6 @@ export const LactationEntriesTablePage = () => {
     const [rows, setRows] = useState<MilkEntry[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<APIError>(undefined)
-
-    const { lactationId } = useParams<{ lactationId: string }>()
 
     const loadFoot = useCallback(() => {
         getLactationEntriesFoot(lactationId)

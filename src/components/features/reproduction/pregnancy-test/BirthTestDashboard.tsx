@@ -71,16 +71,9 @@ import { TableLoadingRow } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import Chip from "@mui/material/Chip"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
-import { PageContext } from "@shared/main-page/PageContext"
-import {
-    BirthTestDashboardPage,
-    BirthTestGroupPage
-} from "./BirthTestPages"
+import { useNavigate } from "react-router"
 import Add from "@mui/icons-material/Add"
 import { AddTestDialog } from "./AddTestDialog"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
-import { HomePage } from "@features/home/HomePage"
 import IconButton from "@mui/material/IconButton"
 import { CardEntry } from "@utils/Entities"
 import { ChipColorScheme } from "@shared/Globals"
@@ -163,7 +156,7 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
 const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionMenuProps) => {
 
     const [addTestOpen, setAddTestOpen] = useState(false)
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     const closeAddTest = (added?: boolean) => {
         setAddTestOpen(false)
@@ -184,14 +177,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
             </MenuItem>
             <Divider />
             <MenuItem
-                onClick={() => {
-                    const page: AppRoute = {
-                        page: <EntriesTablePage />,
-                        title: "Histórico de Toques",
-                        previousPages: [HomePage, BirthTestDashboardPage]
-                    }
-                    setPageProps(page)
-                }}
+                onClick={() => navigate("entries")}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -199,7 +185,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 Histórico de Toques
             </MenuItem>
             <MenuItem
-                onClick={() => setPageProps(BirthTestGroupPage)}
+                onClick={() => navigate("groups")}
             >
                 <ListItemIcon>
                     <ChevronRight />
@@ -560,8 +546,7 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
     const [loading, setLoading] = useState(false)
     const [testDate, setTestDate] = useState<Date>()
     const [addTestOpen, setAddTestOpen] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
     const { setReloadFlag } = useContext(ReloadContext)
 
     useEffect(() => {
@@ -613,12 +598,8 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
                                     )}
                                     onShow={() => {
                                         const testDate = new Date(item.testDate)
-                                        const page: AppRoute = {
-                                            page: <GroupEntriesTablePage {...{ testDate }} />,
-                                            title: `Toque - ${dateTransform(item.testDate)}`,
-                                            previousPages: [HomePage, BirthTestDashboardPage]
-                                        }
-                                        if (setPageProps) setPageProps(page)
+                                        const dateStr = testDate.toISOString().split('T')[0]
+                                        navigate(`groups/${dateStr}`)
                                     }}
                                 />
                             </TableCell>
@@ -644,7 +625,7 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
         <Button
             className="ml-auto"
             startIcon={<ChevronRight />}
-            onClick={() => setPageProps(BirthTestGroupPage)}
+            onClick={() => navigate("groups")}
         >
             Ver Mais...
         </Button>
@@ -657,8 +638,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     const [testDate, setTestDate] = useState(new Date())
     const [textDate, setTextDate] = useState('Sem dados')
     const [loading, setLoading] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         startLoading()
@@ -709,12 +689,8 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             className="ml-auto"
             endIcon={<ChevronRight />}
             onClick={() => {
-                const page: AppRoute = {
-                    title: `Toque - ${textDate}`,
-                    page: <GroupEntriesTablePage {...{ testDate }} />,
-                    previousPages: [HomePage, BirthTestDashboardPage]
-                }
-                if (setPageProps) setPageProps(page)
+                const dateStr = testDate.toISOString().split('T')[0]
+                navigate(`groups/${dateStr}`)
             }}
         >
             Ver Mais...

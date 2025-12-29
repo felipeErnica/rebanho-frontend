@@ -7,7 +7,7 @@ import {
     DashboardTableBody,
     DashboardTopContainer,
 } from "@shared/dashboard/DashboardComponents"
-import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import {
@@ -49,11 +49,7 @@ import { LineChart } from "@mui/x-charts/LineChart"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { green, yellow } from "@mui/material/colors"
-import { PageContext } from "@shared/main-page/PageContext"
-import { ButcherPage, SlaughterEntriesPage, SlaughterGroupsPage, SlaughterMainPage } from "./SlaughterPages"
-import { AppRoute } from "@shared/main-page/PageDisplay"
-import { SlaughterGroupEntriesTable } from "./SlaughterGroupEntriesTable"
-import { HomePage } from "@features/home/HomePage"
+import { useNavigate } from "react-router"
 import { APIError } from "@utils/ApiRequest"
 import { ErrorDialog } from "@shared/dialog/DialogComponents"
 import ExpandMore from "@mui/icons-material/ExpandMore"
@@ -107,8 +103,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
 
     const [addSlaughterOpen, setAddSlaughterOpen] = useState(false)
     const [addButcherOpen, setAddButcherOpen] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     const closeAddSlaughter = (added?: boolean) => {
         if (added) setReloadFlag(prev => prev + 1)
@@ -139,19 +134,19 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 Adicionar Novo Frigorífico
             </MenuItem>
             <Divider />
-            <MenuItem onClick={() => setPageProps(SlaughterEntriesPage)}>
+            <MenuItem onClick={() => navigate("entries")}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Histórico Geral
             </MenuItem>
-            <MenuItem onClick={() => setPageProps(SlaughterGroupsPage)}>
+            <MenuItem onClick={() => navigate("groups")}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Datas de Abate
             </MenuItem>
-            <MenuItem onClick={() => setPageProps(ButcherPage)}>
+            <MenuItem onClick={() => navigate("butchers")}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
@@ -329,7 +324,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
     const [loading, setLoading] = useState(false)
 
     const [error, setError] = useState<APIError>()
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         setLoading(true)
@@ -391,12 +386,8 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             endIcon={<ChevronRight />}
             onClick={() => {
                 if (!entryDate) return
-                const newPage: AppRoute = {
-                    title: `Abate - ${lastDate} (Frig.: ${butcher})`,
-                    page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
-                    previousPages: [HomePage, SlaughterMainPage]
-                }
-                setPageProps(newPage)
+                const dateStr = entryDate.toISOString().split('T')[0]
+                navigate(`groups/${dateStr}`)
             }}
         >
             Ver Mais...
@@ -569,8 +560,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
 
     const [results, setResults] = useState<SlaughterGroup[]>([])
     const [loading, setLoading] = useState(false)
-
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
         setLoading(true)
@@ -609,13 +599,8 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                     <EditControlButtons
                                         onShow={() => {
                                             const entryDate = new Date(row.entryDate)
-                                            const dateStr = entryDate.toLocaleString('pt-BR', { dateStyle: 'short' })
-                                            const page: AppRoute = {
-                                                title: `Abate - ${dateStr} (Frig.: ${row.butcher})`,
-                                                page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
-                                                previousPages: [HomePage, SlaughterMainPage]
-                                            }
-                                            setPageProps(page)
+                                            const dateStr = entryDate.toISOString().split('T')[0]
+                                            navigate(`groups/${dateStr}`)
                                         }}
                                     />
                                 </TableCell>
@@ -643,7 +628,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
         <div className="flex flex-row-reverse">
             <Button
                 endIcon={<ChevronRight />}
-                onClick={() => setPageProps(SlaughterGroupsPage)}
+                onClick={() => navigate("groups")}
             >
                 Ver Mais...
             </Button>

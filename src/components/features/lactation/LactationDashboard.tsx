@@ -47,7 +47,7 @@ import {
     deleteMilkGroup,
     updateMilkGroup,
 } from "./Controller"
-import { dateTransform, decimalTransform } from "@utils/Transformations"
+import { dateToISO, dateTransform, decimalTransform } from "@utils/Transformations"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
 import Table from "@mui/material/Table"
 import TableHead from "@mui/material/TableHead"
@@ -86,7 +86,7 @@ import { AddLacDialog } from "./AddLactationDialog"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
-import { Link } from "react-router"
+import { useNavigate } from "react-router"
 
 export const LactationDashboard = () => {
 
@@ -139,6 +139,7 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
     const [openEndLactation, setOpenEndLactation] = useState(false)
     const [openStartLac, setOpenStartLac] = useState(false)
+    const navigate = useNavigate()
 
     const onClose = useCallback((added: boolean) => {
         setAddMilkEntryOpen(false)
@@ -173,19 +174,19 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
                 Secar Vacas
             </MenuItem>
             <Divider />
-            <MenuItem onClick={() => <Link to={"lactation/milk-entries"} />}>
+            <MenuItem onClick={() => navigate("milk")}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Histórico de Leite
             </MenuItem>
-            <MenuItem onClick={() => <Link to={"lactation/milk-groups"} />}>
+            <MenuItem onClick={() => navigate("milk/groups")}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Dias de Marcação
             </MenuItem>
-            <MenuItem onClick={() => <Link to={"lactation/history"} />}>
+            <MenuItem onClick={() => navigate("history")}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
@@ -372,6 +373,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<APIError>()
     const [warning, setWarning] = useState(DefaultTimerWarning)
+    const navigate = useNavigate()
 
     useEffect(() => {
         startLoading()
@@ -412,7 +414,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
             className="ml-auto"
             variant="text"
             endIcon={<ChevronRight />}
-            onClick={() =>  <Link to={"lactation/milk-groups"}/>}
+            onClick={() => navigate("milk/groups")}
         >
             Ver Mais...
         </Button>
@@ -436,6 +438,7 @@ const GroupsRow = ({ item }: GroupsRowProps) => {
     const [rowData, setRowData] = useState<LactationGroup>(item)
     const [editing, setEditing] = useState(false)
     const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
 
     const { setError, setWarning, setRows } = useContext(EditContext)
 
@@ -474,7 +477,11 @@ const GroupsRow = ({ item }: GroupsRowProps) => {
                 setEditing={setEditing}
                 onDelete={onDelete}
                 loading={loading}
-                onShow={() => <Link to={`lactation/milk/${rowData.entryDate}`}/>}
+                onShow={() => {
+                    const entryDate = new Date(rowData.entryDate)
+                    const dateStr = dateToISO(entryDate)
+                    navigate(`milk/${dateStr}`)
+                }}
             />
         </TableCell>
         <TableCell>{dateTransform(rowData.entryDate)}</TableCell>
@@ -572,6 +579,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
     const [textDate, setTextDate] = useState('Sem dados')
     const [loading, setLoading] = useState(false)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
+    const navigate = useNavigate()
 
     const onDelete = useCallback((id: string) => {
         if (!setReloadFlag) return
@@ -639,7 +647,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
             </Button>
             <Button
                 endIcon={<ChevronRight />}
-                onClick={() => <Link to={"lactation"}/>}
+                onClick={() => navigate("milk")}
             >
                 Ver Mais...
             </Button>
@@ -871,6 +879,7 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
     const [data, setData] = useState<AnimalsRating[]>([])
     const [loading, setLoading] = useState(false)
     const [rankBy, setRankBy] = useState('worst-animals')
+    const navigate = useNavigate()
 
     const rankByValues: ComboBoxItem[] = [
         { name: 'As Melhores Vacas', value: 'best-animals' },
@@ -903,7 +912,7 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 className="ml-auto"
                 variant="text"
                 startIcon={<ChevronRight />}
-                onClick={() => <Link to={"lactation/history"} />}
+                onClick={() => navigate("history")}
             >
                 Ver Histórico de Lactação
             </Button>
@@ -965,6 +974,7 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
     const [data, setData] = useState<ParentsRating[]>([])
     const [loading, setLoading] = useState(false)
     const [rankBy, setRankBy] = useState('best-mothers')
+    const navigate = useNavigate()
 
     const rankByValues: ComboBoxItem[] = [
         { name: 'As Melhores Mães', value: 'best-mothers' },
@@ -999,7 +1009,7 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 className="ml-auto"
                 variant="text"
                 startIcon={<ChevronRight />}
-                onClick={() => <Link to={"lactation/history"} />}
+                onClick={() => navigate("history")}
             >
                 Ver Histórico de Lactação
             </Button>

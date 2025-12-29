@@ -12,12 +12,8 @@ import {
     TrendValues
 } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { PageContext } from "@shared/main-page/PageContext"
-import { AppRoute } from "@shared/main-page/PageDisplay"
+import { useNavigate } from "react-router"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
-import { HomePage } from "@features/home/HomePage"
-import { GroupsTablePageProps, TransferMainPage } from "./EmbryoTransferPages"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
@@ -68,7 +64,7 @@ const GroupsTable = ({ loading, setLoading }: GroupsTableProps) => {
     const [transferDate, setTransferDate] = useState<Date>()
 
     const tableRef = useRef<HTMLDivElement>(null)
-    const { setPageProps } = useContext(PageContext)
+    const navigate = useNavigate()
 
     const onReload = useCallback(() => {
         setLoading(true)
@@ -105,7 +101,7 @@ const GroupsTable = ({ loading, setLoading }: GroupsTableProps) => {
                     <GroupsRow {...{
                         item,
                         loading,
-                        setPageProps,
+                        navigate,
                         setWarningProps,
                         setRows,
                         setError,
@@ -129,7 +125,7 @@ const GroupsTable = ({ loading, setLoading }: GroupsTableProps) => {
 type GroupsRowProps = {
     item: TransferGroup
     loading: boolean
-    setPageProps: ((page: AppRoute) => void) | undefined
+    navigate: ReturnType<typeof useNavigate>
     setRows: Dispatch<SetStateAction<TransferGroup[]>>
     setWarningProps: Dispatch<SetStateAction<TimerYesNoDialogProps>>
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -139,7 +135,7 @@ type GroupsRowProps = {
 const GroupsRow = ({
     item,
     loading,
-    setPageProps,
+    navigate,
     setError,
     setWarningProps,
     setRows,
@@ -191,16 +187,8 @@ const GroupsRow = ({
                 loading={loadingControls}
                 onShow={() => {
                     const transferDate = new Date(item.transferDate)
-                    const dateString = transferDate.toLocaleDateString('pt-BR', {
-                        month: 'short',
-                        year: 'numeric'
-                    })
-                    const page: AppRoute = {
-                        page: <GroupEntriesTablePage {...{ transferDate }} />,
-                        title: `Transferência - ${dateString}`,
-                        previousPages: [HomePage, TransferMainPage, GroupsTablePageProps]
-                    }
-                    if (setPageProps) setPageProps(page)
+                    const dateStr = transferDate.toISOString().split('T')[0]
+                    navigate(`groups/${dateStr}`)
                 }}
             />
         </TableBodyCell>
