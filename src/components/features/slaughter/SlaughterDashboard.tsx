@@ -51,7 +51,7 @@ import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { green, yellow } from "@mui/material/colors"
 import { PageContext } from "@shared/main-page/PageContext"
 import { ButcherPage, SlaughterEntriesPage, SlaughterGroupsPage, SlaughterMainPage } from "./SlaughterPages"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { SlaughterGroupEntriesTable } from "./SlaughterGroupEntriesTable"
 import { HomePage } from "@features/home/HomePage"
 import { APIError } from "@utils/ApiRequest"
@@ -391,7 +391,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             endIcon={<ChevronRight />}
             onClick={() => {
                 if (!entryDate) return
-                const newPage: PageProps = {
+                const newPage: AppRoute = {
                     title: `Abate - ${lastDate} (Frig.: ${butcher})`,
                     page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
                     previousPages: [HomePage, SlaughterMainPage]
@@ -610,7 +610,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                         onShow={() => {
                                             const entryDate = new Date(row.entryDate)
                                             const dateStr = entryDate.toLocaleString('pt-BR', { dateStyle: 'short' })
-                                            const page: PageProps = {
+                                            const page: AppRoute = {
                                                 title: `Abate - ${dateStr} (Frig.: ${row.butcher})`,
                                                 page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
                                                 previousPages: [HomePage, SlaughterMainPage]

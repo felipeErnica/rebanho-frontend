@@ -16,7 +16,7 @@ import { WeightGroup } from "./Entities"
 import { findGroups } from "./Controller"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { EditControlButtons } from "@shared/table/ControlButtons"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { HomePage } from "../home/HomePage"
 import { WeightGroupsPage, WeightMainPage } from "./WeightPages"
 import { PageContext } from "@shared/main-page/PageContext"
@@ -96,7 +96,7 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
                                     onShow={() => {
                                         const entryDate = new Date(row.entryDate)
                                         const dateStr = entryDate.toLocaleString("pt-BR", { dateStyle: 'short' })
-                                        const newPage: PageProps = {
+                                        const newPage: AppRoute = {
                                             title: `Marcações de Peso - ${dateStr}`,
                                             page: <WeightGroupEntriesTable {...{ entryDate }} />,
                                             previousPages: [HomePage, WeightMainPage, WeightGroupsPage]

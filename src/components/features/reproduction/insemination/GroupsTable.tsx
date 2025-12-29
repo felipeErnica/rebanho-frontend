@@ -21,7 +21,7 @@ import {
 } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { PageContext } from "@shared/main-page/PageContext"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { HomePage } from "../../home/HomePage"
@@ -153,7 +153,7 @@ const GroupsTable = ({ reload, loading, rows }: GroupsTableProps) => {
 type GroupsRowProps = {
     item: InseminationGroup
     loading: boolean
-    setPageProps: ((page: PageProps) => void) | undefined
+    setPageProps: ((page: AppRoute) => void) | undefined
 }
 
 const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
@@ -219,7 +219,7 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
                         month: 'short',
                         year: 'numeric'
                     })
-                    const page: PageProps = {
+                    const page: AppRoute = {
                         page: <GroupEntriesTablePage {...{ inseminationDate }} />,
                         title: `Inseminação - ${dateString}`,
                         previousPages: [HomePage, InseminationPage, GroupsTablePageProps]

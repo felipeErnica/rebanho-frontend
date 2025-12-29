@@ -63,6 +63,10 @@ export function findLactationsPage(
     return apiPost(LAC_BASE + pageQuery, filter)
 }
 
+export function findLactationById(id: string) {
+    return apiGet(LAC_BASE + id)
+}
+
 export function getLactationsPageFoot(filter: LactationGroupFilter) {
     return apiPost(LAC_BASE + "page/foot", filter)
 }

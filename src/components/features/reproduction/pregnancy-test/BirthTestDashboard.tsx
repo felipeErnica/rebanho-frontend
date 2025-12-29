@@ -78,7 +78,7 @@ import {
 } from "./BirthTestPages"
 import Add from "@mui/icons-material/Add"
 import { AddTestDialog } from "./AddTestDialog"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { HomePage } from "@features/home/HomePage"
 import IconButton from "@mui/material/IconButton"
@@ -185,7 +185,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
             <Divider />
             <MenuItem
                 onClick={() => {
-                    const page: PageProps = {
+                    const page: AppRoute = {
                         page: <EntriesTablePage />,
                         title: "Histórico de Toques",
                         previousPages: [HomePage, BirthTestDashboardPage]
@@ -613,7 +613,7 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
                                     )}
                                     onShow={() => {
                                         const testDate = new Date(item.testDate)
-                                        const page: PageProps = {
+                                        const page: AppRoute = {
                                             page: <GroupEntriesTablePage {...{ testDate }} />,
                                             title: `Toque - ${dateTransform(item.testDate)}`,
                                             previousPages: [HomePage, BirthTestDashboardPage]
@@ -709,7 +709,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             className="ml-auto"
             endIcon={<ChevronRight />}
             onClick={() => {
-                const page: PageProps = {
+                const page: AppRoute = {
                     title: `Toque - ${textDate}`,
                     page: <GroupEntriesTablePage {...{ testDate }} />,
                     previousPages: [HomePage, BirthTestDashboardPage]

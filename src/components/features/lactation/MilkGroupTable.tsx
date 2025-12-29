@@ -1,4 +1,14 @@
-import { createContext, Dispatch, RefObject, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from "react"
+import { 
+    createContext, 
+    Dispatch, 
+    RefObject, 
+    SetStateAction, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useRef, 
+    useState 
+} from "react"
 import { LactationGroup, LactationGroupFilter, LactationGroupSave } from "./Entities"
 import { deleteMilkGroup, findGroupsPage, updateMilkGroup } from "./Controller"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
@@ -18,14 +28,10 @@ import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { MilkGroupFilter } from "./MilkGroupFilter"
-import { PageContext } from "@shared/main-page/PageContext"
-import { PageProps } from "@shared/main-page/PageDisplay"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
-import { HomePage } from "@features/home/HomePage"
-import { MilkDashboardPage, MilkGroupsPage } from "./LactationPages"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
 import { DefaultTimerWarning, GROUP_DELETE_TITLE, GROUP_UPDATE_TITLE } from "@/components/shared/Globals"
+import { Link } from "react-router"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -113,7 +119,6 @@ const GroupsRow = ({ item, loading }: GroupsRowProps) => {
     const [editing, setEditing] = useState(false)
     const [loadingControls, setLoadingControls] = useState(false)
 
-    const { setPageProps } = useContext(PageContext)
     const { setError, setWarning, setRows } = useContext(EditContext)
 
     useEffect(() => setRowData(item), [item])
@@ -152,14 +157,7 @@ const GroupsRow = ({ item, loading }: GroupsRowProps) => {
                 setEditing={setEditing}
                 onDelete={onDelete}
                 loading={loadingControls}
-                onShow={() => {
-                    const page: PageProps = {
-                        title: `Leite - ${dateTransform(rowData.entryDate)}`,
-                        page: <GroupEntriesTablePage {...{ entryDate: rowData.entryDate }} />,
-                        previousPages: [HomePage, MilkDashboardPage, MilkGroupsPage]
-                    }
-                    setPageProps(page)
-                }}
+                onShow={() => <Link to={`lactation/milk/${rowData.entryDate}`} />}
             />
         </TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>

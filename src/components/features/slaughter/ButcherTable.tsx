@@ -22,7 +22,7 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import Add from "@mui/icons-material/Add"
 import { PageContext } from "@shared/main-page/PageContext"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { ButcherEntriesTable } from "./ButcherEntriesTable"
 import { HomePage } from "../home/HomePage"
 import { ButcherPage, SlaughterMainPage } from "./SlaughterPages"
@@ -138,7 +138,7 @@ const ButcherRow = ({ row }: TableRowProp<ButcherEntry>) => {
 
     const onShow = () => {
         if (!setPageProps) return
-        const page: PageProps = {
+        const page: AppRoute = {
             title: `Abate - ${rowData.name}`,
             page: <ButcherEntriesTable {...{ butcherId: rowData.id }} />,
             previousPages: [HomePage, SlaughterMainPage, ButcherPage]

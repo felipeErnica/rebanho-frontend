@@ -32,22 +32,18 @@ import {
 } from "./Controller"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { green, lightBlue, pink, red } from "@mui/material/colors"
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { Button, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import { TrendValues } from "@shared/table/TableComponents"
 import Add from "@mui/icons-material/Add"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { PageProps } from "@shared/main-page/PageDisplay"
-import { BirthTablePage } from "./BirthTable"
-import { HomePage } from "@features/home/HomePage"
-import { BirthPage } from "./BirthPages"
-import { PageContext } from "@shared/main-page/PageContext"
 import { AddBirthDialog } from "./BirthAddDialog"
 import { DashboardInformationProps, DashboardTopBarProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
 import { CardEntry } from "@utils/Entities"
+import { useNavigate } from "react-router"
 
 export const BirthDashboard = () => {
 
@@ -65,8 +61,9 @@ export const BirthDashboard = () => {
 
 export const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps) => {
 
-    const { setPageProps } = useContext(PageContext)
     const [addBirthOpen, setAddBirthOpen] = useState(false)
+
+    const navigate = useNavigate()
 
     const closeBirthDialog = useCallback((added?: boolean) => {
         setAddBirthOpen(false)
@@ -89,14 +86,7 @@ export const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardTop
         </Button>
         <Button
             endIcon={<ChevronRight />}
-            onClick={() => {
-                const tablePage: PageProps = {
-                    title: 'Tabela de Parição',
-                    page: <BirthTablePage />,
-                    previousPages: [HomePage, BirthPage]
-                }
-                if (setPageProps) setPageProps(tablePage)
-            }}
+            onClick={() => navigate("entries")}
         >
             Tabela de Parição
         </Button>

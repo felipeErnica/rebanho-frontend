@@ -24,7 +24,7 @@ import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { PageContext } from "@shared/main-page/PageContext"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { HomePage } from "@features/home/HomePage"
 import { BirthTestDashboardPage, BirthTestGroupPage } from "./BirthTestPages"
@@ -104,7 +104,7 @@ const GroupTable = ({ loading, rows }: GroupTableProps) => {
 type GroupsRowProps = {
     item: TestGroup
     loading: boolean
-    setPageProps?: (pageProps: PageProps) => void
+    setPageProps?: (pageProps: AppRoute) => void
 }
 
 const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
@@ -148,7 +148,7 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
                 )}
                 onShow={() => {
                     const testDate = new Date(rowData.testDate)
-                    const page: PageProps = {
+                    const page: AppRoute = {
                         title: `Toque - ${dateTransform(testDate)}`,
                         page: <GroupEntriesTablePage {...{ testDate }} />,
                         previousPages: [HomePage, BirthTestDashboardPage, BirthTestGroupPage]

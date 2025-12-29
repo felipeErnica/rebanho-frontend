@@ -3,48 +3,49 @@ import ListItemIcon from "@mui/material/ListItemIcon"
 import ListItemText from "@mui/material/ListItemText"
 import { useState } from "react"
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
-import { MenuItem } from "./utils"
 import List from "@mui/material/List"
 import { Collapse } from "@mui/material";
-import { PageProps } from "../PageDisplay";
+import { useNavigate } from "react-router";
+import { MenuItem } from "./MainMenu";
 
-type MenuButtonProps = {
-    item: MenuItem
-    setPage: (page?: PageProps) => void
-}
+type MenuButtonProps = { item: MenuItem }
 
-const NormalButton = ({ item, setPage }: MenuButtonProps) => {
+const NormalButton = ({ item }: MenuButtonProps) => {
+
+    const navigate = useNavigate()
 
     return <ListItemButton
         key={item.key}
         className="text-white py-4 hover:bg-gray-600"
-        onClick={() => setPage(item.page)}
+        onClick={() => navigate(item.path)}
     >
         <ListItemIcon className="text-white">{item.icon}</ListItemIcon>
         <ListItemText>{item.title}</ListItemText>
     </ListItemButton>
 }
 
-const NestedButton = ({ item, setPage }: MenuButtonProps) => {
+const NestedButton = ({ item }: MenuButtonProps) => {
+
+    const navigate = useNavigate()
 
     return <ListItemButton
         key={item.key}
         className="text-white pl-10 py-4 hover:bg-gray-600"
-        onClick={() => setPage(item.page)}
+            onClick={() => navigate(`/home/${item.path}`)}
     >
         <ListItemIcon className="text-white">{item.icon}</ListItemIcon>
         <ListItemText>{item.title}</ListItemText>
     </ListItemButton>
 }
 
-const CollapsedButton = ({ item, setPage }: MenuButtonProps) => {
+const CollapsedButton = ({ item }: MenuButtonProps) => {
 
     const [open, setOpen] = useState(false)
 
     const HiddenList = () => {
-        if (!item.collapsedList) return
+        if (!item.children) return
         return <List>
-            {item.collapsedList.map(item => <NestedButton item={item} setPage={setPage} />)}
+            {item.children.map(child => <NestedButton item={{ ...child, path: item.path + "/" + child.path }} />)}
         </List>
     }
 
@@ -66,9 +67,9 @@ const CollapsedButton = ({ item, setPage }: MenuButtonProps) => {
     </>
 }
 
-export const MenuButton = ({ item, setPage }: MenuButtonProps) => {
-    if (item.collapsedList) {
-        return <CollapsedButton item={item} setPage={setPage} />
+export const MenuButton = ({ item }: MenuButtonProps) => {
+    if (item.children) {
+        return <CollapsedButton item={item} />
     }
-    return <NormalButton item={item} setPage={setPage} />
+    return <NormalButton item={item} />
 }

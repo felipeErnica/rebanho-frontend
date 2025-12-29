@@ -1,13 +1,13 @@
-import { 
-    createContext, 
-    Dispatch, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useMemo, 
-    useRef, 
-    useState 
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
 } from "react"
 import { MilkEntry, MilkEntryFoot, MilkEntrySave } from "./Entities"
 import { deleteMilkEntry, getGroupEntries, getGroupEntriesFoot, updateMilkEntry } from "./Controller"
@@ -31,6 +31,7 @@ import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import Add from "@mui/icons-material/Add"
 import { APIError } from "@utils/ApiRequest"
+import { useParams } from "react-router"
 
 type ErrorContextProps = {
     setApiError: Dispatch<SetStateAction<APIError | undefined>>
@@ -38,11 +39,8 @@ type ErrorContextProps = {
 
 const ErrorContext = createContext<ErrorContextProps>(undefined!)
 
-type GroupEntriesTableProps = {
-    entryDate: Date
-}
 
-export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTableProps) => {
+export const GroupEntriesTablePage = () => {
 
     const defaultFoot: MilkEntryFoot = useMemo(() => ({
         animalsNumber: 0,
@@ -54,6 +52,8 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTableProps) => 
     const [rows, setRows] = useState<MilkEntry[]>([])
     const [loading, setLoading] = useState(false)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
+
+    const { entryDate } = useParams<{ entryDate: string }>()
 
     const getFoot = useCallback(() => {
         getGroupEntriesFoot(new Date(entryDate))
@@ -99,7 +99,7 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTableProps) => 
             )}
         />
         <EntriesTable {...{ rows, loading, foot, onDelete }} />
-        <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose, entryDate }} />
+        <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose, entryDate: new Date(entryDate) }} />
     </div>
 }
 

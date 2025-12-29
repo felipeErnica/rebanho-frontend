@@ -10,7 +10,17 @@ import {
 } from "@shared/dashboard/DashboardComponents"
 import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
-import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { 
+    createContext, 
+    Dispatch, 
+    SetStateAction, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useMemo, 
+    useRef, 
+    useState 
+} from "react"
 import {
     AnimalsAverageHist as AnimalsNumberHist,
     AnimalsRating,
@@ -50,12 +60,6 @@ import ChevronRight from "@mui/icons-material/ChevronRight"
 import Add from "@mui/icons-material/Add"
 import CalendarMonth from '@mui/icons-material/CalendarMonth';
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { PageProps } from "@shared/main-page/PageDisplay"
-import { GroupTablePage } from "./MilkGroupTable"
-import { HomePage } from "../home/HomePage"
-import { LactationHistPage, MilkDashboardPage, MilkEntriesPage, MilkGroupsPage } from "./LactationPages"
-import { PageContext } from "@shared/main-page/PageContext"
-import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { CardEntry } from "@utils/Entities"
@@ -82,6 +86,7 @@ import { AddLacDialog } from "./AddLactationDialog"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
+import { Link } from "react-router"
 
 export const LactationDashboard = () => {
 
@@ -134,7 +139,6 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
     const [openEndLactation, setOpenEndLactation] = useState(false)
     const [openStartLac, setOpenStartLac] = useState(false)
-    const { setPageProps } = useContext(PageContext)
 
     const onClose = useCallback((added: boolean) => {
         setAddMilkEntryOpen(false)
@@ -169,19 +173,19 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
                 Secar Vacas
             </MenuItem>
             <Divider />
-            <MenuItem onClick={() => setPageProps(MilkEntriesPage)}>
+            <MenuItem onClick={() => <Link to={"lactation/milk-entries"} />}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Histórico de Leite
             </MenuItem>
-            <MenuItem onClick={() => setPageProps(MilkGroupsPage)}>
+            <MenuItem onClick={() => <Link to={"lactation/milk-groups"} />}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Dias de Marcação
             </MenuItem>
-            <MenuItem onClick={() => setPageProps(LactationHistPage)}>
+            <MenuItem onClick={() => <Link to={"lactation/history"} />}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
@@ -369,8 +373,6 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
     const [error, setError] = useState<APIError>()
     const [warning, setWarning] = useState(DefaultTimerWarning)
 
-    const { setPageProps } = useContext(PageContext)
-
     useEffect(() => {
         startLoading()
         setLoading(true)
@@ -410,14 +412,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
             className="ml-auto"
             variant="text"
             endIcon={<ChevronRight />}
-            onClick={() => {
-                const pageProps: PageProps = {
-                    title: "Marcações de Leite",
-                    page: <GroupTablePage />,
-                    previousPages: [HomePage, MilkDashboardPage]
-                }
-                if (setPageProps) setPageProps(pageProps)
-            }}
+            onClick={() =>  <Link to={"lactation/milk-groups"}/>}
         >
             Ver Mais...
         </Button>
@@ -442,7 +437,6 @@ const GroupsRow = ({ item }: GroupsRowProps) => {
     const [editing, setEditing] = useState(false)
     const [loading, setLoading] = useState(false)
 
-    const { setPageProps } = useContext(PageContext)
     const { setError, setWarning, setRows } = useContext(EditContext)
 
     useEffect(() => setRowData(item), [item])
@@ -480,14 +474,7 @@ const GroupsRow = ({ item }: GroupsRowProps) => {
                 setEditing={setEditing}
                 onDelete={onDelete}
                 loading={loading}
-                onShow={() => {
-                    const page: PageProps = {
-                        title: `Leite - ${dateTransform(rowData.entryDate)}`,
-                        page: <GroupEntriesTablePage {...{ entryDate: rowData.entryDate }} />,
-                        previousPages: [HomePage, MilkDashboardPage, MilkGroupsPage]
-                    }
-                    setPageProps(page)
-                }}
+                onShow={() => <Link to={`lactation/milk/${rowData.entryDate}`}/>}
             />
         </TableCell>
         <TableCell>{dateTransform(rowData.entryDate)}</TableCell>
@@ -586,8 +573,6 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
     const [loading, setLoading] = useState(false)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
 
-    const { setPageProps } = useContext(PageContext)
-
     const onDelete = useCallback((id: string) => {
         if (!setReloadFlag) return
         deleteMilkEntry(id)
@@ -654,14 +639,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
             </Button>
             <Button
                 endIcon={<ChevronRight />}
-                onClick={() => {
-                    const page: PageProps = {
-                        title: `Leite - ${textDate}`,
-                        page: <GroupEntriesTablePage {...{ entryDate: lastDate }} />,
-                        previousPages: [HomePage, MilkDashboardPage]
-                    }
-                    if (setPageProps) setPageProps(page)
-                }}
+                onClick={() => <Link to={"lactation"}/>}
             >
                 Ver Mais...
             </Button>
@@ -893,7 +871,6 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
     const [data, setData] = useState<AnimalsRating[]>([])
     const [loading, setLoading] = useState(false)
     const [rankBy, setRankBy] = useState('worst-animals')
-    const { setPageProps } = useContext(PageContext)
 
     const rankByValues: ComboBoxItem[] = [
         { name: 'As Melhores Vacas', value: 'best-animals' },
@@ -926,7 +903,7 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 className="ml-auto"
                 variant="text"
                 startIcon={<ChevronRight />}
-                onClick={() => setPageProps(LactationHistPage)}
+                onClick={() => <Link to={"lactation/history"} />}
             >
                 Ver Histórico de Lactação
             </Button>
@@ -988,7 +965,6 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
     const [data, setData] = useState<ParentsRating[]>([])
     const [loading, setLoading] = useState(false)
     const [rankBy, setRankBy] = useState('best-mothers')
-    const { setPageProps } = useContext(PageContext)
 
     const rankByValues: ComboBoxItem[] = [
         { name: 'As Melhores Mães', value: 'best-mothers' },
@@ -1023,7 +999,7 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 className="ml-auto"
                 variant="text"
                 startIcon={<ChevronRight />}
-                onClick={() => setPageProps && setPageProps(LactationHistPage)}
+                onClick={() => <Link to={"lactation/history"} />}
             >
                 Ver Histórico de Lactação
             </Button>

@@ -1,24 +1,24 @@
-import { PageProps } from "@shared/main-page/PageDisplay";
+import { AppRoute } from "@shared/main-page/PageDisplay";
 import Scale from "@mui/icons-material/Scale";
 import { HomePage } from "@features/home/HomePage";
 import { WeightDashboard } from "./WeightDashboard";
 import { WeightEntriesTable } from "./WeightEntriesTable";
 import { WeightGroupTable } from "./WeightGroupTable";
 
-export const WeightMainPage: PageProps = {
+export const WeightMainPage: AppRoute = {
     title: "Painel de Pesagem",
-    crumbIcon: <Scale />,
+    icon: <Scale />,
     page: <WeightDashboard />,
     previousPages: [HomePage]
 }
 
-export const WeightEntriesPage: PageProps = {
+export const WeightEntriesPage: AppRoute = {
     title: "Marcações de Peso",
     page: <WeightEntriesTable />,
     previousPages: [HomePage, WeightMainPage]
 }
 
-export const WeightGroupsPage: PageProps = {
+export const WeightGroupsPage: AppRoute = {
     title: "Pesagens",
     page: <WeightGroupTable />,
     previousPages: [HomePage, WeightMainPage]

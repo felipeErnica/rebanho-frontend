@@ -20,7 +20,7 @@ import { useForm } from "react-hook-form"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { ControlButtonContainer, EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { HomePage } from "@features/home/HomePage"
 import { FarmPage } from "../FarmPage"
 import { PageContext } from "@shared/main-page/PageContext"
@@ -96,7 +96,7 @@ const FarmsNormalRow = ({
                         setEditing={setEditing}
                         onDelete={() => console.log("delete: ", farmName)}
                         onShow={() => {
-                            const nextPage: PageProps = {
+                            const nextPage: AppRoute = {
                                 title: `Rebanho - ${farmName}`,
                                 page: <FarmAnimalsPage {...{ farmId }} />,
                                 previousPages: [HomePage, FarmPage]
@@ -265,7 +265,7 @@ const PastureShowMenu = ({ isShowMenuOpen, setShowMenuOpen, pastureName, pasture
             <MenuItem>
                 <Button
                     onClick={() => {
-                        const page: PageProps = {
+                        const page: AppRoute = {
                             title: `Histórico de Entradas - ${pastureName}`,
                             page: <PastureEntriesPage {...{ pastureId }} />,
                             previousPages: [HomePage, FarmPage],
@@ -279,7 +279,7 @@ const PastureShowMenu = ({ isShowMenuOpen, setShowMenuOpen, pastureName, pasture
             <MenuItem>
                 <Button
                     onClick={() => {
-                        const page: PageProps = {
+                        const page: AppRoute = {
                             title: `Rebanho - ${pastureName}`,
                             page: <PastureAnimalsPage {...{ pastureId }} />,
                             previousPages: [HomePage, FarmPage],

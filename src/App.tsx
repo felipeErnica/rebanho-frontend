@@ -1,14 +1,7 @@
-import { HashRouter, Route, Routes } from 'react-router'
-import { LoginDisplay } from "./components/features/auth/LoginDisplay";
-import { PageDisplay } from "./components/shared/main-page/PageDisplay";
+import { createHashRouter, RouterProvider } from "react-router"
+import { routes } from "./Routes"
 
 export const App = () => {
-    return <HashRouter>
-        <Routes>
-            <Route>
-                <Route index element={<LoginDisplay />} />
-                <Route path="home" element={<PageDisplay />} />
-            </Route>
-        </Routes>
-    </HashRouter>
+    const router = createHashRouter(routes)
+    return <RouterProvider router={router} />
 }

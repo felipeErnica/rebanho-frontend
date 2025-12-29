@@ -1,9 +1,9 @@
-import { PageProps } from "@shared/main-page/PageDisplay";
+import { AppRoute } from "@shared/main-page/PageDisplay";
 import Home from "@mui/icons-material/Home"
-import { HomeDashboard } from "./HomeDash";
+import { AnimalsDashboard } from "@features/animals/AnimalsDashboard";
 
-export const HomePage: PageProps = {
+export const HomePage: AppRoute = {
     title: "Início",
-    crumbIcon: <Home />,
-    page: <HomeDashboard />
+    icon: <Home />,
+    page: <AnimalsDashboard />
 }

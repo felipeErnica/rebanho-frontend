@@ -22,10 +22,7 @@ import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog } from "@/components/shared/dialog/DialogComponents"
-
-type LactationEntriesTableProps = {
-    lacId: string
-}
+import { useParams } from "react-router"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -35,7 +32,7 @@ type ErrorContextProps = {
 
 const EditContext = createContext<ErrorContextProps>(undefined!)
 
-export const LactationEntriesTablePage = ({ lacId }: LactationEntriesTableProps) => {
+export const LactationEntriesTablePage = () => {
 
     const defaultFoot: MilkEntryFoot = useMemo(() => ({
         animalsNumber: 0,
@@ -48,20 +45,22 @@ export const LactationEntriesTablePage = ({ lacId }: LactationEntriesTableProps)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<APIError>(undefined)
 
+    const { lactationId } = useParams<{ lactationId: string }>()
+
     const loadFoot = useCallback(() => {
-        getLactationEntriesFoot(lacId)
+        getLactationEntriesFoot(lactationId)
             .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
-    }, [defaultFoot, lacId])
+    }, [defaultFoot, lactationId])
 
     const onReload = useCallback(() => {
         setLoading(true)
         loadFoot()
-        getLactationEntries(lacId)
+        getLactationEntries(lactationId)
             .then(response => setRows(response))
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
-    }, [lacId, loadFoot])
+    }, [lactationId, loadFoot])
 
     useEffect(onReload, [onReload])
 
@@ -70,7 +69,7 @@ export const LactationEntriesTablePage = ({ lacId }: LactationEntriesTableProps)
         <EditContext.Provider value={{ setError, setRows, loadFoot }}>
             <EntriesTable {...{ rows, loading, foot }} />
         </EditContext.Provider>
-        <ErrorDialog 
+        <ErrorDialog
             openError={!!error}
             title={error?.title}
             content={error?.message}
@@ -132,7 +131,7 @@ const EntriesRow = ({ item }: EntriesRowProps) => {
 
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
-    const onDelete = () => { 
+    const onDelete = () => {
         setLoading(true)
         deleteMilkEntry(rowData.id)
             .then(() => {
@@ -163,7 +162,7 @@ type EntriesRowEditingProps = {
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
     const [loading, setLoading] = useState(false)
-        
+
     const { control, handleSubmit } = useForm<MilkEntrySave>({ defaultValues: rowData })
     const { setError } = useContext(EditContext)
 

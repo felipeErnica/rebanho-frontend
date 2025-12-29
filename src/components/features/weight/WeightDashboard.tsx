@@ -43,7 +43,7 @@ import { FormTextField } from "@shared/form-controls/FormTextField"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { PageContext } from "@shared/main-page/PageContext"
 import { WeightEntriesPage, WeightGroupsPage, WeightMainPage } from "./WeightPages"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { WeightGroupEntriesTable } from "./WeightGroupEntriesTable"
 import { HomePage } from "../home/HomePage"
 import Add from "@mui/icons-material/Add"
@@ -359,7 +359,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             endIcon={<ChevronRight />}
             onClick={() => {
                 if (!entryDate) return
-                const page: PageProps = {
+                const page: AppRoute = {
                     title: `Pesagem - ${lastDate}`,
                     page: <WeightGroupEntriesTable {...{ entryDate }} />,
                     previousPages: [HomePage, WeightMainPage]
@@ -540,7 +540,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                     onShow={() => {
                                         const entryDate = new Date(row.entryDate)
                                         const dateStr = entryDate.toLocaleDateString("pt-BR", { dateStyle: 'short' })
-                                        const newPage: PageProps = {
+                                        const newPage: AppRoute = {
                                             title: `Peso - ${dateStr}`,
                                             page: <WeightGroupEntriesTable {...{ entryDate }} />,
                                             previousPages: [HomePage, WeightMainPage]

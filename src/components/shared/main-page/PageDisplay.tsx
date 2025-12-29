@@ -1,78 +1,75 @@
-import { JSX, ReactNode, useState } from "react";
+import { Dispatch, JSX, SetStateAction, useState } from "react";
 import Drawer from "@mui/material/Drawer";
 import Box from "@mui/material/Box";
-import { MainMenu } from "./main-menu/MainMenu";
+import { MainMenu } from "./MainMenu";
 import { TitleBar } from "./TitleBar";
-import { PageContext } from "./PageContext";
 import Toolbar from "@mui/material/Toolbar";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Button from "@mui/material/Button";
 import NavigateNext from "@mui/icons-material/NavigateNext";
-import { HomePage } from "@features/home/HomePage";
 import { Divider, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-
-export type PageProps = {
-    title: string
-    crumbIcon?: ReactNode | ReactNode[]
-    page: ReactNode | ReactNode[]
-    previousPages?: PageProps[]
-}
+import { Link, Outlet, UIMatch, useMatches  } from "react-router";
+import { RouteHandle } from "../../../Routes";
 
 type BreadCrumbsToolbarProps = {
-    pageProps: PageProps
-    setPageProps: (page?: PageProps) => void
+    setOpen: Dispatch<SetStateAction<boolean>>
 }
 
-const BreadCrumbsToolbar = ({ pageProps: { previousPages, title, crumbIcon }, setPageProps }: BreadCrumbsToolbarProps) => {
+const BreadCrumbsToolbar = ({ setOpen }: BreadCrumbsToolbarProps) => {
 
-    return <Toolbar className="border border-gray-200">
-        <IconButton>
+    const matches = useMatches() as UIMatch<unknown, RouteHandle>[]
+
+    return <Toolbar className="border border-gray-200 flex flex-row gap-4">
+        <IconButton onClick={() => setOpen(v => !v)}>
             <MenuIcon />
         </IconButton>
-        <Divider />
+
+        <Divider orientation="vertical" />
+
         <Breadcrumbs separator={<NavigateNext />}>
-            {previousPages?.map(previousPage => (
-                <Button
-                    variant="text"
-                    className="text-gray-500 hover:text-gray-700 hover:bg-transparent hover:font-bold hover:underline"
-                    startIcon={previousPage.crumbIcon}
-                    onClick={() => setPageProps(previousPage)}
-                >
-                    {previousPage.title}
-                </Button>
-            ))}
-            <Button
-                disabled
-                variant="text"
-                className="text-gray-700 font-bold"
-                startIcon={crumbIcon}
-            >
-                {title}
-            </Button>
+            {matches
+                .filter(match => match.handle?.title)
+                .map((match, index, arr) => {
+                    const title =
+                        typeof match.handle.title === 'function'
+                            ? match.handle.title(match.params, match?.loaderData)
+                            : match.handle.title
+
+                    return (
+                        <Button
+                            key={match.pathname}
+                            component={Link}
+                            to={match.pathname}
+                            variant="text"
+                            disabled={index === arr.length - 1}
+                            startIcon={match.handle.icon}
+                        >
+                            {title}
+                        </Button>
+                    )
+                })}
         </Breadcrumbs>
     </Toolbar>
+
 }
 
 export const PageDisplay = (): JSX.Element => {
 
-    const [open, setOpen] = useState(true)
-    const [pageProps, setPageProps] = useState<PageProps | undefined>(HomePage)
+    const [open, setOpen] = useState(false)
 
     return <Box className="w-screen h-screen flex flex-col">
-        <TitleBar setOpen={setOpen} />
+        <TitleBar />
         <Drawer
             anchor="left"
             open={open}
             onClose={() => setOpen(false)}
         >
-            <MainMenu setPage={setPageProps} setOpen={setOpen} />
+            <MainMenu setOpen={setOpen} />
         </Drawer>
-        {pageProps && <BreadCrumbsToolbar {...{ pageProps, setPageProps }} />}
+        <BreadCrumbsToolbar {...{ setOpen }} />
         <div className="w-full h-full overflow-auto">
-            <PageContext.Provider value={{ pageProps, setPageProps }}>
-                {pageProps?.page}
-            </PageContext.Provider>
+            <Outlet />
         </div>
     </Box>
 }

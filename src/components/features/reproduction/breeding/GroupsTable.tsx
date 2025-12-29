@@ -22,7 +22,7 @@ import {
 } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { PageContext } from "@shared/main-page/PageContext"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { HomePage } from "@features/home/HomePage"
@@ -148,7 +148,7 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
 type GroupsRowProps = {
     item: BreedingGroup
     loading: boolean
-    setPageProps: ((page: PageProps) => void) | undefined
+    setPageProps: ((page: AppRoute) => void) | undefined
 }
 
 const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
@@ -210,7 +210,7 @@ const GroupsRow = ({ item, loading, setPageProps }: GroupsRowProps) => {
                         month: 'short',
                         year: 'numeric'
                     })
-                    const page: PageProps = {
+                    const page: AppRoute = {
                         page: <GroupEntriesTablePage {...{ breedingDate }} />,
                         title: `Cobertura - ${dateString}`,
                         previousPages: [HomePage, BreedingMainPage, GroupsTablePageProps]

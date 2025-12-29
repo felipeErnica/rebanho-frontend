@@ -89,7 +89,7 @@ import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { PageContext } from "@shared/main-page/PageContext"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { HomePage } from "../../home/HomePage"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
@@ -220,7 +220,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
             <Divider />
             <MenuItem
                 onClick={() => {
-                    const page: PageProps = {
+                    const page: AppRoute = {
                         page: <EntriesTablePage />,
                         title: "Histórico de Transferências",
                         previousPages: [HomePage, BreedingMainPage]
@@ -674,7 +674,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                     })
                     return
                 }
-                const page: PageProps = {
+                const page: AppRoute = {
                     page: <GroupEntriesTablePage {...{ breedingDate }} />,
                     title: `Cobertura - ${lastDate}`,
                     previousPages: [HomePage, BreedingMainPage]
@@ -928,7 +928,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                                             month: 'short',
                                             year: 'numeric'
                                         })
-                                        const page: PageProps = {
+                                        const page: AppRoute = {
                                             page: <GroupEntriesTablePage {...{ breedingDate }} />,
                                             title: `Cobertura - ${date}`,
                                             previousPages: [HomePage, BreedingMainPage]

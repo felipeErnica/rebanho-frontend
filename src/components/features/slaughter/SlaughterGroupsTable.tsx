@@ -20,7 +20,7 @@ import { EditControlButtons } from "@shared/table/ControlButtons"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { HomePage } from "../home/HomePage"
 import { SlaughterGroupsPage, SlaughterMainPage } from "./SlaughterPages"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { SlaughterGroupEntriesTable } from "./SlaughterGroupEntriesTable"
 
 export const SlaughterGroupsTable = () => {
@@ -82,7 +82,7 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
                                     onShow={() => {
                                         const entryDate = new Date(row.entryDate)
                                         const dateStr = entryDate.toLocaleString("pt-BR", { dateStyle: 'short' })
-                                        const newPage: PageProps = {
+                                        const newPage: AppRoute = {
                                             title: `Abate - ${dateStr} (Frig.: ${row.butcher})`,
                                             page: <SlaughterGroupEntriesTable {...{ entryDate }} />,
                                             previousPages: [HomePage, SlaughterMainPage, SlaughterGroupsPage]

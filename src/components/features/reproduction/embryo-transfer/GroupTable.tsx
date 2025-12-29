@@ -13,7 +13,7 @@ import {
 } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { PageContext } from "@shared/main-page/PageContext"
-import { PageProps } from "@shared/main-page/PageDisplay"
+import { AppRoute } from "@shared/main-page/PageDisplay"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { GroupEntriesTablePage } from "./GroupEntriesTable"
 import { HomePage } from "@features/home/HomePage"
@@ -129,7 +129,7 @@ const GroupsTable = ({ loading, setLoading }: GroupsTableProps) => {
 type GroupsRowProps = {
     item: TransferGroup
     loading: boolean
-    setPageProps: ((page: PageProps) => void) | undefined
+    setPageProps: ((page: AppRoute) => void) | undefined
     setRows: Dispatch<SetStateAction<TransferGroup[]>>
     setWarningProps: Dispatch<SetStateAction<TimerYesNoDialogProps>>
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -195,7 +195,7 @@ const GroupsRow = ({
                         month: 'short',
                         year: 'numeric'
                     })
-                    const page: PageProps = {
+                    const page: AppRoute = {
                         page: <GroupEntriesTablePage {...{ transferDate }} />,
                         title: `Transferência - ${dateString}`,
                         previousPages: [HomePage, TransferMainPage, GroupsTablePageProps]

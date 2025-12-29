@@ -37,11 +37,6 @@ import { EditControlButtons, EditingControlButtons } from "@shared/table/Control
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { LacHistFilter } from "./LacHistFilter"
-import { PageProps } from "@shared/main-page/PageDisplay"
-import { LactationEntriesTablePage } from "./LactationEntriesTable"
-import { HomePage } from "../home/HomePage"
-import { LactationHistPage, MilkDashboardPage } from "./LactationPages"
-import { PageContext } from "@shared/main-page/PageContext"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { APIError } from "@utils/ApiRequest"
@@ -54,6 +49,7 @@ import CalendarMonth from "@mui/icons-material/CalendarMonth"
 import { EndLactationDialog } from "./EndLactationDialog"
 import { AddLacDialog } from "./AddLactationDialog"
 import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Globals"
+import { Link } from "react-router"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -246,7 +242,6 @@ const LacRow = ({ item, loading }: LacRowProps) => {
     const [editing, setEditing] = useState(false)
     const [loadingControls, setLoadingControls] = useState(false)
 
-    const { setPageProps } = useContext(PageContext)
     const { setRows, setError, setWarning } = useContext(ErrorContext)
 
     useEffect(() => setRowData(item), [item])
@@ -270,7 +265,7 @@ const LacRow = ({ item, loading }: LacRowProps) => {
         waitTime: 10,
         title: GROUP_DELETE_TITLE,
         content: `Ao confirmar, todas as marcações da ${rowData.animalName}, dos dias ${dateTransform(rowData.startDate)} ` +
-                `até ${rowData.endDate ? dateTransform(rowData.endDate) : 'hoje'}, serão excluídas. Deseja continuar?`,
+            `até ${rowData.endDate ? dateTransform(rowData.endDate) : 'hoje'}, serão excluídas. Deseja continuar?`,
         onClose: () => setWarning(DefaultTimerWarning),
         onYes: deleteLac
     })
@@ -281,16 +276,7 @@ const LacRow = ({ item, loading }: LacRowProps) => {
                 setEditing={setEditing}
                 onDelete={onDelete}
                 loading={loadingControls}
-                onShow={() => {
-                    const startDate = dateTransform(rowData.startDate)
-                    const endDate = rowData.endDate ? ` Fim: ${dateTransform(rowData.endDate)}` : ""
-                    const page: PageProps = {
-                        title: `Leite - ${rowData.animalName} - (Início: ${startDate}${endDate})`,
-                        page: <LactationEntriesTablePage {...{ lacId: rowData.id }} />,
-                        previousPages: [HomePage, MilkDashboardPage, LactationHistPage]
-                    }
-                    setPageProps(page)
-                }}
+                onShow={() => <Link to={`lactation/history/${rowData.id}`} />}
             />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
