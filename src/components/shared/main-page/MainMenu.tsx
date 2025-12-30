@@ -32,22 +32,22 @@ export type MenuItem = {
 
 const menuList: MenuItem[] = [
     {
-        key: 'home',
+        key: 'animals',
         title: 'Início',
         icon: <Home />,
-        path: "/home"
+        path: "animals"
     },
     {
         key: 'farm-pastures',
         title: 'Fazendas e Pastos',
         icon: <FarmMainIcon />,
-        path: "/farm-pastures"
+        path: "farm-pastures"
     },
     {
         key: 'reproduction',
         title: 'Área Reprodutiva',
         icon: <ReproductionIcon />,
-        path: "/reproduction",
+        path: "reproduction",
         children: [
             {
                 key: 'births',
@@ -85,13 +85,13 @@ const menuList: MenuItem[] = [
         key: 'weight',
         title: 'Pesagens',
         icon: <Scale />,
-        path: "/weight"
+        path: "weight"
     },
     {
         key: 'slaughter-weight',
         title: 'Abate',
         icon: <SlaughterIcon />,
-        path: "/slaughter-weight"
+        path: "slaughter-weight"
     },
     {
         key: 'lactation-area',
@@ -103,7 +103,7 @@ const menuList: MenuItem[] = [
         key: 'vacines',
         title: 'Vacinação',
         icon: <Vaccines />,
-        path: "/vacines"
+        path: "vacines"
     },
 ]
 

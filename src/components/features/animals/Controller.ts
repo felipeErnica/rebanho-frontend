@@ -1,5 +1,6 @@
-import { apiGet, apiPut } from "@utils/ApiRequest";
+import { apiGet, apiPost, apiPut, buildPageCall } from "@utils/ApiRequest";
 import { AnimalSave } from "./Entities";
+import { IFilters } from "@utils/Filter";
 
 const ANIMAL_BASE = "animals/"
 const ANIMAL_DASHBOARD = "animals/dashboard/"
@@ -54,4 +55,13 @@ export function searchFemaleChildren(id: string) {
 
 export function findById(id: string) {
     return apiGet(ANIMAL_BASE + id)
+}
+
+export function findAnimals(filter: IFilters, sort: string, order: string, cursor?: string) {
+    const pageCall = buildPageCall(sort, order, cursor)
+    return apiPost(ANIMAL_BASE + pageCall, filter)
+}
+
+export function findAnimalsTotal(filter: IFilters) {
+    return apiPost(ANIMAL_BASE + "total", filter)
 }

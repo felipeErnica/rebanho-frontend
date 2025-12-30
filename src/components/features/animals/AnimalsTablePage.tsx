@@ -1,0 +1,211 @@
+import { useCallback, useRef, useState } from "react"
+import { TableTopBar } from "@shared/table/TableTopBarComponents"
+import { findAnimals, findAnimalsTotal } from "./Controller"
+import { ComboBoxItem } from "@shared/common/ComboBox"
+import { AnimalsFilter } from "./AnimalsFilter"
+import { IFilters } from "@utils/Filter"
+import { usePagination } from "@shared/table/PageTable"
+import { Animal, AnimalSave } from "./Entities"
+import { Ref, useEffect } from "react"
+import { transformAnimalType } from "./Entities"
+import { dateTransform, decimalTransform } from "@utils/Transformations"
+import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
+import {
+    VirtuosoResizeHeadCell,
+    TableBodyCell,
+    TableHeadRow,
+    TableLoadingCells,
+    VirtuosoHeadCell,
+    TableFooterRow,
+    FooterContent,
+} from "@shared/table/TableComponents"
+import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
+import { useVirtuosoComponents } from "@shared/table/PageTable"
+import { EditRowProps, TableRowProp } from "@/components/shared/table/Entities"
+import { SubmitHandler, useForm } from "react-hook-form"
+import { FormTextField } from "@/components/shared/form-controls/FormTextField"
+import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
+import { FormSearchBox } from "@/components/shared/form-controls/FormSearchBox"
+import { searchAllMothers, searchFather } from "@/utils/GlobalApiCalls"
+
+export const AnimalsTablePage = () => {
+
+    const [foot, setTotal] = useState(0)
+    const [order, setOrder] = useState('asc')
+    const [sort, setSort] = useState('ring_order')
+    const [loading, setLoading] = useState(false)
+    const [isFilterOpen, setFilterOpen] = useState(false)
+    const [filter, setFilter] = useState<IFilters>({ isFiltered: false })
+
+    const fetchPage = useCallback((cursor?: string) => {
+        findAnimalsTotal(filter)
+            .then((response) => setTotal(response.foot))
+            .catch(() => setTotal(0))
+        return findAnimals(filter, sort, order, cursor)
+    }, [filter, sort, order])
+
+    const anchorEl = useRef<HTMLButtonElement>(null)
+    const { rows, fetchNextPage, scrollRef } = usePagination<Animal>({ fetchPage, setLoading })
+
+    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
+
+    const sortColumns: ComboBoxItem[] = [
+        { name: 'Brinco', value: 'ring_order' },
+        { name: 'Nome', value: 'name' },
+        { name: 'Data de Nascimento', value: 'birth_date' },
+        { name: 'Data de Morte', value: 'death_date' },
+        { name: 'Intervalo de Partos Médio', value: 'average_birth_interval' },
+        { name: 'Intervalo de Lactações Médio', value: 'average_lac_interval' },
+        { name: 'Prod. Total Média', value: 'average_prod' },
+        { name: 'Média de Leite', value: 'average_milk' },
+        { name: 'Pico de Leite Médio', value: 'average_peak' },
+    ]
+
+    return <div className="h-full w-full flex flex-col">
+        <TableTopBar
+            orderProps={{ order, setOrder }}
+            sortProps={{ sort, setSort, sortColumns, defaultSort: 'ring_order' }}
+            filterProps={{ anchorEl, setFilterOpen }}
+            reloadProps={{ onReload, loading: loading }}
+        />
+        <AnimalsTable {...{ rows, loading, fetchNextPage, scrollRef, foot }} />
+        <AnimalsFilter {...{
+            anchorEl,
+            isFilterOpen,
+            setFilterOpen,
+            filter,
+            setFilter,
+        }} />
+    </div>
+}
+
+type AnimalsTableProps = {
+    rows: Animal[]
+    loading: boolean
+    scrollRef: Ref<VirtuosoHandle>
+    fetchNextPage: () => void
+    foot: number
+}
+
+const COL_COUNT = 13
+
+export const AnimalsTable = ({
+    rows,
+    loading,
+    scrollRef,
+    fetchNextPage,
+    foot
+}: AnimalsTableProps) => {
+
+    return <TableVirtuoso
+        components={useVirtuosoComponents(COL_COUNT)}
+        ref={scrollRef}
+        data={rows}
+        endReached={fetchNextPage}
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <VirtuosoHeadCell width={200} />
+                <VirtuosoResizeHeadCell width={200}>Brinco</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Nome</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200} align="center">Data de Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200} align="center">Data de Morte</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Pai</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Mãe</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Tipo de Animal</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Pasto</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200} align="center">Prod. Média</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200} align="center">Intervalo de Lactação Médio</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200} align="center">Intervalo de Parto Médio</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200} align="center">Pico Médio</VirtuosoResizeHeadCell>
+            </TableHeadRow>
+        )}
+        fixedFooterContent={() => (
+            <TableFooterRow colSpan={COL_COUNT}>
+                <FooterContent title="Total de Animais" content={foot} />
+            </TableFooterRow>
+        )}
+        itemContent={(_, row: Animal) => <AnimalRow {...{ row, loading }} />}
+    />
+}
+
+const AnimalRow = ({ row, loading }: TableRowProp<Animal>) => {
+
+    const [loadingControls, setLoadingControls] = useState(false)
+    const [editing, setEditing] = useState(false)
+    const [rowData, setRowData] = useState(row)
+
+    useEffect(() => setRowData(row), [row])
+
+    const onDelete = () => {
+        setLoadingControls(false)
+        console.log("delete: ", rowData.id)
+    }
+
+    if (editing) return <EditingRow {...{ rowData, setEditing, setRowData }} />
+    if (loading) return <TableLoadingCells colSpan={COL_COUNT} />
+
+    return <>
+        <TableBodyCell>
+            <EditControlButtons {...{ onDelete, setEditing, loading: loadingControls }} />
+        </TableBodyCell>
+        <TableBodyCell>{rowData.ringNumber}</TableBodyCell>
+        <TableBodyCell>{rowData.name}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.birthDate)}</TableBodyCell>
+        <TableBodyCell>{rowData.fatherName}</TableBodyCell>
+        <TableBodyCell>{rowData.motherName}</TableBodyCell>
+        <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>
+        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.averageProd, 1)}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.averageProdInterval}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.averageBirthInterval}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.averagePeak, 1)}</TableBodyCell>
+    </>
+}
+
+const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) => {
+
+    const [loading, setLoading] = useState(false)
+
+    const { handleSubmit, control } = useForm<AnimalSave>({ defaultValues: rowData })
+
+    const onSubmit: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
+        setLoading(true)
+        setRowData(data as Animal)
+        setLoading(false)
+    }
+
+    const onSave = handleSubmit(onSubmit)
+
+    return <>
+        <TableBodyCell>
+            <EditingControlButtons {...{ setEditing, loading, onSave }} />
+        </TableBodyCell>
+        <TableBodyCell>
+            <FormTextField formProps={{ control, name: 'ringNumber' }} />
+        </TableBodyCell>
+        <TableBodyCell>
+            <FormTextField formProps={{ control, name: 'name' }} />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <FormDatePicker formProps={{ control, name: 'birthDate' }} />
+        </TableBodyCell>
+        <TableBodyCell>
+            <FormSearchBox
+                formProps={{ control, name: 'fatherId' }}
+                searchOptions={searchFather}
+            />
+        </TableBodyCell>
+        <TableBodyCell>
+            <FormSearchBox
+                formProps={{ control, name: 'motherId' }}
+                searchOptions={searchAllMothers}
+            />
+        </TableBodyCell>
+        <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>
+        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.averageProd, 1)}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.averageProdInterval}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.averageBirthInterval}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.averagePeak, 1)}</TableBodyCell>
+    </>
+}

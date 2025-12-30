@@ -7,14 +7,14 @@ import {
     DashboardTableBody,
     DashboardTopContainer
 } from "@/components/shared/dashboard/DashboardComponents"
-import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
-import { DashboardInformationProps, DashboardTopBarProps } from "@/components/shared/dashboard/Entities"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@/components/shared/dashboard/Entities"
 import { CardEntry } from "@/utils/Entities"
 import { ReloadButton } from "@/components/shared/table/TableTopBarComponents"
 import { AnimalByType, AnimalsNumberHist } from "./Entities"
 import { getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getSlaughterHist } from "./Controller"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
-import { dateTransform, decimalTransform, positiveTransform } from "@/utils/Transformations"
+import { dateToISO, dateTransform, decimalTransform, positiveTransform } from "@/utils/Transformations"
 import { green, purple, red, yellow } from "@mui/material/colors"
 import { PieChart } from "@mui/x-charts"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/components/shared/Globals"
@@ -37,10 +37,16 @@ import { EditRowProps, TableRowProp } from "@/components/shared/table/Entities"
 import { EditControlButtons, EditingControlButtons } from "@/components/shared/table/ControlButtons"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/components/shared/form-controls/FormTextField"
+import ExpandMore from "@mui/icons-material/ExpandMore"
+import Menu from "@mui/material/Menu"
+import MenuItem from "@mui/material/MenuItem"
+import ListItemIcon from "@mui/material/ListItemIcon"
+import Divider from "@mui/material/Divider"
+import { AddBirthDialog } from "../reproduction/births/BirthAddDialog"
+import { AddCowDialog } from "./AddCowDialog"
+import { AddBullDialog } from "./AddBullDialog"
 
-type EditContextProps = {
-    setReloadFlag: Dispatch<SetStateAction<number>>
-}
+type EditContextProps = { setReloadFlag: Dispatch<SetStateAction<number>> }
 
 const EditContext = createContext<EditContextProps>(undefined!)
 
@@ -62,12 +68,90 @@ export const AnimalsDashboard = () => {
 
 const AnimalsTopBar = ({ activeRequests, setReloadFlag }: DashboardTopBarProps) => {
 
+    const [openMenu, setOpenMenu] = useState(false)
+    const menuAnchorEl = useRef<HTMLButtonElement>(null)
+
     return <DashboardTopContainer>
         <ReloadButton
             onReload={() => setReloadFlag(prev => prev + 1)}
             loading={activeRequests > 0}
         />
+        <Button
+            className="ml-auto"
+            ref={menuAnchorEl}
+            endIcon={<ExpandMore />}
+            onClick={() => setOpenMenu(true)}
+        >
+            Opções
+        </Button>
+        <OptionsMenu
+            openMenu={openMenu}
+            menuAnchorEl={menuAnchorEl}
+            closeMenu={() => setOpenMenu(false)}
+            setReloadFlag={setReloadFlag}
+        />
     </DashboardTopContainer>
+}
+
+const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionMenuProps) => {
+
+    const [addCowOpen, setAddCowOpen] = useState(false)
+    const [addBullOpen, setAddBullOpen] = useState(false)
+    const [addBirthOpen, setAddBirthOpen] = useState(false)
+
+    const navigate = useNavigate()
+
+    const closeAddCow = useCallback((added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddCowOpen(false)
+    }, [setReloadFlag])
+
+    const closeAddBull = useCallback((added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddBullOpen(false)
+    }, [setReloadFlag])
+
+    const closeBirthDialog = useCallback((added?: boolean) => {
+        if (added) setReloadFlag(prev => prev + 1)
+        setAddBirthOpen(false)
+    }, [setReloadFlag])
+
+    return <>
+        <Menu
+            open={openMenu}
+            anchorEl={menuAnchorEl.current}
+            onClose={closeMenu}
+        >
+            <MenuItem onClick={() => setAddBirthOpen(true)}>
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Parição
+            </MenuItem>
+            <MenuItem onClick={() => setAddBullOpen(true)}>
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Touro
+            </MenuItem>
+            <MenuItem onClick={() => setAddCowOpen(true)}>
+                <ListItemIcon>
+                    <Add />
+                </ListItemIcon>
+                Adicionar Vaca
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={() => navigate("animals")}>
+                <ListItemIcon>
+                    <ChevronRight />
+                </ListItemIcon>
+                Tabela de Animais
+            </MenuItem>
+            <AddBirthDialog {...{ closeBirthDialog, addBirthOpen }} />
+            <AddCowDialog {...{ addCowOpen, closeAddCow }} />
+            <AddBullDialog {...{ addBullOpen, closeAddBull }} />
+        </Menu>
+    </>
 }
 
 const AnimalsContent = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
@@ -303,6 +387,8 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
     const [data, setData] = useState<BirthEntry[]>([])
     const [loading, setLoading] = useState(false)
 
+    const navigate = useNavigate()
+
     useEffect(() => {
         startLoading()
         setLoading(true)
@@ -315,42 +401,49 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
             })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <Table size="small">
-        <TableHead>
-            <TableRow>
-                <TableCell>Mãe</TableCell>
-                <TableCell align="center">Data de Nascimento</TableCell>
-                <TableCell align="center">Intervalo de Parição</TableCell>
-                <TableCell align="center">Sexo</TableCell>
-                <TableCell>Pai</TableCell>
-            </TableRow>
-        </TableHead>
-        <TableBody>
-            <DashboardTableBody
-                dataset={data}
-                colSpan={5}
-                loading={loading}
-                render={row => (
-                    <TableRow>
-                        <TableCell>{row.motherInfo}</TableCell>
-                        <TableCell align="center">{dateTransform(row.calfBirthDate)}</TableCell>
-                        <TableCell align="center">
-                            {row.birthInterval ?? '1ª Cria'}
-                        </TableCell>
-                        <TableCell align="center">{row.calfSex}</TableCell>
-                        <TableCell>{row.calfFather}</TableCell>
-                    </TableRow>
-                )}
-            />
-        </TableBody>
-    </Table>
+    return <>
+        <Table size="small">
+            <TableHead>
+                <TableRow>
+                    <TableCell>Mãe</TableCell>
+                    <TableCell align="center">Data de Nascimento</TableCell>
+                    <TableCell align="center">Intervalo de Parição</TableCell>
+                    <TableCell align="center">Sexo</TableCell>
+                    <TableCell>Pai</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                <DashboardTableBody
+                    dataset={data}
+                    colSpan={5}
+                    loading={loading}
+                    render={row => (
+                        <TableRow>
+                            <TableCell>{row.motherInfo}</TableCell>
+                            <TableCell align="center">{dateTransform(row.calfBirthDate)}</TableCell>
+                            <TableCell align="center">
+                                {row.birthInterval ?? '1ª Cria'}
+                            </TableCell>
+                            <TableCell align="center">{row.calfSex}</TableCell>
+                            <TableCell>{row.calfFather}</TableCell>
+                        </TableRow>
+                    )}
+                />
+            </TableBody>
+        </Table>
+        <Button
+            endIcon={<ChevronRight />}
+            onClick={() => navigate('/main/reproduction/births/entries')}
+        >
+            Ver Mais...
+        </Button>
+    </>
 }
 
 const LastLacTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
     const [data, setData] = useState<MilkEntry[]>([])
     const [lastDate, setLastDate] = useState(new Date())
-    const [textDate, setTextDate] = useState('Sem dados')
     const [loading, setLoading] = useState(false)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
     const navigate = useNavigate()
@@ -374,12 +467,10 @@ const LastLacTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInform
                 const entries: MilkEntry[] = response
                 const entryDate = new Date(entries[0].entryDate ?? '')
                 setLastDate(entryDate)
-                setTextDate(dateTransform(entryDate))
                 setData(entries)
             })
             .catch(() => {
                 setLastDate(new Date())
-                setTextDate('Sem dados')
                 setData([])
             })
             .finally(() => {
@@ -420,8 +511,8 @@ const LastLacTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInform
             <Button
                 endIcon={<ChevronRight />}
                 onClick={() => {
-                    const dateStr = lastDate.toISOString().split('T')[0]
-                    navigate(`lactation/milk/${dateStr}`)
+                    const dateStr = dateToISO(lastDate)
+                    navigate(`/main/lactation/milk/${dateStr}`)
                 }}
             >
                 Ver Mais...

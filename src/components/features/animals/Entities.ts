@@ -14,8 +14,6 @@ const animalTypeMap: Map<string, string> = new Map([
     ["REPRODUCTION_ANIMAL", "Animal de Reprodução"],
     ["DAIRY_ANIMAL", "Animal de Ordenha"],
     ["BEEF_ANIMAL", "Animal de Abate"],
-    ["DEAD_ANIMAL", "Animal Morto"],
-    ["SLAUGHTERED_ANIMAL", "Animal Abatido"],
     ["OFFSPRING", "Animal de Cria"],
 ])
 

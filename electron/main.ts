@@ -35,11 +35,11 @@ function createMainWindow() {
     })
 
     if (process.env['VITE_DEV_SERVER_URL']) {
-        mainWindow.loadURL(process.env['VITE_DEV_SERVER_URL'] + "#/home")
+        mainWindow.loadURL(process.env['VITE_DEV_SERVER_URL'] + "#/main")
     } else {
         mainWindow.loadFile(
             path.join(app.getAppPath(), 'dist/index.html'),
-            { hash: "home" }
+            { hash: "main" }
         )
     }
 

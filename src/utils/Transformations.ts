@@ -8,7 +8,7 @@ export function trendingTransform(value: number) {
 }
 
 export function decimalTransform(value: any, digitNumbers?: number) {
-    if (value === null || !value) return "0"
+    if (value === null || !value) return "-"
     const formatter = new Intl.NumberFormat("pt-BR", {
         maximumFractionDigits: digitNumbers || 2,
         minimumFractionDigits: digitNumbers || 2,
@@ -17,17 +17,17 @@ export function decimalTransform(value: any, digitNumbers?: number) {
 }
 
 export function percentageTransform(value: number | null | undefined) {
-    if (value === null || !value) return "0%"
+    if (value === null || !value) return "-"
     const formatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 })
     return formatter.format(value) + '%'
 }
 
 export function dateTransform(value: Date | undefined, options?: Intl.DateTimeFormatOptions) {
-    if (value === undefined) return ""
-    if (!value) return ""
+    if (value === undefined) return "-"
+    if (!value) return "-"
     value = new Date(value)
     const dateString = value.toLocaleDateString("pt-BR", options ?? { dateStyle: 'short' })
-    if (dateString == 'Invalid Date') return ""
+    if (dateString == 'Invalid Date') return "-"
     return dateString
 }
 
@@ -39,7 +39,7 @@ export function dateToISO(value: Date | undefined) {
 }
 
 export function transformWeight(weight: number | undefined) {
-    if (!weight) return "0 (0@)"
+    if (!weight) return "-"
     return `${decimalTransform(weight)} (${decimalTransform(weight / 15)}@)`
 }
 

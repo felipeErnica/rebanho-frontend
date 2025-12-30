@@ -31,7 +31,7 @@ const NestedButton = ({ item }: MenuButtonProps) => {
     return <ListItemButton
         key={item.key}
         className="text-white pl-10 py-4 hover:bg-gray-600"
-            onClick={() => navigate(`/home/${item.path}`)}
+            onClick={() => navigate(item.path)}
     >
         <ListItemIcon className="text-white">{item.icon}</ListItemIcon>
         <ListItemText>{item.title}</ListItemText>
