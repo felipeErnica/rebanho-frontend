@@ -11,10 +11,10 @@ import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEf
 import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@/components/shared/dashboard/Entities"
 import { CardEntry } from "@/utils/Entities"
 import { ReloadButton } from "@/components/shared/table/TableTopBarComponents"
-import { AnimalByType, AnimalsNumberHist } from "./Entities"
-import { getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getSlaughterHist } from "./Controller"
+import { Animal, AnimalByType, AnimalsNumberHist, transformAnimalType } from "./Entities"
+import { getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getLastDeaths, getSlaughterHist } from "./Controller"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
-import { dateToISO, dateTransform, decimalTransform, positiveTransform } from "@/utils/Transformations"
+import { dateToISO, dateTransform, decimalTransform, percentageTransform, positiveTransform, transformWeight } from "@/utils/Transformations"
 import { green, purple, red, yellow } from "@mui/material/colors"
 import { PieChart } from "@mui/x-charts"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/components/shared/Globals"
@@ -28,7 +28,7 @@ import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
 import { MilkEntry } from "@features/lactation/Entities"
 import { useNavigate } from "react-router"
-import { deleteMilkEntry, getLastEntries } from "@features/lactation/Controller"
+import { deleteMilkEntry, getLastLac } from "@features/lactation/Controller"
 import Button from "@mui/material/Button"
 import Add from "@mui/icons-material/Add"
 import ChevronRight from "@mui/icons-material/ChevronRight"
@@ -42,9 +42,13 @@ import Menu from "@mui/material/Menu"
 import MenuItem from "@mui/material/MenuItem"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import Divider from "@mui/material/Divider"
-import { AddBirthDialog } from "../reproduction/births/BirthAddDialog"
+import { AddBirthDialog } from "@features/reproduction/births/BirthAddDialog"
 import { AddCowDialog } from "./AddCowDialog"
 import { AddBullDialog } from "./AddBullDialog"
+import { SlaughterEntry, SlaughterEntrySave } from "@features/slaughter/Entities"
+import { APIError } from "@/utils/ApiRequest"
+import { ErrorDialog } from "@/components/shared/dialog/DialogComponents"
+import { deleteSlaughter, getLastSlaughter, updateSlaughter } from "@features/slaughter/Controller"
 
 type EditContextProps = { setReloadFlag: Dispatch<SetStateAction<number>> }
 
@@ -366,6 +370,10 @@ const LastEntries = ({ startLoading, stopLoading, reloadFlag }: DashboardInforma
         switch (table) {
             case 'last-birth':
                 return <LastBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
+            case 'last-death':
+                return <LastDeathsTable {...{ startLoading, stopLoading, reloadFlag }} />
+            case 'last-slaughter':
+                return <LastSlaughterTable {...{ startLoading, stopLoading, reloadFlag }} />
             case 'last-lac':
                 return <LastLacTable {...{ startLoading, stopLoading, reloadFlag }} />
         }
@@ -376,7 +384,13 @@ const LastEntries = ({ startLoading, stopLoading, reloadFlag }: DashboardInforma
             className="w-[300px]"
             items={tableValues}
             value={table}
-            onChange={(value) => setTable(value)}
+            onChange={(value) => {
+                if (!value) {
+                    setTable('last-birth')
+                    return
+                }
+                setTable(value)
+            }}
         />
         <SelectedTable />
     </DashboardCard>
@@ -432,12 +446,237 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
             </TableBody>
         </Table>
         <Button
+            className="ml-auto"
             endIcon={<ChevronRight />}
             onClick={() => navigate('/main/reproduction/births/entries')}
         >
             Ver Mais...
         </Button>
     </>
+}
+
+const LastDeathsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const [data, setData] = useState<Animal[]>([])
+    const [loading, setLoading] = useState(false)
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getLastDeaths()
+            .then(response => setData(response))
+            .catch(() => setData([]))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [reloadFlag, startLoading, stopLoading])
+
+    return <>
+        <Table size="small">
+            <TableHead>
+                <TableRow>
+                    <TableCell>Animal</TableCell>
+                    <TableCell align="center">Data da Morte</TableCell>
+                    <TableCell align="center">Tipo de Animal</TableCell>
+                    <TableCell>Observações</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                <DashboardTableBody
+                    dataset={data}
+                    colSpan={4}
+                    loading={loading}
+                    render={row => (
+                        <TableRow>
+                            <TableCell>{row.name}</TableCell>
+                            <TableCell align="center">{dateTransform(row.deathDate)}</TableCell>
+                            <TableCell align="center">{transformAnimalType(row.animalType, row.sex)}</TableCell>
+                            <TableCell>{row.observation}</TableCell>
+                        </TableRow>
+                    )}
+                />
+            </TableBody>
+        </Table>
+        <Button
+            className="ml-auto"
+            endIcon={<ChevronRight />}
+            onClick={() => navigate('/main/animals/deaths')}
+        >
+            Ver Mais...
+        </Button>
+    </>
+}
+
+const LastSlaughterTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const [results, setResults] = useState<SlaughterEntry[]>([])
+    const [entryDate, setEntryDate] = useState<Date>()
+    const [butcher, setButcher] = useState<string>("")
+    const [loading, setLoading] = useState(false)
+
+    const [error, setError] = useState<APIError>()
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        setLoading(true)
+        startLoading()
+        getLastSlaughter()
+            .then((results: SlaughterEntry[]) => {
+                const entryDate = new Date(results[0].entryDate)
+                setEntryDate(entryDate)
+                setButcher(results[0].butcher)
+                setResults(results)
+            })
+            .catch(() => {
+                setResults([])
+                setEntryDate(undefined)
+                setButcher("")
+            })
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [startLoading, stopLoading, reloadFlag])
+
+    const TableTitle = useCallback(() => {
+        if (!entryDate) return
+        return <div className="mt-4 flex flex-row gap-8">
+            <CardDefaultTitle text={`Data: ${dateTransform(entryDate)}`} />
+            <CardDefaultTitle text={`Frig.: ${butcher}`} />
+        </div>
+    }, [butcher, entryDate])
+
+    return <>
+        <TableTitle />
+        <div className="overflow-auto">
+            <Table stickyHeader size="small">
+                <TableHead>
+                    <TableRow>
+                        <TableCell />
+                        <TableCell>Animal</TableCell>
+                        <TableCell>Peso</TableCell>
+                        <TableCell>Peso (c/ Desconto)</TableCell>
+                        <TableCell>Peso Morto</TableCell>
+                        <TableCell>Rendimento</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    <DashboardTableBody
+                        colSpan={5}
+                        loading={loading}
+                        dataset={results}
+                        render={row => <SlaughterRow {...{ row, setError }} />}
+                    />
+                </TableBody>
+            </Table>
+            <ErrorDialog
+                openError={!!error}
+                title={error?.title}
+                content={error?.message}
+                onClose={() => setError(undefined)}
+            />
+        </div>
+        <Button
+            className="ml-auto"
+            endIcon={<ChevronRight />}
+            onClick={() => {
+                if (!entryDate) return
+                const dateStr = dateToISO(entryDate)
+                navigate(`slaughter/groups/${dateStr}`)
+            }}
+        >
+            Ver Mais...
+        </Button>
+    </>
+}
+
+type LastEntriesRowProps = {
+    row: SlaughterEntry
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+}
+
+const SlaughterRow = ({ row, setError }: LastEntriesRowProps) => {
+
+    const [editing, setEditing] = useState(false)
+    const [rowData, setRowData] = useState(row)
+    const [loadingControls, setLoadingControls] = useState(false)
+
+    useEffect(() => setRowData(row), [row])
+
+    const onDelete = useCallback(() => {
+        setLoadingControls(true)
+        deleteSlaughter(rowData.id)
+            .then(() => {
+                setError(undefined)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoadingControls(false))
+    }, [rowData.id, setError])
+
+    if (editing) return <EditingSlaughterRow {...{ setEditing, setRowData, rowData, setError }} />
+
+    return <TableRow>
+        <TableCell>
+            <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
+        </TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell> {transformWeight(rowData.weight)} </TableCell>
+        <TableCell> {transformWeight(rowData.discountWeight)} </TableCell>
+        <TableCell> {transformWeight(rowData.deadWeight)} </TableCell>
+        <TableCell>{percentageTransform(rowData.performanceRate)}</TableCell>
+    </TableRow>
+}
+
+type EditingLastEntriesRowProps = {
+    setEditing: Dispatch<SetStateAction<boolean>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    rowData: SlaughterEntry
+    setRowData: Dispatch<SetStateAction<SlaughterEntry>>
+}
+
+const EditingSlaughterRow = ({ setEditing, rowData, setRowData, setError }: EditingLastEntriesRowProps) => {
+
+    const [loading, setLoading] = useState(false)
+
+    const { handleSubmit, control } = useForm<SlaughterEntrySave>({ defaultValues: rowData })
+
+    const onSubmit: SubmitHandler<SlaughterEntrySave> = (data: SlaughterEntrySave) => {
+        setLoading(true)
+        updateSlaughter(data)
+            .then(response => {
+                setRowData(response)
+                setEditing(false)
+            })
+            .catch(err => setError(err))
+            .finally(() => setLoading(false))
+    }
+
+    const onSave = handleSubmit(onSubmit)
+
+    return <TableRow>
+        <TableCell>
+            <EditingControlButtons {...{ setEditing, onSave, loading }} />
+        </TableCell>
+        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell>
+            <FormTextField
+                formProps={{ control, name: 'weight' }}
+                type="number"
+            />
+        </TableCell>
+        <TableCell> {transformWeight(rowData.discountWeight)} </TableCell>
+        <TableCell>
+            <FormTextField
+                formProps={{ control, name: 'deadWeight' }}
+                type="number"
+            />
+        </TableCell>
+        <TableCell>{percentageTransform(rowData.performanceRate)}</TableCell>
+    </TableRow>
+
 }
 
 const LastLacTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
@@ -462,7 +701,7 @@ const LastLacTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInform
     useEffect(() => {
         startLoading()
         setLoading(true)
-        getLastEntries()
+        getLastLac()
             .then(response => {
                 const entries: MilkEntry[] = response
                 const entryDate = new Date(entries[0].entryDate ?? '')
@@ -480,6 +719,7 @@ const LastLacTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInform
     }, [reloadFlag, startLoading, stopLoading])
 
     return <>
+        <CardDefaultTitle className="mt-4" text={`Data: ${dateTransform(lastDate)}`} />
         <div className="overflow-auto">
             <Table size="small" stickyHeader>
                 <TableHead>

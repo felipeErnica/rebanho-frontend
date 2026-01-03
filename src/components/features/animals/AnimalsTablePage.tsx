@@ -30,9 +30,11 @@ import { searchAllMothers, searchFather } from "@/utils/GlobalApiCalls"
 
 export const AnimalsTablePage = () => {
 
+    const defaultSort = 'animal_order, birth_date'
+
     const [foot, setTotal] = useState(0)
     const [order, setOrder] = useState('asc')
-    const [sort, setSort] = useState('ring_order')
+    const [sort, setSort] = useState(defaultSort)
     const [loading, setLoading] = useState(false)
     const [isFilterOpen, setFilterOpen] = useState(false)
     const [filter, setFilter] = useState<IFilters>({ isFiltered: false })
@@ -50,21 +52,21 @@ export const AnimalsTablePage = () => {
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
-        { name: 'Brinco', value: 'ring_order' },
-        { name: 'Nome', value: 'name' },
-        { name: 'Data de Nascimento', value: 'birth_date' },
-        { name: 'Data de Morte', value: 'death_date' },
-        { name: 'Intervalo de Partos Médio', value: 'average_birth_interval' },
-        { name: 'Intervalo de Lactações Médio', value: 'average_lac_interval' },
-        { name: 'Prod. Total Média', value: 'average_prod' },
-        { name: 'Média de Leite', value: 'average_milk' },
-        { name: 'Pico de Leite Médio', value: 'average_peak' },
+        { name: 'Brinco', value: defaultSort},
+        { name: 'Nome', value: 'name, birth_date' },
+        { name: 'Data de Nascimento', value: 'birth_date, animal_order' },
+        { name: 'Data de Morte', value: 'death_date, animal_order' },
+        { name: 'Intervalo de Partos Médio', value: 'average_birth_interval, animal_order' },
+        { name: 'Intervalo de Lactações Médio', value: 'average_lac_interval, animal_order' },
+        { name: 'Prod. Total Média', value: 'average_prod, animal_order' },
+        { name: 'Média de Leite', value: 'average_milk, animal_order' },
+        { name: 'Pico de Leite Médio', value: 'average_peak, animal_order' },
     ]
 
     return <div className="h-full w-full flex flex-col">
         <TableTopBar
             orderProps={{ order, setOrder }}
-            sortProps={{ sort, setSort, sortColumns, defaultSort: 'ring_order' }}
+            sortProps={{ sort, setSort, sortColumns, defaultSort }}
             filterProps={{ anchorEl, setFilterOpen }}
             reloadProps={{ onReload, loading: loading }}
         />

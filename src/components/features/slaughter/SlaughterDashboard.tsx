@@ -25,7 +25,7 @@ import {
     getBestRatings,
     getLastAverageWeight,
     getLastDeadWeight,
-    getLastEntries,
+    getLastSlaughter,
     getLastGroups,
     getLastPerformance,
     getRateHist,
@@ -329,7 +329,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
     useEffect(() => {
         setLoading(true)
         startLoading()
-        getLastEntries()
+        getLastSlaughter()
             .then((results: SlaughterEntry[]) => {
                 const entries = results
                 const entryDate = new Date(entries[0].entryDate)

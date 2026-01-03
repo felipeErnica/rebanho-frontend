@@ -32,7 +32,7 @@ export function getBestRatings(rating: string) {
     return apiGet(SLAUGHTER_DASHBOARD + rating)
 }
 
-export function getLastEntries() {
+export function getLastSlaughter() {
     return apiGet(SLAUGHTER_DASHBOARD + "last-entries")
 }
 

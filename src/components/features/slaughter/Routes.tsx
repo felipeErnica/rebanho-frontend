@@ -21,7 +21,7 @@ const ButcherEntriesTablePage = () => {
 };
 
 export const slaughterRoutes: AppRoute = {
-    path: "slaughter-weight",
+    path: "slaughter",
     element: <Outlet />,
     handle: {
         title: "Abate",

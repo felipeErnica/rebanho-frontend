@@ -29,7 +29,7 @@ export function getRankedAnimals(rankBy: string) {
     return apiGet(DASHBOARD_BASE + rankBy)
 }
 
-export function getLastEntries() {
+export function getLastLac() {
     return apiGet(DASHBOARD_BASE + "last-entries")
 }
 

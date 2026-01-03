@@ -36,7 +36,7 @@ import {
     getYearAverage,
     getLastAverageMilk,
     getLastCount,
-    getLastEntries,
+    getLastLac,
     getLastGroups,
     getLastMilk,
     getParentRatings,
@@ -596,7 +596,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
     useEffect(() => {
         startLoading()
         setLoading(true)
-        getLastEntries()
+        getLastLac()
             .then(response => {
                 const entries: MilkEntry[] = response
                 const entryDate = new Date(entries[0].entryDate ?? '')

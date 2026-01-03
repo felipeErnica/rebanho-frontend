@@ -131,17 +131,27 @@ export const TrendComponent = ({ trend, text, inverse, className, loading }: Tre
         }
     }
 
+    if (loading) {
+        return <div className={`inline-flex items-center gap-2 ${className}`}>
+            <Skeleton width={20} animation='wave' variant="text" />
+            <Skeleton variant="text" animation='wave' width={50} />
+        </div >
+    }
+
+    const TrendingText = () => {
+        if (trend === 0) return
+        return <Typography
+            variant="body1"
+            color={textColor}
+        >
+            {text ?? trendingTransform(trend)}
+        </Typography>
+
+    }
+
     return <div className={`inline-flex items-center gap-2 ${className}`}>
-        {!loading ? <TrendIcon /> : <Skeleton width={20} animation='wave' variant="text" />}
-        {!loading
-            ? <Typography
-                variant="body1"
-                color={textColor}
-            >
-                {text ?? trendingTransform(trend)}
-            </Typography>
-            : <Skeleton variant="text" animation='wave' width={50} />
-        }
+        <TrendIcon />
+        <TrendingText />
     </div >
 }
 

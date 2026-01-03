@@ -3,6 +3,7 @@ import { AnimalSave } from "./Entities";
 import { IFilters } from "@utils/Filter";
 
 const ANIMAL_BASE = "animals/"
+const ANIMAL_INFO = "animals/info/"
 const ANIMAL_DASHBOARD = "animals/dashboard/"
 
 export function getBirthHist() {
@@ -23,6 +24,10 @@ export function getSlaughterHist() {
 
 export function getAnimalByTypes() {
     return apiGet(ANIMAL_DASHBOARD + "animal-types")
+}
+
+export function getLastDeaths() {
+    return apiGet(ANIMAL_DASHBOARD + "last-deaths")
 }
 
 export function updateAnimal(entry: AnimalSave) {
@@ -59,7 +64,7 @@ export function findById(id: string) {
 
 export function findAnimals(filter: IFilters, sort: string, order: string, cursor?: string) {
     const pageCall = buildPageCall(sort, order, cursor)
-    return apiPost(ANIMAL_BASE + pageCall, filter)
+    return apiPost(ANIMAL_INFO + pageCall, filter)
 }
 
 export function findAnimalsTotal(filter: IFilters) {
