@@ -10,21 +10,22 @@ import {
 } from "@shared/dashboard/DashboardComponents"
 import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
-import { 
-    createContext, 
-    Dispatch, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useMemo, 
-    useRef, 
-    useState 
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
 } from "react"
 import {
     AnimalsAverageHist as AnimalsNumberHist,
     AnimalsRating,
     AverageMilkHist,
+    DairyAnimalsType,
     LactationGroup,
     LactationGroupSave,
     MilkEntry,
@@ -35,7 +36,7 @@ import {
 import {
     getYearAverage,
     getLastAverageMilk,
-    getLastCount,
+    getLastLactating as getLastLactating,
     getLastLac,
     getLastGroups,
     getLastMilk,
@@ -46,6 +47,7 @@ import {
     deleteMilkEntry,
     deleteMilkGroup,
     updateMilkGroup,
+    getDairyTypes,
 } from "./Controller"
 import { dateToISO, dateTransform, decimalTransform } from "@utils/Transformations"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
@@ -76,7 +78,8 @@ import {
     ChartsXAxis,
     ChartsYAxis,
     LineHighlightPlot,
-    LinePlot
+    LinePlot,
+    PieChart
 } from "@mui/x-charts"
 import { DefaultTimerWarning, GROUP_DELETE_TITLE, GROUP_UPDATE_TITLE, LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { green, yellow } from "@mui/material/colors"
@@ -201,12 +204,14 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag, setReloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(3,270px)_1fr] grid-rows-[180px_450px] gap-4">
+        <div className="grid grid-cols-[repeat(4,270px)_1fr] grid-rows-[180px_450px] gap-4">
             <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
             <AverageMilkCard {...{ stopLoading, startLoading, reloadFlag }} />
-            <AnimalsCard {...{ startLoading, stopLoading, reloadFlag }} />
+            <LactatingCard {...{ startLoading, stopLoading, reloadFlag }} />
+            <DryCard {...{ startLoading, stopLoading, reloadFlag }} />
             <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag, setReloadFlag }} />
-            <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
+            <TypesChart {...{ startLoading, stopLoading, reloadFlag, setReloadFlag }} />
+            {/* <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} /> */}
         </div>
         <div className="grid grid-rows-2 grid-cols-[1fr_500px] gap-4">
             <MilkProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
@@ -313,7 +318,7 @@ const AverageMilkCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
     </DashboardCard>
 }
 
-const AnimalsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
+const LactatingCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
     const defaultValue: CardEntry<AnimalsNumberHist> = useMemo(() => ({
         trend: 0,
@@ -327,7 +332,7 @@ const AnimalsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInforma
     useEffect(() => {
         setLoading(true)
         startLoading()
-        getLastCount()
+        getLastLactating()
             .then(response => setStats(response))
             .catch(() => setStats(defaultValue))
             .finally(() => {
@@ -339,6 +344,52 @@ const AnimalsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInforma
     return <DashboardCard>
         <CardChartContent
             title="Animais Lactando"
+            loading={loading}
+            data={stats.current}
+            chart={(
+                <SparkLineChart
+                    data={stats.hist.map(item => item.animalsNumber)}
+                    height={90}
+                    color={yellow[800]}
+                    showHighlight
+                    showTooltip
+                    xAxis={{
+                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        valueFormatter: (value: Date) => dateTransform(value)
+                    }}
+                />
+            )}
+            trendProps={{ trend: stats.trend }}
+        />
+    </DashboardCard>
+}
+
+const DryCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const defaultValue: CardEntry<AnimalsNumberHist> = useMemo(() => ({
+        trend: 0,
+        current: 0,
+        hist: []
+    }), [])
+
+    const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        setLoading(true)
+        startLoading()
+        getLastLactating()
+            .then(response => setStats(response))
+            .catch(() => setStats(defaultValue))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard>
+        <CardChartContent
+            title="Vacas Secas"
             loading={loading}
             data={stats.current}
             chart={(
@@ -418,7 +469,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
         >
             Ver Mais...
         </Button>
-        <ErrorDialog 
+        <ErrorDialog
             openError={!!error}
             title={error?.title}
             content={error?.message}
@@ -705,6 +756,51 @@ const EditingEntriesRow = ({ rowData, setRowData, setEditing }: EditRowProps<Mil
     </TableRow>
 }
 
+const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const defaultDataset: DairyAnimalsType = useMemo(() => ({
+        dry: 0,
+        lactating: 0
+    }), [])
+
+    const [loading, setLoading] = useState(false)
+    const [dataset, setDataset] = useState(defaultDataset)
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getDairyTypes()
+            .then(response => setDataset(response))
+            .catch(() => setDataset(defaultDataset))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+
+    }, [defaultDataset, reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard className="col-span-3">
+        <CardDefaultTitle text="Vacas Leiteiras" />
+        <PieChart
+            loading={loading}
+            localeText={{
+                loading: LOADING_MSG,
+                noData: NO_DATA_AVAILABLE
+            }}
+            series={[{
+                innerRadius: 100,
+                outerRadius: 180,
+                highlightScope: { fade: 'global', highlight: 'item' },
+                faded: { additionalRadius: -30, color: 'gray' },
+                data: [
+                    { id: 0, label: 'Lactando', value: dataset.lactating },
+                    { id: 1, label: 'Secas', value: dataset.dry, color: yellow[600] },
+                ]
+            }]}
+        />
+    </DashboardCard>
+}
+
 const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
     const [dataset, setDataset] = useState<MilkProductionHist[]>([])
@@ -728,28 +824,17 @@ const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                 }}
                 series={[
                     {
-                        id: 'animalsNumber',
-                        type: 'bar',
-                        data: dataset.map(item => item.animalsNumber),
-                        label: 'Nº de Vacas',
-                        yAxisId: 'animalsAxis',
-                        labelMarkType: 'square',
-                    },
-                    {
                         id: 'totalMilk',
-                        type: 'line',
+                        type: 'bar',
                         label: 'Total de Leite',
                         yAxisId: "totalAxis",
                         data: dataset.map(item => item.totalMilk),
-                        showMark: false,
-                        curve: 'linear',
                         valueFormatter: (value) => decimalTransform(value),
-                        labelMarkType: 'line',
+                        labelMarkType: 'square',
                     }
                 ]}
                 yAxis={[
-                    { id: 'animalsAxis', min: 0, position: 'left', label: 'Nº de Animais' },
-                    { id: 'totalAxis', min: 0, position: 'right', label: 'Leite Produzido' },
+                    { id: 'totalAxis', min: 0, label: 'Leite Produzido' },
                 ]}
                 xAxis={[{
                     id: 'dateAxis',

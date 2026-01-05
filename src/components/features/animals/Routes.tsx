@@ -1,5 +1,5 @@
 import { AppRoute } from "@/Routes";
-import { AnimalsDashboard } from "./AnimalsDashboard";
+import { AnimalsDashboard } from "./main-dashboard/AnimalsDashboard";
 import { AnimalsTablePage } from "./AnimalsTablePage";
 
 export const animalRoutes: AppRoute[] = [

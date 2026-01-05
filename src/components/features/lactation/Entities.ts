@@ -87,6 +87,11 @@ export type LactationHistFoot = {
     averagePeak: number
 }
 
+export type DairyAnimalsType = {
+    dry: number
+    lactating: number
+}
+
 export type AnimalsAverageHist = {
     entryDate: Date
     animalsNumber: number

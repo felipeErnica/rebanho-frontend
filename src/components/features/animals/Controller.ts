@@ -4,31 +4,7 @@ import { IFilters } from "@utils/Filter";
 
 const ANIMAL_BASE = "animals/"
 const ANIMAL_INFO = "animals/info/"
-const ANIMAL_DASHBOARD = "animals/dashboard/"
 
-export function getBirthHist() {
-    return apiGet(ANIMAL_DASHBOARD + "birth-hist")
-}
-
-export function getDeathHist() {
-    return apiGet(ANIMAL_DASHBOARD + "death-hist")
-}
-
-export function getDairyHist() {
-    return apiGet(ANIMAL_DASHBOARD + "dairy-hist")
-}
-
-export function getSlaughterHist() {
-    return apiGet(ANIMAL_DASHBOARD + "slaughter-hist")
-}
-
-export function getAnimalByTypes() {
-    return apiGet(ANIMAL_DASHBOARD + "animal-types")
-}
-
-export function getLastDeaths() {
-    return apiGet(ANIMAL_DASHBOARD + "last-deaths")
-}
 
 export function updateAnimal(entry: AnimalSave) {
     return apiPut(ANIMAL_BASE + "update", entry)

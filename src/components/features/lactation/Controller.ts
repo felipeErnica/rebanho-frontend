@@ -21,8 +21,12 @@ export function getLastAverageMilk() {
     return apiGet(DASHBOARD_BASE + "last-avg-milk")
 }
 
-export function getLastCount() {
-    return apiGet(DASHBOARD_BASE + "last-count")
+export function getLastLactating() {
+    return apiGet(DASHBOARD_BASE + "last-lactating")
+}
+
+export function getLastDry() {
+    return apiGet(DASHBOARD_BASE + "last-dry")
 }
 
 export function getRankedAnimals(rankBy: string) {
@@ -51,6 +55,10 @@ export function getParentRatings(ratingOption: string) {
 
 export function getLastGroups() {
     return apiGet(DASHBOARD_BASE + "last-groups")
+}
+
+export function getDairyTypes() {
+    return apiGet(DASHBOARD_BASE + "dairy-types")
 }
 
 export function findLactationsPage(

@@ -11,12 +11,12 @@ import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEf
 import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@/components/shared/dashboard/Entities"
 import { CardEntry } from "@/utils/Entities"
 import { ReloadButton } from "@/components/shared/table/TableTopBarComponents"
-import { Animal, AnimalByType, AnimalsNumberHist, transformAnimalType } from "./Entities"
-import { getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getLastDeaths, getSlaughterHist } from "./Controller"
+import { AnimalByType, AnimalsByAge, AnimalsNumberHist } from "./Entities"
+import { getAgeAndSex, getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getLastDeaths, getSlaughterHist } from "./Controller"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { dateToISO, dateTransform, decimalTransform, percentageTransform, positiveTransform, transformWeight } from "@/utils/Transformations"
-import { green, purple, red, yellow } from "@mui/material/colors"
-import { PieChart } from "@mui/x-charts"
+import { green, lightBlue, pink, purple, red, yellow } from "@mui/material/colors"
+import { BarChart, PieChart } from "@mui/x-charts"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/components/shared/Globals"
 import { ComboBox, ComboBoxItem } from "@/components/shared/common/ComboBox"
 import { getLastBirths } from "@features/reproduction/births/Controller"
@@ -43,12 +43,15 @@ import MenuItem from "@mui/material/MenuItem"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import Divider from "@mui/material/Divider"
 import { AddBirthDialog } from "@features/reproduction/births/BirthAddDialog"
-import { AddCowDialog } from "./AddCowDialog"
-import { AddBullDialog } from "./AddBullDialog"
+import { AddCowDialog } from "../AddCowDialog"
+import { AddBullDialog } from "../AddBullDialog"
 import { SlaughterEntry, SlaughterEntrySave } from "@features/slaughter/Entities"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog } from "@/components/shared/dialog/DialogComponents"
 import { deleteSlaughter, getLastSlaughter, updateSlaughter } from "@features/slaughter/Controller"
+import { NextBirths } from "../../reproduction/pregnancy-test/Entities"
+import { getNextBirths } from "../../reproduction/pregnancy-test/Controller"
+import { Animal, transformAnimalType } from "../Entities"
 
 type EditContextProps = { setReloadFlag: Dispatch<SetStateAction<number>> }
 
@@ -161,13 +164,17 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
 const AnimalsContent = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
     return <DashboardInfoContainer className="h-full flex flex-col gap-4">
-        <div className="h-full grid grid-cols-[repeat(4,230px)_1fr]  grid-rows-[180px_1fr] gap-4">
+        <div className="grid grid-cols-[repeat(4,230px)_1fr] grid-rows-[180px_500px] gap-4">
             <BirthsCard {...{ stopLoading, reloadFlag, startLoading }} />
             <DeathsCard {...{ stopLoading, reloadFlag, startLoading }} />
             <DairyCard {...{ stopLoading, reloadFlag, startLoading }} />
             <SlaughterCard {...{ stopLoading, reloadFlag, startLoading }} />
             <LastEntries {...{ startLoading, stopLoading, reloadFlag }} />
             <TypesChart {...{ startLoading, reloadFlag, stopLoading }} />
+        </div>
+        <div className="h-full grid grid-cols-[1fr_500px] grid-rows-[500px] gap-4">
+            <AgeChart {...{ startLoading, stopLoading, reloadFlag }} />
+            <NextBirthsTable {...{ stopLoading, startLoading, reloadFlag }} />
         </div>
     </DashboardInfoContainer>
 }
@@ -416,35 +423,37 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
     }, [reloadFlag, startLoading, stopLoading])
 
     return <>
-        <Table size="small">
-            <TableHead>
-                <TableRow>
-                    <TableCell>Mãe</TableCell>
-                    <TableCell align="center">Data de Nascimento</TableCell>
-                    <TableCell align="center">Intervalo de Parição</TableCell>
-                    <TableCell align="center">Sexo</TableCell>
-                    <TableCell>Pai</TableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                <DashboardTableBody
-                    dataset={data}
-                    colSpan={5}
-                    loading={loading}
-                    render={row => (
-                        <TableRow>
-                            <TableCell>{row.motherInfo}</TableCell>
-                            <TableCell align="center">{dateTransform(row.calfBirthDate)}</TableCell>
-                            <TableCell align="center">
-                                {row.birthInterval ?? '1ª Cria'}
-                            </TableCell>
-                            <TableCell align="center">{row.calfSex}</TableCell>
-                            <TableCell>{row.calfFather}</TableCell>
-                        </TableRow>
-                    )}
-                />
-            </TableBody>
-        </Table>
+        <div className="overflow-auto">
+            <Table stickyHeader size="small">
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Mãe</TableCell>
+                        <TableCell align="center">Data de Nascimento</TableCell>
+                        <TableCell align="center">Intervalo de Parição</TableCell>
+                        <TableCell align="center">Sexo</TableCell>
+                        <TableCell>Pai</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    <DashboardTableBody
+                        dataset={data}
+                        colSpan={5}
+                        loading={loading}
+                        render={row => (
+                            <TableRow>
+                                <TableCell>{row.motherInfo}</TableCell>
+                                <TableCell align="center">{dateTransform(row.calfBirthDate)}</TableCell>
+                                <TableCell align="center">
+                                    {row.birthInterval ?? '1ª Cria'}
+                                </TableCell>
+                                <TableCell align="center">{row.calfSex}</TableCell>
+                                <TableCell>{row.calfFather}</TableCell>
+                            </TableRow>
+                        )}
+                    />
+                </TableBody>
+            </Table>
+        </div>
         <Button
             className="ml-auto"
             endIcon={<ChevronRight />}
@@ -475,31 +484,33 @@ const LastDeathsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
     }, [reloadFlag, startLoading, stopLoading])
 
     return <>
-        <Table size="small">
-            <TableHead>
-                <TableRow>
-                    <TableCell>Animal</TableCell>
-                    <TableCell align="center">Data da Morte</TableCell>
-                    <TableCell align="center">Tipo de Animal</TableCell>
-                    <TableCell>Observações</TableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                <DashboardTableBody
-                    dataset={data}
-                    colSpan={4}
-                    loading={loading}
-                    render={row => (
-                        <TableRow>
-                            <TableCell>{row.name}</TableCell>
-                            <TableCell align="center">{dateTransform(row.deathDate)}</TableCell>
-                            <TableCell align="center">{transformAnimalType(row.animalType, row.sex)}</TableCell>
-                            <TableCell>{row.observation}</TableCell>
-                        </TableRow>
-                    )}
-                />
-            </TableBody>
-        </Table>
+        <div className="overflow-auto">
+            <Table stickyHeader size="small">
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Animal</TableCell>
+                        <TableCell align="center">Data da Morte</TableCell>
+                        <TableCell align="center">Tipo de Animal</TableCell>
+                        <TableCell>Observações</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    <DashboardTableBody
+                        dataset={data}
+                        colSpan={4}
+                        loading={loading}
+                        render={row => (
+                            <TableRow>
+                                <TableCell>{row.name}</TableCell>
+                                <TableCell align="center">{dateTransform(row.deathDate)}</TableCell>
+                                <TableCell align="center">{transformAnimalType(row.animalType, row.sex)}</TableCell>
+                                <TableCell>{row.observation}</TableCell>
+                            </TableRow>
+                        )}
+                    />
+                </TableBody>
+            </Table>
+        </div>
         <Button
             className="ml-auto"
             endIcon={<ChevronRight />}
@@ -842,6 +853,7 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
                 innerRadius: 100,
                 outerRadius: 200,
                 highlightScope: { fade: 'global', highlight: 'item' },
+                faded: { additionalRadius: -30, color: 'gray' },
                 data: [
                     { id: 0, label: 'Animais Jovens', value: dataset.offspring },
                     { id: 1, label: 'Vacas Leiteiras', value: dataset.dairyAnimals, color: yellow[600] },
@@ -851,4 +863,102 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
             }]}
         />
     </DashboardCard>
-} 
+}
+
+const AgeChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const [dataset, setDataset] = useState<AnimalsByAge[]>([])
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        setLoading(true)
+        startLoading()
+        getAgeAndSex()
+            .then(response => setDataset(response))
+            .catch(() => setDataset([]))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard>
+        <CardDefaultTitle text="Animais por Idade e Sexo" />
+        <BarChart
+            loading={loading}
+            dataset={dataset}
+            layout="horizontal"
+            series={[
+                {
+                    label: 'Machos',
+                    color: lightBlue[600],
+                    dataKey: 'male'
+                },
+                {
+                    label: 'Fêmeas',
+                    color: pink[600],
+                    dataKey: 'female'
+                }
+            ]}
+            yAxis={[{ dataKey: 'category', scaleType: 'band', width: 120 }]}
+        />
+    </DashboardCard>
+
+}
+
+const NextBirthsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
+
+    const [loading, setLoading] = useState(false)
+    const [data, setData] = useState<NextBirths[]>([])
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        startLoading()
+        setLoading(true)
+        getNextBirths()
+            .then((response: NextBirths[]) => setData(response))
+            .catch(() => setData([]))
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
+    }, [reloadFlag, startLoading, stopLoading])
+
+    return <DashboardCard>
+        <CardDefaultTitle text="Próximas Parições" />
+        <Table size="small">
+            <TableHead>
+                <TableRow>
+                    <TableCell>Mês</TableCell>
+                    <TableCell>Parições Previstas</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                <DashboardTableBody
+                    loading={loading}
+                    colSpan={2}
+                    dataset={data}
+                    render={item => (
+                        <TableRow>
+                            <TableCell>
+                                {item.birthForecast.toLocaleString('pt-BR', {
+                                    month: 'short',
+                                    year: 'numeric'
+                                })}
+                            </TableCell>
+                            <TableCell>{item.birthNumbers}</TableCell>
+                        </TableRow>
+                    )}
+                />
+            </TableBody>
+        </Table>
+        <Button
+            className="ml-auto"
+            endIcon={<ChevronRight />}
+            onClick={() => navigate('/main/reproduction/birth-test')}
+        >
+            Ver Mais...
+        </Button>
+    </DashboardCard>
+}

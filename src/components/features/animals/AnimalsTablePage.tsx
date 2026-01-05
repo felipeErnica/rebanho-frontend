@@ -15,9 +15,9 @@ import {
     TableBodyCell,
     TableHeadRow,
     TableLoadingCells,
-    VirtuosoHeadCell,
     TableFooterRow,
     FooterContent,
+    TableHeadControlCell,
 } from "@shared/table/TableComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { useVirtuosoComponents } from "@shared/table/PageTable"
@@ -89,7 +89,7 @@ type AnimalsTableProps = {
     foot: number
 }
 
-const COL_COUNT = 13
+const COL_COUNT = 12
 
 export const AnimalsTable = ({
     rows,
@@ -106,19 +106,18 @@ export const AnimalsTable = ({
         endReached={fetchNextPage}
         fixedHeaderContent={() => (
             <TableHeadRow>
-                <VirtuosoHeadCell width={200} />
-                <VirtuosoResizeHeadCell width={200}>Brinco</VirtuosoResizeHeadCell>
+                <TableHeadControlCell />
+                <VirtuosoResizeHeadCell width={100}>Brinco</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Nome</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={200} align="center">Data de Nascimento</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={200} align="center">Data de Morte</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={180} align="center">Data de Nascimento</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Pai</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Mãe</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Tipo de Animal</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={200}>Pasto</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={200} align="center">Prod. Média</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={200} align="center">Intervalo de Lactação Médio</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={200} align="center">Intervalo de Parto Médio</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={200} align="center">Pico Médio</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={150} align="center">Data de Morte</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={120} align="center">Prod. Média</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={150} align="center">Int. de Lac. Médio</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={180} align="center">Int. de Parto Médio</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={120} align="center">Pico Médio</VirtuosoResizeHeadCell>
             </TableHeadRow>
         )}
         fixedFooterContent={() => (
@@ -156,11 +155,11 @@ const AnimalRow = ({ row, loading }: TableRowProp<Animal>) => {
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
-        <TableBodyCell align="center">{decimalTransform(rowData.averageProd, 1)}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.averageProdInterval}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.averageBirthInterval}</TableBodyCell>
-        <TableBodyCell align="center">{decimalTransform(rowData.averagePeak, 1)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.deathDate)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.averageProd)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.averageProdInterval)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.averageBirthInterval)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.averagePeak)}</TableBodyCell>
     </>
 }
 

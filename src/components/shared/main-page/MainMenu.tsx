@@ -35,7 +35,7 @@ const menuList: MenuItem[] = [
         key: 'animals',
         title: 'Início',
         icon: <Home />,
-        path: "animals"
+        path: ""
     },
     {
         key: 'farm-pastures',

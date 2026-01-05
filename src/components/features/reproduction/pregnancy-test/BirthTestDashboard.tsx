@@ -87,7 +87,6 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import { OptionMenuProps } from "@/components/shared/dashboard/Entities"
 import { Divider, ListItemIcon, Menu, MenuItem } from "@mui/material"
-import { EntriesTablePage } from "./EntriesTable"
 
 type ReloadContextProps = {
     setReloadFlag: Dispatch<SetStateAction<number>>

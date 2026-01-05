@@ -78,15 +78,3 @@ export type AnimalSave = {
     isEmbryoDonor?: boolean
     isOutsideAnimal?: boolean
 }
-
-export type AnimalsNumberHist = {
-    entryDate: Date
-    animalsNumber: number
-}
-
-export type AnimalByType = {
-	beefAnimals: number
-	dairyAnimals: number
-	reproductionAnimals: number
-	offspring: number
-}
