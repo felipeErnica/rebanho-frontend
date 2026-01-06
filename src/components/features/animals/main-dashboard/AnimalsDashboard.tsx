@@ -26,13 +26,14 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
-import { MilkEntry } from "@features/lactation/Entities"
+import { MilkEntry } from "@features/lactation/milk-tables/Entities"
 import { useNavigate } from "react-router"
-import { deleteMilkEntry, getLastLac } from "@features/lactation/Controller"
+import { getLastLac } from "@features/lactation/Controller"
+import { deleteMilkEntry } from "@features/lactation/milk-tables/Controller"
 import Button from "@mui/material/Button"
 import Add from "@mui/icons-material/Add"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { AddMilkEntryDialog } from "@features/lactation/AddMilkEntryDialog"
+import { AddMilkEntryDialog } from "@features/lactation/milk-tables/AddMilkEntryDialog"
 import { EditRowProps, TableRowProp } from "@/components/shared/table/Entities"
 import { EditControlButtons, EditingControlButtons } from "@/components/shared/table/ControlButtons"
 import { SubmitHandler, useForm } from "react-hook-form"
@@ -164,7 +165,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
 const AnimalsContent = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
     return <DashboardInfoContainer className="h-full flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(4,230px)_1fr] grid-rows-[180px_500px] gap-4">
+        <div className="grid grid-cols-[repeat(4,230px)_1fr] grid-rows-[220px_500px] gap-4">
             <BirthsCard {...{ stopLoading, reloadFlag, startLoading }} />
             <DeathsCard {...{ stopLoading, reloadFlag, startLoading }} />
             <DairyCard {...{ stopLoading, reloadFlag, startLoading }} />
@@ -189,6 +190,8 @@ const BirthsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
 
     const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
     const [loading, setLoading] = useState(false)
+
+    const navigate = useNavigate()
 
     useEffect(() => {
         setLoading(true)
@@ -221,6 +224,13 @@ const BirthsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
             )}
             trendProps={{ trend: stats.trend, text: positiveTransform(stats.trend) }}
         />
+        <Button
+            className="ml-auto"
+            onClick={() => navigate('reproduction/births')}
+            endIcon={<ChevronRight />}
+        >
+            Ver Mais...
+        </Button>
     </DashboardCard>
 }
 
@@ -281,6 +291,8 @@ const DairyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
     const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
     const [loading, setLoading] = useState(false)
 
+    const navigate = useNavigate()
+
     useEffect(() => {
         setLoading(true)
         startLoading()
@@ -313,6 +325,13 @@ const DairyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
             )}
             trendProps={{ trend: stats.trend }}
         />
+        <Button
+            className="ml-auto"
+            onClick={() => navigate('lactation')}
+            endIcon={<ChevronRight />}
+        >
+            Ver Mais...
+        </Button>
     </DashboardCard>
 }
 
@@ -326,6 +345,7 @@ const SlaughterCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
 
     const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
     const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
 
     useEffect(() => {
         setLoading(true)
@@ -359,6 +379,13 @@ const SlaughterCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
             )}
             trendProps={{ trend: stats.trend }}
         />
+        <Button
+            className="ml-auto"
+            onClick={() => navigate('slaughter')}
+            endIcon={<ChevronRight />}
+        >
+            Ver Mais...
+        </Button>
     </DashboardCard>
 }
 
@@ -833,6 +860,7 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
     }), [])
 
     const [dataset, setDataset] = useState<AnimalByType>(defaultTypes)
+    const navigate = useNavigate()
 
     useEffect(() => {
         startLoading()
@@ -848,6 +876,9 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
             localeText={{
                 loading: LOADING_MSG,
                 noData: NO_DATA_AVAILABLE
+            }}
+            onItemClick={(_, item) => {
+                if (item.dataIndex === 1) navigate('lactation')
             }}
             series={[{
                 innerRadius: 100,

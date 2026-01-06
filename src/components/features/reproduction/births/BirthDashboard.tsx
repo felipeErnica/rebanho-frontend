@@ -33,7 +33,7 @@ import {
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { green, lightBlue, pink, red } from "@mui/material/colors"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { dateTransform, decimalTransform } from "@utils/Transformations"
+import { dateTransform, decimalTransform, positiveTransform } from "@utils/Transformations"
 import { Button, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import { TrendValues } from "@shared/table/TableComponents"
 import Add from "@mui/icons-material/Add"
@@ -103,7 +103,7 @@ const DashboardInformations = ({ stopLoading, startLoading, reloadFlag }: Dashbo
             <LastBirthsTable {...{ startLoading, stopLoading, reloadFlag }} />
             <BestIntervalAnimals {...{ stopLoading, startLoading, reloadFlag }} />
         </div>
-        <div className="grid grid-cols-[1fr_350px] grid-rows-[repeat(2,200px)] gap-4">
+        <div className="grid grid-cols-[1fr_600px] grid-rows-[repeat(2,200px)] gap-4">
             <BirthByDateGraph {...{ startLoading, stopLoading, reloadFlag }} />
             <YearBirthNumberCard {...{ startLoading, stopLoading, reloadFlag }} />
             <YearDeathNumberCard {...{ startLoading, stopLoading, reloadFlag }} />
@@ -161,7 +161,7 @@ const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                     }}
                 />
             )}
-            trendProps={{ trend: stats.trend, text: stats.trend.toString() }}
+            trendProps={{ trend: stats.trend, text: positiveTransform(stats.trend) }}
         />
     </DashboardCard>
 }

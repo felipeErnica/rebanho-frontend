@@ -1,15 +1,17 @@
 import { LactationIcon } from "@shared/common/OtherIcons";
-import { MilkEntriesTablePage } from "./MilkEntriesTable";
-import { GroupTablePage } from "./MilkGroupTable";
 import { LactationHistTablePage } from "./LactationHistTable";
 import { AppRoute } from "@/Routes";
 import { LactationDashboard } from "./LactationDashboard";
 import { Outlet, useParams } from "react-router";
-import { LactationEntriesTablePage } from "./LactationEntriesTable";
 import { findLactationById } from "./Controller";
 import { LactationHist } from "./Entities";
 import { dateTransform } from "@/utils/Transformations";
-import { GroupEntriesTablePage } from "./GroupEntriesTable";
+import { GroupEntriesTablePage } from "./milk-tables/GroupEntriesTable";
+import { LactationEntriesTablePage } from "./milk-tables/LactationEntriesTable";
+import { MilkEntriesTablePage } from "./milk-tables/MilkEntriesTable";
+import { GroupTablePage } from "./milk-tables/MilkGroupTable";
+import { DryAnimalsTablePage } from "./DryAnimalsTable";
+import { LacAnimalsTablePage } from "./LacAnimalsTable";
 
 const GroupEntriesTablePageWrapper = () => {
     const { entryDate } = useParams<{ entryDate: string }>();
@@ -81,6 +83,52 @@ export const lactationRoutes: AppRoute = {
                         title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate) 
                     }
                 }
+            ]
+        },
+        {
+            path: "dry-animals",
+            element: <Outlet />,
+            handle: { title: "Vacas Secas" },
+            children: [
+                {
+                    index: true,
+                    element: <DryAnimalsTablePage />,
+                },
+                {
+                    path: ":lactationId",
+                    element: <LactationEntriesTablePageWrapper />,
+                    loader: async ({ params }) => {
+                        const { lactationId } = params
+                        return findLactationById(lactationId)
+                    },
+                    handle: {
+                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate) 
+                    }
+                }
+
+            ]
+        },
+        {
+            path: "lac-animals",
+            element: <Outlet />,
+            handle: { title: "Vacas em Lactação" },
+            children: [
+                {
+                    index: true,
+                    element: <LacAnimalsTablePage />,
+                },
+                {
+                    path: ":lactationId",
+                    element: <LactationEntriesTablePageWrapper />,
+                    loader: async ({ params }) => {
+                        const { lactationId } = params
+                        return findLactationById(lactationId)
+                    },
+                    handle: {
+                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate) 
+                    }
+                }
+
             ]
         }
     ]

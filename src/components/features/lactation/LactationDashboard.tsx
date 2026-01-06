@@ -26,30 +26,22 @@ import {
     AnimalsRating,
     AverageMilkHist,
     DairyAnimalsType,
-    LactationGroup,
-    LactationGroupSave,
-    MilkEntry,
-    MilkProductionHist,
     ParentsRating,
     TotalMilkHist
 } from "./Entities"
 import {
-    getYearAverage,
     getLastAverageMilk,
-    getLastLactating as getLastLactating,
+    getLastLactating,
     getLastLac,
     getLastGroups,
     getLastMilk,
     getParentRatings,
-    getYearProduction,
     getRankedAnimals,
     getMilkProduction,
-    deleteMilkEntry,
-    deleteMilkGroup,
-    updateMilkGroup,
     getDairyTypes,
+    getLastDry,
 } from "./Controller"
-import { dateToISO, dateTransform, decimalTransform } from "@utils/Transformations"
+import { dateToISO, dateTransform, decimalTransform, positiveTransform } from "@utils/Transformations"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
 import Table from "@mui/material/Table"
 import TableHead from "@mui/material/TableHead"
@@ -62,24 +54,15 @@ import ChevronRight from "@mui/icons-material/ChevronRight"
 import Add from "@mui/icons-material/Add"
 import CalendarMonth from '@mui/icons-material/CalendarMonth';
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { CardEntry } from "@utils/Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { EditRowProps, TableRowProp } from "@shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import {
-    BarPlot,
-    ChartDataProvider,
-    ChartsAxisHighlight,
-    ChartsLegend,
-    ChartsSurface,
-    ChartsTooltip,
-    ChartsXAxis,
-    ChartsYAxis,
-    LineHighlightPlot,
-    LinePlot,
-    PieChart
+    BarChart,
+    LineChart,
+    PieChart,
 } from "@mui/x-charts"
 import { DefaultTimerWarning, GROUP_DELETE_TITLE, GROUP_UPDATE_TITLE, LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { green, yellow } from "@mui/material/colors"
@@ -90,6 +73,9 @@ import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
 import { useNavigate } from "react-router"
+import { AddMilkEntryDialog } from "./milk-tables/AddMilkEntryDialog"
+import { LactationGroup, LactationGroupSave, MilkEntry } from "./milk-tables/Entities"
+import { deleteMilkEntry, deleteMilkGroup, updateMilkGroup } from "./milk-tables/Controller"
 
 export const LactationDashboard = () => {
 
@@ -204,19 +190,17 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag, setReloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
-        <div className="grid grid-cols-[repeat(4,270px)_1fr] grid-rows-[180px_450px] gap-4">
+        <div className="grid grid-cols-[repeat(4,270px)_1fr] grid-rows-[180px_550px] gap-4">
             <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
             <AverageMilkCard {...{ stopLoading, startLoading, reloadFlag }} />
             <LactatingCard {...{ startLoading, stopLoading, reloadFlag }} />
             <DryCard {...{ startLoading, stopLoading, reloadFlag }} />
-            <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag, setReloadFlag }} />
             <TypesChart {...{ startLoading, stopLoading, reloadFlag, setReloadFlag }} />
-            {/* <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} /> */}
+            <LastEntriesTable {...{ startLoading, stopLoading, reloadFlag, setReloadFlag }} />
         </div>
-        <div className="grid grid-rows-2 grid-cols-[1fr_500px] gap-4">
+        <div className="grid grid-rows-[500px] grid-cols-[1fr_850px] gap-4">
             <MilkProductionChart {...{ startLoading, stopLoading, reloadFlag }} />
-            <YearMilkChart {...{ startLoading, stopLoading, reloadFlag }} />
-            <YearAverageChart {...{ startLoading, stopLoading, reloadFlag }} />
+            <LastGroupsTable {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
         <div className="flex flex-col gap-4">
             <AnimalsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
@@ -378,7 +362,7 @@ const DryCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformation
     useEffect(() => {
         setLoading(true)
         startLoading()
-        getLastLactating()
+        getLastDry()
             .then(response => setStats(response))
             .catch(() => setStats(defaultValue))
             .finally(() => {
@@ -389,7 +373,7 @@ const DryCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformation
 
     return <DashboardCard>
         <CardChartContent
-            title="Vacas Secas"
+            title="Secagem de Vacas"
             loading={loading}
             data={stats.current}
             chart={(
@@ -405,7 +389,7 @@ const DryCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformation
                     }}
                 />
             )}
-            trendProps={{ trend: stats.trend }}
+            trendProps={{ trend: stats.trend, inverse: true, text: positiveTransform(stats.trend) }}
         />
     </DashboardCard>
 }
@@ -438,7 +422,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
             })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard className="col-span-3">
+    return <DashboardCard>
         <CardDefaultTitle text="As Últimas Marcações" />
         <EditContext.Provider value={{ setError, setWarning, setRows }}>
             <Table size="small" stickyHeader>
@@ -570,7 +554,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
     const { control, handleSubmit } = useForm<LactationGroupSave>({ defaultValues: rowData })
     const { setError, setWarning } = useContext(EditContext)
 
-    const onSubmit: SubmitHandler<LactationGroupSave> = (data: LactationGroupSave) => {
+    const onSubmit: SubmitHandler<LactationGroup> = (data: LactationGroupSave) => {
         setLoading(true)
         updateMilkGroup(rowData.entryDate, data)
             .then(response => {
@@ -666,7 +650,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
             })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard className="row-span-2">
+    return <DashboardCard className="col-span-4">
         <CardDefaultTitle text={`Última Marcação de Leite - ${textDate}`} />
         <div className="overflow-auto">
             <Table size="small" stickyHeader>
@@ -766,6 +750,8 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
     const [loading, setLoading] = useState(false)
     const [dataset, setDataset] = useState(defaultDataset)
 
+    const navigate = useNavigate()
+
     useEffect(() => {
         startLoading()
         setLoading(true)
@@ -776,25 +762,40 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
                 setLoading(false)
                 stopLoading()
             })
-
     }, [defaultDataset, reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard className="col-span-3">
-        <CardDefaultTitle text="Vacas Leiteiras" />
+    return <DashboardCard className="row-span-2">
+        <CardDefaultTitle text="Divisão do Rebanho Leiteiro" />
         <PieChart
             loading={loading}
             localeText={{
                 loading: LOADING_MSG,
                 noData: NO_DATA_AVAILABLE
             }}
+            slotProps={{
+                legend: {
+                    sx: {
+                        fontSize: 16
+                    },
+                    direction: 'horizontal',
+                    position: {
+                        horizontal: 'center',
+                        vertical: 'bottom'
+                    }
+                }
+            }}
+            onItemClick={(_, item) => {
+                if (item.dataIndex === 1) navigate('dry-animals')
+                if (item.dataIndex === 0) navigate('lac-animals')
+            }}
             series={[{
-                innerRadius: 100,
-                outerRadius: 180,
+                innerRadius: 180,
+                outerRadius: 280,
                 highlightScope: { fade: 'global', highlight: 'item' },
                 faded: { additionalRadius: -30, color: 'gray' },
                 data: [
-                    { id: 0, label: 'Lactando', value: dataset.lactating },
-                    { id: 1, label: 'Secas', value: dataset.dry, color: yellow[600] },
+                    { id: 'lactating', label: 'Lactando', value: dataset.lactating, },
+                    { id: 'dry', label: 'Secas', value: dataset.dry, color: yellow[600] },
                 ]
             }]}
         />
@@ -803,158 +804,48 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
 
 const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const [dataset, setDataset] = useState<MilkProductionHist[]>([])
+    const [dataset, setDataset] = useState<TotalMilkHist[]>([])
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         startLoading()
+        setLoading(true)
         getMilkProduction()
             .then(results => setDataset(results))
             .catch(() => setDataset([]))
-            .finally(() => stopLoading())
+            .finally(() => {
+                setLoading(false)
+                stopLoading()
+            })
     }, [reloadFlag, startLoading, stopLoading])
 
-    return <DashboardCard className="row-span-2">
+    return <DashboardCard>
         <CardDefaultTitle text="Produção de Leite por Mês" />
-        <div className="h-full flex flex-col items-center">
-            <ChartDataProvider
-                height={420}
-                localeText={{
-                    loading: LOADING_MSG,
-                    noData: NO_DATA_AVAILABLE
-                }}
-                series={[
-                    {
-                        id: 'totalMilk',
-                        type: 'bar',
-                        label: 'Total de Leite',
-                        yAxisId: "totalAxis",
-                        data: dataset.map(item => item.totalMilk),
-                        valueFormatter: (value) => decimalTransform(value),
-                        labelMarkType: 'square',
-                    }
-                ]}
-                yAxis={[
-                    { id: 'totalAxis', min: 0, label: 'Leite Produzido' },
-                ]}
-                xAxis={[{
-                    id: 'dateAxis',
-                    scaleType: 'band',
-                    data: dataset.map(item => new Date(item.entryDate)),
-                    domainLimit: 'strict',
-                    valueFormatter: (value: Date) => value.toLocaleString('pt-BR', {
-                        month: 'short',
-                        year: 'numeric'
-                    })
-                }]}
-            >
-                <ChartsLegend />
-                <ChartsSurface>
-                    <BarPlot />
-                    <LinePlot />
-                    <ChartsAxisHighlight x="line" />
-                    <LineHighlightPlot />
-                    <ChartsXAxis />
-                    <ChartsYAxis axisId="totalAxis" />
-                    <ChartsYAxis axisId="animalsAxis" />
-                    <ChartsTooltip />
-                </ChartsSurface>
-            </ChartDataProvider>
-        </div>
-    </DashboardCard>
-}
-
-const YearAverageChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-
-    const defaultCard: CardEntry<AverageMilkHist> = useMemo(() => ({
-        current: 0,
-        trend: 0,
-        hist: []
-    }), [])
-
-    const [dataset, setDataset] = useState<CardEntry<AverageMilkHist>>(defaultCard)
-    const [loading, setLoading] = useState(false)
-
-    useEffect(() => {
-        startLoading()
-        setLoading(true)
-        getYearAverage()
-            .then(results => setDataset(results))
-            .catch(() => setDataset(defaultCard))
-            .finally(() => {
-                setLoading(false)
-                stopLoading()
-            })
-    }, [defaultCard, reloadFlag, startLoading, stopLoading])
-
-    return <DashboardCard>
-        <CardChartContent
+        <LineChart
             loading={loading}
-            title="Média de Produção Anual p/ Vaca"
-            data={decimalTransform(dataset.current)}
-            chart={(
-                <SparkLineChart
-                    area
-                    showTooltip
-                    showHighlight
-                    color={green[600]}
-                    data={dataset.hist.map(item => item.averageMilk)}
-                    valueFormatter={(value) => decimalTransform(value)}
-                    xAxis={{
-                        data: dataset.hist.map(item => new Date(item.entryDate)),
-                        domainLimit: 'strict',
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { year: 'numeric' })
-                    }}
-                />
-            )}
-            trendProps={{ trend: dataset.trend }}
-        />
-    </DashboardCard>
-}
-
-const YearMilkChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
-
-    const defaultCard: CardEntry<TotalMilkHist> = useMemo(() => ({
-        current: 0,
-        trend: 0,
-        hist: []
-    }), [])
-
-    const [dataset, setDataset] = useState<CardEntry<TotalMilkHist>>(defaultCard)
-    const [loading, setLoading] = useState(false)
-
-    useEffect(() => {
-        startLoading()
-        setLoading(true)
-        getYearProduction()
-            .then(results => setDataset(results))
-            .catch(() => setDataset(defaultCard))
-            .finally(() => {
-                setLoading(false)
-                stopLoading()
-            })
-    }, [defaultCard, reloadFlag, startLoading, stopLoading])
-
-    return <DashboardCard>
-        <CardChartContent
-            loading={loading}
-            title="Produção de Leite Anual"
-            data={decimalTransform(dataset.current)}
-            chart={(
-                <SparkLineChart
-                    area
-                    showHighlight
-                    showTooltip
-                    data={dataset.hist.map(item => item.totalMilk)}
-                    valueFormatter={value => decimalTransform(value)}
-                    xAxis={{
-                        id: 'dateAxis',
-                        data: dataset.hist.map(item => new Date(item.entryDate)),
-                        domainLimit: 'strict',
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { year: 'numeric' })
-                    }}
-                />
-            )}
-            trendProps={{ trend: dataset.trend }}
+            localeText={{
+                loading: LOADING_MSG,
+                noData: NO_DATA_AVAILABLE
+            }}
+            series={[{
+                data: dataset.map(item => item.totalMilk),
+                valueFormatter: value => decimalTransform(value),
+                curve: 'catmullRom',
+                showMark: false,
+                area: true
+            }]}
+            xAxis={[{
+                data: dataset.map(item => new Date(item.entryDate)),
+                scaleType: 'time',
+                domainLimit: 'strict',
+                valueFormatter: (value: Date) => value.toLocaleString('pt-BR', {
+                    month: 'short',
+                    year: 'numeric'
+                })
+            }]}
+            yAxis={[
+                { id: 'totalAxis', min: 0, label: 'Leite Produzido' },
+            ]}
         />
     </DashboardCard>
 }
