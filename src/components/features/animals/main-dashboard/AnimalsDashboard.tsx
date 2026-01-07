@@ -17,7 +17,7 @@ import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { dateToISO, dateTransform, decimalTransform, percentageTransform, positiveTransform, transformWeight } from "@/utils/Transformations"
 import { green, lightBlue, pink, purple, red, yellow } from "@mui/material/colors"
 import { BarChart, PieChart } from "@mui/x-charts"
-import { LOADING_MSG, NO_DATA_AVAILABLE } from "@/components/shared/Globals"
+import { LOADING_MSG, LONG_LACTATION_DAYS, NO_DATA_AVAILABLE } from "@/components/shared/Globals"
 import { ComboBox, ComboBoxItem } from "@/components/shared/common/ComboBox"
 import { getLastBirths } from "@features/reproduction/births/Controller"
 import { BirthEntry } from "@features/reproduction/births/Entities"
@@ -28,7 +28,7 @@ import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
 import { MilkEntry } from "@features/lactation/milk-tables/Entities"
 import { useNavigate } from "react-router"
-import { getLastLac } from "@features/lactation/Controller"
+import { getLastLac, getLongLactations } from "@features/lactation/Controller"
 import { deleteMilkEntry } from "@features/lactation/milk-tables/Controller"
 import Button from "@mui/material/Button"
 import Add from "@mui/icons-material/Add"
@@ -53,6 +53,8 @@ import { deleteSlaughter, getLastSlaughter, updateSlaughter } from "@features/sl
 import { NextBirths } from "../../reproduction/pregnancy-test/Entities"
 import { getNextBirths } from "../../reproduction/pregnancy-test/Controller"
 import { Animal, transformAnimalType } from "../Entities"
+import { LactationHistFoot } from "../../lactation/Entities"
+import { Alert, AlertTitle, Collapse } from "@mui/material"
 
 type EditContextProps = { setReloadFlag: Dispatch<SetStateAction<number>> }
 
@@ -165,6 +167,9 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
 const AnimalsContent = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
     return <DashboardInfoContainer className="h-full flex flex-col gap-4">
+        <div className="flex flex-row">
+            <LongLactationAlert {...{ stopLoading, startLoading, reloadFlag }} />
+        </div>
         <div className="grid grid-cols-[repeat(4,230px)_1fr] grid-rows-[220px_500px] gap-4">
             <BirthsCard {...{ stopLoading, reloadFlag, startLoading }} />
             <DeathsCard {...{ stopLoading, reloadFlag, startLoading }} />
@@ -178,6 +183,41 @@ const AnimalsContent = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
             <NextBirthsTable {...{ stopLoading, startLoading, reloadFlag }} />
         </div>
     </DashboardInfoContainer>
+}
+
+const LongLactationAlert = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const defaultData: LactationHistFoot = useMemo(() => ({ totalLacs: 0 }), [])
+
+    const [open, setOpen] = useState(false)
+    const [data, setData] = useState(defaultData)
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        startLoading()
+        getLongLactations()
+            .then(res => {
+                setData(res)
+                setOpen(res.totalLacs > 0)
+            })
+            .catch(() => setData(defaultData))
+            .finally(() => stopLoading())
+    }, [reloadFlag, defaultData, startLoading, stopLoading])
+
+    return <Collapse in={open}>
+        <Alert severity="warning" onClose={() => setOpen(prev => !prev)}>
+            <AlertTitle>{`${data.totalLacs} vacas possuem uma lactação maior que ${LONG_LACTATION_DAYS} dias.`}</AlertTitle>
+            <Button
+                variant="outlined"
+                color="warning"
+                onClick={() => navigate('lactation/long-lactations')}
+            >
+                Ver Mais...
+            </Button>
+        </Alert>
+    </Collapse>
+
 }
 
 const BirthsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
@@ -225,7 +265,7 @@ const BirthsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
             trendProps={{ trend: stats.trend, text: positiveTransform(stats.trend) }}
         />
         <Button
-            className="ml-auto"
+            className="mr-auto"
             onClick={() => navigate('reproduction/births')}
             endIcon={<ChevronRight />}
         >
@@ -244,6 +284,8 @@ const DeathsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
 
     const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
     const [loading, setLoading] = useState(false)
+
+    const navigate = useNavigate()
 
     useEffect(() => {
         setLoading(true)
@@ -277,6 +319,13 @@ const DeathsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
             )}
             trendProps={{ trend: stats.trend, text: positiveTransform(stats.trend) }}
         />
+        <Button
+            className="mr-auto"
+            onClick={() => navigate('dead-animals')}
+            endIcon={<ChevronRight />}
+        >
+            Ver Mais...
+        </Button>
     </DashboardCard>
 }
 
@@ -326,7 +375,7 @@ const DairyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
             trendProps={{ trend: stats.trend }}
         />
         <Button
-            className="ml-auto"
+            className="mr-auto"
             onClick={() => navigate('lactation')}
             endIcon={<ChevronRight />}
         >
@@ -380,7 +429,7 @@ const SlaughterCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
             trendProps={{ trend: stats.trend }}
         />
         <Button
-            className="ml-auto"
+            className="mr-auto"
             onClick={() => navigate('slaughter')}
             endIcon={<ChevronRight />}
         >

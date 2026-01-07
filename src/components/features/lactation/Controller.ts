@@ -52,6 +52,10 @@ export function getDairyTypes() {
     return apiGet(DASHBOARD_BASE + "dairy-types")
 }
 
+export function getLongLactations() {
+    return apiGet(DASHBOARD_BASE + 'long-lactations')
+}
+
 export function findLactationsPage(
     filter: LactationHistFilter,
     sort: string,
@@ -60,6 +64,20 @@ export function findLactationsPage(
 ) {
     const pageQuery = `page?order=${order}&sort=${sort}${cursor ? `&cursor=${cursor}` : ''}`
     return apiPost(LAC_BASE + pageQuery, filter)
+}
+
+export function findLongLactationsPage(
+    filter: LactationHistFilter,
+    sort: string,
+    order: string,
+    cursor?: string,
+) {
+    const pageQuery = "long-lactations/" + buildPageCall(sort, order, cursor)
+    return apiPost(LAC_BASE + pageQuery, filter)
+}
+
+export function getLongLactationsPageFoot(filter: LactationHistFilter) {
+    return apiPost(LAC_BASE + "long-lactations/page/foot", filter)
 }
 
 export function findLactationById(id: string) {

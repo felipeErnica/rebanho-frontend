@@ -46,3 +46,12 @@ export function findAnimals(filter: IFilters, sort: string, order: string, curso
 export function findAnimalsTotal(filter: IFilters) {
     return apiPost(ANIMAL_BASE + "total", filter)
 }
+
+export function findDeadAnimals(filter: IFilters, sort: string, order: string, cursor?: string) {
+    const pageCall = "dead/" + buildPageCall(sort, order, cursor)
+    return apiPost(ANIMAL_INFO + pageCall, filter)
+}
+
+export function getDeadAnimalsFoot(filter: IFilters) {
+    return apiPost(ANIMAL_INFO + "dead/page/foot", filter)
+}

@@ -48,11 +48,11 @@ export type LactationHistFilter = {
 
 export type LactationHistFoot = {
     totalLacs: number
-    averagePeriod: number
-    averageProduction: number
-    averageTotal: number
-    averageInterval: number
-    averagePeak: number
+    averagePeriod?: number
+    averageProduction?: number
+    averageTotal?: number
+    averageInterval?: number
+    averagePeak?: number
 }
 
 export type DairyAnimalsType = {

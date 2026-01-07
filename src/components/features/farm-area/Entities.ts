@@ -28,3 +28,28 @@ export type PastureEntriesFilter = {
     maxEntryDate?: Date
     minEntryDate?: Date
 }
+
+export type PastureStats = {
+    totalAnimals: {
+        current: number
+        trend: number
+        history: { date: string, value: number }[]
+    }
+    occupiedPastures: {
+        current: number
+        total: number
+    }
+    recentMoves: {
+        current: number
+        trend: number
+        history: { date: string, value: number }[]
+    }
+}
+
+export type PastureOccupancy = {
+    id: string
+    name: string
+    animalCount: number
+    maxCapacity?: number
+    usagePercentage: number
+}

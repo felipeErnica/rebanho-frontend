@@ -13,8 +13,8 @@ import {
 import { LactationHist, LactationHistFilter, LactationHistFoot } from "./Entities"
 import {
     deleteLactation,
-    findLactationsPage,
-    getLactationsPageFoot,
+    findLongLactationsPage,
+    getLongLactationsPageFoot,
     searchCalfs,
     updateLactation
 } from "./Controller"
@@ -41,15 +41,11 @@ import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { APIError } from "@utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@shared/dialog/DialogComponents"
-import { Button, ListItemIcon, Menu, MenuItem } from "@mui/material"
-import ExpandMore from "@mui/icons-material/ExpandMore"
-import { OptionMenuProps } from "@shared/dashboard/Entities"
-import Add from "@mui/icons-material/Add"
+import { Button } from "@mui/material"
+import BackHand from '@mui/icons-material/BackHand';
 import { EndLactationDialog } from "./EndLactationDialog"
-import { AddLacDialog } from "./AddLactationDialog"
 import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Globals"
 import { useNavigate } from "react-router"
-import BackHand from "@mui/icons-material/BackHand"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -59,7 +55,7 @@ type EditContextProps = {
 
 const ErrorContext = createContext<EditContextProps>(undefined!)
 
-export const LactationHistTablePage = () => {
+export const LongLactationsTablePage = () => {
 
     const defaultSort = "animal_order, start_date"
 
@@ -81,21 +77,26 @@ export const LactationHistTablePage = () => {
 
     const [error, setError] = useState<APIError>()
     const [warning, setWarning] = useState(DefaultTimerWarning)
-    const [menuOpen, setMenuOpen] = useState(false)
     const [reloadFlag, setReloadFlag] = useState(0)
+    const [openEndLactation, setOpenEndLactation] = useState(false)
 
     const anchorEl = useRef<HTMLButtonElement>(null)
     const menuAnchor = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
-        getLactationsPageFoot(filter)
+        getLongLactationsPageFoot(filter)
             .then(response => setFoot(response))
             .catch(() => setFoot(DEFAULT_FOOT))
-        return findLactationsPage(filter, sort, order, cursor)
+        return findLongLactationsPage(filter, sort, order, cursor)
     }, [DEFAULT_FOOT, filter, order, sort])
 
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
     const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
+
+    const closeEndLactation = useCallback((changed?: boolean) => {
+        if (changed) setReloadFlag(prev => prev + 1)
+        setOpenEndLactation(false)
+    }, [])
 
     useEffect(() => onReload(), [onReload, reloadFlag])
 
@@ -118,21 +119,13 @@ export const LactationHistTablePage = () => {
             orderProps={{ order, setOrder }}
             sortProps={{ sort, sortColumns, setSort, defaultSort }}
             otherProps={(
-                <>
-                    <Button
-                        onClick={() => setMenuOpen(prev => !prev)}
-                        endIcon={<ExpandMore />}
-                        ref={menuAnchor}
-                    >
-                        Opções
-                    </Button>
-                    <OptionsMenu
-                        openMenu={menuOpen}
-                        menuAnchorEl={menuAnchor}
-                        closeMenu={() => setMenuOpen(prev => !prev)}
-                        setReloadFlag={setReloadFlag}
-                    />
-                </>
+                <Button
+                    onClick={() => setOpenEndLactation(prev => !prev)}
+                    startIcon={<BackHand />}
+                    ref={menuAnchor}
+                >
+                    Encerrar Lactações
+                </Button>
             )}
         />
         <ErrorContext.Provider value={{ setError, setRows, setWarning }}>
@@ -146,44 +139,8 @@ export const LactationHistTablePage = () => {
             openError={!!error}
         />
         <TimerYesNoDialog {...warning} />
-    </div>
-}
-
-const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu }: OptionMenuProps) => {
-
-    const [openEndLactation, setOpenEndLactation] = useState(false)
-    const [openStartLac, setOpenStartLac] = useState(false)
-
-    const closeEndLactation = useCallback(() => {
-        setOpenEndLactation(false)
-    }, [])
-
-    const closeStartLac = useCallback(() => {
-        setOpenStartLac(false)
-    }, [])
-
-    return <>
-        <Menu
-            open={openMenu}
-            anchorEl={menuAnchorEl.current}
-            onClose={closeMenu}
-        >
-            <MenuItem onClick={() => setOpenStartLac(true)}>
-                <ListItemIcon>
-                    <Add />
-                </ListItemIcon>
-                Iniciar Lactações
-            </MenuItem>
-            <MenuItem onClick={() => setOpenEndLactation(true)}>
-                <ListItemIcon>
-                    <BackHand fontSize="small" />
-                </ListItemIcon>
-                Encerrar Lactações
-            </MenuItem>
-        </Menu>
         <EndLactationDialog {...{ openEndLactation, closeEndLactation }} />
-        <AddLacDialog {...{ openStartLac, closeStartLac }} />
-    </>
+    </div>
 }
 
 type EntriesTableProps = {

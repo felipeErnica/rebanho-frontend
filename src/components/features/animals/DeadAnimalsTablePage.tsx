@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
-import { findAnimals, findAnimalsTotal } from "./Controller"
+import { findDeadAnimals, getDeadAnimalsFoot } from "./Controller"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { AnimalsFilter } from "./AnimalsFilter"
 import { IFilters } from "@utils/Filter"
@@ -28,14 +28,12 @@ import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker
 import { FormSearchBox } from "@/components/shared/form-controls/FormSearchBox"
 import { searchAllMothers, searchFather } from "@/utils/GlobalApiCalls"
 
-export const AnimalsTablePage = () => {
+export const DeadAnimalsTablePage = () => {
 
-    const defaultFoot: AnimalFoot = useMemo(() => ({
-        total: 0
-    }), [])
+    const defaultFoot: AnimalFoot = useMemo(() => ({ total: 0 }), [])
     const defaultSort = 'animal_order, birth_date'
 
-    const [foot, setTotal] = useState(defaultFoot)
+    const [foot, setTotal] = useState<AnimalFoot>(defaultFoot)
     const [order, setOrder] = useState('asc')
     const [sort, setSort] = useState(defaultSort)
     const [loading, setLoading] = useState(false)
@@ -43,10 +41,10 @@ export const AnimalsTablePage = () => {
     const [filter, setFilter] = useState<IFilters>({ isFiltered: false })
 
     const fetchPage = useCallback((cursor?: string) => {
-        findAnimalsTotal(filter)
+        getDeadAnimalsFoot(filter)
             .then((response) => setTotal(response))
             .catch(() => setTotal(defaultFoot))
-        return findAnimals(filter, sort, order, cursor)
+        return findDeadAnimals(filter, sort, order, cursor)
     }, [filter, sort, order, defaultFoot])
 
     const anchorEl = useRef<HTMLButtonElement>(null)
@@ -55,7 +53,7 @@ export const AnimalsTablePage = () => {
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
-        { name: 'Brinco', value: defaultSort},
+        { name: 'Brinco', value: defaultSort },
         { name: 'Nome', value: 'name, birth_date' },
         { name: 'Data de Nascimento', value: 'birth_date, animal_order' },
         { name: 'Data de Morte', value: 'death_date, animal_order' },
@@ -113,10 +111,10 @@ export const AnimalsTable = ({
                 <VirtuosoResizeHeadCell width={100}>Brinco</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Nome</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={180} align="center">Data de Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={150} align="center">Data de Morte</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Pai</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Mãe</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Tipo de Animal</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={150} align="center">Data de Morte</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={120} align="center">Prod. Média</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={150} align="center">Int. de Lac. Médio</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={180} align="center">Int. de Parto Médio</VirtuosoResizeHeadCell>
@@ -159,10 +157,10 @@ const AnimalRow = ({ row, loading }: TableRowProp<Animal>) => {
         <TableBodyCell>{rowData.ringNumber}</TableBodyCell>
         <TableBodyCell>{rowData.name}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.birthDate)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.deathDate)}</TableBodyCell>
         <TableBodyCell>{rowData.fatherName}</TableBodyCell>
         <TableBodyCell>{rowData.motherName}</TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>
-        <TableBodyCell align="center">{dateTransform(rowData.deathDate)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.averageProd)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.averageProdInterval)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.averageBirthInterval)}</TableBodyCell>
@@ -196,6 +194,9 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
         </TableBodyCell>
         <TableBodyCell align="center">
             <FormDatePicker formProps={{ control, name: 'birthDate' }} />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <FormDatePicker formProps={{ control, name: 'deathDate' }} />
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox

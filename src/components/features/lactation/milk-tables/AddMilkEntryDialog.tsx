@@ -20,8 +20,8 @@ import { MilkEntrySave } from "./Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { APIError } from "@utils/ApiRequest"
 import { addMilkEntry, replaceMilkEntry } from "./Controller"
-import { transferPastureEntry } from "@features/farm-area/pasture-entries/Controller"
-import { PastureEntrySave } from "@features/farm-area/pasture-entries/Entities"
+import { transferPastureEntry } from "@features/farm-area/Controller"
+import { PastureEntrySave } from "@features/farm-area/Entities"
 
 type AddTestDialogProps = {
     addMilkEntryOpen: boolean

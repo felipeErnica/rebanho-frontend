@@ -1,17 +1,12 @@
 import {
-    createContext,
-    Dispatch,
     RefObject,
-    SetStateAction,
     useCallback,
-    useContext,
     useEffect,
     useMemo,
     useRef,
     useState
 } from "react"
 import {
-    deleteLactation,
     findDryAnimalsPage,
     getDryAnimalsPageFoot
 } from "./Controller"
@@ -32,19 +27,6 @@ import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { ComboBoxItem } from "@/components/shared/common/ComboBox"
 import { LactationHist, LactationHistFilter, LactationHistFoot } from "./Entities"
 import { LacHistFilter } from "./LacHistFilter"
-import { useNavigate } from "react-router"
-import { APIError } from "@/utils/ApiRequest"
-import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
-import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Globals"
-import { EditControlButtons } from "@/components/shared/table/ControlButtons"
-
-type EditContextProps = {
-    setError: Dispatch<SetStateAction<APIError | undefined>>
-    setRows: Dispatch<SetStateAction<LactationHist[]>>
-    setWarning: Dispatch<SetStateAction<TimerYesNoDialogProps>>
-}
-
-const ErrorContext = createContext<EditContextProps>(undefined!)
 
 export const DryAnimalsTablePage = () => {
 
@@ -67,9 +49,6 @@ export const DryAnimalsTablePage = () => {
 
     const anchorEl = useRef<HTMLButtonElement>(null)
 
-    const [error, setError] = useState<APIError>()
-    const [warning, setWarning] = useState(DefaultTimerWarning)
-
     const fetchPage = useCallback((cursor?: string) => {
         getDryAnimalsPageFoot(filter)
             .then(response => setFoot(response))
@@ -91,7 +70,7 @@ export const DryAnimalsTablePage = () => {
         { name: 'Intervalo de Lactação', value: 'lac_interval, start_date, animal_order' },
     ]
 
-    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage } = usePagination<LactationHist>({ setLoading, fetchPage })
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -100,17 +79,8 @@ export const DryAnimalsTablePage = () => {
             sortProps={{ sort, setSort, defaultSort, sortColumns }}
             orderProps={{ order, setOrder }}
         />
-        <ErrorContext.Provider value={{ setError, setRows, setWarning }}>
-            <DryAnimalsTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
-        </ErrorContext.Provider>
+        <DryAnimalsTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
         <LacHistFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
-        <ErrorDialog
-            title={error?.title}
-            content={error?.message}
-            onClose={() => setError(undefined)}
-            openError={!!error}
-        />
-        <TimerYesNoDialog {...warning} />
     </div>
 }
 
@@ -168,50 +138,27 @@ type DryAnimalRowProps = {
 const DryAnimalRow = ({ item, loading }: DryAnimalRowProps) => {
 
     const [rowData, setRowData] = useState<LactationHist>(item)
-    const [loadingControls, setLoadingControls] = useState(false)
-    const navigate = useNavigate()
-
-    const { setRows, setError, setWarning } = useContext(ErrorContext)
 
     useEffect(() => setRowData(item), [item])
 
     if (loading) return <TableLoadingCells colSpan={11} />
 
-    const deleteLac = () => {
-        setLoadingControls(true)
-        deleteLactation(rowData.id)
-            .then(() => {
-                setRows(rows => rows.filter(item => item.id != rowData.id))
-                setError(undefined)
-            })
-            .catch(err => setError(err))
-            .finally(() => setLoadingControls(false))
+    const lacInterval = () => {
+        if (!rowData.startDate) return '-'
+        if (!rowData.lacInterval) return '1ª Lactação'
+        return rowData.lacInterval
     }
-
-    const onDelete = () => setWarning({
-        openYesNo: true,
-        waitTime: 10,
-        title: GROUP_DELETE_TITLE,
-        content: `Ao confirmar, todas as marcações da ${rowData.animalName}, dos dias ${dateTransform(rowData.startDate)} ` +
-            `até ${rowData.endDate ? dateTransform(rowData.endDate) : 'hoje'}, serão excluídas. Deseja continuar?`,
-        onClose: () => setWarning(DefaultTimerWarning),
-        onYes: deleteLac
-    })
 
     return <>
         <TableBodyCell>
-            <EditControlButtons
-                onDelete={onDelete}
-                loading={loadingControls}
-                onShow={() => navigate(rowData.id)}
-            />
+            <div />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>{rowData.calfInfo}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.startDate)}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.endDate)}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.lacInterval ?? "1ª Lactação"}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.lacPeriod}</TableBodyCell>
+        <TableBodyCell align="center">{lacInterval()}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.lacPeriod ?? '-'}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.averageProduction ?? 0)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.peak ?? 0, 1)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.totalProduction ?? 0)}</TableBodyCell>

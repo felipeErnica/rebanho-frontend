@@ -147,7 +147,7 @@ const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                 <SparkLineChart
                     data={stats.hist.map(item => item.birthTotal)}
                     height={80}
-                    color={green[800]}
+                    color={green[600]}
                     showTooltip
                     showHighlight
                     xAxis={{
@@ -246,7 +246,7 @@ const DeathIndexCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
             chart={(
                 <SparkLineChart
                     data={stats.deathIndexHist.map(item => item.deathIndex)}
-                    color={red[800]}
+                    color={red[600]}
                     height={80}
                     valueFormatter={(value) => decimalTransform(value ?? 0)}
                     xAxis={{
@@ -302,14 +302,14 @@ const BirthByDateGraph = ({ stopLoading, startLoading, reloadFlag }: DashboardIn
                     label: 'Nascimentos',
                     curve: 'linear',
                     showMark: false,
-                    color: green[800],
+                    color: green[600],
                 },
                 {
                     data: dataset.map(item => item.deathTotal),
                     label: 'Morte de Bezerros (*abaixo de 1 ano)',
                     curve: 'linear',
                     showMark: false,
-                    color: red[800],
+                    color: red[600],
                 }
             ]}
         />
@@ -351,7 +351,7 @@ const YearBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                     showTooltip
                     showHighlight
                     area
-                    color={green[800]}
+                    color={green[600]}
                     xAxis={{
                         scaleType: 'time',
                         domainLimit: 'strict',
@@ -400,7 +400,7 @@ const YearDeathNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                     showTooltip
                     showHighlight
                     area
-                    color={red[800]}
+                    color={red[600]}
                     xAxis={{
                         scaleType: 'time',
                         domainLimit: 'strict',
@@ -566,12 +566,12 @@ const BirthBySexGraph = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                 {
                     label: 'Machos',
                     dataKey: 'males',
-                    color: lightBlue[800],
+                    color: lightBlue[600],
                 },
                 {
                     label: "Fêmeas",
                     dataKey: 'females',
-                    color: pink[800],
+                    color: pink[600],
                 }
             ]}
         />
@@ -613,12 +613,12 @@ const YearBirthBySexGraph = ({ reloadFlag, startLoading, stopLoading }: Dashboar
                 {
                     data: dataset.map(item => item.males),
                     label: 'Machos',
-                    color: lightBlue[800],
+                    color: lightBlue[600],
                 },
                 {
                     label: "Fêmeas",
                     data: dataset.map(item => item.females),
-                    color: pink[800],
+                    color: pink[600],
                 }
             ]}
         />

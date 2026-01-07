@@ -26,6 +26,7 @@ import {
     AnimalsRating,
     AverageMilkHist,
     DairyAnimalsType,
+    LactationHistFoot,
     ParentsRating,
     TotalMilkHist
 } from "./Entities"
@@ -40,6 +41,7 @@ import {
     getMilkProduction,
     getDairyTypes,
     getLastDry,
+    getLongLactations,
 } from "./Controller"
 import { dateToISO, dateTransform, decimalTransform, positiveTransform } from "@utils/Transformations"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
@@ -49,10 +51,9 @@ import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
 import { TrendValues } from "@shared/table/TableComponents"
-import { Button, Divider, ListItemIcon, Menu, MenuItem } from "@mui/material"
+import { Alert, AlertTitle, Button, Collapse, Divider, ListItemIcon, Menu, MenuItem } from "@mui/material"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import Add from "@mui/icons-material/Add"
-import CalendarMonth from '@mui/icons-material/CalendarMonth';
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { CardEntry } from "@utils/Entities"
@@ -60,11 +61,10 @@ import { FormTextField } from "@shared/form-controls/FormTextField"
 import { EditRowProps, TableRowProp } from "@shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
 import {
-    BarChart,
     LineChart,
     PieChart,
 } from "@mui/x-charts"
-import { DefaultTimerWarning, GROUP_DELETE_TITLE, GROUP_UPDATE_TITLE, LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
+import { DefaultTimerWarning, GROUP_DELETE_TITLE, GROUP_UPDATE_TITLE, LOADING_MSG, LONG_LACTATION_DAYS, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { green, yellow } from "@mui/material/colors"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import { EndLactationDialog } from "./EndLactationDialog"
@@ -76,6 +76,7 @@ import { useNavigate } from "react-router"
 import { AddMilkEntryDialog } from "./milk-tables/AddMilkEntryDialog"
 import { LactationGroup, LactationGroupSave, MilkEntry } from "./milk-tables/Entities"
 import { deleteMilkEntry, deleteMilkGroup, updateMilkGroup } from "./milk-tables/Controller"
+import BackHand from "@mui/icons-material/BackHand"
 
 export const LactationDashboard = () => {
 
@@ -152,15 +153,15 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
             </MenuItem>
             <MenuItem onClick={() => setOpenStartLac(true)}>
                 <ListItemIcon>
-                    <CalendarMonth />
+                    <Add />
                 </ListItemIcon>
                 Iniciar Lactações
             </MenuItem>
             <MenuItem onClick={() => setOpenEndLactation(true)}>
                 <ListItemIcon>
-                    <CalendarMonth />
+                    <BackHand fontSize="small" />
                 </ListItemIcon>
-                Secar Vacas
+                Encerrar Lactações
             </MenuItem>
             <Divider />
             <MenuItem onClick={() => navigate("milk")}>
@@ -190,6 +191,9 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
 
 const LactationInfo = ({ startLoading, stopLoading, reloadFlag, setReloadFlag }: DashboardInformationProps) => {
     return <DashboardInfoContainer className="flex flex-col gap-4">
+        <div className="flex flex-row">
+            <LongLactationAlert {...{ stopLoading, startLoading, reloadFlag }} />
+        </div>
         <div className="grid grid-cols-[repeat(4,270px)_1fr] grid-rows-[180px_550px] gap-4">
             <MilkProductionCard {...{ stopLoading, startLoading, reloadFlag }} />
             <AverageMilkCard {...{ stopLoading, startLoading, reloadFlag }} />
@@ -207,6 +211,41 @@ const LactationInfo = ({ startLoading, stopLoading, reloadFlag, setReloadFlag }:
             <ParentsRatingTable {...{ startLoading, stopLoading, reloadFlag }} />
         </div>
     </DashboardInfoContainer>
+}
+
+const LongLactationAlert = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
+
+    const defaultData: LactationHistFoot = useMemo(() => ({ totalLacs: 0 }), [])
+
+    const [open, setOpen] = useState(false)
+    const [data, setData] = useState(defaultData)
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        startLoading()
+        getLongLactations()
+            .then(res => {
+                setData(res)
+                setOpen(res.totalLacs > 0)
+            })
+            .catch(() => setData(defaultData))
+            .finally(() => stopLoading())
+    }, [reloadFlag, defaultData, startLoading, stopLoading])
+
+    return <Collapse in={open}>
+        <Alert severity="warning" onClose={() => setOpen(prev => !prev)}>
+            <AlertTitle>{`${data.totalLacs} vacas possuem uma lactação maior que ${LONG_LACTATION_DAYS} dias.`}</AlertTitle>
+            <Button
+                variant="outlined"
+                color="warning"
+                onClick={() => navigate('long-lactations')}
+            >
+                Ver Mais...
+            </Button>
+        </Alert>
+    </Collapse>
+
 }
 
 const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
@@ -830,7 +869,7 @@ const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: Dashboar
             series={[{
                 data: dataset.map(item => item.totalMilk),
                 valueFormatter: value => decimalTransform(value),
-                curve: 'catmullRom',
+                curve: 'linear',
                 showMark: false,
                 area: true
             }]}

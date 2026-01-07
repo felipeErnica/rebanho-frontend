@@ -12,6 +12,7 @@ import { MilkEntriesTablePage } from "./milk-tables/MilkEntriesTable";
 import { GroupTablePage } from "./milk-tables/MilkGroupTable";
 import { DryAnimalsTablePage } from "./DryAnimalsTable";
 import { LacAnimalsTablePage } from "./LacAnimalsTable";
+import { LongLactationsTablePage } from "./LongLactationsTable";
 
 const GroupEntriesTablePageWrapper = () => {
     const { entryDate } = useParams<{ entryDate: string }>();
@@ -130,6 +131,11 @@ export const lactationRoutes: AppRoute = {
                 }
 
             ]
+        },
+        {
+            path: 'long-lactations',
+            element: <LongLactationsTablePage />,
+            handle: { title: 'Lactações Longas'}
         }
     ]
 }

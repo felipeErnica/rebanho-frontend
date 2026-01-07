@@ -59,6 +59,14 @@ export type Animal = {
     observation?: string
 }
 
+export type AnimalFoot = {
+    total: number
+    averageProd?: number
+    averageBirthInterval?: number
+    averageLacInterval?: number
+    averagePeak?: number
+}
+
 export type AnimalSave = {
     id?: string
     ringNumber?: string
