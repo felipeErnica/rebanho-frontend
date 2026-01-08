@@ -12,7 +12,7 @@ import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from
 import { CardEntry } from "@/utils/Entities"
 import { ReloadButton } from "@/components/shared/table/TableTopBarComponents"
 import { AnimalByType, AnimalsByAge, AnimalsNumberHist } from "./Entities"
-import { getAgeAndSex, getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getLastDeaths, getSlaughterHist } from "./Controller"
+import { getAgeAndSex, getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getLastDeaths, getSlaughterHist } from "./Service"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { dateToISO, dateTransform, decimalTransform, percentageTransform, positiveTransform, transformWeight } from "@/utils/Transformations"
 import { green, lightBlue, pink, purple, red, yellow } from "@mui/material/colors"

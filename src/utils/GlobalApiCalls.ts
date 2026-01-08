@@ -14,30 +14,6 @@ export function searchFarm(): Promise<SearchBoxItem[]> {
     return apiGet(FARM_BASE + "search")
 }
 
-export function searchFather(): Promise<SearchBoxItem[]> {
-    return apiGet(ANIMAL_SEARCH_BASE + 'father')
-}
-
-export function searchAllMothers(): Promise<SearchBoxItem[]> {
-    return apiGet(ANIMAL_SEARCH_BASE + "mother-all")
-}
-
-export function searchOwnedMothers() {
-    return apiGet(ANIMAL_SEARCH_BASE + "mother")
-}
-
-export function searchBulls() {
-    return apiGet(ANIMAL_SEARCH_BASE + "bull")
-}
-
-export function searchDairyAnimal(): Promise<SearchBoxItem[]> {
-    return apiGet(ANIMAL_SEARCH_BASE + "dairy-animal")
-}
-
-export async function searchAnimal() {
-    return apiGet(ANIMAL_SEARCH_BASE + "animal")
-}
-
 export function searchPastureByFarm(farmIds?: string | string[]): Promise<SearchBoxItem[]> {
     const apiQuery = `search?farmId=${farmIds}` 
     return apiGet(PASTURE_BASE + apiQuery)

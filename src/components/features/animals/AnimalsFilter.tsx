@@ -6,13 +6,12 @@ import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter
 import { TextFilter } from "@shared/filter-controls/TextFilter"
 import { RefObject } from "react"
 import { FilterPopover } from "@shared/filter-controls/FilterPopover"
-import { IFilters } from "@utils/Filter"
 import { searchFather, searchAllMothers, searchPastures } from "@utils/GlobalApiCalls"
-import { animalTypeToComboBox } from "./Entities"
+import { animalTypeToComboBox, AnimalFilter } from "./Entities"
 
 type AnimalsFilterProps = {
-    filter: IFilters
-    setFilter: (filter: IFilters) => void
+    filter: AnimalFilter
+    setFilter: (filter: AnimalFilter) => void
     isFilterOpen: boolean
     setFilterOpen: (isFilterOpen: boolean) => void
     anchorEl: RefObject<HTMLButtonElement | null>

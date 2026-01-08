@@ -1,25 +1,25 @@
 import { apiGet } from "@/utils/ApiRequest"
 
-const ANIMAL_DASHBOARD = "animals/dashboard/"
+const ANIMAL_DASHBOARD = "animals/stats/"
 
 export function getBirthHist() {
-    return apiGet(ANIMAL_DASHBOARD + "birth-hist")
+    return apiGet(ANIMAL_DASHBOARD + "birth")
 }
 
 export function getDeathHist() {
-    return apiGet(ANIMAL_DASHBOARD + "death-hist")
+    return apiGet(ANIMAL_DASHBOARD + "death")
 }
 
 export function getDairyHist() {
-    return apiGet(ANIMAL_DASHBOARD + "dairy-hist")
+    return apiGet(ANIMAL_DASHBOARD + "dairy")
 }
 
 export function getSlaughterHist() {
-    return apiGet(ANIMAL_DASHBOARD + "slaughter-hist")
+    return apiGet(ANIMAL_DASHBOARD + "slaughter")
 }
 
 export function getAnimalByTypes() {
-    return apiGet(ANIMAL_DASHBOARD + "animal-types")
+    return apiGet(ANIMAL_DASHBOARD + "types")
 }
 
 export function getLastDeaths() {

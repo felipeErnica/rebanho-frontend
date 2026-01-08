@@ -5,9 +5,6 @@ export enum AnimalType {
     DAIRY_ANIMAL = "DAIRY_ANIMAL",
     BEEF_ANIMAL = "BEEF_ANIMAL",
     OFFSPRING = "OFFSPRING",
-    DEAD_ANIMAL = "DEAD_ANIMAL",
-    SLAUGHTERED_ANIMAL = "SLAUGHTERED_ANIMAL",
-    OUTSIDE_ANIMAL = "OUTSIDE_ANIMAL",
 }
 
 const animalTypeMap: Map<string, string> = new Map([
@@ -80,6 +77,38 @@ export type AnimalSave = {
     weaningDate?: Date
     animalType: string
     observation?: string
+    isInseminationBull?: boolean
+    isTransferBull?: boolean
+    isBreedingBull?: boolean
+    isEmbryoDonor?: boolean
+    isOutsideAnimal?: boolean
+}
+
+export type AnimalFilter = {
+    isFiltered: boolean
+    name?: string
+    ringNumber?: string
+    sex?: string
+    minWeaningDate?: Date
+    maxWeaningDate?: Date
+    fathers?: string[]
+    mothers?: string[]
+    minBirthDate?: Date
+    maxBirthDate?: Date
+    minDeathDate?: Date
+    maxDeathDate?: Date
+    pastures?: string[]
+    farms?: string[]
+    types?: string[]
+    minAverageProd?: number
+    maxAverageProd?: number
+    minAverageBirthInterval?: number
+    maxAverageBirthInterval?: number
+    minAveragePeak?: number
+    maxAveragePeak?: number
+    minChildrenQuantity?: number
+    maxChildrenQuantity?: number
+    isAlive?: boolean
     isInseminationBull?: boolean
     isTransferBull?: boolean
     isBreedingBull?: boolean

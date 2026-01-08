@@ -26,7 +26,7 @@ import {
     searchMaleChildren,
     updateAnimal,
     updateNoValidation,
-} from "./Controller"
+} from "./Service"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"

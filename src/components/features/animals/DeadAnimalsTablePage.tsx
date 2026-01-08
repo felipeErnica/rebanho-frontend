@@ -1,11 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
-import { findDeadAnimals, getDeadAnimalsFoot } from "./Controller"
+import { findDeadAnimals, getDeadAnimalsFoot } from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { AnimalsFilter } from "./AnimalsFilter"
-import { IFilters } from "@utils/Filter"
 import { usePagination } from "@shared/table/PageTable"
-import { Animal, AnimalFoot, AnimalSave } from "./Entities"
+import { Animal, AnimalFoot, AnimalSave, AnimalFilter } from "./Entities"
 import { Ref, useEffect } from "react"
 import { transformAnimalType } from "./Entities"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
@@ -38,7 +37,7 @@ export const DeadAnimalsTablePage = () => {
     const [sort, setSort] = useState(defaultSort)
     const [loading, setLoading] = useState(false)
     const [isFilterOpen, setFilterOpen] = useState(false)
-    const [filter, setFilter] = useState<IFilters>({ isFiltered: false })
+    const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
 
     const fetchPage = useCallback((cursor?: string) => {
         getDeadAnimalsFoot(filter)

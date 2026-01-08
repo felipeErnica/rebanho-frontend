@@ -20,13 +20,10 @@ import { Control, SubmitHandler, useForm, UseFormSetValue } from "react-hook-for
 import { Animal, AnimalSave } from "./Entities"
 import {
     addAnimal,
-    addNoValidation,
     findById,
-    replaceAnimal,
     searchFemaleChildren,
     updateAnimal,
-    updateNoValidation
-} from "./Controller"
+} from "./Service"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
