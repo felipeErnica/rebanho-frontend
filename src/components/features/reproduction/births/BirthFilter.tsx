@@ -1,7 +1,6 @@
 import { FilterPopover, FilterPopoverProps } from "@shared/filter-controls/FilterPopover"
 import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter"
 import { BirthEntryFilter } from "./Entities"
-import { searchFather, searchAllMothers } from "@utils/GlobalApiCalls"
 import { ComboBoxFilter } from "@shared/filter-controls/ComboBoxFilter"
 import { SexValues } from "@utils/enums"
 import { DateFilter } from "@shared/filter-controls/DateFilter"

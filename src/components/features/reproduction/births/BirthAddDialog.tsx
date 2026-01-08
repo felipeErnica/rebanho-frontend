@@ -10,7 +10,6 @@ import {
 } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { BirthEntrySave } from "./Entities"
-import { searchFather, searchOwnedMothers } from "@utils/GlobalApiCalls"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormRadioGroup } from "@shared/form-controls/FormRadioGroup"

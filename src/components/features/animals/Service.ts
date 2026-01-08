@@ -11,7 +11,7 @@ export function addAnimal(entry: AnimalSave) {
     return apiPut(ANIMAL_BASE + "add", entry)
 }
 
-export function searchFather(filter: AnimalFilter = { isFiltered: false }) {
+export function searchAnimal(filter: AnimalFilter = { isFiltered: false }) {
     return apiPost(ANIMAL_BASE + 'search', filter)
 }
 

@@ -4,7 +4,6 @@ import { apiGet } from "./ApiRequest"
 const FARM_BASE = 'farm-area/farms/'
 const ANIMAL_BASE = 'animals/info/'
 const PASTURE_BASE = 'farm-area/pastures/'
-const ANIMAL_SEARCH_BASE = ANIMAL_BASE + 'search/'
 
 export function findAnimalById(id: string): Promise<SearchBoxItem[]> {
     return apiGet(ANIMAL_BASE + `id/${id}`)

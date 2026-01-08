@@ -1,4 +1,3 @@
-import { searchAnimal, searchFather, searchAllMothers } from "@utils/GlobalApiCalls";
 import { DateFilter } from "@shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@shared/filter-controls/FilterPopover";
 import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter";

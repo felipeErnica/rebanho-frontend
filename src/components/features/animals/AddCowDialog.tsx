@@ -1,4 +1,3 @@
-import { searchAllMothers, searchBulls } from "@utils/GlobalApiCalls"
 import {
     DialogActionButtons,
     DialogContainer,
@@ -15,13 +14,13 @@ import Dialog from "@mui/material/Dialog"
 import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Control, SubmitHandler, useForm, UseFormSetValue } from "react-hook-form"
 import { Animal, AnimalSave } from "./Entities"
 import {
     addAnimal,
     findById,
-    searchFemaleChildren,
+    searchAnimal,
     updateAnimal,
 } from "./Service"
 import { FormTextField } from "@shared/form-controls/FormTextField"
@@ -290,14 +289,42 @@ type FormBodyProps = {
 
 const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
 
-    const [motherId, setMotherId] = useState<string>()
+    const [loading, setLoading] = useState(false)
+    const [fathers, setFathers] = useState<Animal[]>([])
+    const [mothers, setMothers] = useState<Animal[]>([])
+    const [children, setChildren] = useState<Animal[]>([])
+
+    useEffect(() => {
+        setLoading(true)
+        Promise.all([
+            searchAnimal({ isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL'] }),
+            searchAnimal({ isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL'] }),
+        ])
+            .then(values => {
+                setMothers(values[0])
+                setFathers(values[1])
+            })
+            .catch(() => {
+                setFathers([])
+                setMothers([])
+            })
+            .finally(() => setLoading(false))
+    }, [])
 
     if (formType === 'cattleAnimal') {
         return <>
             <FormSearchBox
                 label="*Mãe"
-                searchOptions={searchAllMothers}
-                onChange={(id) => setMotherId(id)}
+                loading={loading}
+                onChange={(id) => {
+                    searchAnimal({ isFiltered: true, mothers: [id], sex: 'F' })
+                        .then(res => setChildren(res))
+                        .catch(() => setChildren([]))
+                }}
+                options={mothers.map(item => ({
+                    id: item.id,
+                    label: [item.ringNumber, item.name].join(' - ')
+                }))}
                 formProps={{
                     control,
                     name: 'motherId',
@@ -306,20 +333,18 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
             />
             <FormSearchBox
                 label="*Animal"
-                searchOptions={() => {
-                    if (!motherId) return Promise.reject()
-                    return searchFemaleChildren(motherId)
-                }}
+                options={mothers.map(item => ({
+                    id: item.id,
+                    label: [item.ringNumber, item.name].join(' - ')
+                }))}
                 onChange={(id) => {
                     if (!id) return
-                    findById(id)
-                        .then((response: Animal) => {
-                            setValue('fatherId', response.fatherId)
-                            setValue('birthDate', response.birthDate)
-                            setValue('weaningDate', response.weaningDate)
-                            setValue('weightBirth', response.weightBirth)
-                            setValue('observation', response.observation)
-                        })
+                    const animal = children.find(item => item.id === id)
+                    setValue('fatherId', animal.fatherId)
+                    setValue('birthDate', animal.birthDate)
+                    setValue('weaningDate', animal.weaningDate)
+                    setValue('weightBirth', animal.weightBirth)
+                    setValue('observation', animal.observation)
                 }}
                 formProps={{
                     control,
@@ -384,18 +409,28 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
         />
         <FormSearchBox
             label="Pai"
+            options={fathers.map(item => ({
+                id: item.id,
+                label: [item.ringNumber, item.name].join(' - ')
+            }))}
             formProps={{ control, name: 'fatherId' }}
-            searchOptions={searchBulls}
         />
         <FormSearchBox
             label="Mãe"
-            onChange={(id) => setMotherId(id)}
+            onChange={(id) => {
+                searchAnimal({ isFiltered: true, mothers: [id], sex: 'F' })
+                    .then(res => setChildren(res))
+                    .catch(() => setChildren([]))
+            }}
+            options={mothers.map(item => ({
+                id: item.id,
+                label: [item.ringNumber, item.name].join(' - ')
+            }))}
             formProps={{
                 control,
                 name: 'motherId',
                 rules: { required: false }
             }}
-            searchOptions={searchAllMothers}
         />
     </>
 

@@ -1,4 +1,3 @@
-import { searchAllMothers } from "@utils/GlobalApiCalls"
 import { ComboBoxFilter } from "@shared/filter-controls/ComboBoxFilter"
 import { FilterPopover, FilterPopoverProps } from "@shared/filter-controls/FilterPopover"
 import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter"

@@ -8,7 +8,6 @@ import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { addSlaughter, findButcherById, replaceSlaughter, searchButcher } from "./Controller"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
-import { searchAnimal } from "@utils/GlobalApiCalls"
 import { APIError } from "@utils/ApiRequest"
 import { AddButcherDialog } from "./AddButcherDialog"
 

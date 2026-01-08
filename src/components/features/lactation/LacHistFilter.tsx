@@ -1,4 +1,3 @@
-import { searchAllMothers } from "@utils/GlobalApiCalls";
 import { DateFilter } from "@shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@shared/filter-controls/FilterPopover";
 import { NumberFilter } from "@shared/filter-controls/NumberFilter";

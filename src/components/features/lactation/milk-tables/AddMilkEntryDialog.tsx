@@ -14,7 +14,7 @@ import { DialogActionButtons, DialogContainer, YesNoDialog, YesNoDialogProps } f
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { CONFLICT_WARNING, REQUIRED_FIELD_MSG, ERROR_TYPE, DefaultWarning } from "@shared/Globals"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-import { searchDairyAnimal, searchPastures } from "@utils/GlobalApiCalls"
+import {  searchPastures } from "@utils/GlobalApiCalls"
 import { useCallback, useEffect,  useState } from "react"
 import { MilkEntrySave } from "./Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"

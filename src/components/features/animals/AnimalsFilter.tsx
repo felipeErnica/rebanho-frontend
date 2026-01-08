@@ -6,8 +6,9 @@ import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter
 import { TextFilter } from "@shared/filter-controls/TextFilter"
 import { RefObject } from "react"
 import { FilterPopover } from "@shared/filter-controls/FilterPopover"
-import { searchFather, searchAllMothers, searchPastures } from "@utils/GlobalApiCalls"
+import { searchPastures } from "@utils/GlobalApiCalls"
 import { animalTypeToComboBox, AnimalFilter } from "./Entities"
+import { searchAnimal } from "./Service"
 
 type AnimalsFilterProps = {
     filter: AnimalFilter
@@ -68,7 +69,7 @@ export const AnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchOptions={searchFather}
+                    searchOptions={() => searchAnimal({isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL']})}
                     fieldName="fathers"
                     className="col-span-6"
                 />
@@ -77,7 +78,7 @@ export const AnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchOptions={searchAllMothers}
+                    searchOptions={() => searchAnimal({isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL']})}
                     fieldName="mothers"
                     className="col-span-6"
                 />

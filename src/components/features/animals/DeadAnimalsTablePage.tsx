@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
-import { findDeadAnimals, getDeadAnimalsFoot } from "./Service"
+import { findDeadAnimals, getDeadAnimalsFoot, searchAnimal } from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { AnimalsFilter } from "./AnimalsFilter"
 import { usePagination } from "@shared/table/PageTable"
@@ -25,7 +25,6 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/components/shared/form-controls/FormTextField"
 import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@/components/shared/form-controls/FormSearchBox"
-import { searchAllMothers, searchFather } from "@/utils/GlobalApiCalls"
 
 export const DeadAnimalsTablePage = () => {
 
@@ -170,6 +169,8 @@ const AnimalRow = ({ row, loading }: TableRowProp<Animal>) => {
 const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) => {
 
     const [loading, setLoading] = useState(false)
+    const [fathers, setFathers] = useState<Animal[]>([])
+    const [mothers, setMothers] = useState<Animal[]>([])
 
     const { handleSubmit, control } = useForm<AnimalSave>({ defaultValues: rowData })
 
@@ -180,6 +181,23 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
     }
 
     const onSave = handleSubmit(onSubmit)
+    
+    useEffect(() => {
+        setLoading(true)
+        Promise.all([
+            searchAnimal({isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL']}),
+            searchAnimal({isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL']}),
+        ])
+            .then(values => {
+                setMothers(values[0])
+                setFathers(values[1])
+            })
+            .catch(() => {
+                setFathers([])
+                setMothers([])
+            })
+            .finally(() => setLoading(false))
+    }, [])
 
     return <>
         <TableBodyCell>
@@ -200,13 +218,19 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
         <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'fatherId' }}
-                searchOptions={searchFather}
+                options={fathers.map(item => ({ 
+                    id: item.id, 
+                    label: [item.ringNumber, item.name].join(' - ') 
+                }))}
             />
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'motherId' }}
-                searchOptions={searchAllMothers}
+                options={mothers.map(item => ({ 
+                    id: item.id, 
+                    label: [item.ringNumber, item.name].join(' - ') 
+                }))}
             />
         </TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>

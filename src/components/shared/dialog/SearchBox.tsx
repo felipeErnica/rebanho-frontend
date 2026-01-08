@@ -19,10 +19,9 @@ export type EmptyProps = {
 
 type SearchBoxProps = {
     label?: string
-    reload?: number
+    loading?: boolean
     variant?: TextFieldVariants
-    searchOptions: () => Promise<SearchBoxItem[]>
-    args?: any[]
+    options: SearchBoxItem[]
     className?: string
     onChange?: (id?: string, label?: string) => void
     onBlur?: FocusEventHandler<HTMLDivElement>
@@ -37,9 +36,9 @@ type SearchBoxProps = {
 
 export function SearchBox({
     label,
-    reload,
+    loading,
     emptyProps,
-    searchOptions,
+    options,
     className,
     disabled,
     variant,
@@ -49,27 +48,13 @@ export function SearchBox({
     name,
     error,
     helperText,
-    value,
+    value
 }: SearchBoxProps) {
-
-    const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [loading, setLoading] = useState(false)
-    const [controlValue, setControlValue] = useState<SearchBoxItem | null>(null)
-
-    useEffect(() => setControlValue(options.find(item => item.id === value) ?? null), [options, value])
 
     const filter = createFilterOptions<SearchBoxItem>()
 
-    useEffect(() => {
-        setLoading(true)
-        searchOptions()
-            .then(response => setOptions(response))
-            .catch(() => setOptions([]))
-            .finally(() => setLoading(false))
-    }, [reload, searchOptions])
-
     return <Autocomplete
-        value={controlValue}
+        value={options.find(item => item.id === value)}
         multiple={false}
         onBlur={onBlur}
         className={className}
@@ -83,7 +68,6 @@ export function SearchBox({
                 selectedOpt?.onEmpty()
                 return
             }
-            setControlValue(newValue)
             if (onChange) onChange(newValue?.id, newValue?.label)
         }}
         noOptionsText="Nenhum resultado encontrado!"
@@ -134,7 +118,6 @@ type MultipleSearchBoxProps = {
     label?: string
     variant?: TextFieldVariants
     searchOptions: () => Promise<SearchBoxItem[]>
-    args?: any[]
     className?: string
     onChange?: (items: SearchBoxItem[]) => void
     onBlur?: FocusEventHandler<HTMLDivElement>

@@ -4,10 +4,10 @@ import { EmptyProps, MultipleSearchBox, SearchBox, SearchBoxItem } from "@shared
 
 type FormSearchBoxProps<T extends FieldValues> = {
     label?: string
-    reload?: number
+    loading?: boolean
     variant?: TextFieldVariants
     formProps: UseControllerProps<T>
-    searchOptions: () => Promise<SearchBoxItem[]>
+    options: SearchBoxItem[]
     args?: any[]
     className?: string
     onChange?: (id?: string, label?: string) => void
@@ -16,8 +16,8 @@ type FormSearchBoxProps<T extends FieldValues> = {
 
 export function FormSearchBox<T extends FieldValues>({
     label,
-    reload,
-    searchOptions,
+    loading,
+    options,
     formProps,
     className,
     variant,
@@ -29,9 +29,9 @@ export function FormSearchBox<T extends FieldValues>({
         {...formProps}
         render={({ field, fieldState: { error } }) => (
             <SearchBox
-                reload={reload}
                 value={field.value}
-                searchOptions={searchOptions}
+                loading={loading}
+                options={options}
                 onBlur={field.onBlur}
                 emptyProps={emptyProps}
                 error={!field.disabled && !!error}
