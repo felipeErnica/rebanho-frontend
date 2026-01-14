@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
-import { findAnimals, findAnimalsTotal, searchAnimal } from "./Service"
+import { findAnimals, getAnimalsFoot, searchAnimal } from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { AnimalsFilter } from "./AnimalsFilter"
 import { usePagination } from "@shared/table/PageTable"
@@ -41,7 +41,7 @@ export const AnimalsTablePage = () => {
     const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
 
     const fetchPage = useCallback((cursor?: string) => {
-        findAnimalsTotal(filter)
+        getAnimalsFoot(filter)
             .then((response) => setTotal(response))
             .catch(() => setTotal(defaultFoot))
         return findAnimals(filter, sort, order, cursor)

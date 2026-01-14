@@ -13,12 +13,12 @@ type TransferFilterProps = FilterPopoverProps & {
 
 export const TransferFilter = ({
     filter,
-    setFilter,
+    setFilter: setFilter,
     filterOpen,
     setFilterOpen,
     anchorEl,
 }: TransferFilterProps) => {
-    return <FilterPopover {...{ setFilterOpen, setFilter, filterOpen, anchorEl }}>
+    return <FilterPopover {...{ setFilterOpen, onReload: setFilter, filterOpen, anchorEl }}>
         <div className="grid grid-cols-2 gap-4">
             <MultipleSearchBoxFilter
                 label="Touros"

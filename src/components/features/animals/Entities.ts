@@ -1,3 +1,4 @@
+import { dateTransform } from "@/utils/Transformations"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 
 export enum AnimalType {
@@ -16,7 +17,7 @@ const animalTypeMap: Map<string, string> = new Map([
 
 export function animalTypeToComboBox(): ComboBoxItem[] {
     const comboBoxArray: ComboBoxItem[] = []
-    animalTypeMap.forEach((value, key) => comboBoxArray.push({ name: value, value: key}))
+    animalTypeMap.forEach((value, key) => comboBoxArray.push({ name: value, value: key }))
     return comboBoxArray
 }
 
@@ -27,6 +28,17 @@ export function transformAnimalType(type?: string, sex?: string) {
         typeText = sex === 'M' ? 'Touro' : 'Matriz'
     }
     return typeText
+}
+
+export function getAnimalLabel(item: Animal) {
+    if (!item.ringNumber) return item.name
+    return item.ringNumber + " - " + item.name
+}
+
+export function getAnimalFullLabel(item: Animal) {
+    if (!item.ringNumber && !item.name) return item.sex + ` - ${item.birthDate ? dateTransform(item.birthDate) : 'Sem Data'}` + ` (${item.motherName})`
+    if (!item.name) return item.ringNumber + " - " + item.sex + ` - ${item.birthDate ? dateTransform(item.birthDate) : 'Sem Data'}`
+    return item.ringNumber + " - " + item.name + ` - ${item.birthDate ? dateTransform(item.birthDate) : 'Sem Data'}`
 }
 
 export type Animal = {
@@ -108,6 +120,7 @@ export type AnimalFilter = {
     maxAveragePeak?: number
     minChildrenQuantity?: number
     maxChildrenQuantity?: number
+    isLactating?: boolean
     isAlive?: boolean
     isInseminationBull?: boolean
     isTransferBull?: boolean

@@ -101,7 +101,7 @@ export const SlaughterEntriesTable = () => {
         <EditContext.Provider value={{ setRows, setError, loadFoot }}>
             <EntriesTable  {...{ fetchNextPage, rows, scrollRef, loading, foot }} />
         </EditContext.Provider>
-        <SlaughterFilterPopover {...{ setFilter, filter, setFilterOpen, filterOpen, anchorEl }} />
+        <SlaughterFilterPopover {...{ setFilter: setFilter, filter, setFilterOpen, filterOpen, anchorEl }} />
         <ErrorDialog
             openError={!!error}
             title={error?.title}

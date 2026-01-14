@@ -124,7 +124,7 @@ export const EntriesTablePage = () => {
         <EditContext.Provider value={{ setError, setRows }}>
             <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
         </EditContext.Provider>
-        <TransferFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
+        <TransferFilter {...{ filter, setFilter: setFilter, filterOpen, setFilterOpen, anchorEl }} />
         <AddTransferDialog {...{ addTransferOpen, closeAddTransfer }} />
         <ErrorDialog
             openError={!!error}

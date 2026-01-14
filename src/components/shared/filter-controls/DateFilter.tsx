@@ -3,6 +3,8 @@ import dayjs, { Dayjs } from "dayjs"
 import { useState } from "react"
 import { AbstractFilterGroup } from "./AbstractFilterGroup"
 import { DateComponent } from "@shared/common/DateComponent"
+import { FieldValues, UseControllerProps } from "react-hook-form"
+import { FormDatePicker } from "../form-controls/FormDatePicker"
 
 type DateFilterProps = {
     mainTitle: string
@@ -53,6 +55,53 @@ export const DateFilter = ({
                     }
                     setMaxDate(value)
                     setFilter({ ...filter, isFiltered: true, [maxFieldName]: value.toDate() })
+                }}
+            />
+        </div>
+    </AbstractFilterGroup>
+}
+
+type DateFilterFormProps<T extends FieldValues> = {
+    mainTitle: string
+    minProps: UseControllerProps<T>
+    maxProps: UseControllerProps<T>
+    className?: string
+}
+
+export const DateFormFilter = <T extends FieldValues>({
+    mainTitle,
+    minProps,
+    maxProps,
+    className,
+}: DateFilterFormProps<T>) => {
+
+    const [maxDate, setMaxDate] = useState<Dayjs>()
+    const [minDate, setMinDate] = useState<Dayjs>()
+
+    return <AbstractFilterGroup mainTitle={mainTitle} className={className}>
+        <div className={`flex flex-row gap-4`}>
+            <FormDatePicker
+                label='De'
+                formProps={minProps}
+                maxDate={maxDate}
+                onChange={(value) => {
+                    if (!value) {
+                        setMinDate(undefined)
+                        return
+                    }
+                    setMinDate(value)
+                }}
+            />
+            <FormDatePicker
+                label='Até'
+                formProps={maxProps}
+                minDate={minDate}
+                onChange={(value) => {
+                    if (!value) {
+                        setMaxDate(undefined)
+                        return
+                    }
+                    setMaxDate(value)
                 }}
             />
         </div>

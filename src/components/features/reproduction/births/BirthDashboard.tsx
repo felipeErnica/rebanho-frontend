@@ -38,7 +38,7 @@ import { Button, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/m
 import { TrendValues } from "@shared/table/TableComponents"
 import Add from "@mui/icons-material/Add"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { AddBirthDialog } from "./BirthAddDialog"
+import { AddBirthDialog } from "./AddBirthDialog"
 import { DashboardInformationProps, DashboardTopBarProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"

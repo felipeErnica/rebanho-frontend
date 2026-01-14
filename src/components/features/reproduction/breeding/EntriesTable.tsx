@@ -124,7 +124,7 @@ export const EntriesTablePage = () => {
         <EditContext.Provider value={{ setError, setRows, loadFoot, setWarningProps }}>
             <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
         </EditContext.Provider>
-        <BreedingFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
+        <BreedingFilter {...{ filter, setFilter: setFilter, filterOpen, setFilterOpen, anchorEl }} />
         <AddBreedingDialog {...{ addBreedingOpen, closeAddBreeding }} />
         <ErrorDialog
             openError={!!error}

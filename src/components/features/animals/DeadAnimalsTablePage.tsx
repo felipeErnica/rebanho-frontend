@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
-import { findDeadAnimals, getDeadAnimalsFoot, searchAnimal } from "./Service"
+import { findAnimals, getAnimalsFoot, searchAnimal } from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { AnimalsFilter } from "./AnimalsFilter"
 import { usePagination } from "@shared/table/PageTable"
-import { Animal, AnimalFoot, AnimalSave, AnimalFilter } from "./Entities"
+import { Animal, AnimalFoot, AnimalSave, AnimalFilter, getAnimalLabel } from "./Entities"
 import { Ref, useEffect } from "react"
 import { transformAnimalType } from "./Entities"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
@@ -35,20 +35,20 @@ export const DeadAnimalsTablePage = () => {
     const [order, setOrder] = useState('asc')
     const [sort, setSort] = useState(defaultSort)
     const [loading, setLoading] = useState(false)
-    const [isFilterOpen, setFilterOpen] = useState(false)
+    const [filterOpen, setFilterOpen] = useState(false)
     const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
 
     const fetchPage = useCallback((cursor?: string) => {
-        getDeadAnimalsFoot(filter)
+        const deadFilter = { ...filter, isFiltered: true, isAlive: false }
+        getAnimalsFoot(deadFilter)
             .then((response) => setTotal(response))
             .catch(() => setTotal(defaultFoot))
-        return findDeadAnimals(filter, sort, order, cursor)
+        return findAnimals(deadFilter, sort, order, cursor)
     }, [filter, sort, order, defaultFoot])
 
     const anchorEl = useRef<HTMLButtonElement>(null)
+    const onReload = useCallback(() => setFilter({ isFiltered: true, isAlive: false }), [])
     const { rows, fetchNextPage, scrollRef } = usePagination<Animal>({ fetchPage, setLoading })
-
-    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco', value: defaultSort },
@@ -67,12 +67,12 @@ export const DeadAnimalsTablePage = () => {
             orderProps={{ order, setOrder }}
             sortProps={{ sort, setSort, sortColumns, defaultSort }}
             filterProps={{ anchorEl, setFilterOpen }}
-            reloadProps={{ onReload, loading: loading }}
+            reloadProps={{ onReload, loading }}
         />
         <AnimalsTable {...{ rows, loading, fetchNextPage, scrollRef, foot }} />
         <AnimalsFilter {...{
             anchorEl,
-            isFilterOpen,
+            filterOpen,
             setFilterOpen,
             filter,
             setFilter,
@@ -181,12 +181,12 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
     }
 
     const onSave = handleSubmit(onSubmit)
-    
+
     useEffect(() => {
         setLoading(true)
         Promise.all([
-            searchAnimal({isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL']}),
-            searchAnimal({isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL']}),
+            searchAnimal({ isFiltered: false, sex: 'F', types: ['REPRODUCTION_ANIMAL', 'DAIRY_ANIMAL'] }),
+            searchAnimal({ isFiltered: false, sex: 'M', types: ['REPRODUCTION_ANIMAL'] }),
         ])
             .then(values => {
                 setMothers(values[0])
@@ -218,19 +218,13 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
         <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'fatherId' }}
-                options={fathers.map(item => ({ 
-                    id: item.id, 
-                    label: [item.ringNumber, item.name].join(' - ') 
-                }))}
+                options={fathers.map(item => ({ id: item.id, label: getAnimalLabel(item) }))}
             />
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'motherId' }}
-                options={mothers.map(item => ({ 
-                    id: item.id, 
-                    label: [item.ringNumber, item.name].join(' - ') 
-                }))}
+                options={mothers.map(item => ({ id: item.id, label: getAnimalLabel(item) }))}
             />
         </TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>

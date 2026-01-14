@@ -12,7 +12,7 @@ import {
 import {
     findLacAnimalsPage,
     getLacAnimalsPageFoot
-} from "./Controller"
+} from "./Service"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
@@ -101,7 +101,7 @@ export const LacAnimalsTablePage = () => {
         <ErrorContext.Provider value={{ setError, setRows, setWarning }}>
             <LacAnimalsTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
         </ErrorContext.Provider>
-        <LacHistFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <LacHistFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <ErrorDialog
             title={error?.title}
             content={error?.message}

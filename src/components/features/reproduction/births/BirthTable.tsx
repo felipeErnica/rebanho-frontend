@@ -39,7 +39,7 @@ import Add from "@mui/icons-material/Add"
 import { APIError } from "@utils/ApiRequest"
 import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
 import { ERROR_TYPE } from "@shared/Globals"
-import { AddBirthDialog } from "./BirthAddDialog"
+import { AddBirthDialog } from "./AddBirthDialog"
 import { FormTextField } from "@/components/shared/form-controls/FormTextField"
 
 type ErrorContextProps = {

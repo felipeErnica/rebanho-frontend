@@ -14,10 +14,12 @@ import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormRadioGroup } from "@shared/form-controls/FormRadioGroup"
 import { DialogActionButtons, DialogContainer, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { addBirth, addBirthNoValidation, getBirthFather, replaceBirth } from "./Controller"
 import { APIError } from "@utils/ApiRequest"
 import { CONFLICT_WARNING, DefaultWarning, REQUIRED_FIELD_MSG } from "@shared/Globals"
+import { searchAnimal } from "@features/animals/Service"
+import { Animal } from "@features/animals/Entities"
 
 type AddBirthDialogProps = {
     addBirthOpen: boolean
@@ -31,7 +33,27 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
     const [warning, setWarning] = useState<YesNoDialogProps>(DefaultWarning)
     const [added, setAdded] = useState(false)
 
+    const [fathers, setFathers] = useState<Animal[]>([])
+    const [mothers, setMothers] = useState<Animal[]>([])
+
     const { handleSubmit, control, reset, setValue, getValues } = useForm<BirthEntrySave>()
+
+    useEffect(() => {
+        setLoading(true)
+        Promise.all([
+            searchAnimal({ isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL'] }),
+            searchAnimal({ isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL'] }),
+        ])
+            .then(values => {
+                setMothers(values[0])
+                setFathers(values[1])
+            })
+            .catch(() => {
+                setFathers([])
+                setMothers([])
+            })
+            .finally(() => setLoading(false))
+    }, [])
 
     const onClose = useCallback(() => {
         reset()
@@ -148,8 +170,11 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                 />
                 <FormSearchBox
                     label="Mãe*"
+                    options={mothers.map(item => ({
+                        id: item.id,
+                        label: [item.ringNumber, item.name].join(' - ')
+                    }))}
                     className="w-100"
-                    searchOptions={searchOwnedMothers}
                     onChange={getFatherId}
                     formProps={{
                         control,
@@ -169,7 +194,10 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                 />
                 <FormSearchBox
                     label="Pai*"
-                    searchOptions={searchFather}
+                    options={fathers.map(item => ({
+                        id: item.id,
+                        label: [item.ringNumber, item.name].join(' - ')
+                    }))}
                     formProps={{
                         control,
                         name: 'fatherId',

@@ -4,13 +4,13 @@ import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter
 
 export const WeightFilterPopover = ({
     filter,
-    setFilter,
+    setFilter: setFilter,
     filterOpen,
     setFilterOpen,
     anchorEl,
 }: FilterPopoverProps) => {
 
-    return <FilterPopover {...{ anchorEl, filterOpen, setFilter, setFilterOpen }} >
+    return <FilterPopover {...{ anchorEl, filterOpen, onReload: setFilter, setFilterOpen }} >
         <MultipleSearchBoxFilter
             searchOptions={searchAnimal}
             label="Animais"

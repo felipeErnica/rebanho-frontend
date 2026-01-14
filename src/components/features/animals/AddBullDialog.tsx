@@ -3,7 +3,6 @@ import {
     DialogContainer,
     ErrorDialog,
     YesNoDialog,
-    YesNoDialogProps
 } from "@shared/dialog/DialogComponents"
 import { DefaultWarning, ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
 import { APIError } from "@utils/ApiRequest"
@@ -14,12 +13,12 @@ import Dialog from "@mui/material/Dialog"
 import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Control, SubmitHandler, useForm, UseFormSetValue } from "react-hook-form"
-import { Animal, AnimalSave } from "./Entities"
+import { Animal, AnimalSave, getAnimalLabel } from "./Entities"
 import {
     addAnimal,
-    findById,
+    searchAnimal,
     updateAnimal,
 } from "./Service"
 import { FormTextField } from "@shared/form-controls/FormTextField"
@@ -62,72 +61,6 @@ export const AddBullDialog = ({
     const [loading, setLoading] = useState(false)
     const [externalAnimal, setExternalAnimal] = useState(false)
 
-    const onNoValidation: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
-        const entry: AnimalSave = {
-            ...data,
-            sex: 'M',
-            animalType: 'REPRODUCTION_ANIMAL',
-        }
-        setLoading(true)
-        addNoValidation(entry)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-            })
-            .catch((err: APIError) => setError(err))
-            .finally(() => {
-                setWarningProps(DefaultWarning)
-                setLoading(false)
-            })
-    }
-
-    const onReplace: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
-        const entry: AnimalSave = {
-            ...data,
-            sex: 'M',
-            animalType: 'REPRODUCTION_ANIMAL',
-        }
-        setLoading(true)
-        replaceAnimal(entry)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-                setWarningProps(DefaultWarning)
-            })
-            .catch((err: APIError) => {
-                if (err.errType === ERROR_TYPE) {
-                    setError(err)
-                    return
-                }
-                setWarningProps({
-                    openYesNo: true,
-                    title: err.title,
-                    content: err.message,
-                    onClose: () => setWarningProps(DefaultWarning),
-                    onYes: handleSubmit(onNoValidation)
-                })
-            })
-            .finally(() => setLoading(false))
-    }
-
-    const onUpdateNoValidation: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
-        const entry: AnimalSave = {
-            ...data,
-            sex: 'M',
-            animalType: 'REPRODUCTION_ANIMAL',
-        }
-        setLoading(true)
-        updateNoValidation(entry)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-                setWarningProps(DefaultWarning)
-                reset()
-            })
-            .catch((err: APIError) => setError(err))
-            .finally(() => setLoading(false))
-    }
-
     const onUpdate: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
         const entry: AnimalSave = {
             ...data,
@@ -147,13 +80,6 @@ export const AddBullDialog = ({
                     setError(err)
                     return
                 }
-                setWarningProps({
-                    openYesNo: true,
-                    title: err.title,
-                    content: err.message,
-                    onClose: () => setWarningProps(DefaultWarning),
-                    onYes: handleSubmit(onUpdateNoValidation)
-                })
             })
             .finally(() => setLoading(false))
     }
@@ -182,18 +108,6 @@ export const AddBullDialog = ({
                     setError(err)
                     return
                 }
-                const warnProps: YesNoDialogProps = {
-                    openYesNo: true,
-                    title: err.title,
-                    content: err.message,
-                    onClose: () => setWarningProps(DefaultWarning),
-                    onYes: undefined
-                }
-                if (err.kind == "IgnoreWarning") {
-                    setWarningProps({ ...warnProps, onYes: handleSubmit(onReplace) })
-                    return
-                }
-                setWarningProps({ ...warnProps, onYes: handleSubmit(onNoValidation) })
             })
             .finally(() => setLoading(false))
     }
@@ -303,14 +217,43 @@ type FormBodyProps = {
 
 const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps) => {
 
-    const [motherId, setMotherId] = useState<string>()
+    const [loading, setLoading] = useState(false)
+    const [fathers, setFathers] = useState<Animal[]>([])
+    const [mothers, setMothers] = useState<Animal[]>([])
+    const [children, setChildren] = useState<Animal[]>([])
+
+    useEffect(() => {
+        setLoading(true)
+        Promise.all([
+            searchAnimal({ isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL', 'DAIRY_ANIMAL'] }),
+            searchAnimal({ isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL'] }),
+        ])
+            .then(values => {
+                setMothers(values[0])
+                setFathers(values[1])
+            })
+            .catch(() => {
+                setFathers([])
+                setMothers([])
+            })
+            .finally(() => setLoading(false))
+    }, [])
 
     if (formType === 'cattleAnimal') {
         return <>
             <FormSearchBox
                 label="*Mãe"
-                searchOptions={searchAllMothers}
-                onChange={(id) => setMotherId(id)}
+                loading={loading}
+                options={mothers.map(item => ({
+                    id: item.id,
+                    label: getAnimalLabel(item)
+                }))}
+                onChange={(id) => {
+                    if (!id) return
+                    searchAnimal({ isFiltered: true, sex: 'M', mothers: [id] }, 'birth_date')
+                        .then(res => setChildren(res))
+                        .catch(() => setChildren([]))
+                }}
                 formProps={{
                     control,
                     name: 'motherId',
@@ -319,20 +262,19 @@ const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps
             />
             <FormSearchBox
                 label="*Animal"
-                searchOptions={() => {
-                    if (!motherId) return Promise.reject()
-                    return searchMaleChildren(motherId)
-                }}
+                loading={loading}
+                options={children.map(item => ({
+                    id: item.id,
+                    label: getAnimalLabel(item)
+                }))}
                 onChange={(id) => {
                     if (!id) return
-                    findById(id)
-                        .then((response: Animal) => {
-                            setValue('fatherId', response.fatherId)
-                            setValue('birthDate', response.birthDate)
-                            setValue('weaningDate', response.weaningDate)
-                            setValue('weightBirth', response.weightBirth)
-                            setValue('observation', response.observation)
-                        })
+                    const animal = children.find(item => item.id === id)
+                    setValue('fatherId', animal.fatherId)
+                    setValue('birthDate', animal.birthDate)
+                    setValue('weaningDate', animal.weaningDate)
+                    setValue('weightBirth', animal.weightBirth)
+                    setValue('observation', animal.observation)
                 }}
                 formProps={{
                     control,
@@ -387,14 +329,27 @@ const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps
         </div >
         <FormSearchBox
             label="Pai"
+            loading={loading}
             formProps={{ control, name: 'fatherId' }}
-            searchOptions={searchBulls}
+            options={fathers.map(item => ({
+                id: item.id,
+                label: getAnimalLabel(item)
+            }))}
         />
         <FormSearchBox
             label="Mãe"
-            onChange={(id) => setMotherId(id)}
+            loading={loading}
+            onChange={(id) => {
+                if (!id) return
+                searchAnimal({ isFiltered: true, sex: 'M', mothers: [id] }, 'birth_date')
+                    .then(res => setChildren(res))
+                    .catch(() => setChildren([]))
+            }}
             formProps={{ control, name: 'motherId' }}
-            searchOptions={searchAllMothers}
+            options={mothers.map(item => ({
+                id: item.id,
+                label: getAnimalLabel(item)
+            }))}
         />
         <FormDatePicker
             className="w-[200px]"

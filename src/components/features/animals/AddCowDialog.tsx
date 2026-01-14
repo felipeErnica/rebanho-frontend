@@ -3,7 +3,6 @@ import {
     DialogContainer,
     ErrorDialog,
     YesNoDialog,
-    YesNoDialogProps
 } from "@shared/dialog/DialogComponents"
 import { DefaultWarning, ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
 import { APIError } from "@utils/ApiRequest"
@@ -19,7 +18,6 @@ import { Control, SubmitHandler, useForm, UseFormSetValue } from "react-hook-for
 import { Animal, AnimalSave } from "./Entities"
 import {
     addAnimal,
-    findById,
     searchAnimal,
     updateAnimal,
 } from "./Service"
@@ -54,70 +52,7 @@ export const AddCowDialog = ({
     const [warningProps, setWarningProps] = useState(DefaultWarning)
     const [loading, setLoading] = useState(false)
 
-    const onNoValidation: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
-        const entry: AnimalSave = {
-            ...data,
-            sex: 'F',
-        }
-        setLoading(true)
-        addNoValidation(entry)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-            })
-            .catch((err) => setError(err))
-            .finally(() => {
-                setWarningProps(DefaultWarning)
-                setLoading(false)
-            })
-    }
-
-    const onReplace: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
-        const entry: AnimalSave = {
-            ...data,
-            sex: 'F',
-        }
-        setLoading(true)
-        replaceAnimal(entry)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-                setWarningProps(DefaultWarning)
-            })
-            .catch((err: APIError) => {
-                if (err.errType === ERROR_TYPE) {
-                    setError(err)
-                    return
-                }
-                setWarningProps({
-                    openYesNo: true,
-                    title: err.title,
-                    content: err.message,
-                    onClose: () => setWarningProps(DefaultWarning),
-                    onYes: handleSubmit(onNoValidation)
-                })
-            })
-            .finally(() => setLoading(false))
-    }
-
-    const onUpdateNoValidation: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
-        const entry: AnimalSave = {
-            ...data,
-            sex: 'F',
-        }
-        setLoading(true)
-        updateNoValidation(entry)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-                setWarningProps(DefaultWarning)
-                reset()
-            })
-            .catch(err => setError(err))
-            .finally(() => setLoading(false))
-    }
-
-    const onUpdate: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
+   const onUpdate: SubmitHandler<AnimalSave> = (data: AnimalSave) => {
         const entry: AnimalSave = {
             ...data,
             sex: 'F',
@@ -135,13 +70,6 @@ export const AddCowDialog = ({
                     setError(err)
                     return
                 }
-                setWarningProps({
-                    openYesNo: true,
-                    title: err.title,
-                    content: err.message,
-                    onClose: () => setWarningProps(DefaultWarning),
-                    onYes: handleSubmit(onUpdateNoValidation)
-                })
             })
             .finally(() => setLoading(false))
     }
@@ -169,18 +97,6 @@ export const AddCowDialog = ({
                     setError(err)
                     return
                 }
-                const warnProps: YesNoDialogProps = {
-                    openYesNo: true,
-                    title: err.title,
-                    content: err.message,
-                    onClose: () => setWarningProps(DefaultWarning),
-                    onYes: undefined
-                }
-                if (err.kind == "IgnoreWarning") {
-                    setWarningProps({ ...warnProps, onYes: handleSubmit(onReplace) })
-                    return
-                }
-                setWarningProps({ ...warnProps, onYes: handleSubmit(onNoValidation) })
             })
             .finally(() => setLoading(false))
     }

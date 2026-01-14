@@ -4,17 +4,16 @@ import { ComboBoxFilter } from "@shared/filter-controls/ComboBoxFilter"
 import { DateFilter } from "@shared/filter-controls/DateFilter"
 import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter"
 import { TextFilter } from "@shared/filter-controls/TextFilter"
-import { RefObject } from "react"
+import { RefObject, useEffect, useState } from "react"
 import { FilterPopover } from "@shared/filter-controls/FilterPopover"
-import { searchPastures } from "@utils/GlobalApiCalls"
-import { animalTypeToComboBox, AnimalFilter } from "./Entities"
+import { animalTypeToComboBox, AnimalFilter, Animal, getAnimalLabel } from "./Entities"
 import { searchAnimal } from "./Service"
 
 type AnimalsFilterProps = {
     filter: AnimalFilter
     setFilter: (filter: AnimalFilter) => void
-    isFilterOpen: boolean
-    setFilterOpen: (isFilterOpen: boolean) => void
+    filterOpen: boolean
+    setFilterOpen: (filterOpen: boolean) => void
     anchorEl: RefObject<HTMLButtonElement | null>
 }
 
@@ -22,15 +21,33 @@ export const AnimalsFilter = ({
     filter,
     setFilter,
     setFilterOpen,
-    isFilterOpen,
+    filterOpen,
     anchorEl,
 }: AnimalsFilterProps) => {
+
+    const [fathers, setFathers] = useState<Animal[]>([])
+    const [mothers, setMothers] = useState<Animal[]>([])
+
+    useEffect(() => {
+        Promise.all([
+            searchAnimal({ isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL', 'DAIRY_ANIMAL'] }),
+            searchAnimal({ isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL'] }),
+        ])
+            .then(values => {
+                setMothers(values[0])
+                setFathers(values[1])
+            })
+            .catch(() => {
+                setFathers([])
+                setMothers([])
+            })
+    }, [])
 
     return <FilterPopover
         setFilter={setFilter}
         anchorEl={anchorEl}
         setFilterOpen={setFilterOpen}
-        filterOpen={isFilterOpen}
+        filterOpen={filterOpen}
     >
         <AbstractFilterGroup mainTitle="Informações principais">
             <div className="grid grid-cols-6 grid-flow-row gap-4">
@@ -69,7 +86,10 @@ export const AnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchOptions={() => searchAnimal({isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL']})}
+                    options={fathers.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
                     fieldName="fathers"
                     className="col-span-6"
                 />
@@ -78,19 +98,21 @@ export const AnimalsFilter = ({
                     limitTags={1}
                     filter={filter}
                     setFilter={setFilter}
-                    searchOptions={() => searchAnimal({isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL']})}
+                    options={mothers.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
                     fieldName="mothers"
                     className="col-span-6"
                 />
-                <MultipleSearchBoxFilter
-                    label="Pastos"
-                    limitTags={2}
-                    filter={filter}
-                    setFilter={setFilter}
-                    searchOptions={searchPastures}
-                    fieldName="pastures"
-                    className="col-span-6"
-                />
+                {/* <MultipleSearchBoxFilter */}
+                {/*     label="Pastos" */}
+                {/*     limitTags={2} */}
+                {/*     filter={filter} */}
+                {/*     setFilter={setFilter} */}
+                {/*     fieldName="pastures" */}
+                {/*     className="col-span-6" */}
+                {/* /> */}
             </div>
         </AbstractFilterGroup>
 

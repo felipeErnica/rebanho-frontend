@@ -26,6 +26,8 @@ export type AddLactationStruct = {
 
 export type LactationHistFilter = {
     isFiltered: boolean
+    hasEndDate?: boolean
+    hasCalf?: boolean
     animals?: string[]
     minCalfBirthDate?: Date
     maxCalfBirthDate?: Date

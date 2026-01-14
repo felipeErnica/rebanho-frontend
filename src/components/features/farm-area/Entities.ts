@@ -1,3 +1,26 @@
+export function getPastureLabel(pasture: Pasture) {
+    return `${pasture.name} (${pasture.farmName})`
+}
+
+export type Pasture = {
+    id: string
+    name: string
+    farmId: string
+    farmName: string
+    pastureSize: number
+    animalsNumber: number
+}
+
+export type PastureFilter = {
+    isFiltered: boolean
+    name?: string
+    farmId?: string
+    minPastureSize?: number
+    maxPastureSize?: number
+    minAnimalsNumber?: number
+    maxAnimalsNumber?: number
+}
+
 export type PastureEntry = {
     id: string
     pastureId?: string

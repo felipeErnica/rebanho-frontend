@@ -13,12 +13,12 @@ type BreedingFilterProps = FilterPopoverProps & {
 
 export const BreedingFilter = ({
     filter,
-    setFilter,
+    setFilter: setFilter,
     filterOpen,
     setFilterOpen,
     anchorEl,
 }: BreedingFilterProps) => {
-    return <FilterPopover {...{ setFilterOpen, setFilter, filterOpen, anchorEl }}>
+    return <FilterPopover {...{ setFilterOpen, onReload: setFilter, filterOpen, anchorEl }}>
         <div className="grid grid-cols-2 gap-4">
             <MultipleSearchBoxFilter
                 label="Touros"

@@ -10,10 +10,10 @@ export const BirthTestFilter = ({
     filterOpen,
     setFilterOpen,
     anchorEl,
-    setFilter,
+    setFilter: setFilter,
     filter
 }: FilterPopoverProps) => {
-    return <FilterPopover {...{ filterOpen, setFilterOpen, anchorEl, setFilter }}>
+    return <FilterPopover {...{ filterOpen, setFilterOpen, anchorEl, onReload: setFilter }}>
         <div className="grid grid-cols-2 gap-4">
             <MultipleSearchBoxFilter
                 className="col-span-2"

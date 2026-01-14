@@ -59,7 +59,7 @@ export const TableDisplay = (props: DisplayProps) => {
             setFilterOpen={setOpenDrawer}
             filterOpen={isDrawerOpen}
             children={props.filterPanel}
-            setFilter={props.setFilter}
+            onReload={props.setFilter}
             anchorEl={filterButtonRef}
         />
     </div>

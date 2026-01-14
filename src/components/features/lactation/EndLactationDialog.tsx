@@ -10,15 +10,18 @@
         DialogTitle,
         FormControlLabel,
     } from "@mui/material"
-    import { useCallback, useState } from "react"
-    import { searchLactating, updateEndDate } from "./Controller"
+    import { useCallback, useEffect, useState } from "react"
+    import { updateEndDate } from "./Service"
     import { useForm } from "react-hook-form"
     import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
     import { APIError } from "@utils/ApiRequest"
     import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
     import { AddLactationStruct } from "./Entities"
-import { searchPastures } from "@utils/GlobalApiCalls"
 import { REQUIRED_FIELD_MSG } from "@shared/Globals"
+import { searchAnimal } from "../animals/Service"
+import { searchPastures } from "../farm-area/Controller"
+import { getPastureLabel, Pasture } from "../farm-area/Entities"
+import { Animal, getAnimalLabel } from "../animals/Entities"
 
 type EndLactationDialogProps = {
     openEndLactation: boolean
@@ -31,6 +34,32 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
     const [noPasture, setNoPasture] = useState(false)
     const [changed, setChanged] = useState(false)
     const [loading, setLoading] = useState(false)
+
+    const [loadingSearch, setLoadingSearch] = useState(false)
+    const [pastures, setPastures] = useState<Pasture[]>([])
+    const [lacAnimals, setLacAnimals] = useState<Animal[]>([])
+
+    useEffect(() => {
+        setLoadingSearch(true)
+        Promise.all([
+            searchAnimal({
+                isFiltered: true,
+                isOutsideAnimal: false,
+                types: ['DAIRY_ANIMAL'],
+                isLactating: true,
+            }),
+            searchPastures()
+        ])
+            .then(values => {
+                setLacAnimals(values[0])
+                setPastures(values[1])
+            })
+            .catch(() => {
+                setLacAnimals([])
+                setPastures([])
+            })
+            .finally(() => setLoadingSearch(false))
+    }, [])
 
     const { control, handleSubmit, reset } = useForm<AddLactationStruct>()
 
@@ -66,7 +95,11 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
                 <div className="flex flex-col">
                     <FormSearchBox
                         label="Transferir para"
-                        searchOptions={searchPastures}
+                        loading={loadingSearch}
+                        options={pastures.map(item => ({
+                            id: item.id,
+                            label: getPastureLabel(item)
+                        }))}
                         formProps={{
                             control,
                             name: 'pastureId',
@@ -89,7 +122,10 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
                     formProps={{ control, name: 'id' }}
                     className="w-[400px]"
                     label="Vaca"
-                    searchOptions={searchLactating}
+                    options={lacAnimals.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
                 />
             </DialogContainer>
         </DialogContent>

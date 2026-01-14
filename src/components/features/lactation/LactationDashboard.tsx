@@ -42,7 +42,7 @@ import {
     getDairyTypes,
     getLastDry,
     getLongLactations,
-} from "./Controller"
+} from "./Service"
 import { dateToISO, dateTransform, decimalTransform, positiveTransform } from "@utils/Transformations"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
 import Table from "@mui/material/Table"
@@ -75,7 +75,7 @@ import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker
 import { useNavigate } from "react-router"
 import { AddMilkEntryDialog } from "./milk-tables/AddMilkEntryDialog"
 import { LactationGroup, LactationGroupSave, MilkEntry } from "./milk-tables/Entities"
-import { deleteMilkEntry, deleteMilkGroup, updateMilkGroup } from "./milk-tables/Controller"
+import { deleteMilkEntry, deleteMilkGroup, updateMilkGroup } from "./milk-tables/Service"
 import BackHand from "@mui/icons-material/BackHand"
 
 export const LactationDashboard = () => {

@@ -119,7 +119,7 @@ export const EntriesTablePage = () => {
         <ErrorContext.Provider value={{ setRows, setError }}>
             <EntriesTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
         </ErrorContext.Provider>
-        <BirthTestFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <BirthTestFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <ErrorDialog
             openError={!!error}
             title={error?.title}

@@ -40,6 +40,7 @@ export const FormComboBox = <T extends FieldValues>({
             <Autocomplete
                 {...field}
                 value={items.find(item => item.value === field.value) ?? null}
+                className={className}
                 multiple={false}
                 inputValue={inputValue}
                 options={items}
@@ -61,7 +62,6 @@ export const FormComboBox = <T extends FieldValues>({
                     return <TextField
                         {...params}
                         error={!!error}
-                        className={className}
                         size="small"
                         variant={variant || 'standard'}
                         label={label}

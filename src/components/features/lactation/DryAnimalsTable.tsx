@@ -9,7 +9,7 @@ import {
 import {
     findDryAnimalsPage,
     getDryAnimalsPageFoot
-} from "./Controller"
+} from "./Service"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
@@ -80,7 +80,7 @@ export const DryAnimalsTablePage = () => {
             orderProps={{ order, setOrder }}
         />
         <DryAnimalsTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
-        <LacHistFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <LacHistFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
     </div>
 }
 

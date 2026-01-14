@@ -88,7 +88,7 @@ export const WeightEntriesTable = () => {
         <EditContext.Provider value={{ setRows, setError, loadFoot }}>
             <EntriesTable {...{ rows, loading, fetchNextPage, scrollRef, foot }} />
         </EditContext.Provider>
-        <WeightFilterPopover {...{ setFilter, setFilterOpen, filter, filterOpen, anchorEl }} />
+        <WeightFilterPopover {...{ setFilter: setFilter, setFilterOpen, filter, filterOpen, anchorEl }} />
         <ErrorDialog
             openError={!!error}
             title={error?.title}

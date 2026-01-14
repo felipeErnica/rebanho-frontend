@@ -1,6 +1,6 @@
 import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { MilkEntry, MilkEntryFoot, MilkEntrySave } from "./Entities"
-import { deleteMilkEntry, getLactationEntries, getLactationEntriesFoot, updateMilkEntry } from "./Controller"
+import { deleteMilkEntry, getLactationEntries, getLactationEntriesFoot, updateMilkEntry } from "./Service"
 import Table from "@mui/material/Table"
 import { TableBody, TableHead } from "@mui/material"
 import {

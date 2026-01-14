@@ -10,7 +10,7 @@ import {
     useState 
 } from "react"
 import { LactationGroup, LactationGroupFilter, LactationGroupSave } from "./Entities"
-import { deleteMilkGroup, findGroupsPage, updateMilkGroup } from "./Controller"
+import { deleteMilkGroup, findGroupsPage, updateMilkGroup } from "./Service"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
@@ -69,7 +69,7 @@ export const GroupTablePage = () => {
         <EditContext.Provider value={{ setWarning, setError, setRows }}>
             <GroupsTable {...{ rows, loading, scrollRef, fetchNextPage }} />
         </EditContext.Provider>
-        <MilkGroupFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <MilkGroupFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <ErrorDialog
             openError={!!error}
             title={error?.title}

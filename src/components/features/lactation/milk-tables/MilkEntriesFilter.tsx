@@ -2,39 +2,72 @@ import { DateFilter } from "@shared/filter-controls/DateFilter";
 import { FilterPopover, FilterPopoverProps } from "@shared/filter-controls/FilterPopover";
 import { NumberFilter } from "@shared/filter-controls/NumberFilter";
 import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter";
-import { searchAllPastures } from "./Controller";
+import { useEffect, useState } from "react";
+import { Animal, getAnimalLabel } from "@features/animals/Entities";
+import { Pasture } from "@features/farm-area/Entities";
+import { searchAnimal } from "@features/animals/Service";
+import { searchPastures } from "@features/farm-area/Controller";
 
-export const MilkEntriesFilter = ({ 
-    setFilter, 
-    filter, 
-    filterOpen, 
-    setFilterOpen, 
-    anchorEl 
+export const MilkEntriesFilter = ({
+    setFilter: setFilter,
+    filter,
+    filterOpen,
+    setFilterOpen,
+    anchorEl
 }: FilterPopoverProps) => {
 
+    const [loading, setLoading] = useState(false)
+    const [mothers, setMothers] = useState<Animal[]>([])
+    const [pastures, setPastures] = useState<Pasture[]>([])
+
+    useEffect(() => {
+        setLoading(true)
+        Promise.all([
+            searchAnimal({ isFiltered: true, isOutsideAnimal: false, types: ['DAIRY_ANIMAL'] }),
+            searchPastures()
+        ])
+            .then(values => {
+                setMothers(values[0])
+                setPastures(values[1])
+            })
+            .catch(() => {
+                setMothers([])
+                setPastures([])
+            })
+            .finally(() => setLoading(false))
+    }, [])
+
     return <FilterPopover {...{ setFilterOpen, setFilter, filterOpen, anchorEl }}>
-        <MultipleSearchBoxFilter 
+        <MultipleSearchBoxFilter
             label="Vacas"
-            searchOptions={searchAllMothers}
+            loading={loading}
+            options={mothers.map(item => ({
+                id: item.id,
+                label: getAnimalLabel(item)
+            }))}
             setFilter={setFilter}
             filter={filter}
             fieldName="animals"
         />
-        <MultipleSearchBoxFilter 
+        <MultipleSearchBoxFilter
             label="Pastos"
-            searchOptions={searchAllPastures}
+            loading={loading}
+            options={pastures.map(item => ({
+                id: item.id,
+                label: item.name
+            }))}
             setFilter={setFilter}
             filter={filter}
             fieldName="pastures"
         />
-        <DateFilter 
+        <DateFilter
             mainTitle="Data de Marcação"
             maxFieldName="maxEntryDate"
             minFieldName="minEntryDate"
             filter={filter}
             setFilter={setFilter}
         />
-        <NumberFilter 
+        <NumberFilter
             mainTitle="Quantidade"
             minFieldName="minQuantity"
             maxFieldName="maxQuantity"

@@ -5,14 +5,14 @@ import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter
 import { searchButcher } from "./Controller";
 
 export const SlaughterFilterPopover = ({
-    setFilter,
+    setFilter: setFilter,
     filter,
     setFilterOpen,
     filterOpen,
     anchorEl
 }: FilterPopoverProps) => {
 
-    return <FilterPopover {...{ filterOpen, setFilterOpen, setFilter, filter, anchorEl }}>
+    return <FilterPopover {...{ filterOpen, setFilterOpen, onReload: setFilter, filter, anchorEl }}>
         <MultipleSearchBoxFilter 
             label="Animais"
             fieldName="animals"

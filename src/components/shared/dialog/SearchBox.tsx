@@ -52,9 +52,14 @@ export function SearchBox({
 }: SearchBoxProps) {
 
     const filter = createFilterOptions<SearchBoxItem>()
+    const [formValue, setFormValue] = useState<SearchBoxItem | null>(null)
+
+    useEffect(() => {
+        setFormValue(options.find(item => item.id === value) ?? null)
+    }, [options, value])
 
     return <Autocomplete
-        value={options.find(item => item.id === value)}
+        value={formValue}
         multiple={false}
         onBlur={onBlur}
         className={className}
@@ -68,6 +73,7 @@ export function SearchBox({
                 selectedOpt?.onEmpty()
                 return
             }
+            setFormValue(newValue)
             if (onChange) onChange(newValue?.id, newValue?.label)
         }}
         noOptionsText="Nenhum resultado encontrado!"
@@ -117,7 +123,8 @@ export function SearchBox({
 type MultipleSearchBoxProps = {
     label?: string
     variant?: TextFieldVariants
-    searchOptions: () => Promise<SearchBoxItem[]>
+    loading?: boolean
+    options: SearchBoxItem[]
     className?: string
     onChange?: (items: SearchBoxItem[]) => void
     onBlur?: FocusEventHandler<HTMLDivElement>
@@ -133,8 +140,9 @@ type MultipleSearchBoxProps = {
 
 export function MultipleSearchBox({
     label,
+    loading,
     limitTags,
-    searchOptions,
+    options,
     className,
     variant,
     onChange,
@@ -148,8 +156,6 @@ export function MultipleSearchBox({
     helperText
 }: MultipleSearchBoxProps) {
 
-    const [options, setOptions] = useState<SearchBoxItem[]>([])
-    const [loading, setLoading] = useState(false)
     const [selectedValues, setSelectedValues] = useState<SearchBoxItem[]>([])
 
     useEffect(() => {
@@ -159,14 +165,6 @@ export function MultipleSearchBox({
         }
         setSelectedValues(options.filter(option => value.includes(option.id)))
     }, [options, value])
-
-    useEffect(() => {
-        setLoading(true)
-        searchOptions()
-            .then(response => setOptions(response))
-            .catch(() => setOptions([]))
-            .finally(() => setLoading(false))
-    }, [searchOptions])
 
     return <Autocomplete
         multiple

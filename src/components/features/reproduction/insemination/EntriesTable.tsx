@@ -140,7 +140,7 @@ export const EntriesTablePage = () => {
         <DeleteContext.Provider value={{ setWarningProps, defaultWarning, setRows, setError, loadFoot }}>
             <EntriesTable {...{ rows, loading, scrollRef, fetchNextPage, foot }} />
         </DeleteContext.Provider>
-        <InseminationFilter {...{ filter, setFilter, filterOpen, setFilterOpen, anchorEl }} />
+        <InseminationFilter {...{ filter, setFilter: setFilter, filterOpen, setFilterOpen, anchorEl }} />
         <AddInseminationDialog {...{ addInseminationOpen, closeAddInsemination }} />
         <YesNoDialog {...warningProps} />
         <ErrorDialog

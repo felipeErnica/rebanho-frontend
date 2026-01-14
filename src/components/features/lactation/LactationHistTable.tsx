@@ -15,9 +15,8 @@ import {
     deleteLactation,
     findLactationsPage,
     getLactationsPageFoot,
-    searchCalfs,
     updateLactation
-} from "./Controller"
+} from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
@@ -50,12 +49,16 @@ import { AddLacDialog } from "./AddLactationDialog"
 import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Globals"
 import { useNavigate } from "react-router"
 import BackHand from "@mui/icons-material/BackHand"
+import { searchAnimal } from "@features/animals/Service"
+import { Animal, getAnimalFullLabel } from "@features/animals/Entities"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
     setRows: Dispatch<SetStateAction<LactationHist[]>>
     setWarning: Dispatch<SetStateAction<TimerYesNoDialogProps>>
 }
+
+const STORAGE_KEY = "lactation_history_filter_cache";
 
 const ErrorContext = createContext<EditContextProps>(undefined!)
 
@@ -72,7 +75,15 @@ export const LactationHistTablePage = () => {
         averageProduction: 0,
     }), [])
 
-    const [filter, setFilter] = useState<LactationHistFilter>({ isFiltered: false })
+    const [filter, setFilter] = useState<LactationHistFilter>(() => {
+        const saved = sessionStorage.getItem(STORAGE_KEY)
+        if (saved) {
+            return JSON.parse(saved)
+        }
+
+        return { isFiltered: false }
+    })
+
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [sort, setSort] = useState(defaultSort)
@@ -97,7 +108,15 @@ export const LactationHistTablePage = () => {
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
     const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
 
-    useEffect(() => onReload(), [onReload, reloadFlag])
+    useEffect(() => { if (reloadFlag > 0) onReload() }, [onReload, reloadFlag])
+
+    useEffect(() => {
+        if (filter.isFiltered) {
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(filter));
+        } else {
+            sessionStorage.removeItem(STORAGE_KEY);
+        }
+    }, [filter]);
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: defaultSort },
@@ -138,7 +157,7 @@ export const LactationHistTablePage = () => {
         <ErrorContext.Provider value={{ setError, setRows, setWarning }}>
             <LacTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
         </ErrorContext.Provider>
-        <LacHistFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <LacHistFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <ErrorDialog
             title={error?.title}
             content={error?.message}
@@ -302,8 +321,19 @@ type LacRowEditingProps = {
 const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) => {
 
     const [loading, setLoading] = useState(false)
+    const [loadingSearch, setLoadingSearch] = useState(false)
+    const [calves, setCalfs] = useState<Animal[]>([])
+
     const { control, handleSubmit } = useForm<LactationHist>({ defaultValues: rowData })
     const { setError } = useContext(ErrorContext)
+
+    useEffect(() => {
+        setLoadingSearch(true)
+        searchAnimal({ isFiltered: true, isOutsideAnimal: false })
+            .then(res => setCalfs(res))
+            .catch(() => setCalfs([]))
+            .finally(() => setLoadingSearch(false))
+    }, [])
 
     const onSubmit: SubmitHandler<LactationHist> = (data: LactationHist) => {
         setLoading(true)
@@ -325,8 +355,12 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
         <TableBodyCell>{rowData.animalName}</TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
+                loading={loadingSearch}
                 formProps={{ control, name: 'calfId' }}
-                searchOptions={searchCalfs}
+                options={calves.map(item => ({
+                    id: item.id,
+                    label: getAnimalFullLabel(item)
+                }))}
             />
         </TableBodyCell>
         <TableBodyCell align="center">

@@ -10,7 +10,7 @@ import {
     useState
 } from "react"
 import { MilkEntry, MilkEntryFoot, MilkEntrySave } from "./Entities"
-import { deleteMilkEntry, getGroupEntries, getGroupEntriesFoot, updateMilkEntry } from "./Controller"
+import { deleteMilkEntry, getGroupEntries, getGroupEntriesFoot, updateMilkEntry } from "./Service"
 import Table from "@mui/material/Table"
 import { Button, TableBody, TableHead } from "@mui/material"
 import {

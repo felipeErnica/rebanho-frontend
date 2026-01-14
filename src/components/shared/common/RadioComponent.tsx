@@ -2,7 +2,7 @@ import { FormControlLabel, FormHelperText, Radio, RadioGroup } from "@mui/materi
 import { red } from "@mui/material/colors"
 import FormControl from "@mui/material/FormControl"
 import FormLabel from "@mui/material/FormLabel"
-import { ChangeEvent, FocusEventHandler } from "react"
+import { ChangeEvent, FocusEventHandler, useEffect, useState } from "react"
 import { RefCallBack } from "react-hook-form"
 
 export type RadioControlProps = {
@@ -59,6 +59,10 @@ export function RadioComponent({
     onBlur,
 }: RadioComponentProps) {
 
+    const [radioValue, setRadioValue] = useState(value)
+
+    useEffect(() => setRadioValue(value), [value])
+
     return <FormControl 
         error={error} 
         className={className}
@@ -66,10 +70,13 @@ export function RadioComponent({
     >
         {label && <FormLabel>{label}</FormLabel>}
         <RadioGroup
-            value={value ?? null}
+            value={radioValue ?? null}
             name={name}
             ref={ref}
-            onChange={onChange}
+            onChange={(event, value) => {
+                setRadioValue(value)
+                onChange(event, value)
+            }}
             onBlur={onBlur}
             row={row}
             className="flex flex-wrap gap-2"

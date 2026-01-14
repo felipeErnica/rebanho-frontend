@@ -8,7 +8,6 @@ type FormSearchBoxProps<T extends FieldValues> = {
     variant?: TextFieldVariants
     formProps: UseControllerProps<T>
     options: SearchBoxItem[]
-    args?: any[]
     className?: string
     onChange?: (id?: string, label?: string) => void
     emptyProps?: EmptyProps[]
@@ -56,8 +55,7 @@ type MultipleFormSearchBoxProps<T extends FieldValues> = {
     label?: string
     variant?: TextFieldVariants
     formProps: UseControllerProps<T>
-    searchOptions: () => Promise<SearchBoxItem[]>
-    args?: any[]
+    options: SearchBoxItem[]
     className?: string
     disabled?: boolean
     onChange?: (items: SearchBoxItem[]) => void
@@ -68,7 +66,7 @@ type MultipleFormSearchBoxProps<T extends FieldValues> = {
 export function FormMultipleSearchBox<T extends FieldValues>({
     label,
     limitTags,
-    searchOptions,
+    options,
     formProps,
     className,
     disabled,
@@ -90,7 +88,7 @@ export function FormMultipleSearchBox<T extends FieldValues>({
                 value={field.value}
                 onBlur={field.onBlur}
                 className={className}
-                searchOptions={searchOptions}
+                options={options}
                 onChange={items => {
                     field.onChange(items.map(item => item.id))
                     if (onChange) onChange(items)

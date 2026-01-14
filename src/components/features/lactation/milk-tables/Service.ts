@@ -1,10 +1,10 @@
-import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@/utils/ApiRequest"
+import { apiDelete, apiGet, apiPost, apiPut, buildFilterParams,  buildPageParams } from "@/utils/ApiRequest"
 import { LactationGroupFilter, LactationGroupSave, MilkEntrySave } from "./Entities"
 import { dateToISO } from "@/utils/Transformations"
 
 export const GROUP_BASE = "lactation/groups/"
 export const ENTRIES_BASE = "lactation/entries/"
-export const LAC_BASE = "lactation/lac-hist/"
+export const LAC_BASE = "lactation/"
 
 export function getLactationEntries(lacId: string) {
     return apiGet(LAC_BASE + `${lacId}/entries`)
@@ -44,12 +44,13 @@ export function findEntriesPage(
     order: string,
     cursor?: string,
 ) {
-    const pageQuery = buildPageCall(sort, order, cursor)
-    return apiPost(ENTRIES_BASE + pageQuery, filter)
+    const params = buildPageParams(sort, order, filter, cursor)
+    return apiGet(ENTRIES_BASE + `page?${params}`)
 }
 
 export function getEntriesPageFoot(filter: LactationGroupFilter) {
-    return apiPost(ENTRIES_BASE + "page/foot", filter)
+    const params = buildFilterParams(filter, '?')
+    return apiGet(ENTRIES_BASE + "page/foot" + params)
 }
 
 export function updateMilkEntry(entry: MilkEntrySave) {

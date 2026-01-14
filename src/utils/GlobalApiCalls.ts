@@ -17,7 +17,3 @@ export function searchPastureByFarm(farmIds?: string | string[]): Promise<Search
     const apiQuery = `search?farmId=${farmIds}` 
     return apiGet(PASTURE_BASE + apiQuery)
 }
-
-export function searchPastures(): Promise<SearchBoxItem[]> {
-    return apiGet(PASTURE_BASE + "search-all")
-}

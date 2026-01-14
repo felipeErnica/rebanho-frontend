@@ -9,7 +9,8 @@ import { SearchBox, SearchBoxItem } from "@shared/dialog/SearchBox";
 
 export type MultipleSearchBoxFilterProps = {
     label: string
-    searchOptions: () => Promise<SearchBoxItem[]>
+    loading?: boolean
+    options: SearchBoxItem[]
     className?: string
     disabled?: boolean
     noRenderValue?: boolean
@@ -21,8 +22,9 @@ export type MultipleSearchBoxFilterProps = {
 }
 
 export const MultipleSearchBoxFilter = ({
-    searchOptions,
+    options,
     onChange,
+    loading,
     label,
     disabled,
     limitTags,
@@ -33,14 +35,7 @@ export const MultipleSearchBoxFilter = ({
     fieldName,
 }: MultipleSearchBoxFilterProps) => {
 
-    const [options, setOptions] = useState<SearchBoxItem[]>([])
     const [values, setValues] = useState<SearchBoxItem[]>([])
-
-    useEffect(() => {
-        searchOptions()
-            .then(response => setOptions(response))
-            .catch(() => setOptions([]))
-    }, [searchOptions])
 
     useEffect(() => {
         const filterValues: string[] = filter[fieldName]
@@ -55,6 +50,7 @@ export const MultipleSearchBoxFilter = ({
     return <Autocomplete
         multiple
         disableCloseOnSelect
+        loading={loading}
         value={values}
         className={className}
         limitTags={limitTags}
@@ -116,7 +112,7 @@ export const MultipleSearchBoxFilter = ({
 
 type SearchBoxProps = {
     label: string
-    searchOptions: () => Promise<SearchBoxItem[]>
+    options: SearchBoxItem[]
     className?: string
     disabled?: boolean
     onChange?: (newValue: SearchBoxItem | null) => void
@@ -126,7 +122,7 @@ type SearchBoxProps = {
 }
 
 export const SearchBoxFilter = ({
-    searchOptions,
+    options,
     onChange,
     label,
     disabled,
@@ -138,7 +134,7 @@ export const SearchBoxFilter = ({
 
     return <SearchBox 
         className={className}
-        searchOptions={searchOptions}
+        options={options}
         value={filter[fieldName]}
         onChange={(id, label) => {
             if (!id) {

@@ -11,7 +11,7 @@ import {
     useState
 } from "react"
 import { MilkEntry, MilkEntryFilter, MilkEntryFoot, MilkEntrySave } from "./Entities"
-import { deleteMilkEntry, findEntriesPage, getEntriesPageFoot, updateMilkEntry } from "./Controller"
+import { deleteMilkEntry, findEntriesPage, getEntriesPageFoot, updateMilkEntry } from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"

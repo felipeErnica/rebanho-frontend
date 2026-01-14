@@ -15,9 +15,8 @@ import {
     deleteLactation,
     findLongLactationsPage,
     getLongLactationsPageFoot,
-    searchCalfs,
     updateLactation
-} from "./Controller"
+} from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
@@ -46,6 +45,8 @@ import BackHand from '@mui/icons-material/BackHand';
 import { EndLactationDialog } from "./EndLactationDialog"
 import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Globals"
 import { useNavigate } from "react-router"
+import { searchAnimal } from "@features/animals/Service"
+import { Animal, getAnimalFullLabel } from "@features/animals/Entities"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -131,7 +132,7 @@ export const LongLactationsTablePage = () => {
         <ErrorContext.Provider value={{ setError, setRows, setWarning }}>
             <LacTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
         </ErrorContext.Provider>
-        <LacHistFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <LacHistFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <ErrorDialog
             title={error?.title}
             content={error?.message}
@@ -262,6 +263,17 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
     const { control, handleSubmit } = useForm<LactationHist>({ defaultValues: rowData })
     const { setError } = useContext(ErrorContext)
 
+    const [loadingSearch, setLoadingSearch] = useState(false)
+    const [calves, setCalfs] = useState<Animal[]>([])
+
+    useEffect(() => {
+        setLoadingSearch(true)
+        searchAnimal({ isFiltered: true, isOutsideAnimal: false })
+            .then(res => setCalfs(res))
+            .catch(() => setCalfs([]))
+            .finally(() => setLoadingSearch(false))
+    }, [])
+
     const onSubmit: SubmitHandler<LactationHist> = (data: LactationHist) => {
         setLoading(true)
         updateLactation(data)
@@ -283,7 +295,11 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
         <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'calfId' }}
-                searchOptions={searchCalfs}
+                loading={loadingSearch}
+                options={calves.map(item => ({
+                    id: item.id, 
+                    label: getAnimalFullLabel(item)
+                }))}
             />
         </TableBodyCell>
         <TableBodyCell align="center">

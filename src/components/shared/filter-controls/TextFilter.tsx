@@ -1,7 +1,7 @@
-import { IFilters } from "@utils/Filter"
+import { IFilters } from "@/utils/Filter"
 import TextField from "@mui/material/TextField"
 import { debounce } from "@mui/material/utils"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 type TextFilterProps = {
     label: string
@@ -30,6 +30,8 @@ export const TextFilter = ({
     const [inputValue, setInputValue] = useState<string>(filter[fieldName])
     const setDebouncedFilter = debounce(setFilter, 300)
 
+    useEffect(() => setInputValue(filter[fieldName]), [fieldName, filter])
+
     return <TextField
         size="small"
         variant="standard"
@@ -43,7 +45,7 @@ export const TextFilter = ({
         onChange={(event) => {
             const value = event.currentTarget.value
             setInputValue(value)
-            setDebouncedFilter({...filter, isFiltered: true, [fieldName]: value})
+            setDebouncedFilter({ ...filter, isFiltered: true, [fieldName]: value })
             if (onChange) onChange(value)
         }}
     />

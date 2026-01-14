@@ -1,8 +1,8 @@
-import { apiDelete, apiGet, apiPost, apiPut, buildPageCall } from "@utils/ApiRequest"
+import { apiDelete, apiGet, apiPost, apiPut, buildFilterParams, buildPageCall, buildPageParams } from "@utils/ApiRequest"
 import { AddLactationStruct,  LactationHist, LactationHistFilter } from "./Entities";
 
 export const DASHBOARD_BASE = "lactation/dashboard/"
-export const LAC_BASE = "lactation/lac-hist/"
+export const LAC_BASE = "lactation/"
 
 export function getLastMilk() {
     return apiGet(DASHBOARD_BASE + "last-milk")
@@ -62,8 +62,13 @@ export function findLactationsPage(
     order: string,
     cursor?: string,
 ) {
-    const pageQuery = `page?order=${order}&sort=${sort}${cursor ? `&cursor=${cursor}` : ''}`
-    return apiPost(LAC_BASE + pageQuery, filter)
+    const params = buildPageParams(sort, order, filter, cursor)
+    return apiGet(LAC_BASE + `page?${params}`)
+}
+
+export function getLactationsPageFoot(filter: LactationHistFilter) {
+    const params = buildFilterParams(filter, "?")
+    return apiGet(LAC_BASE + "page/foot" + params)
 }
 
 export function findLongLactationsPage(
@@ -82,10 +87,6 @@ export function getLongLactationsPageFoot(filter: LactationHistFilter) {
 
 export function findLactationById(id: string) {
     return apiGet(LAC_BASE + id)
-}
-
-export function getLactationsPageFoot(filter: LactationHistFilter) {
-    return apiPost(LAC_BASE + "page/foot", filter)
 }
 
 export function searchLactating() {

@@ -1,5 +1,7 @@
 import { ERROR_TYPE } from "@shared/Globals"
 import { User } from "./Entities"
+import { IFilters } from "./Filter"
+import { dateToISO } from "./Transformations"
 
 const BASE_URL = "http://localhost:8080/"
 
@@ -98,4 +100,44 @@ export async function apiDelete(apiCall: string): Promise<any> {
 
 export function buildPageCall(sort: string, order: string, cursor?: string): string {
     return `page?sort=${sort}&order=${order}${cursor ? `&cursor=${cursor}` : ''}`
+}
+
+export function buildPageParams(
+    sort: string,
+    order: string,
+    filter: IFilters,
+    cursor?: string,
+): string {
+    sort = sort.replace(/\s/g, "");
+    let query = `sort=${sort}&order=${order}`
+    if (cursor) query += `&cursor=${cursor}`
+    const filterParams = buildFilterParams(filter, '&')
+    return query + filterParams
+}
+
+type URLSymbol = "?" | "&"
+
+export function buildFilterParams(filter: IFilters | undefined, symbol?: URLSymbol): string {
+    if (!filter || !filter.isFiltered) return ""
+    const filterMap: Record<string, any> = {}
+
+    for (const key of Object.keys(filter)) {
+        if (key == "isFiltered") continue
+        const value = filter[key]
+        if (value == undefined) continue
+        if (value instanceof Date) {
+            filterMap[key] = dateToISO(value)
+            continue
+        }
+        filterMap[key] = value
+    }
+
+    const searchParams = new URLSearchParams(filterMap)
+    return symbol + searchParams.toString()
+}
+
+export function getObjectFromParams<T extends IFilters>(params: URLSearchParams): T {
+    if (params.size == 0) return { isFiltered: false } as T
+    const entries = Object.fromEntries(params.entries())
+    return { isFiltered: true, ...entries } as T
 }

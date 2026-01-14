@@ -14,14 +14,15 @@ import { DialogActionButtons, DialogContainer, YesNoDialog, YesNoDialogProps } f
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { CONFLICT_WARNING, REQUIRED_FIELD_MSG, ERROR_TYPE, DefaultWarning } from "@shared/Globals"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-import {  searchPastures } from "@utils/GlobalApiCalls"
-import { useCallback, useEffect,  useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { MilkEntrySave } from "./Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { APIError } from "@utils/ApiRequest"
-import { addMilkEntry, replaceMilkEntry } from "./Controller"
-import { transferPastureEntry } from "@features/farm-area/Controller"
-import { PastureEntrySave } from "@features/farm-area/Entities"
+import { addMilkEntry, replaceMilkEntry } from "./Service"
+import { searchPastures, transferPastureEntry } from "@features/farm-area/Controller"
+import { Pasture, PastureEntrySave } from "@features/farm-area/Entities"
+import { searchAnimal } from "@features/animals/Service"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
 
 type AddTestDialogProps = {
     addMilkEntryOpen: boolean
@@ -36,6 +37,27 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
     const [loading, setLoading] = useState(false)
     const [added, setAdded] = useState(false)
     const [noPasture, setNoPasture] = useState(false)
+
+    const [loadingSearch, setLoadingSearch] = useState(false)
+    const [animals, setAnimals] = useState<Animal[]>([])
+    const [pastures, setPastures] = useState<Pasture[]>([])
+
+    useEffect(() => {
+        setLoadingSearch(true)
+        Promise.all([
+            searchAnimal({ isFiltered: true, isOutsideAnimal: false, types: ['DAIRY_ANIMAL'] }),
+            searchPastures()
+        ])
+            .then(values => {
+                setAnimals(values[0])
+                setPastures(values[1])
+            })
+            .catch(() => {
+                setAnimals([])
+                setPastures([])
+            })
+            .finally(() => setLoadingSearch(false))
+    }, [])
 
     const {
         handleSubmit,
@@ -169,7 +191,11 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                 <div className="flex flex-col">
                     <FormSearchBox
                         label="Lote"
-                        searchOptions={searchPastures}
+                        loading={loadingSearch}
+                        options={pastures.map(item => ({
+                            id: item.id,
+                            label: item.name
+                        }))}
                         formProps={{
                             control,
                             name: 'pastureId',
@@ -190,8 +216,12 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                 <div className="flex flex-row gap-4">
                     <FormSearchBox
                         label="Vaca"
+                        loading={loadingSearch}
                         className="w-[400px]"
-                        searchOptions={searchDairyAnimal}
+                        options={animals.map(item => ({
+                            id: item.id,
+                            label: getAnimalLabel(item)
+                        }))}
                         formProps={{
                             control,
                             rules: { required: REQUIRED_FIELD_MSG },

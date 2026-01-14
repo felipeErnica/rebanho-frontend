@@ -3,7 +3,7 @@ import { LactationHistTablePage } from "./LactationHistTable";
 import { AppRoute } from "@/Routes";
 import { LactationDashboard } from "./LactationDashboard";
 import { Outlet, useParams } from "react-router";
-import { findLactationById } from "./Controller";
+import { findLactationById } from "./Service";
 import { LactationHist } from "./Entities";
 import { dateTransform } from "@/utils/Transformations";
 import { GroupEntriesTablePage } from "./milk-tables/GroupEntriesTable";
