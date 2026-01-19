@@ -104,7 +104,7 @@ export const LacAnimalsTablePage = () => {
         <LacHistFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <ErrorDialog
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
             openError={!!error}
         />

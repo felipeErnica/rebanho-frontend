@@ -77,7 +77,7 @@ export const GroupEntriesTablePage = ({ inseminationDate }: GroupEntriesTablePag
     const defaultWarning: YesNoDialogProps = {
         openYesNo: false,
         title: undefined,
-        content: undefined,
+        message: undefined,
         onYes: undefined,
         onClose: undefined
     }
@@ -133,7 +133,7 @@ export const GroupEntriesTablePage = ({ inseminationDate }: GroupEntriesTablePag
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
     </div>
@@ -240,7 +240,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
                     setWarningProps({
                         openYesNo: true,
                         title: error.title,
-                        content: error.message,
+                        message: error.message,
                         onYes: onDeleteAndChangeFather,
                         onClose: () => setWarningProps(defaultWarning)
                     })
@@ -249,7 +249,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
                 setWarningProps({
                     openYesNo: true,
                     title: error.title,
-                    content: error.message,
+                    message: error.message,
                     onYes: onDeleteNoValidation,
                     onClose: () => setWarningProps(defaultWarning)
                 })
@@ -327,7 +327,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                 setWarningProps({
                     openYesNo: true,
                     title: err.title,
-                    content: err.message,
+                    message: err.message,
                     onClose: () => setWarningProps(defaultWarning),
                     onYes: () => handleSubmit(onNoValidation)
                 })

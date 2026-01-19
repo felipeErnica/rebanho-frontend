@@ -76,7 +76,7 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                     setWarning({
                         openYesNo: true,
                         title: err.title,
-                        content: err.message,
+                        message: err.message,
                         onClose: () => setWarning(DefaultWarning),
                         onYes: handleSubmit(onAddNoValidation)
                     })
@@ -86,7 +86,7 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                     setWarning({
                         openYesNo: true,
                         title: err.title,
-                        content: err.message,
+                        message: err.message,
                         onClose: () => setWarning(DefaultWarning),
                         onYes: handleSubmit(onReplace)
                     })

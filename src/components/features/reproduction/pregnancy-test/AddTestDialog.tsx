@@ -170,7 +170,7 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
         <YesNoDialog
             openYesNo={!!warningProps}
             title={warningProps?.title}
-            content={warningProps?.message}
+            message={warningProps?.message}
             onYes={handleSubmit(onReplace)}
             onClose={() => setWarningProps(undefined)}
         />

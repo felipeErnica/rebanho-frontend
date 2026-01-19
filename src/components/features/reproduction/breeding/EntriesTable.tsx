@@ -129,7 +129,7 @@ export const EntriesTablePage = () => {
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
         <YesNoDialog {...warningProps} />
@@ -250,7 +250,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
                     setWarningProps({
                         openYesNo: true,
                         title: error.title,
-                        content: error.message,
+                        message: error.message,
                         onYes: onDeleteAndChangeFather,
                         onClose: () => setWarningProps(DefaultWarning)
                     })
@@ -259,7 +259,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
                 setWarningProps({
                     openYesNo: true,
                     title: error.title,
-                    content: error.message,
+                    message: error.message,
                     onYes: onDeleteNoValidation,
                     onClose: () => setWarningProps(DefaultWarning)
                 })
@@ -338,7 +338,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                 setWarningProps({
                     openYesNo: true,
                     title: err.title,
-                    content: err.message,
+                    message: err.message,
                     onClose: () => setWarningProps(DefaultWarning),
                     onYes: handleSubmit(onNoValidation)
                 })

@@ -116,7 +116,7 @@ const GroupsTable = ({ loading, setLoading }: GroupsTableProps) => {
             openError={!!error}
             title={error?.title}
             onClose={() => setError(undefined)}
-            content={error?.message}
+            message={error?.message}
         />
         <AddTransferDialog {...{ closeAddTransfer, addTransferOpen, transferDate }} />
     </div>
@@ -171,7 +171,7 @@ const GroupsRow = ({
                         waitTime: 10,
                         onYes: onDelete,
                         title: GROUP_DELETE_TITLE,
-                        content: `Ao continuar, o registro de ${rowData.cowNumber} transferências serão apagados! ` +
+                        message: `Ao continuar, o registro de ${rowData.cowNumber} transferências serão apagados! ` +
                             "Deseja continuar?" +
                             "\n\nOBS.: As parições relacionadas a estas transferências permanecerão, mude os pais por conta própria!",
                         onClose: () => setWarningProps(DefaultTimerWarning),
@@ -241,7 +241,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing, setWarningProps, se
             openYesNo: true,
             waitTime: 10,
             title: GROUP_UPDATE_TITLE,
-            content: `Ao continuar, o registro de ${rowData.cowNumber} transferências terão as datas modificadas! ` +
+            message: `Ao continuar, o registro de ${rowData.cowNumber} transferências terão as datas modificadas! ` +
                 "Deseja continuar?" +
                 "\n\nOBS.: A alteração de data pode causar uma mudança na taxa de prenhez e nascimento!",
             onYes: handleSubmit(onSubmit),

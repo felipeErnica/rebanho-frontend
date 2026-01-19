@@ -839,7 +839,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
         <TimerYesNoDialog
@@ -853,7 +853,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
                     .catch(err => setError(err))
                     .finally(() => setGroup(undefined))
             }}
-            content={
+            message={
                 `Ao continuar, o registro de ${group?.cowNumber} transferências serão apagados! ` +
                 "Deseja continuar?" +
                 "\n\nOBS.: As parições relacionadas a estas transferências não serão excluídas, nem modificadas!"

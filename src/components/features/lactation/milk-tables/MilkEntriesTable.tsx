@@ -123,7 +123,7 @@ export const MilkEntriesTablePage = () => {
             openError={!!error}
             onClose={() => setError(undefined)}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
         />
     </div>
 }

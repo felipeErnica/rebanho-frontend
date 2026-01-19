@@ -210,7 +210,7 @@ export const AddTransferDialog = ({
                 <YesNoDialog
                     openYesNo={!!warning}
                     title={warning?.title}
-                    content={warning?.message}
+                    message={warning?.message}
                     onYes={handleSubmit(onReplace)}
                     onClose={() => setWarning(undefined)}
                 />

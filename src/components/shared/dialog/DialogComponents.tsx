@@ -41,7 +41,7 @@ export type YesNoDialogProps = {
     loading?: boolean
     openYesNo: boolean
     title: string | undefined
-    content: string | undefined
+    message: string | undefined
     yesTitle?: string
     onYes: (() => void) | undefined
     onClose: (() => void) | undefined
@@ -49,7 +49,7 @@ export type YesNoDialogProps = {
 
 export const YesNoDialog = ({ 
     openYesNo, 
-    content, 
+    message, 
     title, 
     onClose, 
     onYes, 
@@ -78,7 +78,7 @@ export const YesNoDialog = ({
             <div className="flex flex-row gap-4 items-center p-4">
                 <Warning sx={{ fontSize: 60 }} color="warning" />
                 <Typography className="whitespace-pre-wrap" fontSize={16} variant="body2">
-                    {content ?? 'Sem Informações'}
+                    {message ?? 'Sem Informações'}
                 </Typography>
             </div>
         </DialogContent>
@@ -107,7 +107,7 @@ export type TimerYesNoDialogProps = YesNoDialogProps & {
 export const TimerYesNoDialog = ({ 
     waitTime,
     openYesNo, 
-    content, 
+    message: content, 
     title, 
     onClose, 
     onYes, 
@@ -173,11 +173,11 @@ export const TimerYesNoDialog = ({
 type ErrorDialogProps = {
     openError: boolean
     title: string | undefined
-    content: string | undefined
+    message: string | undefined
     onClose: () => void
 }
 
-export const ErrorDialog = ({ onClose, openError, title, content }: ErrorDialogProps) => {
+export const ErrorDialog = ({ onClose, openError, title, message: content }: ErrorDialogProps) => {
     return <Dialog
         open={openError}
         onClose={onClose}

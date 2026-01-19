@@ -110,7 +110,7 @@ export const InseminationDasboard = () => {
     const defaultWarning: YesNoDialogProps = {
         openYesNo: false,
         title: undefined,
-        content: undefined,
+        message: undefined,
         onYes: undefined,
         onClose: undefined
     }
@@ -132,7 +132,7 @@ export const InseminationDasboard = () => {
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
         <YesNoDialog {...warningProps} />
@@ -701,7 +701,7 @@ const LastEntriesRow = ({ row }: TableRowProp<InseminationEntry>) => {
                     setWarningProps({
                         openYesNo: true,
                         title: err.title,
-                        content: err.message,
+                        message: err.message,
                         onYes: onDeleteAndChangeFather,
                         onClose: () => setWarningProps(defaultWarning)
                     })
@@ -709,7 +709,7 @@ const LastEntriesRow = ({ row }: TableRowProp<InseminationEntry>) => {
                 setWarningProps({
                     openYesNo: true,
                     title: err.title,
-                    content: err.message,
+                    message: err.message,
                     onYes: onDeleteNoValidation,
                     onClose: () => setWarningProps(defaultWarning)
                 })
@@ -789,7 +789,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<Ins
                 setWarningProps({
                     openYesNo: true,
                     title: err.title,
-                    content: err.message,
+                    message: err.message,
                     onYes: handleSubmit(onUpdateNoValidation),
                     onClose: () => setWarningProps(defaultWarning)
                 })

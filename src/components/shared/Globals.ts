@@ -25,7 +25,7 @@ export const ChipColorScheme: Map<string, ColorStrings> = new Map([
 export const DefaultWarning: YesNoDialogProps = {
     openYesNo: false,
     title: undefined,
-    content: undefined,
+    message: undefined,
     onClose: undefined,
     onYes: undefined
 }
@@ -34,7 +34,7 @@ export const DefaultTimerWarning: TimerYesNoDialogProps = {
     openYesNo: false,
     waitTime: -1,
     title: undefined,
-    content: undefined,
+    message: undefined,
     onClose: undefined,
     onYes: undefined
 }

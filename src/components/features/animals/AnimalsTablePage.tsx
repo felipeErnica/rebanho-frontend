@@ -28,23 +28,22 @@ import { FormSearchBox } from "@/components/shared/form-controls/FormSearchBox"
 
 export const AnimalsTablePage = () => {
 
-    const defaultFoot: AnimalFoot = useMemo(() => ({
-        total: 0
-    }), [])
+    const defaultFoot: AnimalFoot = useMemo(() => ({ total: 0 }), [])
     const defaultSort = 'animal_order, birth_date'
 
     const [foot, setTotal] = useState(defaultFoot)
     const [order, setOrder] = useState('asc')
     const [sort, setSort] = useState(defaultSort)
     const [loading, setLoading] = useState(false)
-    const [isFilterOpen, setFilterOpen] = useState(false)
+    const [filterOpen, setFilterOpen] = useState(false)
     const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
 
     const fetchPage = useCallback((cursor?: string) => {
-        getAnimalsFoot(filter)
+        const tableFilter = { ...filter, isFiltered: true, isOutsideAnimal: false }
+        getAnimalsFoot(tableFilter)
             .then((response) => setTotal(response))
             .catch(() => setTotal(defaultFoot))
-        return findAnimals(filter, sort, order, cursor)
+        return findAnimals(tableFilter, sort, order, cursor)
     }, [filter, sort, order, defaultFoot])
 
     const anchorEl = useRef<HTMLButtonElement>(null)
@@ -53,7 +52,7 @@ export const AnimalsTablePage = () => {
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
-        { name: 'Brinco', value: defaultSort},
+        { name: 'Brinco', value: defaultSort },
         { name: 'Nome', value: 'name, birth_date' },
         { name: 'Data de Nascimento', value: 'birth_date, animal_order' },
         { name: 'Data de Morte', value: 'death_date, animal_order' },
@@ -69,12 +68,12 @@ export const AnimalsTablePage = () => {
             orderProps={{ order, setOrder }}
             sortProps={{ sort, setSort, sortColumns, defaultSort }}
             filterProps={{ anchorEl, setFilterOpen }}
-            reloadProps={{ onReload, loading: loading }}
+            reloadProps={{ onReload, loading }}
         />
         <AnimalsTable {...{ rows, loading, fetchNextPage, scrollRef, foot }} />
         <AnimalsFilter {...{
             anchorEl,
-            isFilterOpen,
+            filterOpen,
             setFilterOpen,
             filter,
             setFilter,
@@ -187,8 +186,8 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
     useEffect(() => {
         setLoading(true)
         Promise.all([
-            searchAnimal({isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL']}),
-            searchAnimal({isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL']}),
+            searchAnimal({ isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL'] }),
+            searchAnimal({ isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL'] }),
         ])
             .then(values => {
                 setMothers(values[0])
@@ -217,18 +216,18 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
         <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'fatherId' }}
-                options={fathers.map(item => ({ 
-                    id: item.id, 
-                    label: [item.ringNumber, item.name].join(' - ') 
+                options={fathers.map(item => ({
+                    id: item.id,
+                    label: [item.ringNumber, item.name].join(' - ')
                 }))}
             />
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'motherId' }}
-                options={mothers.map(item => ({ 
-                    id: item.id, 
-                    label: [item.ringNumber, item.name].join(' - ') 
+                options={mothers.map(item => ({
+                    id: item.id,
+                    label: [item.ringNumber, item.name].join(' - ')
                 }))}
             />
         </TableBodyCell>

@@ -133,7 +133,7 @@ const GroupsTable = ({ reload, loading, setLoading }: GroupsTableProps) => {
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
         <TimerYesNoDialog {...warningProps} />
@@ -195,7 +195,7 @@ const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
                     openYesNo: true,
                     waitTime: 10,
                     title: "ATENÇÃO: Exclusão Data de Cobertura!",
-                    content: `Ao continuar, o registro de ${rowData.cowNumber} coberturas será excluído! ` +
+                    message: `Ao continuar, o registro de ${rowData.cowNumber} coberturas será excluído! ` +
                         "Deseja proceder mesmo assim?",
                     onClose: () => setWarningProps(DefaultTimerWarning),
                     onYes: onDelete
@@ -254,7 +254,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
             openYesNo: true,
             waitTime: 10,
             title: "ATENÇÃO: Edição de grupo!",
-            content: `Ao continuar, o registro de ${rowData.cowNumber} coberturas será modificado. ` +
+            message: `Ao continuar, o registro de ${rowData.cowNumber} coberturas será modificado. ` +
                 "Tem certeza que deseja continuar?",
             onYes: handleSubmit(onSubmit),
             onClose: () => setWarningProps(DefaultTimerWarning)

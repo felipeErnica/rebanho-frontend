@@ -123,7 +123,7 @@ export const EntriesTablePage = () => {
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
         <AddTestDialog {...{ addTestOpen, closeAddTest }} />

@@ -8,6 +8,7 @@ const BASE_URL = "http://localhost:8080/"
 export type APIError = {
     kind: string
     errType: string
+    replacingId?: string
     title: string
     message: string
 }
@@ -117,7 +118,7 @@ export function buildPageParams(
 
 type URLSymbol = "?" | "&"
 
-export function buildFilterParams(filter: IFilters | undefined, symbol?: URLSymbol): string {
+export function buildFilterParams(filter: IFilters | undefined, symbol: URLSymbol): string {
     if (!filter || !filter.isFiltered) return ""
     const filterMap: Record<string, any> = {}
 

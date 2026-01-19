@@ -13,8 +13,8 @@ import {
 import { LactationHist, LactationHistFilter, LactationHistFoot } from "./Entities"
 import {
     deleteLactation,
-    findLongLactationsPage,
-    getLongLactationsPageFoot,
+    findLactationsPage,
+    getLactationsPageFoot,
     updateLactation
 } from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
@@ -35,7 +35,6 @@ import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import { LacHistFilter } from "./LacHistFilter"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { APIError } from "@utils/ApiRequest"
@@ -43,7 +42,7 @@ import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@shared/di
 import { Button } from "@mui/material"
 import BackHand from '@mui/icons-material/BackHand';
 import { EndLactationDialog } from "./EndLactationDialog"
-import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Globals"
+import { DefaultTimerWarning, GROUP_DELETE_TITLE, LONG_LACTATION_DAYS } from "@/components/shared/Globals"
 import { useNavigate } from "react-router"
 import { searchAnimal } from "@features/animals/Service"
 import { Animal, getAnimalFullLabel } from "@features/animals/Entities"
@@ -69,8 +68,6 @@ export const LongLactationsTablePage = () => {
         averageProduction: 0,
     }), [])
 
-    const [filter, setFilter] = useState<LactationHistFilter>({ isFiltered: false })
-    const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [sort, setSort] = useState(defaultSort)
     const [order, setOrder] = useState('asc')
@@ -81,18 +78,21 @@ export const LongLactationsTablePage = () => {
     const [reloadFlag, setReloadFlag] = useState(0)
     const [openEndLactation, setOpenEndLactation] = useState(false)
 
-    const anchorEl = useRef<HTMLButtonElement>(null)
     const menuAnchor = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
-        getLongLactationsPageFoot(filter)
+        const longFilter: LactationHistFilter = { 
+            isFiltered: true, 
+            minLacPeriod: LONG_LACTATION_DAYS,
+            hasEndDate: false
+        }
+        getLactationsPageFoot(longFilter)
             .then(response => setFoot(response))
             .catch(() => setFoot(DEFAULT_FOOT))
-        return findLongLactationsPage(filter, sort, order, cursor)
-    }, [DEFAULT_FOOT, filter, order, sort])
+        return findLactationsPage(longFilter, sort, order, cursor)
+    }, [DEFAULT_FOOT, order, sort])
 
-    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
-    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage, setRows, onReload } = usePagination<LactationHist>({ setLoading, fetchPage })
 
     const closeEndLactation = useCallback((changed?: boolean) => {
         if (changed) setReloadFlag(prev => prev + 1)
@@ -116,7 +116,6 @@ export const LongLactationsTablePage = () => {
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
             reloadProps={{ onReload, loading }}
-            filterProps={{ setFilterOpen, anchorEl }}
             orderProps={{ order, setOrder }}
             sortProps={{ sort, sortColumns, setSort, defaultSort }}
             otherProps={(
@@ -132,10 +131,9 @@ export const LongLactationsTablePage = () => {
         <ErrorContext.Provider value={{ setError, setRows, setWarning }}>
             <LacTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
         </ErrorContext.Provider>
-        <LacHistFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <ErrorDialog
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
             openError={!!error}
         />
@@ -223,7 +221,7 @@ const LacRow = ({ item, loading }: LacRowProps) => {
         openYesNo: true,
         waitTime: 10,
         title: GROUP_DELETE_TITLE,
-        content: `Ao confirmar, todas as marcações da ${rowData.animalName}, dos dias ${dateTransform(rowData.startDate)} ` +
+        message: `Ao confirmar, todas as marcações da ${rowData.animalName}, dos dias ${dateTransform(rowData.startDate)} ` +
             `até ${rowData.endDate ? dateTransform(rowData.endDate) : 'hoje'}, serão excluídas. Deseja continuar?`,
         onClose: () => setWarning(DefaultTimerWarning),
         onYes: deleteLac
@@ -297,7 +295,7 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
                 formProps={{ control, name: 'calfId' }}
                 loading={loadingSearch}
                 options={calves.map(item => ({
-                    id: item.id, 
+                    id: item.id,
                     label: getAnimalFullLabel(item)
                 }))}
             />

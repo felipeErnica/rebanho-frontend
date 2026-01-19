@@ -642,7 +642,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             <ErrorDialog
                 openError={!!error}
                 title={error?.title}
-                content={error?.message}
+                message={error?.message}
                 onClose={() => setError(undefined)}
             />
             <YesNoDialog {...warningProps} />
@@ -717,7 +717,7 @@ const LastEntriesRow = ({ row }: TableRowProp<BreedingEntry>) => {
                     setWarningProps({
                         openYesNo: true,
                         title: error.title,
-                        content: error.message,
+                        message: error.message,
                         onYes: onDeleteAndChangeFather,
                         onClose: () => setWarningProps(DefaultWarning)
                     })
@@ -726,7 +726,7 @@ const LastEntriesRow = ({ row }: TableRowProp<BreedingEntry>) => {
                 setWarningProps({
                     openYesNo: true,
                     title: error.title,
-                    content: error.message,
+                    message: error.message,
                     onYes: onDeleteNoValidation,
                     onClose: () => setWarningProps(DefaultWarning)
                 })
@@ -791,7 +791,7 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<Br
                 setWarningProps({
                     openYesNo: true,
                     title: err.title,
-                    content: err.message,
+                    message: err.message,
                     onClose: () => setWarningProps(DefaultWarning),
                     onYes: handleSubmit(onNoValidation)
                 })
@@ -941,7 +941,7 @@ const LastGroupsTable = ({ reloadFlag, startLoading, stopLoading }: DashboardInf
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
         <AddBreedingDialog {...{ addBreedingOpen, closeAddBreeding, breedingDate }} />

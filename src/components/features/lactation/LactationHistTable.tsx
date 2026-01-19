@@ -45,7 +45,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore"
 import { OptionMenuProps } from "@shared/dashboard/Entities"
 import Add from "@mui/icons-material/Add"
 import { EndLactationDialog } from "./EndLactationDialog"
-import { AddLacDialog } from "./AddLactationDialog"
+import { AddLactationDialog } from "./AddLactationDialog"
 import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Globals"
 import { useNavigate } from "react-router"
 import BackHand from "@mui/icons-material/BackHand"
@@ -77,10 +77,7 @@ export const LactationHistTablePage = () => {
 
     const [filter, setFilter] = useState<LactationHistFilter>(() => {
         const saved = sessionStorage.getItem(STORAGE_KEY)
-        if (saved) {
-            return JSON.parse(saved)
-        }
-
+        if (saved) return JSON.parse(saved)
         return { isFiltered: false }
     })
 
@@ -160,7 +157,7 @@ export const LactationHistTablePage = () => {
         <LacHistFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <ErrorDialog
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
             openError={!!error}
         />
@@ -201,7 +198,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu }: OptionMenuProps) => 
             </MenuItem>
         </Menu>
         <EndLactationDialog {...{ openEndLactation, closeEndLactation }} />
-        <AddLacDialog {...{ openStartLac, closeStartLac }} />
+        <AddLactationDialog {...{ openStartLac, closeStartLac }} />
     </>
 }
 
@@ -284,7 +281,7 @@ const LacRow = ({ item, loading }: LacRowProps) => {
         openYesNo: true,
         waitTime: 10,
         title: GROUP_DELETE_TITLE,
-        content: `Ao confirmar, todas as marcações da ${rowData.animalName}, dos dias ${dateTransform(rowData.startDate)} ` +
+        message: `Ao confirmar, todas as marcações da ${rowData.animalName}, dos dias ${dateTransform(rowData.startDate)} ` +
             `até ${rowData.endDate ? dateTransform(rowData.endDate) : 'hoje'}, serão excluídas. Deseja continuar?`,
         onClose: () => setWarning(DefaultTimerWarning),
         onYes: deleteLac

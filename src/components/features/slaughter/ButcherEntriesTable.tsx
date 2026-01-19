@@ -120,7 +120,7 @@ export const ButcherEntriesTable = ({ butcherId }: ButcherEntriesTableProps) => 
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
     </TablePageContainer>

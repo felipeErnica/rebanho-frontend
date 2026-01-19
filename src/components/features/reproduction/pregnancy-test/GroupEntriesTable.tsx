@@ -126,7 +126,7 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
         <ErrorDialog 
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
     </div>

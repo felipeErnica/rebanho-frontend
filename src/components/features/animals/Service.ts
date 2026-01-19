@@ -30,6 +30,6 @@ export function findAnimals(filter: AnimalFilter, sort: string, order: string, c
 }
 
 export function getAnimalsFoot(filter: AnimalFilter) {
-    const params = buildFilterParams(filter)
-    return apiGet(ANIMAL_BASE + `page/foot${params && `?${params}`}`)
+    const params = buildFilterParams(filter, "?")
+    return apiGet(ANIMAL_BASE + `page/foot${params}`)
 }

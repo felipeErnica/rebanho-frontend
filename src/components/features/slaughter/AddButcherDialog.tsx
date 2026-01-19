@@ -128,7 +128,7 @@ export const AddButcherDialog = ({
         <YesNoDialog
             openYesNo={!!warning}
             title={warning?.title}
-            content={warning?.message}
+            message={warning?.message}
             onClose={() => setWarning(undefined)}
             onYes={handleSubmit(onReplace)}
         />

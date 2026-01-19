@@ -54,12 +54,13 @@ export type Animal = {
     motherId?: string
     birthDate?: Date
     deathDate?: Date
-    pastureName?: string
     animalType: string
     averageProd?: number
     averageProdInterval?: number
     averageBirthInterval?: number
     averagePeak?: number
+    pastureId?: string
+    pastureName?: string
     isInseminationBull?: boolean
     isTransferBull?: boolean
     isBreedingBull?: boolean

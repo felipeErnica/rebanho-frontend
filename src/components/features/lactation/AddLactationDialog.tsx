@@ -1,4 +1,4 @@
-import { DialogActionButtons, DialogContainer } from "@shared/dialog/DialogComponents"
+import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
 import {
     Alert,
     AlertTitle,
@@ -12,29 +12,28 @@ import {
 } from "@mui/material"
 import { useCallback, useEffect, useState } from "react"
 import { addLactation } from "./Service"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { APIError } from "@utils/ApiRequest"
-import { REQUIRED_FIELD_MSG } from "@shared/Globals"
+import { CONFLICT_WARNING, REQUIRED_FIELD_MSG, WARNING_TYPE } from "@shared/Globals"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import { AddLactationStruct } from "./Entities"
+import { LactationSave } from "./Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { Pasture } from "@features/farm-area/Entities"
 import { searchAnimal } from "@features/animals/Service"
 import { searchPastures } from "@features/farm-area/Controller"
-import { Animal, getAnimalFullLabel, getAnimalLabel } from "../animals/Entities"
+import { Animal, getAnimalFullLabel, getAnimalLabel } from "@features/animals/Entities"
 
 type StartLacDialogProps = {
     openStartLac: boolean
     closeStartLac: (changed?: boolean) => void
 }
 
-export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProps) => {
+export const AddLactationDialog = ({ openStartLac, closeStartLac }: StartLacDialogProps) => {
 
     const [error, setError] = useState<APIError>()
+    const [warning, setWarning] = useState<APIError>()
     const [loading, setLoading] = useState(false)
-    const [noBirth, setNoBirth] = useState(false)
-    const [noPasture, setNoPasture] = useState(false)
     const [changed, setChanged] = useState(false)
 
     const [loadingSearch, setLoadingSearch] = useState(false)
@@ -70,17 +69,39 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
             .finally(() => setLoadingSearch(false))
     }, [])
 
-    const { control, handleSubmit, reset } = useForm<AddLactationStruct>()
+    const { control, handleSubmit, reset, setValue } = useForm<LactationSave>({
+        defaultValues: {
+            transferPasture: false,
+            overwrite: false,
+            noBirth: false,
+            noPasture: false
+        }
+    })
 
-    const onSubmit = useCallback((data: AddLactationStruct) => {
+    const noBirth = useWatch({ control, name: 'noBirth' })
+    const noPasture = useWatch({ control, name: 'noPasture' })
+
+    const onSubmit = useCallback((data: LactationSave) => {
         setLoading(true)
         addLactation(data)
             .then(() => {
-                reset({ startDate: data.startDate, pastureId: data.pastureId })
+                reset({
+                    startDate: data.startDate,
+                    pastureId: data.pastureId,
+                    transferPasture: false,
+                    overwrite: false
+                })
                 setChanged(true)
                 setError(undefined)
+                setWarning(undefined)
             })
-            .catch(error => setError(error))
+            .catch((err: APIError) => {
+                if (err.errType === WARNING_TYPE) {
+                    setWarning(err)
+                    return
+                }
+                setError(err)
+            })
             .finally(() => setLoading(false))
     }, [reset])
 
@@ -109,25 +130,23 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                 <div className="flex flex-col">
                     <FormSearchBox
                         label="Pasto"
+                        formProps={{
+                            control,
+                            name: 'pastureId',
+                            disabled: noPasture
+                        }}
                         loading={loadingSearch}
                         options={pastures.map(item => ({
                             id: item.id,
                             label: item.name
                         }))}
-                        className="w-[400px]"
-                        formProps={{
-                            control,
-                            disabled: noPasture,
-                            name: 'pastureId',
-                            rules: { required: REQUIRED_FIELD_MSG }
-                        }}
                     />
                     <FormControlLabel
                         label="Sem mudança de Lote"
                         control={(
                             <Checkbox
                                 checked={noPasture}
-                                onChange={() => setNoPasture(prev => !prev)}
+                                onChange={(_, checked) => setValue('noPasture', checked)}
                             />
                         )}
                     />
@@ -168,7 +187,7 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                         control={(
                             <Checkbox
                                 checked={noBirth}
-                                onChange={() => setNoBirth(prev => !prev)}
+                                onChange={(_, checked) => setValue('noBirth', checked)}
                             />
                         )}
                     />
@@ -194,6 +213,22 @@ export const AddLacDialog = ({ openStartLac, closeStartLac }: StartLacDialogProp
                 }}
             />
         </DialogActions>
+        <YesNoDialog
+            openYesNo={!!warning}
+            title={warning.title}
+            message={warning.message}
+            onClose={() => setWarning(undefined)}
+            onYes={() => {
+                if (warning.kind == CONFLICT_WARNING) {
+                    setValue('id', warning.replacingId)
+                    setValue('overwrite', true)
+                }
+                if (warning.kind == "PastureWarning") {
+                    setValue('transferPasture', true)
+                }
+                onSave()
+            }}
+        />
     </Dialog>
 
 }

@@ -14,14 +14,18 @@ export type LactationHist = {
     observation?: string
 }
 
-export type AddLactationStruct = {
+export type LactationSave = {
     id?: string
     animalId?: string
-    pastureId?: string
     startDate?: Date
     calfId?: string
     endDate?: Date
+    pastureId?: string
     observation?: string
+    overwrite: boolean
+    transferPasture: boolean
+    noPasture: boolean
+    noBirth: boolean
 }
 
 export type LactationHistFilter = {

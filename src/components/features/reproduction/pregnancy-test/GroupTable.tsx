@@ -65,7 +65,7 @@ export const GroupTablePage = () => {
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
     </div>
@@ -152,7 +152,7 @@ const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
                     openYesNo: true,
                     waitTime: 10,
                     title: 'ATENÇÃO: Exclusão de Grupo!',
-                    content: `Ao excluir este grupo, o toque de ${rowData.animalsNumber} animais serão excluídos! Deseja continuar?`,
+                    message: `Ao excluir este grupo, o toque de ${rowData.animalsNumber} animais serão excluídos! Deseja continuar?`,
                     onYes: () => {
                         setWarningProps(DefaultTimerWarning)
                         onDelete()
@@ -210,7 +210,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
             openYesNo: true,
             waitTime: 10,
             title: "ATENÇÃO: Edição de Grupo",
-            content: "Tem certeza que deseja editar este grupo?" +
+            message: "Tem certeza que deseja editar este grupo?" +
                 `\n\nIMPORTANTE: Ao confirmar, as datas de toque de ${rowData.animalsNumber} vacas serão modificadas!`,
             onYes: handleSubmit(onSubmit),
             onClose: () => {

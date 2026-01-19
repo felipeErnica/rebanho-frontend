@@ -80,7 +80,7 @@ export const GroupsTablePage = () => {
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
         <AddInseminationDialog {...{ addInseminationOpen, inseminationDate, closeAddInsemination }} />
@@ -191,7 +191,7 @@ const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
                         openYesNo: true,
                         waitTime: 10,
                         title: "ATENÇÃO: Exclusão em grupo!",
-                        content: `Ao continuar, os registros de inseminação de ${rowData.cowNumber} vacas serão excluídos. ` +
+                        message: `Ao continuar, os registros de inseminação de ${rowData.cowNumber} vacas serão excluídos. ` +
                             "Tem certeza que deseja continuar?" +
                             "\n\nIMPORTANTE: Ao continuar, todos os bezerros ligados a estes registros de inseminação trocarão de " +
                             "pai!",
@@ -263,7 +263,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
             openYesNo: true,
             waitTime: 10,
             title: "ATENÇÃO: Edição de grupo!",
-            content: `Ao continuar, a data de inseminação de ${rowData.cowNumber} vacas será modificada. ` +
+            message: `Ao continuar, a data de inseminação de ${rowData.cowNumber} vacas será modificada. ` +
                 "Tem certeza que deseja continuar?",
             onYes: handleSubmit(onSubmit),
             onClose: () => setWarningProps(DefaultTimerWarning)

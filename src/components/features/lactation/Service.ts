@@ -1,7 +1,16 @@
-import { apiDelete, apiGet, apiPost, apiPut, buildFilterParams, buildPageCall, buildPageParams } from "@utils/ApiRequest"
-import { AddLactationStruct,  LactationHist, LactationHistFilter } from "./Entities";
+import { 
+    apiDelete, 
+    apiGet, 
+    apiPost, 
+    apiPut, 
+    buildFilterParams, 
+    buildPageCall, 
+    buildPageParams 
+} from "@utils/ApiRequest"
+import { LactationSave,  LactationHistFilter } from "./Entities";
+import { LONG_LACTATION_DAYS } from "@/components/shared/Globals";
 
-export const DASHBOARD_BASE = "lactation/dashboard/"
+export const DASHBOARD_BASE = "lactation/stats/"
 export const LAC_BASE = "lactation/"
 
 export function getLastMilk() {
@@ -53,7 +62,7 @@ export function getDairyTypes() {
 }
 
 export function getLongLactations() {
-    return apiGet(DASHBOARD_BASE + 'long-lactations')
+    return apiGet(DASHBOARD_BASE + `long-lactations?lacPeriod=${LONG_LACTATION_DAYS}`)
 }
 
 export function findLactationsPage(
@@ -101,20 +110,20 @@ export function searchCalfs() {
     return apiGet(LAC_BASE + "search-calfs")
 }
 
-export function updateEndDate(data: AddLactationStruct) {
+export function updateEndDate(data: LactationSave) {
     return apiPut(LAC_BASE + `end-lac`, data)
 }
 
-export function updateLactation(data: LactationHist) {
-    return apiPut(LAC_BASE + "update", data)
+export function updateLactation(data: LactationSave) {
+    return apiPut(LAC_BASE, data)
 }
 
 export function deleteLactation(id: string) {
     return apiDelete(LAC_BASE + `delete/${id}`)
 }
 
-export function addLactation(entry: AddLactationStruct) {
-    return apiPut(LAC_BASE + "add", entry)
+export function addLactation(entry: LactationSave) {
+    return apiPut(LAC_BASE, entry)
 }
 
 export function findLacAnimalsPage(

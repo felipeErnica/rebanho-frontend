@@ -64,11 +64,18 @@ import {
     LineChart,
     PieChart,
 } from "@mui/x-charts"
-import { DefaultTimerWarning, GROUP_DELETE_TITLE, GROUP_UPDATE_TITLE, LOADING_MSG, LONG_LACTATION_DAYS, NO_DATA_AVAILABLE } from "@shared/Globals"
+import { 
+    DefaultTimerWarning, 
+    GROUP_DELETE_TITLE, 
+    GROUP_UPDATE_TITLE, 
+    LOADING_MSG, 
+    LONG_LACTATION_DAYS, 
+    NO_DATA_AVAILABLE 
+} from "@shared/Globals"
 import { green, yellow } from "@mui/material/colors"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import { EndLactationDialog } from "./EndLactationDialog"
-import { AddLacDialog } from "./AddLactationDialog"
+import { AddLactationDialog } from "./AddLactationDialog"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
@@ -185,7 +192,7 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
         </Menu>
         <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose }} />
         <EndLactationDialog {...{ openEndLactation, closeEndLactation }} />
-        <AddLacDialog {...{ openStartLac, closeStartLac }} />
+        <AddLactationDialog {...{ openStartLac, closeStartLac }} />
     </>
 }
 
@@ -495,7 +502,7 @@ const LastGroupsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
         <TimerYesNoDialog {...warning} />
@@ -539,7 +546,7 @@ const GroupsRow = ({ item }: GroupsRowProps) => {
             openYesNo: true,
             waitTime: 10,
             title: GROUP_DELETE_TITLE,
-            content: `Ao confirmar, ${rowData.animalsNumber} registros de leite serão excluídos!`,
+            message: `Ao confirmar, ${rowData.animalsNumber} registros de leite serão excluídos!`,
             onClose: () => setWarning(DefaultTimerWarning),
             onYes: () => deleteGroup()
         })
@@ -611,7 +618,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
         setWarning({
             openYesNo: true,
             title: GROUP_UPDATE_TITLE,
-            content: `Ao confirmar, ${rowData.animalsNumber} registros terão a data modificada! Deseja continuar?`,
+            message: `Ao confirmar, ${rowData.animalsNumber} registros terão a data modificada! Deseja continuar?`,
             waitTime: 10,
             onYes: handleSubmit(onSubmit),
             onClose: () => setWarning(DefaultTimerWarning),

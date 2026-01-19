@@ -59,7 +59,7 @@ export const BirthTablePage = () => {
     const defaultWarning: YesNoDialogProps = useMemo(() => ({
         openYesNo: false,
         title: undefined,
-        content: undefined,
+        message: undefined,
         onYes: undefined,
         onClose: undefined
     }), [])
@@ -129,7 +129,7 @@ export const BirthTablePage = () => {
             openError={!!error}
             onClose={() => setError(undefined)}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
         />
         <YesNoDialog {...warningProps} />
         <AddBirthDialog {...{ addBirthOpen, closeBirthDialog }} />
@@ -216,7 +216,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
                 setWarningProps({
                     openYesNo: true,
                     title: error.title,
-                    content: error.message,
+                    message: error.message,
                     onYes: onDeleteNoValidation,
                     onClose: () => setWarningProps(defaultWarning)
                 })

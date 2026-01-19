@@ -16,7 +16,7 @@
     import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
     import { APIError } from "@utils/ApiRequest"
     import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-    import { AddLactationStruct } from "./Entities"
+    import { LactationSave } from "./Entities"
 import { REQUIRED_FIELD_MSG } from "@shared/Globals"
 import { searchAnimal } from "../animals/Service"
 import { searchPastures } from "../farm-area/Controller"
@@ -61,9 +61,9 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
             .finally(() => setLoadingSearch(false))
     }, [])
 
-    const { control, handleSubmit, reset } = useForm<AddLactationStruct>()
+    const { control, handleSubmit, reset } = useForm<LactationSave>()
 
-    const onSubmit = useCallback((data: AddLactationStruct) => {
+    const onSubmit = useCallback((data: LactationSave) => {
         setLoading(true)
         updateEndDate(data)
             .then(() => {

@@ -113,7 +113,7 @@ export const BirthTestDashboard = () => {
         <ErrorDialog
             openError={!!error}
             title={error?.title}
-            content={error?.message}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
     </DashboardContainer>

@@ -109,7 +109,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
 
                 setWarningProps({
                     title: error.title,
-                    content: error.message,
+                    message: error.message,
                     openYesNo: true,
                     onYes: () => onTransfer(data),
                     onClose: () => setWarningProps(DefaultWarning)
@@ -136,7 +136,7 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
                 const commonWarning: YesNoDialogProps = {
                     openYesNo: true,
                     title: err.title,
-                    content: err.message,
+                    message: err.message,
                     onClose: () => setWarningProps(DefaultWarning),
                     onYes: undefined,
                 }

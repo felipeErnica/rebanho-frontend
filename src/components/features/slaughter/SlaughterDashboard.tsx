@@ -377,7 +377,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             <ErrorDialog
                 openError={!!error}
                 title={error?.title}
-                content={error?.message}
+                message={error?.message}
                 onClose={() => setError(undefined)}
             />
         </div>
