@@ -81,7 +81,7 @@ export const TableHeadControlCell = ({ children, colSpan, className, width, alig
     return <TableCell
         className={`bg-gray-700 border-none text-white text-nowrap ${className}`}
         colSpan={colSpan}
-        sx={{ width: width ?? 200}}
+        sx={{ width: width ?? 200 }}
         align={align}
     >
         {children}
@@ -335,4 +335,15 @@ export function TablePageBody<T>({ dataset, render, loading, colSpan }: TablePag
     }
 
     return dataset.map(render)
+}
+
+type VirtuosoRowRenderProps = {
+    render: () => ReactNode | ReactNode[]
+    loading: boolean
+    colSpan: number
+}
+
+export function VirtuosoRowRender({ render, loading, colSpan }: VirtuosoRowRenderProps) {
+    if (loading) return <TableLoadingCells colSpan={colSpan} />
+    return render()
 }

@@ -1,38 +1,22 @@
+import { OptionMenuProps } from "@/components/shared/dashboard/Entities"
+import { AddBullDialog } from "@features/animals/AddBullDialog"
+import Add from "@mui/icons-material/Add"
+import ChevronRight from "@mui/icons-material/ChevronRight"
+import ExpandMore from "@mui/icons-material/ExpandMore"
 import {
-    CardChartContent,
-    CardDefaultTitle,
-    DashboardCard,
-    DashboardContainer,
-    DashboardInfoContainer,
-    DashboardTableBody,
-    DashboardTopContainer,
-    TrendComponent
-} from "@shared/dashboard/DashboardComponents"
-import { 
-    createContext, 
-    Dispatch, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useMemo, 
-    useRef, 
-    useState 
-} from "react"
-import {
-    BirthRateStats,
-    InseminationBulls,
-    InseminationEntry,
-    InseminationGroup,
-    InseminationHist,
-    InseminationStatusColorMap,
-    InseminationStatusMap,
-    PregnancyRateStats,
-    AnimalsNumberEntry,
-    LastEntry,
-    FutureBirthsEntry,
-    InseminationEntrySave
-} from "./Entities"
+    Button,
+    Chip,
+    Divider,
+    ListItemIcon,
+    Menu,
+    MenuItem,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+} from "@mui/material"
+import { orange, yellow } from "@mui/material/colors"
 import {
     BarPlot,
     ChartDataProvider,
@@ -47,57 +31,72 @@ import {
     SparkLineChart
 } from "@mui/x-charts"
 import {
+    CardChartContent,
+    CardDefaultTitle,
+    DashboardCard,
+    DashboardContainer,
+    DashboardInfoContainer,
+    DashboardTableBody,
+    DashboardTopContainer,
+    TrendComponent
+} from "@shared/dashboard/DashboardComponents"
+import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
+import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
+import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
+import { DefaultWarning, ERROR_TYPE, LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
+import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
+import { EditRowProps, TableRowProp } from "@shared/table/Entities"
+import { ReloadButton } from "@shared/table/TableTopBarComponents"
+import { APIError } from "@utils/ApiRequest"
+import { CardEntry } from "@utils/Entities"
+import { dateToISO, dateTransform, percentageTransform } from "@utils/Transformations"
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react"
+import { SubmitHandler, useForm } from "react-hook-form"
+import { useNavigate } from "react-router"
+import { AddInseminationBullDialog } from "./AddInseminationBull"
+import { AddInseminationDialog } from "./AddInseminationDialog"
+import {
+    AnimalsNumberEntry,
+    BirthRateHist,
+    BirthRateStats,
+    FutureBirthsEntry,
+    InseminationBulls,
+    InseminationEntry,
+    InseminationEntryDelete,
+    InseminationEntrySave,
+    InseminationGroup,
+    InseminationHist,
+    InseminationStatusColorMap,
+    InseminationStatusMap,
+    PregnancyRateHist,
+    PregnancyRateStats
+} from "./Entities"
+import {
+    deleteInsemination,
+    getAnimalsNumber,
+    getBestBulls,
     getBirthRateStats,
+    getFutureBirths,
     getInseminationHist,
     getLastEntries,
     getLastGroups,
     getPregnancyRateStats,
-    getAnimalsNumber,
-    getFutureBirths,
-    getBestBulls,
-    deleteInsemination,
-    deleteNoValidate,
-    deleteAndChangeFather,
     searchInseminationBulls,
     updateInsemination,
-    updateNoValidation
-} from "./Controller"
-import { ERROR_TYPE, LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
-import {
-    Button,
-    Chip,
-    Divider,
-    ListItemIcon,
-    Menu,
-    MenuItem,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-} from "@mui/material"
-import { dateTransform, percentageTransform } from "@utils/Transformations"
-import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import ChevronRight from "@mui/icons-material/ChevronRight"
-import { useNavigate } from "react-router"
-import { ReloadButton } from "@shared/table/TableTopBarComponents"
-import { AddInseminationDialog } from "./AddInseminationDialog"
-import Add from "@mui/icons-material/Add"
-import { orange, yellow } from "@mui/material/colors"
-import { CardEntry } from "@utils/Entities"
-import { EditRowProps, TableRowProp } from "@shared/table/Entities"
-import { APIError } from "@utils/ApiRequest"
-import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
-import { SubmitHandler, useForm } from "react-hook-form"
-import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import ExpandMore from "@mui/icons-material/ExpandMore"
-import { AddBullDialog } from "@features/animals/AddBullDialog"
-import { AddInseminationBullDialog } from "./AddInseminationBull"
-import { OptionMenuProps } from "@/components/shared/dashboard/Entities"
+} from "./Service"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
 
 type ErrorDialogContextProps = {
-    defaultWarning: YesNoDialogProps
     setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
     setError: Dispatch<SetStateAction<APIError | undefined>>
     setReload: () => void
@@ -107,16 +106,8 @@ const ErrorDialogContext = createContext<ErrorDialogContextProps>(undefined!)
 
 export const InseminationDasboard = () => {
 
-    const defaultWarning: YesNoDialogProps = {
-        openYesNo: false,
-        title: undefined,
-        message: undefined,
-        onYes: undefined,
-        onClose: undefined
-    }
-
     const [error, setError] = useState<APIError>()
-    const [warningProps, setWarningProps] = useState<YesNoDialogProps>(defaultWarning)
+    const [warningProps, setWarningProps] = useState<YesNoDialogProps>(DefaultWarning)
     const [reloadFlag, setReloadFlag] = useState(0)
     const [activeRequests, setActiveRequests] = useState(0)
 
@@ -126,7 +117,7 @@ export const InseminationDasboard = () => {
 
     return <DashboardContainer>
         <DashboardToolbar {...{ setReloadFlag, activeRequests }} />
-        <ErrorDialogContext.Provider value={{ setWarningProps, setError, defaultWarning, setReload }}>
+        <ErrorDialogContext.Provider value={{ setWarningProps, setError, setReload }}>
             <DashboardInformation {...{ reloadFlag, startLoading, stopLoading }} />
         </ErrorDialogContext.Provider>
         <ErrorDialog
@@ -162,7 +153,7 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
         >
             Opções
         </Button>
-        <OptionsMenu 
+        <OptionsMenu
             openMenu={openMenu}
             menuAnchorEl={menuAnchorEl}
             closeMenu={() => setOpenMenu(false)}
@@ -266,13 +257,13 @@ const DashboardInformation = ({ reloadFlag, stopLoading, startLoading }: Dashboa
 
 const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInformationProps) => {
 
-    const defaultValues = useMemo((): BirthRateStats => ({
+    const defaultValues = useMemo((): CardEntry<BirthRateHist> => ({
         hist: [],
         trend: 0,
         current: 0
     }), [])
 
-    const [data, setData] = useState<BirthRateStats>(defaultValues)
+    const [data, setData] = useState<CardEntry<BirthRateHist>>(defaultValues)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -305,7 +296,7 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
                         data: data.hist.map(item => new Date(item.inseminationDate)),
                         domainLimit: 'strict',
                         scaleType: 'time',
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' })
+                        valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
             )}
@@ -315,13 +306,13 @@ const BirthRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInfor
 
 const PregnancyRateCard = ({ reloadFlag, startLoading, stopLoading }: DashboardInformationProps) => {
 
-    const defaultValues = useMemo((): PregnancyRateStats => ({
+    const defaultValues = useMemo((): CardEntry<PregnancyRateHist> => ({
         hist: [],
         trend: 0,
         current: 0
     }), [])
 
-    const [data, setData] = useState<PregnancyRateStats>(defaultValues)
+    const [data, setData] = useState<CardEntry<PregnancyRateHist>>(defaultValues)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -399,7 +390,7 @@ const AnimalsNumbersCard = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                     showTooltip
                     xAxis={{
                         data: data.hist.map(item => new Date(item.inseminationDate)),
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' }),
+                        valueFormatter: (value: Date) => dateTransform(value),
                         domainLimit: 'strict',
                         scaleType: 'time',
                     }}
@@ -586,30 +577,31 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     const [data, setData] = useState<InseminationEntry[]>([])
     const [loading, setLoading] = useState(false)
     const [inseminationDate, setInseminationDate] = useState(new Date())
-    const [lastDate, setLastDate] = useState('Sem dados')
     const navigate = useNavigate()
 
     useEffect(() => {
         startLoading()
         setLoading(true)
         getLastEntries()
-            .then(response => {
-                const lastEntry: LastEntry = response
-                const lastInsemination = new Date(lastEntry.inseminationDate)
+            .then((response: InseminationEntry[]) => {
+                const lastInsemination = new Date(response[0].inseminationDate)
                 setInseminationDate(lastInsemination)
-                setLastDate(lastInsemination.toLocaleString('pt-BR', { dateStyle: 'short' }))
-                setData(lastEntry.entries)
+                setData(response)
             })
             .catch(() => {
                 setData([])
                 setInseminationDate(new Date())
-                setLastDate('Sem dados')
             })
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
     }, [reloadFlag, startLoading, stopLoading])
+
+    const lastDate = useMemo(() => {
+        if (!inseminationDate) return "Sem Dados"
+        return dateTransform(inseminationDate)
+    }, [inseminationDate])
 
     return <DashboardCard className="row-span-2">
         <div className="flex flex-row">
@@ -640,10 +632,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         <Button
             className="ml-auto"
             startIcon={<ChevronRight />}
-            onClick={() => {
-                const dateStr = inseminationDate.toISOString().split('T')[0]
-                navigate(`groups/${dateStr}`)
-            }}
+            onClick={() => navigate(`groups/${dateToISO(inseminationDate)}`)}
         >
             Ver Mais...
         </Button>
@@ -655,41 +644,22 @@ const LastEntriesRow = ({ row }: TableRowProp<InseminationEntry>) => {
     const [loading, setLoading] = useState(false)
     const [editing, setEditing] = useState(false)
     const [rowData, setRowData] = useState(row)
+    const [params, setParams] = useState<InseminationEntryDelete>({
+        id: row.id,
+        ignorePregnancy: false,
+        changeFather: false,
+    })
 
-    const { setError, setWarningProps, setReload, defaultWarning } = useContext(ErrorDialogContext)
+    const { setError, setWarningProps, setReload } = useContext(ErrorDialogContext)
 
     useEffect(() => setRowData(row), [row])
 
-    const onDeleteNoValidation = useCallback(() => {
-        setLoading(true)
-        deleteNoValidate(row.id)
-            .then(() => {
-                setError(undefined)
-                setWarningProps(defaultWarning)
-                setReload()
-            })
-            .catch(err => setError(err))
-            .finally(() => setLoading(false))
-    }, [defaultWarning, row.id, setError, setReload, setWarningProps])
-
-    const onDeleteAndChangeFather = useCallback(() => {
-        setLoading(true)
-        deleteAndChangeFather(row.id)
-            .then(() => {
-                setError(undefined)
-                setWarningProps(defaultWarning)
-                setReload()
-            })
-            .catch(err => setError(err))
-            .finally(() => setLoading(false))
-    }, [defaultWarning, row.id, setError, setReload, setWarningProps])
-
     const onDelete = useCallback(() => {
         setLoading(true)
-        deleteInsemination(row.id)
+        deleteInsemination(params)
             .then(() => {
                 setError(undefined)
-                setWarningProps(defaultWarning)
+                setWarningProps(DefaultWarning)
                 setReload()
             })
             .catch((err: APIError) => {
@@ -697,25 +667,32 @@ const LastEntriesRow = ({ row }: TableRowProp<InseminationEntry>) => {
                     setError(err)
                     return
                 }
+
                 if (err.kind === "ChildreWarning") {
                     setWarningProps({
                         openYesNo: true,
                         title: err.title,
                         message: err.message,
-                        onYes: onDeleteAndChangeFather,
-                        onClose: () => setWarningProps(defaultWarning)
+                        onYes: () => {
+                            setParams(params => ({ ...params, changeFather: true }))
+                            onDelete()
+                        },
+                        onClose: () => setWarningProps(DefaultWarning)
                     })
                 }
                 setWarningProps({
                     openYesNo: true,
                     title: err.title,
                     message: err.message,
-                    onYes: onDeleteNoValidation,
-                    onClose: () => setWarningProps(defaultWarning)
+                    onYes: () => {
+                        setParams(params => ({ ...params, ignorePregnancy: true }))
+                        onDelete()
+                    },
+                    onClose: () => setWarningProps(DefaultWarning)
                 })
             })
             .finally(() => setLoading(false))
-    }, [defaultWarning, onDeleteAndChangeFather, onDeleteNoValidation, row.id, setError, setReload, setWarningProps])
+    }, [params, setError, setReload, setWarningProps])
 
     if (editing) return <EntriesRowEditing {...{ setEditing, setRowData, rowData }} />
 
@@ -745,9 +722,11 @@ const LastEntriesRow = ({ row }: TableRowProp<InseminationEntry>) => {
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<InseminationEntry>) => {
 
     const [loading, setLoading] = useState(false)
-    const { setError, setWarningProps, defaultWarning } = useContext(ErrorDialogContext)
+    const [bulls, setBulls] = useState<Animal[]>([])
 
-    const { control, handleSubmit } = useForm<InseminationEntrySave>({
+    const { setError, setWarningProps } = useContext(ErrorDialogContext)
+
+    const { control, handleSubmit, setValue } = useForm<InseminationEntrySave>({
         defaultValues: {
             id: rowData.id,
             animalId: rowData.animalId,
@@ -757,21 +736,11 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<Ins
         }
     })
 
-    const onUpdateNoValidation: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
-        setLoading(true)
-        updateNoValidation(data)
-            .then((response: InseminationEntry) => {
-                setRowData(response)
-                setError(undefined)
-                setWarningProps(defaultWarning)
-            })
-            .catch(err => setError(err))
-            .finally(() => {
-                setLoading(false)
-                setEditing(false)
-                setWarningProps(defaultWarning)
-            })
-    }
+    useEffect(() => {
+        searchInseminationBulls()
+            .then(resp => setBulls(resp))
+            .catch(() => setBulls([]))
+    }, [])
 
     const onUpdate: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
         setLoading(true)
@@ -779,20 +748,25 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<Ins
             .then((response: InseminationEntry) => {
                 setRowData(response)
                 setError(undefined)
-                setWarningProps(defaultWarning)
+                setWarningProps(DefaultWarning)
             })
             .catch((err: APIError) => {
                 if (err.errType === ERROR_TYPE) {
                     setError(err)
                     return
                 }
+
                 setWarningProps({
                     openYesNo: true,
                     title: err.title,
                     message: err.message,
-                    onYes: handleSubmit(onUpdateNoValidation),
-                    onClose: () => setWarningProps(defaultWarning)
+                    onYes: () => {
+                        setValue('ignoreWarnings', true)
+                        handleSubmit(onUpdate)
+                    },
+                    onClose: () => setWarningProps(DefaultWarning)
                 })
+
             })
             .finally(() => {
                 setLoading(false)
@@ -812,8 +786,11 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<Ins
         </TableCell>
         <TableCell width={400}>
             <FormSearchBox
+                options={bulls.map(item => ({
+                    id: item.id,
+                    label: getAnimalLabel(item)
+                }))}
                 formProps={{ control, name: 'bullId' }}
-                searchOptions={searchInseminationBulls}
             />
         </TableCell>
         <TableCell>

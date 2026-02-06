@@ -30,6 +30,8 @@ export type MilkEntrySave = {
     pastureId?: string
     entryDate?: Date
     quantity: number
+    overwrite: boolean
+    transferPasture: boolean
 }
 
 export type LactationGroup = {

@@ -6,52 +6,52 @@ import {
     DashboardInfoContainer,
     DashboardTableBody,
     DashboardTopContainer
-} from "@/components/shared/dashboard/DashboardComponents"
+} from "@shared/dashboard/DashboardComponents"
 import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
-import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@/components/shared/dashboard/Entities"
+import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@shared/dashboard/Entities"
 import { CardEntry } from "@/utils/Entities"
-import { ReloadButton } from "@/components/shared/table/TableTopBarComponents"
+import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import { AnimalByType, AnimalsByAge, AnimalsNumberHist } from "./Entities"
 import { getAgeAndSex, getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getLastDeaths, getSlaughterHist } from "./Service"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { dateToISO, dateTransform, decimalTransform, percentageTransform, positiveTransform, transformWeight } from "@/utils/Transformations"
 import { green, lightBlue, pink, purple, red, yellow } from "@mui/material/colors"
 import { BarChart, PieChart } from "@mui/x-charts"
-import { LOADING_MSG, LONG_LACTATION_DAYS, NO_DATA_AVAILABLE } from "@/components/shared/Globals"
-import { ComboBox, ComboBoxItem } from "@/components/shared/common/ComboBox"
-import { getLastBirths } from "@features/reproduction/births/Controller"
-import { BirthEntry } from "@features/reproduction/births/Entities"
+import { LOADING_MSG, LONG_LACTATION_DAYS, NO_DATA_AVAILABLE } from "@shared/Globals"
+import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
+import { getLastBirths } from "@/components/features/births/Service"
+import { BirthEntry } from "@/components/features/births/Entities"
 import Table from "@mui/material/Table"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import TableBody from "@mui/material/TableBody"
-import { MilkEntry } from "@features/lactation/milk-tables/Entities"
+import { MilkEntry } from "@features/milk/Entities"
 import { useNavigate } from "react-router"
-import { getLastLac, getLongLactations } from "@/components/features/lactation/Service"
-import { deleteMilkEntry } from "@/components/features/lactation/milk-tables/Service"
+import { getLactationsPageFoot } from "@features/lactation/Service"
+import { deleteMilkEntry, getLastEntries } from "@features/milk/Service"
 import Button from "@mui/material/Button"
 import Add from "@mui/icons-material/Add"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { AddMilkEntryDialog } from "@features/lactation/milk-tables/AddMilkEntryDialog"
-import { EditRowProps, TableRowProp } from "@/components/shared/table/Entities"
-import { EditControlButtons, EditingControlButtons } from "@/components/shared/table/ControlButtons"
+import { AddMilkEntryDialog } from "@features/milk/AddMilkEntryDialog"
+import { EditRowProps, TableRowProp } from "@shared/table/Entities"
+import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { FormTextField } from "@/components/shared/form-controls/FormTextField"
+import { FormTextField } from "@shared/form-controls/FormTextField"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import Menu from "@mui/material/Menu"
 import MenuItem from "@mui/material/MenuItem"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import Divider from "@mui/material/Divider"
-import { AddBirthDialog } from "@/components/features/reproduction/births/AddBirthDialog"
+import { AddBirthDialog } from "@/components/features/births/AddBirthDialog"
 import { AddCowDialog } from "@features/animals/AddCowDialog"
 import { AddBullDialog } from "@features/animals/AddBullDialog"
 import { SlaughterEntry, SlaughterEntrySave } from "@features/slaughter/Entities"
 import { APIError } from "@/utils/ApiRequest"
-import { ErrorDialog } from "@/components/shared/dialog/DialogComponents"
+import { ErrorDialog } from "@shared/dialog/DialogComponents"
 import { deleteSlaughter, getLastSlaughter, updateSlaughter } from "@features/slaughter/Controller"
-import { NextBirths } from "@features/reproduction/pregnancy-test/Entities"
-import { getNextBirths } from "@features/reproduction/pregnancy-test/Controller"
+import { NextBirths } from "@/components/features/pregnancy-test/Entities"
+import { getNextBirths } from "@/components/features/pregnancy-test/Service"
 import { Animal, transformAnimalType } from "@features/animals/Entities"
 import { LactationHistFoot } from "@features/lactation/Entities"
 import { Alert, AlertTitle, Collapse } from "@mui/material"
@@ -157,10 +157,10 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 </ListItemIcon>
                 Tabela de Animais
             </MenuItem>
-            <AddBirthDialog {...{ closeBirthDialog, addBirthOpen }} />
-            <AddCowDialog {...{ addCowOpen, closeAddCow }} />
-            <AddBullDialog {...{ addBullOpen, closeAddBull }} />
         </Menu>
+        <AddBirthDialog {...{ closeBirthDialog, addBirthOpen }} />
+        <AddCowDialog {...{ addCowOpen, closeAddCow }} />
+        <AddBullDialog {...{ addBullOpen, closeAddBull }} />
     </>
 }
 
@@ -196,7 +196,11 @@ const LongLactationAlert = ({ startLoading, stopLoading, reloadFlag }: Dashboard
 
     useEffect(() => {
         startLoading()
-        getLongLactations()
+        getLactationsPageFoot({
+            isFiltered: true,
+            minLacPeriod: LONG_LACTATION_DAYS,
+            hasEndDate: false
+        })
             .then(res => {
                 setData(res)
                 setOpen(res.totalLacs > 0)
@@ -266,7 +270,7 @@ const BirthsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
         />
         <Button
             className="mr-auto"
-            onClick={() => navigate('reproduction/births')}
+            onClick={() => navigate('births')}
             endIcon={<ChevronRight />}
         >
             Ver Mais...
@@ -533,7 +537,7 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
         <Button
             className="ml-auto"
             endIcon={<ChevronRight />}
-            onClick={() => navigate('/main/reproduction/births/entries')}
+            onClick={() => navigate('/main/births/entries')}
         >
             Ver Mais...
         </Button>
@@ -788,7 +792,7 @@ const LastLacTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInform
     useEffect(() => {
         startLoading()
         setLoading(true)
-        getLastLac()
+        getLastEntries()
             .then(response => {
                 const entries: MilkEntry[] = response
                 const entryDate = new Date(entries[0].entryDate ?? '')
@@ -1036,7 +1040,7 @@ const NextBirthsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
         <Button
             className="ml-auto"
             endIcon={<ChevronRight />}
-            onClick={() => navigate('/main/reproduction/birth-test')}
+            onClick={() => navigate('/main/birth-test')}
         >
             Ver Mais...
         </Button>

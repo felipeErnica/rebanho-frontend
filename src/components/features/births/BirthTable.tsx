@@ -18,11 +18,10 @@ import {
     useCallback,
     useContext,
     useEffect,
-    useMemo,
     useRef,
     useState
 } from "react"
-import { deleteBirth, deleteBirthNoValidation, findBirthsPage, findBirthsPageFooter, updateBirth } from "./Controller"
+import { deleteBirth, findBirthsPage, findBirthsPageFooter, updateBirth } from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { BirthEntry, BirthEntryFilter, BirthEntrySave, BirthFooter } from "./Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
@@ -38,14 +37,15 @@ import { Button } from "@mui/material"
 import Add from "@mui/icons-material/Add"
 import { APIError } from "@utils/ApiRequest"
 import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
-import { ERROR_TYPE } from "@shared/Globals"
+import { DefaultWarning, ERROR_TYPE } from "@shared/Globals"
 import { AddBirthDialog } from "./AddBirthDialog"
-import { FormTextField } from "@/components/shared/form-controls/FormTextField"
+import { FormTextField } from "@shared/form-controls/FormTextField"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
+import { searchAnimal } from "@features/animals/Service"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
     setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
-    defaultWarning: YesNoDialogProps
     setRows: Dispatch<SetStateAction<BirthEntry[]>>
     loadFoot: () => void
 }
@@ -56,14 +56,6 @@ export const BirthTablePage = () => {
 
     const DEFAULT_SORT = 'mother_order,calf_birth_date'
 
-    const defaultWarning: YesNoDialogProps = useMemo(() => ({
-        openYesNo: false,
-        title: undefined,
-        message: undefined,
-        onYes: undefined,
-        onClose: undefined
-    }), [])
-
     const [isLoading, setLoading] = useState(false)
     const [sort, setSort] = useState(DEFAULT_SORT)
     const [order, setOrder] = useState('asc')
@@ -73,7 +65,7 @@ export const BirthTablePage = () => {
 
     const [addBirthOpen, setAddBirthOpen] = useState(false)
     const [error, setError] = useState<APIError>()
-    const [warningProps, setWarningProps] = useState<YesNoDialogProps>(defaultWarning)
+    const [warningProps, setWarningProps] = useState<YesNoDialogProps>(DefaultWarning)
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const loadFoot = useCallback(() => {
@@ -88,14 +80,6 @@ export const BirthTablePage = () => {
         return findBirthsPage(sort, order, filter, cursor)
     }, [loadFoot, sort, order, filter])
 
-    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
-
-    const closeBirthDialog = useCallback((added?: boolean) => {
-        setAddBirthOpen(false)
-        if (!added) return
-        onReload()
-    }, [onReload])
-
     const otherActions = (
         <Button
             startIcon={<Add />}
@@ -105,13 +89,19 @@ export const BirthTablePage = () => {
         </Button>
     )
 
-    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<BirthEntry>({ fetchPage, setLoading })
+    const { rows, scrollRef, fetchNextPage, setRows, onReload } = usePagination<BirthEntry>({ fetchPage, setLoading })
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Mãe', value: DEFAULT_SORT },
         { name: 'Nome da Mãe', value: 'mother_name, calf_birth_date' },
         { name: 'Data de Nascimento', value: 'calf_birth_date, mother_order' },
         { name: 'Intervalo entre Partos', value: 'birth_interval, mother_order' },
     ]
+
+    const closeBirthDialog = useCallback((added?: boolean) => {
+        setAddBirthOpen(false)
+        if (!added) return
+        onReload()
+    }, [onReload])
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -121,7 +111,7 @@ export const BirthTablePage = () => {
             reloadProps={{ loading: isLoading, onReload }}
             otherProps={otherActions}
         />
-        <ErrorContext.Provider value={{ setError, setWarningProps, defaultWarning, setRows, loadFoot }}>
+        <ErrorContext.Provider value={{ setError, setWarningProps, setRows, loadFoot }}>
             <BirthTable {...{ rows, scrollRef, fetchNextPage, isLoading, footerData }} />
         </ErrorContext.Provider>
         <BirthFilter {...{ setFilterOpen, filterOpen, filter, setFilter, anchorEl }} />
@@ -184,27 +174,16 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
     const [rowData, setRowData] = useState<BirthEntry>(data)
     const [loadingControls, setLoadingControls] = useState(false)
 
-    const { setError, setWarningProps, defaultWarning, setRows, loadFoot } = useContext(ErrorContext)
+    const { setError, setWarningProps, setRows, loadFoot } = useContext(ErrorContext)
 
     useEffect(() => setRowData(data), [data])
 
-    const onDeleteNoValidation = useCallback(() => {
-        deleteBirthNoValidation(data.id)
-            .then(() => {
-                setError(undefined)
-                setRows(prev => prev.filter(item => item.id != data.id))
-                loadFoot()
-            })
-            .catch(err => setError(err))
-            .finally(() => setWarningProps(defaultWarning))
-    }, [data.id, defaultWarning, loadFoot, setError, setRows, setWarningProps])
-
-    const onDelete = useCallback(() => {
+    const onDelete = useCallback((skipValidation: boolean) => {
         setLoadingControls(true)
-        deleteBirth(data.id)
+        deleteBirth(data.id, skipValidation)
             .then(() => {
                 setError(undefined)
-                setWarningProps(defaultWarning)
+                setWarningProps(DefaultWarning)
                 setRows(prev => prev.filter(item => item.id != data.id))
                 loadFoot()
             })
@@ -217,12 +196,12 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
                     openYesNo: true,
                     title: error.title,
                     message: error.message,
-                    onYes: onDeleteNoValidation,
-                    onClose: () => setWarningProps(defaultWarning)
+                    onYes: () => onDelete(true),
+                    onClose: () => setWarningProps(DefaultWarning)
                 })
             })
             .finally(() => setLoadingControls(false))
-    }, [data.id, defaultWarning, loadFoot, onDeleteNoValidation, setError, setRows, setWarningProps])
+    }, [data.id, loadFoot, setError, setRows, setWarningProps])
 
     if (isLoading) return <TableLoadingCells colSpan={8} />
     if (editing) return <BirthRowEdit {...{ setEditing, rowData, setRowData }} />
@@ -231,7 +210,7 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
         <TableBodyCell>
             <EditControlButtons
                 loading={loadingControls}
-                onDelete={onDelete}
+                onDelete={() => onDelete(false)}
                 setEditing={setEditing}
             />
         </TableBodyCell>
@@ -254,8 +233,18 @@ type BirthRowEditProps = {
 const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) => {
 
     const [loading, setLoading] = useState(false)
+    const [loadingControls, setLoadingControls] = useState(false)
+    const [fathers, setFathers] = useState<Animal[]>([])
 
-    const { handleSubmit, control } = useForm<BirthEntrySave>({
+    useEffect(() => {
+        setLoadingControls(true)
+        searchAnimal({ isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL'] })
+            .then(response => setFathers(response))
+            .catch(() => setFathers([]))
+            .finally(() => setLoadingControls(false))
+    }, [])
+
+    const { handleSubmit, control, setValue } = useForm<BirthEntrySave>({
         defaultValues: {
             id: rowData.id,
             birthDate: rowData.calfBirthDate,
@@ -265,7 +254,7 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
             observation: rowData.observation
         }
     })
-    const { setError, loadFoot } = useContext(ErrorContext)
+    const { setError, setWarningProps, loadFoot } = useContext(ErrorContext)
 
     const onSave: SubmitHandler<BirthEntrySave> = (data: BirthEntrySave) => {
         setLoading(true)
@@ -273,10 +262,26 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
             .then(res => {
                 setRowData(res)
                 setError(undefined)
+                setWarningProps(DefaultWarning)
                 loadFoot()
                 setEditing(false)
             })
-            .catch((error: APIError) => setError(error))
+            .catch((error: APIError) => {
+                if (error.errType === ERROR_TYPE) {
+                    setError(error)
+                    return
+                }
+                setWarningProps({
+                    openYesNo: true,
+                    title: error.title,
+                    message: error.message,
+                    onClose: () => setWarningProps(DefaultWarning),
+                    onYes: () => {
+                        setValue('ignoreTag', true)
+                        handleSubmit(onSave)
+                    }
+                })
+            })
             .finally(() => setLoading(false))
     }
 
@@ -301,7 +306,11 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
         </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
-                searchOptions={searchFather}
+                loading={loadingControls}
+                options={fathers.map(item => ({
+                    id: item.id,
+                    label: getAnimalLabel(item)
+                }))}
                 formProps={{ control, name: 'fatherId' }}
             />
         </TableBodyCell>

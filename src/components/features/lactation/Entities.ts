@@ -52,6 +52,31 @@ export type LactationHistFilter = {
     observation?: string
 }
 
+export type LactationAnimalFilter = {
+    isFiltered: boolean
+    animals?: string[]
+    isLactating?: boolean
+    hasLactation?: boolean
+    hasCalf?: boolean
+    minCalfBirthDate?: Date
+    maxCalfBirthDate?: Date
+    minStartDate?: Date
+    maxStartDate?: Date
+    minEndDate?: Date
+    maxEndDate?: Date
+    minLacPeriod?: number
+    maxLacPeriod?: number
+    minAverageProduction?: number
+    maxAverageProduction?: number
+    minTotalProduction?: number
+    maxTotalProduction?: number
+    minLacInterval?: number
+    maxLacInterval?: number
+    minPeak?: number
+    maxPeak?: number
+    observation?: string
+}
+
 export type LactationHistFoot = {
     totalLacs: number
     averagePeriod?: number

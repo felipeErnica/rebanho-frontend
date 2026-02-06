@@ -52,4 +52,5 @@ export const OTHER_ERROR = "OtherError"
 
 //Tipos de Aviso
 export const CONFLICT_WARNING = "ConflictWarning"
+export const DELETE_WARNING = "DeleteWarning"
 export const TRANSFER_WARNING = "TransferWarning"

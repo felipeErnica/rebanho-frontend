@@ -87,12 +87,14 @@ type GroupTableProps = {
     fetchNextPage: () => void
 }
 
+const COLUMN_COUNT = 5
+
 const GroupsTable = ({ rows, loading, scrollRef, fetchNextPage }: GroupTableProps) => {
 
     return <TableVirtuoso
         ref={scrollRef}
         data={rows}
-        components={useVirtuosoComponents(5)}
+        components={useVirtuosoComponents(COLUMN_COUNT)}
         endReached={fetchNextPage}
         fixedHeaderContent={() => (
             <TableHeadRow>
@@ -123,7 +125,7 @@ const GroupsRow = ({ item, loading }: GroupsRowProps) => {
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingCells colSpan={5} />
+    if (loading) return <TableLoadingCells colSpan={COLUMN_COUNT} />
     if (editing) return <GroupsRowEditing {...{ rowData, setEditing, setRowData }} />
 
     const deleteGroup = () => {

@@ -1,5 +1,5 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material"
-import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react"
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material"
+import React, { Dispatch, ReactNode, Ref, SetStateAction, useEffect, useState } from "react"
 import Error from '@mui/icons-material/Error';
 import Warning from '@mui/icons-material/Warning';
 
@@ -15,27 +15,31 @@ type DialogActionButtonsProps = {
     loading?: boolean
 }
 
-export const DialogActionButtons = ({ onClose, onSave, saveText, loading }: DialogActionButtonsProps) => {
-    return <>
+export const DialogActionButtons = React.forwardRef(({ onClose, onSave, saveText, loading }: DialogActionButtonsProps, ref) => {
+    return <Box ref={ref as Ref<HTMLDivElement>}>
         <Button onClick={onSave} loading={loading}>
             {saveText}
         </Button>
         <Button onClick={onClose}>
             Cancelar
         </Button>
-    </>
-}
+    </Box>
+})
 
 type DialogContainerProps = {
     children?: ReactNode | ReactNode[]
     className?: string
 }
 
-export const DialogContainer = ({ children, className }: DialogContainerProps) => {
-    return <div className={`flex flex-col gap-8 p-4 ${className}`}>
+export const DialogContainer = React.forwardRef(({ children, className }: DialogContainerProps, ref) => {
+    return <div
+        tabIndex={-1}
+        className={`flex flex-col gap-8 p-4 ${className}`}
+        ref={ref as Ref<HTMLDivElement>}
+    >
         {children}
     </div>
-}
+})
 
 export type YesNoDialogProps = {
     loading?: boolean
@@ -47,13 +51,13 @@ export type YesNoDialogProps = {
     onClose: (() => void) | undefined
 }
 
-export const YesNoDialog = ({ 
-    openYesNo, 
-    message, 
-    title, 
-    onClose, 
-    onYes, 
-    loading 
+export const YesNoDialog = ({
+    openYesNo,
+    message,
+    title,
+    onClose,
+    onYes,
+    loading
 }: YesNoDialogProps) => {
 
     if (!onYes || !onClose) return
@@ -90,7 +94,7 @@ export const YesNoDialog = ({
             >
                 Sim
             </Button>
-            <Button 
+            <Button
                 loading={loading}
                 onClick={onClose}
             >
@@ -104,14 +108,14 @@ export type TimerYesNoDialogProps = YesNoDialogProps & {
     waitTime: number
 }
 
-export const TimerYesNoDialog = ({ 
+export const TimerYesNoDialog = ({
     waitTime,
-    openYesNo, 
-    message: content, 
-    title, 
-    onClose, 
-    onYes, 
-    loading 
+    openYesNo,
+    message: content,
+    title,
+    onClose,
+    onYes,
+    loading
 }: TimerYesNoDialogProps) => {
 
     const [secondsLeft, setSecondsLeft] = useState(waitTime)
@@ -121,7 +125,7 @@ export const TimerYesNoDialog = ({
     }, [openYesNo, waitTime])
 
     useEffect(() => {
-        if (secondsLeft < 0 ) return
+        if (secondsLeft < 0) return
         const timer = setTimeout(() => setSecondsLeft(prev => prev - 1), 1000)
         return () => clearTimeout(timer)
     }, [secondsLeft, waitTime])
@@ -161,7 +165,7 @@ export const TimerYesNoDialog = ({
             >
                 {secondsLeft > 0 ? `Sim (${secondsLeft})` : 'Sim'}
             </Button>
-            <Button 
+            <Button
                 loading={loading}
                 onClick={onClose}
             >

@@ -6,6 +6,7 @@ import pluginReact from "eslint-plugin-react";
 import { defineConfig } from "eslint/config";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import babelParser from '@typescript-eslint/parser'
+import importPlugin from 'eslint-plugin-import';
 
 export default defineConfig([
     eslint.configs.recommended,
@@ -18,6 +19,7 @@ export default defineConfig([
             globals: globals.browser,
         },
         plugins: {
+            import: importPlugin,
             react: pluginReact,
             "react-hooks": reactHooks,
             "jsx-a11y": jsxA11y,

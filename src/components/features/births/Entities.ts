@@ -31,10 +31,14 @@ export type BirthEntrySave = {
     id?: string
     ringNumber?: string,
     birthDate: Date
+    pastureId?: string
     motherId: string
     fatherId?: string
     sex?: string
     observation?: string
+    noPasture: boolean
+    overwrite: boolean
+    ignoreTag: boolean
 }
 
 export type BirthFooter = {

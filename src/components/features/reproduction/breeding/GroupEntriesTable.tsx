@@ -1,24 +1,20 @@
-import { 
-    createContext, 
-    Dispatch, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useMemo, 
-    useRef, 
-    useState 
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState
 } from "react"
-import { BreedingEntry, BreedingEntrySave, BreedingFoot, StatusColorMap, StatusMap } from "./Entities"
-import { 
-    deleteBreeding, 
-    deleteChangeFather, 
-    deleteNoValidation, 
-    findEntriesByGroup, 
-    getEntriesByGroupFoot, 
-    updateBreeding, 
-    updateNoValidation 
-} from "./Controller"
+import { BreedingEntry, BreedingEntryDelete, BreedingEntrySave, BreedingFoot, StatusColorMap, StatusMap } from "./Entities"
+import {
+    deleteBreeding,
+    findEntriesByGroup,
+    getEntriesByGroupFoot,
+    updateBreeding,
+} from "./Service"
 import Table from "@mui/material/Table"
 import {
     FooterContent,
@@ -27,12 +23,12 @@ import {
     TableBodyCell,
     TableBodyRow,
     TableFooterRow,
-    TableHeadCell,
+    TableHeadControlCell,
     TableHeadRow,
-    TableLoadingRow
+    TablePageBody
 } from "@shared/table/TableComponents"
 import TableHead from "@mui/material/TableHead"
-import { Button, Chip, TableBody } from "@mui/material"
+import { Button, Chip } from "@mui/material"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@shared/form-controls/FormTextField"
@@ -127,41 +123,31 @@ type GroupEntriesTableProps = {
     loading: boolean
 }
 
+const COLUMN_COUNT = 7
+
 const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
 
-    const [tableUnit, setTableUnit] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setTableUnit(table.offsetWidth / 100)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-
-    return <div className="h-full w-full overflow-auto" ref={tableRef}>
+    return <div className="h-full w-full overflow-auto">
         <Table stickyHeader className="w-max min-w-full">
             <TableHead>
                 <TableHeadRow>
-                    <TableHeadCell width={tableUnit * 10} />
-                    <ResizableHeadCell width={tableUnit * 20}>Vaca</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 10}>Touro</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={tableUnit * 15}>Prenhez</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={tableUnit * 15}>Nascimento</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 15}>Informações da Cria</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 15}>Observações</ResizableHeadCell>
+                    <TableHeadControlCell />
+                    <ResizableHeadCell>Vaca</ResizableHeadCell>
+                    <ResizableHeadCell width={200}>Touro</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Nascimento</ResizableHeadCell>
+                    <ResizableHeadCell width={300}>Informações da Cria</ResizableHeadCell>
+                    <ResizableHeadCell width={400}>Observações</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
-            <TableBody>
-                {rows.map(item => <EntriesRow {...{ item, loading }} />)}
-            </TableBody>
+            <TablePageBody
+                colSpan={COLUMN_COUNT}
+                dataset={rows}
+                loading={loading}
+                render={item => <EntriesRow {...{ item }} />}
+            />
             <StickyTableFooter>
-                <TableFooterRow colSpan={7}>
+                <TableFooterRow colSpan={COLUMN_COUNT}>
                     <FooterContent title="Total" content={foot.totals} />
                     <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.averagePregnancyRate)} />
                     <FooterContent title="Taxa de Nascimento" content={percentageTransform(foot.averageBirthRate)} />
@@ -171,52 +157,27 @@ const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
     </div>
 }
 
-type EntriesRowProps = {
-    item: BreedingEntry
-    loading: boolean
-}
-
-const EntriesRow = ({ item, loading }: EntriesRowProps) => {
+const EntriesRow = ({ item }) => {
 
     const [rowData, setRowData] = useState<BreedingEntry>(item)
     const [editing, setEditing] = useState(false)
+    const [params, setParams] = useState<BreedingEntryDelete>({
+        id: item.id,
+        ignorePregnancy: false,
+        changeFather: false
+    })
 
     const { setError, setWarningProps, loadFoot, setRows } = useContext(EditContext)
-
+    
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingRow colSpan={7} />
-    if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
-    const onDeleteNoValidation = () => {
-        deleteNoValidation(rowData.id)
-            .then(() => {
-                setError(undefined)
-                setWarningProps(DefaultWarning)
-                setRows(prev => prev.filter(item => item.id != rowData.id))
-                loadFoot()
-            })
-            .catch((error: APIError) => setError(error))
-            .finally(() => setWarningProps(DefaultWarning))
-    }
-
-    const onDeleteAndChangeFather = () => {
-        deleteChangeFather(rowData.id)
-            .then(() => {
-                setError(undefined)
-                setRows(prev => prev.filter(item => item.id != rowData.id))
-                loadFoot()
-            })
-            .catch((error: APIError) => setError(error))
-            .finally(() => setWarningProps(DefaultWarning))
-    }
-
-    const onDelete = () => {
-        deleteBreeding(rowData.id)
+    const onDelete = useCallback(() => {
+        deleteBreeding(params)
             .then(() => {
                 setWarningProps(DefaultWarning)
                 setError(undefined)
-                setRows(prev => prev.filter(item => item.id != rowData.id))
+                setRows(prev => prev.filter(item => item.id != params.id))
                 loadFoot()
             })
             .catch((error: APIError) => {
@@ -224,29 +185,45 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
                     setError(error)
                     return
                 }
+
+                const warning: YesNoDialogProps = {
+                    ...error,
+                    openYesNo: true,
+                    onClose: () => setWarningProps(DefaultWarning),
+                    onYes: undefined
+                }
+
                 if (error.kind == "ChildrenWarning") {
                     setWarningProps({
-                        openYesNo: true,
-                        title: error.title,
-                        message: error.message,
-                        onYes: onDeleteAndChangeFather,
-                        onClose: () => setWarningProps(DefaultWarning)
+                        ...warning,
+                        onYes: () => {
+                            setParams(params => ({ ...params, changeFather: true }))
+                            onDelete()
+                        },
                     })
-                    return
                 }
-                setWarningProps({
-                    openYesNo: true,
-                    title: error.title,
-                    message: error.message,
-                    onYes: onDeleteNoValidation,
-                    onClose: () => setWarningProps(DefaultWarning)
-                })
+
+                if (error.kind == "PregnancyWarning") {
+                    setWarningProps({
+                        ...warning,
+                        onYes: () => {
+                            setParams(params => ({ ...params, ignorePregnancy: true }))
+                            onDelete()
+                        },
+                    })
+                }
+
             })
-    }
+    }, [loadFoot, params, setError, setRows, setWarningProps])
+
+    if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <TableBodyRow>
         <TableBodyCell>
-            <EditControlButtons {...{ setEditing, onDelete }} />
+            <EditControlButtons 
+                setEditing={setEditing}
+                onDelete={() => onDelete()}
+            />
         </TableBodyCell>
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>{rowData.bullName}</TableBodyCell>
@@ -281,23 +258,8 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
 
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit } = useForm<BreedingEntry>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue } = useForm<BreedingEntrySave>({ defaultValues: rowData })
     const { setError, setWarningProps, loadFoot } = useContext(EditContext)
-
-    const onNoValidation: SubmitHandler<BreedingEntrySave> = (data: BreedingEntrySave) => {
-        setLoading(true)
-        updateNoValidation(data)
-            .then((result: BreedingEntry) => {
-                setRowData(result)
-                loadFoot()
-                setEditing(false)
-            })
-            .catch(err => setError(err))
-            .finally(() => {
-                setLoading(false)
-                setWarningProps(DefaultWarning)
-            })
-    }
 
     const onSubmit: SubmitHandler<BreedingEntrySave> = (data: BreedingEntrySave) => {
         setLoading(true)
@@ -317,7 +279,10 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                     title: err.title,
                     message: err.message,
                     onClose: () => setWarningProps(DefaultWarning),
-                    onYes: handleSubmit(onNoValidation)
+                    onYes: () => {
+                        setValue('skipValidation', true)
+                        handleSubmit(onSubmit)
+                    }
                 })
             })
             .finally(() => setLoading(false))

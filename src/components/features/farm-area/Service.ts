@@ -7,8 +7,8 @@ import {
     PastureStats 
 } from "./Entities"
 
-const ENTRIES_BASE = `farm-area/pastures/entries/`
-const PASTURE_BASE = `farm-area/pastures/`
+const ENTRIES_BASE = `pastures/entries/`
+const PASTURE_BASE = `pastures/`
 
 export function findPastureEntries(
     pastureId: string,
@@ -81,11 +81,7 @@ export function getPastureOccupancy(): Promise<PastureOccupancy[]> {
     })
 }
 
-export function searchPastures(
-    filter: PastureFilter = { isFiltered: false },
-) {
-    const params = buildFilterParams(filter)
-    let query = "search"
-    if (params != "") query += `?${params}`
-    return apiGet(PASTURE_BASE + query)
+export function searchPastures( filter: PastureFilter = { isFiltered: false }) {
+    const params = buildFilterParams(filter, "?")
+    return apiGet(PASTURE_BASE + "search" + params)
 }

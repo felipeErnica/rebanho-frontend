@@ -1,11 +1,12 @@
-import { DialogActionButtons, DialogContainer } from "@shared/dialog/DialogComponents"
-import { SearchBox } from "@shared/dialog/SearchBox"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
 import { Alert, AlertTitle, Collapse, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import Dialog from "@mui/material/Dialog"
-import { useState } from "react"
-import { searchNonInseminationBulls, setAsInseminationBull } from "./Controller"
-import { APIError } from "@utils/ApiRequest"
+import { DialogActionButtons, DialogContainer } from "@shared/dialog/DialogComponents"
+import { SearchBox } from "@shared/dialog/SearchBox"
 import { REQUIRED_FIELD_MSG } from "@shared/Globals"
+import { APIError } from "@utils/ApiRequest"
+import { useEffect, useState } from "react"
+import { searchNonInseminationBulls, setAsInseminationBull } from "./Service"
 
 type AddInseminationBullProps = {
     addInseminationBull: boolean
@@ -15,10 +16,18 @@ type AddInseminationBullProps = {
 export function AddInseminationBullDialog({ addInseminationBull, closeAddInseminationBull }: AddInseminationBullProps) {
 
     const [reload, setReload] = useState(0)
+    const [bulls, setBulls] = useState<Animal[]>([])
+
     const [bullId, setBullId] = useState<string>()
     const [added, setAdded] = useState(false)
     const [searchError, setSearchError] = useState(false)
     const [error, setError] = useState<APIError>()
+
+    useEffect(() => {
+        searchNonInseminationBulls()
+            .then(response => setBulls(response))
+            .catch(() => setBulls([]))
+    }, [reload])
 
     return <Dialog
         open={addInseminationBull}
@@ -38,10 +47,12 @@ export function AddInseminationBullDialog({ addInseminationBull, closeAddInsemin
                 </Collapse>
                 <SearchBox
                     value={bullId}
-                    reload={reload}
                     className="w-[400px]"
                     label="*Touro"
-                    searchOptions={searchNonInseminationBulls}
+                    options={bulls.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
                     error={searchError}
                     helperText={searchError ? REQUIRED_FIELD_MSG : undefined}
                     onChange={(id) => {
@@ -59,7 +70,10 @@ export function AddInseminationBullDialog({ addInseminationBull, closeAddInsemin
                         setSearchError(true)
                         return
                     }
-                    setAsInseminationBull(bullId)
+
+                    const bull = bulls.find(item => item.id === bullId)
+
+                    setAsInseminationBull(bull)
                         .then(() => {
                             setBullId(undefined)
                             setError(undefined)

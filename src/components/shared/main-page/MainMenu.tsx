@@ -44,23 +44,23 @@ const menuList: MenuItem[] = [
         path: "farm-pastures"
     },
     {
+        key: 'births',
+        title: 'Parição',
+        icon: <CalfIcon />,
+        path: "births"
+    },
+    {
+        key: 'birth-test',
+        title: 'Exames de Toque',
+        icon: <BirthTestIcon />,
+        path: "birth-test"
+    },
+    {
         key: 'reproduction',
         title: 'Área Reprodutiva',
         icon: <ReproductionIcon />,
         path: "reproduction",
         children: [
-            {
-                key: 'births',
-                title: 'Parição',
-                icon: <CalfIcon />,
-                path: "births"
-            },
-            {
-                key: 'birth-test',
-                title: 'Exames de Toque',
-                icon: <BirthTestIcon />,
-                path: "birth-test"
-            },
             {
                 key: 'insemination',
                 title: 'Inseminação',

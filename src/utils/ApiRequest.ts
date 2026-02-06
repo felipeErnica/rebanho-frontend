@@ -8,7 +8,6 @@ const BASE_URL = "http://localhost:8080/"
 export type APIError = {
     kind: string
     errType: string
-    replacingId?: string
     title: string
     message: string
 }
@@ -104,6 +103,7 @@ export function buildPageCall(sort: string, order: string, cursor?: string): str
 }
 
 export function buildPageParams(
+    symbol: URLSymbol,
     sort: string,
     order: string,
     filter: IFilters,
@@ -113,7 +113,7 @@ export function buildPageParams(
     let query = `sort=${sort}&order=${order}`
     if (cursor) query += `&cursor=${cursor}`
     const filterParams = buildFilterParams(filter, '&')
-    return query + filterParams
+    return symbol + query + filterParams
 }
 
 type URLSymbol = "?" | "&"
@@ -137,8 +137,32 @@ export function buildFilterParams(filter: IFilters | undefined, symbol: URLSymbo
     return symbol + searchParams.toString()
 }
 
-export function getObjectFromParams<T extends IFilters>(params: URLSearchParams): T {
+export function getFilterFromParams<T extends IFilters>(params: URLSearchParams): T {
     if (params.size == 0) return { isFiltered: false } as T
     const entries = Object.fromEntries(params.entries())
     return { isFiltered: true, ...entries } as T
 }
+
+export function getObjectFromParams<T>(params: URLSearchParams): T | undefined {
+    if (params.size == 0) return 
+    return Object.fromEntries(params.entries()) as T
+}
+
+export function buildParams(obj: any | undefined, symbol: URLSymbol): string {
+    if (!obj) return ""
+    const objMap: Record<string, any> = {}
+
+    for (const key of Object.keys(obj)) {
+        const value = obj[key]
+        if (value == undefined) continue
+        if (value instanceof Date) {
+            objMap[key] = dateToISO(value)
+            continue
+        }
+        objMap[key] = value
+    }
+
+    const searchParams = new URLSearchParams(objMap)
+    return symbol + searchParams.toString()
+}
+

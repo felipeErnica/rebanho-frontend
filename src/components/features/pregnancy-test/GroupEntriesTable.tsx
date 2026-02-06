@@ -1,34 +1,33 @@
-import { 
-    createContext, 
-    Dispatch, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useMemo, 
-    useRef, 
-    useState 
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState
 } from "react"
-import { 
-    BirthStatusMap, 
-    PregnancyStatusMap, 
-    TestEntry, 
-    TestEntryFooter, 
-    TestEntryForm 
+import {
+    BirthStatusMap,
+    PregnancyStatusMap,
+    TestEntry,
+    TestEntryFoot,
+    TestEntrySave
 } from "./Entities"
-import { deleteTest, findEntriesByGroup, getEntriesByGroupFoot, updateTest } from "./Controller"
+import { deleteTest, findEntriesByGroup, getEntriesByGroupFoot, updateTest } from "./Service"
 import Table from "@mui/material/Table"
-import { Button, Chip, TableBody, TableHead } from "@mui/material"
+import { Button, Chip, TableHead } from "@mui/material"
 import {
     FooterContent,
     ResizableHeadCell,
     StickyTableFooter,
     TableBodyCell,
+    TableBodyContainer,
     TableBodyRow,
     TableFooterRow,
-    TableHeadCell,
+    TableHeadControlCell,
     TableHeadRow,
-    TableLoadingRow
 } from "@shared/table/TableComponents"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
@@ -60,14 +59,14 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
 
     const defaultSort = 'animal_order'
 
-    const defaultFoot: TestEntryFooter = useMemo(() => ({
+    const defaultFoot: TestEntryFoot = useMemo(() => ({
         pregnancyRate: 0,
         birthRate: 0,
         totals: 0
     }), [])
 
     const [rows, setRows] = useState<TestEntry[]>([])
-    const [foot, setFoot] = useState<TestEntryFooter>(defaultFoot)
+    const [foot, setFoot] = useState<TestEntryFoot>(defaultFoot)
     const [loading, setLoading] = useState(false)
     const [addTestOpen, setAddTestOpen] = useState(false)
     const [sort, setSort] = useState(defaultSort)
@@ -123,7 +122,7 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
             <EntriesTable {...{ rows, loading, foot }} />
         </EditContext.Provider>
         <AddTestDialog {...{ addTestOpen, closeAddTest, testDate }} />
-        <ErrorDialog 
+        <ErrorDialog
             openError={!!error}
             title={error?.title}
             message={error?.message}
@@ -134,47 +133,35 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
 
 type EntriesTableProps = {
     rows: TestEntry[]
-    foot: TestEntryFooter
+    foot: TestEntryFoot
     loading: boolean
 }
 
+const COLUMN_COUNT = 7
+
 const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
 
-    const [unit, setUnit] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setUnit(table.offsetWidth / 100)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    return <div
-        className="overflow-auto"
-        ref={tableRef}
-    >
+    return <div className="overflow-auto" >
         <Table className="min-w-full w-max" stickyHeader>
             <TableHead>
                 <TableHeadRow>
-                    <TableHeadCell width={unit * 10} />
-                    <ResizableHeadCell width={unit * 15}>Vaca</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 15}>Prenhez</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 15}>Nascimento</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 15}>Data de Previsão</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 15}>Informações de Cria</ResizableHeadCell>
-                    <ResizableHeadCell width={unit * 30}>Observações</ResizableHeadCell>
+                    <TableHeadControlCell />
+                    <ResizableHeadCell>Vaca</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Nascimento</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Data de Previsão</ResizableHeadCell>
+                    <ResizableHeadCell width={300}>Informações de Cria</ResizableHeadCell>
+                    <ResizableHeadCell width={500}>Observações</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
-            <TableBody>
-                {rows.map((item) => <EntriesRow {...{ item, loading }} />)}
-            </TableBody>
+            <TableBodyContainer
+                dataset={rows}
+                colSpan={COLUMN_COUNT}
+                loading={loading}
+                render={(item) => <EntriesRow {...{ item }} />}
+            />
             <StickyTableFooter>
-                <TableFooterRow colSpan={7}>
+                <TableFooterRow colSpan={COLUMN_COUNT}>
                     <FooterContent title="Total" content={foot.totals} />
                     <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.pregnancyRate)} />
                     <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.birthRate)} />
@@ -184,12 +171,7 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
     </div>
 }
 
-type EntriesRowProps = {
-    item: TestEntry
-    loading: boolean
-}
-
-const EntriesRow = ({ item, loading }: EntriesRowProps) => {
+const EntriesRow = ({ item }) => {
 
     const [rowData, setRowData] = useState<TestEntry>(item)
     const [editing, setEditing] = useState(false)
@@ -199,7 +181,6 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingRow colSpan={7} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     const onDelete = () => {
@@ -241,20 +222,14 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
     </TableBodyRow>
 }
 
-type EntriesRowEditingProps = {
-    rowData: TestEntry
-    setRowData: (rowData: TestEntry) => void
-    setEditing: (editing: boolean) => void
-}
+const EntriesRowEditing = ({ rowData, setRowData, setEditing }) => {
 
-const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
-
-    const { control, handleSubmit, setValue, getValues } = useForm<TestEntryForm>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue, getValues } = useForm<TestEntrySave>({ defaultValues: rowData })
     const { setError, loadFoot } = useContext(EditContext)
 
     const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<TestEntryForm> = (data: TestEntryForm) => {
+    const onSubmit: SubmitHandler<TestEntrySave> = (data: TestEntrySave) => {
         setLoading(true)
         updateTest(data)
             .then(response => {
@@ -311,4 +286,3 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         </TableBodyCell>
     </TableBodyRow>
 }
-

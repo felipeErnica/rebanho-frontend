@@ -6,7 +6,7 @@ import { useParsedFormat, usePickerContext, useSplitFieldProps } from "@mui/x-da
 import { PickerValue } from "@mui/x-date-pickers/internals"
 import { useValidation, validateDate } from "@mui/x-date-pickers/validation"
 import dayjs, { Dayjs } from "dayjs"
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { Ref, useEffect, useMemo, useState } from "react"
 import { RefCallBack } from "react-hook-form"
 
 type DateComponentProps = {
@@ -75,7 +75,7 @@ export const DateComponent = ({
         disableFuture={disableFuture}
         disablePast={disablePast}
         name={name}
-        ref={ref}
+        inputRef={ref}
         maxDate={maxDate}
         minDate={minDate}
         value={dateValue}
@@ -108,7 +108,6 @@ export const DateComponent = ({
 
 interface CustomDateFieldProps extends DatePickerFieldProps {
     name?: string
-    ref?: RefCallBack
     variant: TextFieldVariants
     helperText?: string
     error?: boolean
@@ -116,15 +115,13 @@ interface CustomDateFieldProps extends DatePickerFieldProps {
     onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
 }
 
-function CustomDateField(props: CustomDateFieldProps) {
+const CustomDateField = React.forwardRef((props: CustomDateFieldProps, ref: Ref<HTMLDivElement>) => {
 
     const { internalProps, forwardedProps } = useSplitFieldProps(props, 'date');
 
     const pickerContext = usePickerContext();
     const placeholder = useParsedFormat();
     const [inputValue, setInputValue] = useState('')
-
-    const inputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         const dateValue = pickerContext.value
@@ -163,7 +160,6 @@ function CustomDateField(props: CustomDateFieldProps) {
             transformDate(event)
             if (props.onBlur) props.onBlur(event)
         }}
-        inputRef={inputRef}
         error={hasValidationError || forwardedProps.error}
         focused={pickerContext.open}
         label={pickerContext.label}
@@ -171,11 +167,11 @@ function CustomDateField(props: CustomDateFieldProps) {
         className={pickerContext.rootClassName}
         sx={pickerContext.rootSx}
         ref={pickerContext.rootRef}
+        inputRef={ref}
         fullWidth
         slotProps={{
             input: {
                 sx: { color: props.error ? 'red' : undefined },
-                ref: pickerContext.triggerRef,
                 endAdornment: (
                     <InputAdornment position="end">
                         {inputValue &&
@@ -185,7 +181,6 @@ function CustomDateField(props: CustomDateFieldProps) {
                                 onClick={() => {
                                     pickerContext.setValue(null)
                                     setInputValue('')
-                                    inputRef.current?.focus()
                                 }}
                             >
                                 <ClearIcon
@@ -212,7 +207,7 @@ function CustomDateField(props: CustomDateFieldProps) {
         }}
     />
 
-}
+})
 
 function parsedDate(date: string) {
 

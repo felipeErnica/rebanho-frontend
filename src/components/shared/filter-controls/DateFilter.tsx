@@ -13,6 +13,7 @@ type DateFilterProps = {
     filter: IFilters
     setFilter: (filter: IFilters) => void
     className?: string
+    disabled?: boolean
 }
 
 export const DateFilter = ({
@@ -21,6 +22,7 @@ export const DateFilter = ({
     minFieldName,
     setFilter,
     className,
+    disabled,
     filter
 }: DateFilterProps) => {
 
@@ -31,6 +33,7 @@ export const DateFilter = ({
         <div className={`flex flex-row gap-4`}>
             <DateComponent
                 label='De'
+                disabled={disabled}
                 maxDate={maxDate}
                 value={filter[minFieldName] ? dayjs(filter[minFieldName]) : null}
                 onChange={(value) => {
@@ -43,8 +46,9 @@ export const DateFilter = ({
                     setFilter({ ...filter, isFiltered: true, [minFieldName]: value.toDate() })
                 }}
             />
-            <DateComponent 
+            <DateComponent
                 label='Até'
+                disabled={disabled}
                 minDate={minDate}
                 value={filter[maxFieldName] ? dayjs(filter[maxFieldName]) : null}
                 onChange={(value) => {

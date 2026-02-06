@@ -30,6 +30,7 @@ export const FilterPopover = ({
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
         anchorEl={anchorEl.current}
+        disableEnforceFocus
     >
         <div className="max-h-[450px] max-w-[550px] overflow-hidden flex flex-col">
             <Typography

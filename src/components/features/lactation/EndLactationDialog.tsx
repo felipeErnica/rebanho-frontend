@@ -1,27 +1,27 @@
-    import { DialogActionButtons, DialogContainer } from "@shared/dialog/DialogComponents"
-    import {
-        Alert,
-        AlertTitle,
-        Checkbox,
-        Collapse,
-        Dialog,
-        DialogActions,
-        DialogContent,
-        DialogTitle,
-        FormControlLabel,
-    } from "@mui/material"
-    import { useCallback, useEffect, useState } from "react"
-    import { updateEndDate } from "./Service"
-    import { useForm } from "react-hook-form"
-    import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-    import { APIError } from "@utils/ApiRequest"
-    import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-    import { LactationSave } from "./Entities"
-import { REQUIRED_FIELD_MSG } from "@shared/Globals"
-import { searchAnimal } from "../animals/Service"
-import { searchPastures } from "../farm-area/Controller"
-import { getPastureLabel, Pasture } from "../farm-area/Entities"
-import { Animal, getAnimalLabel } from "../animals/Entities"
+import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
+import {
+    Alert,
+    AlertTitle,
+    Checkbox,
+    Collapse,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControlLabel,
+} from "@mui/material"
+import { useCallback, useEffect, useState } from "react"
+import { useForm, useWatch } from "react-hook-form"
+import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
+import { APIError } from "@utils/ApiRequest"
+import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
+import { LactationSave } from "./Entities"
+import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
+import { searchAnimal } from "@features/animals/Service"
+import { getPastureLabel, Pasture } from "@features/farm-area/Entities"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
+import { updateLactation } from "./Service"
+import { searchPastures } from "@features/farm-area/Service"
 
 type EndLactationDialogProps = {
     openEndLactation: boolean
@@ -31,7 +31,7 @@ type EndLactationDialogProps = {
 export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndLactationDialogProps) => {
 
     const [error, setError] = useState<APIError>()
-    const [noPasture, setNoPasture] = useState(false)
+    const [warning, setWarning] = useState<APIError>()
     const [changed, setChanged] = useState(false)
     const [loading, setLoading] = useState(false)
 
@@ -61,20 +61,36 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
             .finally(() => setLoadingSearch(false))
     }, [])
 
-    const { control, handleSubmit, reset } = useForm<LactationSave>()
+    const { control, handleSubmit, reset, setValue } = useForm<LactationSave>({
+        defaultValues: {
+            transferPasture: false,
+            overwrite: false,
+            noPasture: false,
+        }
+    })
 
     const onSubmit = useCallback((data: LactationSave) => {
         setLoading(true)
-        updateEndDate(data)
+        updateLactation(data)
             .then(() => {
-                reset({ endDate: data.endDate })
+                reset({
+                    endDate: data.endDate,
+                    transferPasture: false
+                })
                 setChanged(true)
             })
-            .catch((error) => setError(error))
+            .catch((error: APIError) => {
+                if (error.errType === ERROR_TYPE) {
+                    setError(error)
+                    return
+                }
+                setWarning(error)
+            })
             .finally(() => setLoading(false))
     }, [reset])
 
     const onSave = handleSubmit(onSubmit)
+    const noPasture = useWatch({ control, name: 'noPasture' })
 
     return <Dialog open={openEndLactation} onClose={() => closeEndLactation(changed)}>
         <DialogTitle>Secar Vacas</DialogTitle>
@@ -113,7 +129,7 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
                         control={(
                             <Checkbox
                                 checked={noPasture}
-                                onChange={() => setNoPasture(prev => !prev)}
+                                onChange={(_, checked) => setValue('noPasture', checked)}
                             />
                         )}
                     />
@@ -140,6 +156,16 @@ export const EndLactationDialog = ({ openEndLactation, closeEndLactation }: EndL
                 }}
             />
         </DialogActions>
+        <YesNoDialog
+            openYesNo={!!warning}
+            title={warning?.title}
+            message={warning?.message}
+            onClose={() => setWarning(undefined)}
+            onYes={() => {
+                setValue('transferPasture', true)
+                onSave()
+            }}
+        />
     </Dialog>
 
 }

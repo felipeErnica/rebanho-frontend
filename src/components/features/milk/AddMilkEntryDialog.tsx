@@ -10,19 +10,19 @@ import {
     FormControlLabel,
 } from "@mui/material"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { DialogActionButtons, DialogContainer, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
+import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import { CONFLICT_WARNING, REQUIRED_FIELD_MSG, ERROR_TYPE, DefaultWarning } from "@shared/Globals"
+import { CONFLICT_WARNING, REQUIRED_FIELD_MSG, ERROR_TYPE } from "@shared/Globals"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { MilkEntrySave } from "./Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { APIError } from "@utils/ApiRequest"
-import { addMilkEntry, replaceMilkEntry } from "./Service"
-import { searchPastures, transferPastureEntry } from "@features/farm-area/Controller"
-import { Pasture, PastureEntrySave } from "@features/farm-area/Entities"
+import { addMilkEntry } from "./Service"
+import { Pasture } from "@features/farm-area/Entities"
 import { searchAnimal } from "@features/animals/Service"
 import { Animal, getAnimalLabel } from "@features/animals/Entities"
+import { searchPastures } from "@features/farm-area/Service"
 
 type AddTestDialogProps = {
     addMilkEntryOpen: boolean
@@ -33,7 +33,7 @@ type AddTestDialogProps = {
 export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: AddTestDialogProps) => {
 
     const [error, setError] = useState<APIError>()
-    const [warningProps, setWarningProps] = useState<YesNoDialogProps>(DefaultWarning)
+    const [warning, setWarning] = useState<APIError>()
     const [loading, setLoading] = useState(false)
     const [added, setAdded] = useState(false)
     const [noPasture, setNoPasture] = useState(false)
@@ -64,106 +64,39 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
         control,
         reset,
         setValue,
-        getValues,
         setFocus
     } = useForm<MilkEntrySave>({ defaultValues: { entryDate } })
 
     useEffect(() => setValue('entryDate', entryDate), [setValue, entryDate])
 
-    const resetForm = useCallback(() => {
-        reset({ entryDate: getValues('entryDate'), pastureId: getValues('pastureId') })
-        setFocus('animalId')
-    }, [getValues, reset, setFocus])
-
-    const onTransfer = useCallback((data: MilkEntrySave) => {
-
-        const pastureEntry: PastureEntrySave = {
-            entryDate: data.entryDate,
-            animalId: data.animalId,
-            pastureId: data.pastureId
-        }
-
-        transferPastureEntry(pastureEntry)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-                setWarningProps(DefaultWarning)
-                resetForm()
-            })
-            .catch(error => setError(error))
-    }, [resetForm])
-
-    const onReplace = useCallback((data: MilkEntrySave) => {
-        replaceMilkEntry(data)
-            .then(() => {
-                setAdded(true)
-                setError(undefined)
-                resetForm()
-            })
-            .catch((error: APIError) => {
-
-                if (error.errType == ERROR_TYPE) {
-                    setError(error)
-                    return
-                }
-
-                setWarningProps({
-                    title: error.title,
-                    message: error.message,
-                    openYesNo: true,
-                    onYes: () => onTransfer(data),
-                    onClose: () => setWarningProps(DefaultWarning)
-                })
-
-            })
-            .finally(() => setWarningProps(DefaultWarning))
-    }, [onTransfer, resetForm])
-
     const onSubmit: SubmitHandler<MilkEntrySave> = (data: MilkEntrySave) => {
         setLoading(true)
         addMilkEntry(data)
             .then(() => {
+                reset({ entryDate: data.entryDate, pastureId: data.pastureId })
+                setFocus('animalId')
                 setAdded(true)
                 setError(undefined)
-                resetForm()
+                setWarning(undefined)
             })
             .catch((err: APIError) => {
                 if (err.errType == ERROR_TYPE) {
                     setError(err)
                     return
                 }
-
-                const commonWarning: YesNoDialogProps = {
-                    openYesNo: true,
-                    title: err.title,
-                    message: err.message,
-                    onClose: () => setWarningProps(DefaultWarning),
-                    onYes: undefined,
-                }
-
-                if (err.kind == CONFLICT_WARNING) {
-                    setWarningProps({
-                        ...commonWarning,
-                        onYes: () => onReplace(data)
-                    })
-                    return
-                }
-
-                setWarningProps({
-                    ...commonWarning,
-                    onYes: () => onTransfer(data)
-                })
-
+                setWarning(err)
             })
             .finally(() => setLoading(false))
     }
 
     const handleClose = () => {
-        setWarningProps(DefaultWarning)
+        setWarning(undefined)
         setError(undefined)
         reset()
         onClose(added)
     }
+
+    const onSave = handleSubmit(onSubmit)
 
     return <Dialog
         open={addMilkEntryOpen}
@@ -245,10 +178,23 @@ export const AddMilkEntryDialog = ({ addMilkEntryOpen, onClose, entryDate }: Add
             <DialogActionButtons
                 loading={loading}
                 onClose={handleClose}
-                onSave={handleSubmit(onSubmit)}
+                onSave={onSave}
                 saveText="Marcar Leite"
             />
         </DialogActions>
-        <YesNoDialog {...warningProps} />
+        <YesNoDialog
+            openYesNo={!!warning}
+            title={warning?.title}
+            message={warning?.message}
+            onClose={() => setWarning(undefined)}
+            onYes={() => {
+                if (warning.kind === CONFLICT_WARNING) {
+                    setValue('overwrite', true)
+                } else if (warning.kind === "PastureWarning") {
+                    setValue('transferPasture', true)
+                }
+                onSave()
+            }}
+        />
     </Dialog>
 }

@@ -2,10 +2,10 @@ import {
     CardDefaultTitle,
     CardChartContent,
     DashboardCard,
-    DashboardContainer,
     DashboardTopContainer,
-    DashboardInfoContainer,
+    DashboardContainer,
     DashboardTableBody,
+    DashboardInfoContainer,
 } from "@shared/dashboard/DashboardComponents"
 import { BarChart, LineChart, SparkLineChart } from "@mui/x-charts"
 import {
@@ -29,7 +29,7 @@ import {
     getYearBirthsNumber,
     getYearBirthsSex,
     getYearDeathsNumber,
-} from "./Controller"
+} from "./Service"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { green, lightBlue, pink, red } from "@mui/material/colors"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -38,12 +38,12 @@ import { Button, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/m
 import { TrendValues } from "@shared/table/TableComponents"
 import Add from "@mui/icons-material/Add"
 import ChevronRight from "@mui/icons-material/ChevronRight"
-import { AddBirthDialog } from "./AddBirthDialog"
 import { DashboardInformationProps, DashboardTopBarProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
 import { CardEntry } from "@utils/Entities"
 import { useNavigate } from "react-router"
+import { AddBirthDialog } from "./AddBirthDialog"
 
 export const BirthDashboard = () => {
 

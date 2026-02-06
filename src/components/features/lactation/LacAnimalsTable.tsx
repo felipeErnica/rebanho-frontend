@@ -9,10 +9,6 @@ import {
     useRef,
     useState
 } from "react"
-import {
-    findLacAnimalsPage,
-    getLacAnimalsPageFoot
-} from "./Service"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
@@ -28,13 +24,14 @@ import {
 } from "@shared/table/TableComponents"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { ComboBoxItem } from "@/components/shared/common/ComboBox"
-import { LactationHist, LactationHistFilter, LactationHistFoot } from "./Entities"
-import { LacHistFilter } from "./LacHistFilter"
+import { LactationAnimalFilter, LactationHist, LactationHistFoot } from "./Entities"
 import { useNavigate } from "react-router"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
 import { DefaultTimerWarning } from "@/components/shared/Globals"
 import { EditControlButtons } from "@/components/shared/table/ControlButtons"
+import { findLactationsAnimalsPage, getLactationsAnimalsPageFoot } from "./Service"
+import { LactationAnimalsFilter } from "./LactationAnimalsFilter"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -56,7 +53,10 @@ export const LacAnimalsTablePage = () => {
     }), [])
     const defaultSort = 'animal_order'
 
-    const [filter, setFilter] = useState<LactationHistFilter>({ isFiltered: false })
+    const [filter, setFilter] = useState<LactationAnimalFilter>({
+        isFiltered: true,
+        isLactating: true
+    })
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [foot, setFoot] = useState(defaultFoot)
@@ -69,13 +69,16 @@ export const LacAnimalsTablePage = () => {
     const [warning, setWarning] = useState(DefaultTimerWarning)
 
     const fetchPage = useCallback((cursor?: string) => {
-        getLacAnimalsPageFoot(filter)
+        getLactationsAnimalsPageFoot(filter)
             .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
-        return findLacAnimalsPage(filter, sort, order, cursor)
+        return findLactationsAnimalsPage(filter, sort, order, cursor)
     }, [defaultFoot, filter, order, sort])
 
-    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
+    const onReload = useCallback(() => setFilter({
+        isFiltered: true,
+        isLactating: true
+    }), [])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: defaultSort },
@@ -101,7 +104,7 @@ export const LacAnimalsTablePage = () => {
         <ErrorContext.Provider value={{ setError, setRows, setWarning }}>
             <LacAnimalsTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
         </ErrorContext.Provider>
-        <LacHistFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <LactationAnimalsFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <ErrorDialog
             title={error?.title}
             message={error?.message}

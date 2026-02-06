@@ -9,7 +9,7 @@ import React, {
     useState 
 } from "react"
 import { BreedingGroup } from "./Entities"
-import { deleteBatch, findGroups, updateBatch } from "./Controller"
+import { deleteBatch, findGroups, updateBatch } from "./Service"
 import { IconButton, Table, TableBody, TableHead } from "@mui/material"
 import {
     ResizableHeadCell,

@@ -11,6 +11,7 @@ type FormSearchBoxProps<T extends FieldValues> = {
     className?: string
     onChange?: (id?: string, label?: string) => void
     emptyProps?: EmptyProps[]
+    autoFocus?: boolean
 }
 
 export function FormSearchBox<T extends FieldValues>({
@@ -21,13 +22,16 @@ export function FormSearchBox<T extends FieldValues>({
     className,
     variant,
     onChange,
-    emptyProps
+    emptyProps,
+    autoFocus
 }: FormSearchBoxProps<T>) {
 
     return <Controller
         {...formProps}
         render={({ field, fieldState: { error } }) => (
             <SearchBox
+                autoFocus={autoFocus}
+                ref={field.ref}
                 value={field.value}
                 loading={loading}
                 options={options}
@@ -40,7 +44,6 @@ export function FormSearchBox<T extends FieldValues>({
                 variant={variant || 'standard'}
                 className={className}
                 name={field.name}
-                ref={field.ref}
                 onChange={(id, label) => {
                     field.onChange(id)
                     if (onChange) onChange(id, label)

@@ -4,6 +4,7 @@ import TextField, { TextFieldVariants } from "@mui/material/TextField"
 import { Checkbox, Chip, CircularProgress } from "@mui/material"
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { RefCallBack } from "react-hook-form"
+import React from "react";
 
 export type SearchBoxItem = {
     id: string
@@ -32,10 +33,12 @@ type SearchBoxProps = {
     name?: string
     error?: boolean
     value?: string
+    autoFocus?: boolean
 }
 
-export function SearchBox({
+export const SearchBox = ({
     label,
+    ref,
     loading,
     emptyProps,
     options,
@@ -44,12 +47,12 @@ export function SearchBox({
     variant,
     onChange,
     onBlur,
-    ref,
     name,
     error,
     helperText,
-    value
-}: SearchBoxProps) {
+    value,
+    autoFocus
+}: SearchBoxProps) => {
 
     const filter = createFilterOptions<SearchBoxItem>()
     const [formValue, setFormValue] = useState<SearchBoxItem | null>(null)
@@ -60,6 +63,7 @@ export function SearchBox({
 
     return <Autocomplete
         value={formValue}
+        autoFocus={autoFocus}
         multiple={false}
         onBlur={onBlur}
         className={className}
@@ -98,8 +102,8 @@ export function SearchBox({
             {...params}
             name={name}
             inputRef={ref}
-            error={!disabled && error}
             disabled={disabled}
+            error={error}
             helperText={helperText}
             size="small"
             label={label}
@@ -138,7 +142,7 @@ type MultipleSearchBoxProps = {
     helperText?: string
 }
 
-export function MultipleSearchBox({
+export const MultipleSearchBox = React.forwardRef(({
     label,
     loading,
     limitTags,
@@ -150,11 +154,10 @@ export function MultipleSearchBox({
     noRenderValue,
     value,
     name,
-    ref,
     disabled,
     error,
     helperText
-}: MultipleSearchBoxProps) {
+}: MultipleSearchBoxProps, ref) => {
 
     const [selectedValues, setSelectedValues] = useState<SearchBoxItem[]>([])
 
@@ -213,8 +216,8 @@ export function MultipleSearchBox({
         disableCloseOnSelect
         renderInput={(params) => <TextField
             {...params}
+            inputRef={ref}
             name={name}
-            ref={ref}
             disabled={disabled}
             error={error}
             helperText={disabled ? helperText : undefined}
@@ -235,4 +238,4 @@ export function MultipleSearchBox({
         />}
     />
 
-}
+})

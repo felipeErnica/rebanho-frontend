@@ -1,23 +1,23 @@
-import { 
-    createContext, 
-    Dispatch, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useState 
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useState
 } from "react"
-import { TestGroup } from "./Entities"
-import { deleteBatch, findGroups, updateBatch } from "./Controller"
+import { TestGroup, TestGroupSave } from "./Entities"
+import { deleteBatch, findGroups, updateBatch } from "./Service"
 import Table from "@mui/material/Table"
 import { IconButton, TableBody, TableHead } from "@mui/material"
-import { 
-    TableBodyCell, 
-    TableBodyRow, 
-    TableHeadCell, 
-    TableHeadRow, 
-    TableLoadingRow, 
-    TrendValues 
+import {
+    TableBodyCell,
+    TableBodyRow,
+    TableHeadCell,
+    TableHeadRow,
+    TableLoadingRow,
+    TrendValues
 } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
@@ -187,15 +187,20 @@ type GroupsRowEditingProps = {
 
 const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<TestGroup>({ defaultValues: rowData })
-    const { setWarningProps, setError } = useContext(ReloadContext)
+    const { control, handleSubmit } = useForm<TestGroupSave>({
+        defaultValues: {
+            oldTestDate: rowData.testDate
+        }
+    })
 
+    const { setWarningProps, setError } = useContext(ReloadContext)
     const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<TestGroup> = useCallback((data: TestGroup) => {
+    const onSubmit: SubmitHandler<TestGroupSave> = useCallback((data: TestGroupSave) => {
         setWarningProps(DefaultTimerWarning)
         setLoading(true)
-        updateBatch(rowData.testDate, data)
+        if (data.testDate.getTime() == data.oldTestDate.getTime()) return
+        updateBatch(data)
             .then(res => {
                 setError(undefined)
                 setRowData(res)
@@ -203,7 +208,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
             })
             .catch(err => setError(err))
             .finally(() => setLoading(false))
-    }, [rowData.testDate, setEditing, setError, setRowData, setWarningProps])
+    }, [setEditing, setError, setRowData, setWarningProps])
 
     const onSave = useCallback(() => {
         setWarningProps({

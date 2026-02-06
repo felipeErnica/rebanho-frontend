@@ -23,10 +23,14 @@ export const FormRadioGroup = <T extends FieldValues>({
         {...formProps}
         render={({ field, fieldState: { error } }) => (
             <RadioComponent 
-                {...field}
+                ref={field.ref}
+                value={field.value}
+                disabled={field.disabled}
+                onBlur={field.onBlur}
                 error={!!error}
                 errorText={error?.message}
                 label={label}
+                name={field.name}
                 className={classname}
                 controls={controls}
                 row={row}

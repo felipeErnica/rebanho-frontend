@@ -15,6 +15,7 @@ export type FormCheckboxControlProps<T extends FieldValues> = {
 
 type FormCheckboxGroupProps<T extends FieldValues> = {
     error?: boolean
+    name?: string
     className?: string
     label?: string
     controls: FormCheckboxControlProps<T>[]
@@ -70,8 +71,8 @@ const CheckboxControl = <T extends FieldValues>({
                 control={(
                     <Checkbox
                         ref={field.ref}
-                        disabled={field.disabled}
                         name={field.name}
+                        disabled={field.disabled}
                         sx={{
                             color: error ? red[700] : undefined,
                             '&.Mui-checked': { color: error ? red[700] : undefined }

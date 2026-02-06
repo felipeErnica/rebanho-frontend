@@ -5,6 +5,9 @@ import { DateFilter } from "@shared/filter-controls/DateFilter"
 import { BirthStatusItems, PregnancyStatusItems } from "./Entities"
 import { Chip } from "@mui/material"
 import { ChipColorScheme } from "@shared/Globals"
+import { useEffect, useState } from "react"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
+import { searchMothers } from "@features/animals/Service"
 
 export const BirthTestFilter = ({
     filterOpen,
@@ -13,12 +16,28 @@ export const BirthTestFilter = ({
     setFilter: setFilter,
     filter
 }: FilterPopoverProps) => {
-    return <FilterPopover {...{ filterOpen, setFilterOpen, anchorEl, onReload: setFilter }}>
+
+    const [mothers, setMothers] = useState<Animal[]>([])
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        setLoading(true)
+        searchMothers()
+            .then(response => setMothers(response))
+            .catch(() => setMothers([]))
+            .finally(() => setLoading(false))
+    }, [])
+
+    return <FilterPopover {...{ filterOpen, setFilterOpen, anchorEl, setFilter }}>
         <div className="grid grid-cols-2 gap-4">
             <MultipleSearchBoxFilter
+                loading={loading}
                 className="col-span-2"
                 label="Vacas"
-                searchOptions={searchAllMothers}
+                options={mothers.map(item => ({
+                    id: item.id,
+                    label: getAnimalLabel(item)
+                }))}
                 filter={filter}
                 setFilter={setFilter}
                 fieldName="animals"
@@ -28,9 +47,9 @@ export const BirthTestFilter = ({
                 items={PregnancyStatusItems}
                 fieldName="pregnancyStatus"
                 renderValue={(value) => (
-                    <Chip 
-                        label={value.name} 
-                        color={ChipColorScheme.get(value.value)} 
+                    <Chip
+                        label={value.name}
+                        color={ChipColorScheme.get(value.value)}
                     />
                 )}
                 renderOption={(props, option) => (
@@ -46,9 +65,9 @@ export const BirthTestFilter = ({
                 items={BirthStatusItems}
                 fieldName="birthStatus"
                 renderValue={(value) => (
-                    <Chip 
-                        label={value.name} 
-                        color={ChipColorScheme.get(value.value)} 
+                    <Chip
+                        label={value.name}
+                        color={ChipColorScheme.get(value.value)}
                     />
                 )}
                 renderOption={(props, option) => (

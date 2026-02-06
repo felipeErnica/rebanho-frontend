@@ -1,17 +1,37 @@
-import { apiDelete, apiGet, apiPost, apiPut, buildFilterParams,  buildPageParams } from "@/utils/ApiRequest"
+import { apiDelete, apiGet, apiPost, apiPut, buildFilterParams, buildPageParams } from "@/utils/ApiRequest"
 import { LactationGroupFilter, LactationGroupSave, MilkEntrySave } from "./Entities"
 import { dateToISO } from "@/utils/Transformations"
 
-export const GROUP_BASE = "lactation/groups/"
-export const ENTRIES_BASE = "lactation/entries/"
-export const LAC_BASE = "lactation/"
+export const STATS_BASE = "milk/stats/"
+export const GROUP_BASE = "milk/groups/"
+export const MILK_BASE = "milk/"
 
-export function getLactationEntries(lacId: string) {
-    return apiGet(LAC_BASE + `${lacId}/entries`)
+export function getLastEntries() {
+    return apiGet(STATS_BASE + "last-entries")
 }
 
-export function getLactationEntriesFoot(lacId: string) {
-    return apiGet(LAC_BASE + `${lacId}/entries/foot`)
+export function getLastGroups() {
+    return apiGet(STATS_BASE + "last-groups")
+}
+
+export function getMilkProduction() {
+    return apiGet(STATS_BASE + "milk-production")
+}
+
+export function getYearProduction() {
+    return apiGet(STATS_BASE + "year-milk")
+}
+
+export function getYearAverage() {
+    return apiGet(STATS_BASE + "year-avg-milk")
+}
+
+export function getLastMilk() {
+    return apiGet(STATS_BASE + "last-milk")
+}
+
+export function getLastAverageMilk() {
+    return apiGet(STATS_BASE + "last-avg-milk")
 }
 
 export function findGroupsPage(filter: LactationGroupFilter, order: string, cursor?: string) {
@@ -44,37 +64,25 @@ export function findEntriesPage(
     order: string,
     cursor?: string,
 ) {
-    const params = buildPageParams(sort, order, filter, cursor)
-    return apiGet(ENTRIES_BASE + `page?${params}`)
+    const params = buildPageParams("?", sort, order, filter, cursor)
+    return apiGet(MILK_BASE + "page" + params)
 }
 
 export function getEntriesPageFoot(filter: LactationGroupFilter) {
     const params = buildFilterParams(filter, '?')
-    return apiGet(ENTRIES_BASE + "page/foot" + params)
+    return apiGet(MILK_BASE + "page/foot" + params)
 }
 
 export function updateMilkEntry(entry: MilkEntrySave) {
-    return apiPut(ENTRIES_BASE + `update`, entry)
-}
-
-export function replaceMilkEntry(entry: MilkEntrySave) {
-    return apiPut(ENTRIES_BASE + "replace", entry)
+    return apiPut(MILK_BASE, entry)
 }
 
 export function addMilkEntry(entry: MilkEntrySave) {
-    return apiPut(ENTRIES_BASE + "add", entry)
-}
-
-export function addMilkAndTransferPasture(entry: MilkEntrySave) {
-    return apiPut(ENTRIES_BASE + "add-and-transfer", entry)
-}
-
-export function addMilkNoTransfer(entry: MilkEntrySave) {
-    return apiPut(ENTRIES_BASE + "add-no-transfer", entry)
+    return apiPost(MILK_BASE, entry)
 }
 
 export function deleteMilkEntry(id: string) {
-    return apiDelete(ENTRIES_BASE + `${id}/delete`)
+    return apiDelete(MILK_BASE + id)
 }
 
 export function searchAllPastures() {

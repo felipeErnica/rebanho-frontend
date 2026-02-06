@@ -1,6 +1,15 @@
-import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState
+} from "react"
 import { MilkEntry, MilkEntryFoot, MilkEntrySave } from "./Entities"
-import { deleteMilkEntry, getLactationEntries, getLactationEntriesFoot, updateMilkEntry } from "./Service"
+import { deleteMilkEntry, updateMilkEntry } from "./Service" 
 import Table from "@mui/material/Table"
 import { TableBody, TableHead } from "@mui/material"
 import {
@@ -22,6 +31,7 @@ import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog } from "@/components/shared/dialog/DialogComponents"
+import { getLactationEntries, getLactationEntriesFoot } from "@features/lactation/Service"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -85,6 +95,8 @@ type EntriesTableProps = {
     loading: boolean
 }
 
+const COLUMNS = 4
+
 const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
 
     return <div className="overflow-auto">
@@ -92,21 +104,21 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
             <TableHead>
                 <TableHeadRow>
                     <TableHeadControlCell />
-                    <TableHeadCell>Pasto</TableHeadCell>
-                    <TableHeadCell align="center">Data da Marcação</TableHeadCell>
+                    <TableHeadCell width={400} align="center">Data da Marcação</TableHeadCell>
+                    <TableHeadCell width={600}>Pasto</TableHeadCell>
                     <TableHeadCell align="center">Quantidade</TableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>
                 <TableBodyContainer
                     dataset={rows}
-                    colSpan={4}
+                    colSpan={COLUMNS}
                     loading={loading}
                     render={item => <EntriesRow {...{ item }} />}
                 />
             </TableBody>
             <StickyTableFooter>
-                <TableFooterRow colSpan={4}>
+                <TableFooterRow colSpan={COLUMNS}>
                     <FooterContent title="Total" content={foot.animalsNumber} />
                     <FooterContent title="Produção Média" content={decimalTransform(foot.averageMilk)} />
                     <FooterContent title="Produção Total" content={decimalTransform(foot.totalMilk)} />
@@ -148,8 +160,8 @@ const EntriesRow = ({ item }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing, onDelete, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
+        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
     </TableBodyRow>
 }
@@ -178,20 +190,19 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
             .finally(() => setLoading(false))
     }
 
-
     const onSave = handleSubmit(onSubmit)
 
     return <TableBodyRow>
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell align="center">
             <FormDatePicker formProps={{ name: 'entryDate', control }} />
         </TableBodyCell>
+        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
         <TableBodyCell align="center">
             <FormTextField
-                className="w-[80px]"
+                className="w-[100px]"
                 type="number"
                 formProps={{ control, name: 'quantity' }}
             />

@@ -1,14 +1,16 @@
+import Home from "@mui/icons-material/Home"
 import { ReactNode } from "react"
 import { isRouteErrorResponse, RouteObject, useRouteError } from "react-router"
-import { LoginDisplay } from "./components/features/auth/LoginDisplay"
-import { PageDisplay } from "./components/shared/main-page/PageDisplay"
-import { lactationRoutes } from "./components/features/lactation/Routes"
-import { reproductionRoutes } from "./components/features/reproduction/Routes"
-import { farmAreaRoutes } from "./components/features/farm-area/Routes"
-import { weightRoutes } from "./components/features/weight/Routes"
-import { slaughterRoutes } from "./components/features/slaughter/Routes"
 import { animalRoutes } from "./components/features/animals/Routes"
-import Home from "@mui/icons-material/Home"
+import { LoginDisplay } from "./components/features/auth/LoginDisplay"
+import { birthRoutes } from "./components/features/births/Routes"
+import { farmAreaRoutes } from "./components/features/farm-area/Routes"
+import { lactationRoutes } from "./components/features/lactation/Routes"
+import { birthTestRoutes } from "./components/features/pregnancy-test/Routes"
+import { reproductionRoutes } from "./components/features/reproduction/Routes"
+import { slaughterRoutes } from "./components/features/slaughter/Routes"
+import { weightRoutes } from "./components/features/weight/Routes"
+import { PageDisplay } from "./components/shared/main-page/PageDisplay"
 
 export type RouteHandle = {
     title: string | ((params: Record<string, string>, data?: any) => string)
@@ -56,6 +58,8 @@ export const routes: AppRoute[] = [
         },
         children: [
             ...animalRoutes,
+            birthRoutes,
+            birthTestRoutes,
             farmAreaRoutes,
             reproductionRoutes,
             lactationRoutes,

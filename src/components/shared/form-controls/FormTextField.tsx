@@ -56,8 +56,11 @@ export const FormTextField = <T extends FieldValues>({
         {...formProps}
         render={({ field, fieldState }) => (
             <TextComponent
-                {...field}
+                ref={field.ref}
+                name={field.name}
                 value={field.value}
+                disabled={field.disabled}
+                onBlur={field.onBlur}
                 type={type}
                 className={className}
                 error={!!fieldState.error}

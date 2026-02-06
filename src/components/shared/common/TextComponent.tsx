@@ -1,5 +1,5 @@
 import TextField from "@mui/material/TextField"
-import { ChangeEventHandler, FocusEventHandler, HTMLInputTypeAttribute, ReactNode } from "react"
+import{ ChangeEventHandler, FocusEventHandler, HTMLInputTypeAttribute, ReactNode } from "react"
 import { RefCallBack } from "react-hook-form"
 
 type TextComponentProps = {
@@ -22,10 +22,10 @@ type TextComponentProps = {
     endAdornment?: ReactNode
 }
 
-export function TextComponent({
+export const TextComponent = ({
     value,
-    name,
     ref,
+    name,
     type,
     className,
     disabled,
@@ -40,13 +40,13 @@ export function TextComponent({
     rows,
     maxRows,
     endAdornment
-}: TextComponentProps) {
+}: TextComponentProps) => {
 
     return <TextField
         value={value ?? ''}
         type={type}
         name={name}
-        ref={ref}
+        inputRef={ref}
         className={className}
         onBlur={onBlur}
         error={!disabled && error}

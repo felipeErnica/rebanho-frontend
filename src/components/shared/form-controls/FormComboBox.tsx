@@ -38,8 +38,9 @@ export const FormComboBox = <T extends FieldValues>({
         {...formProps}
         render={({ field, fieldState: { error } }) => (
             <Autocomplete
-                {...field}
+                ref={field.ref}
                 value={items.find(item => item.value === field.value) ?? null}
+                onBlur={field.onBlur}
                 className={className}
                 multiple={false}
                 inputValue={inputValue}
@@ -61,6 +62,7 @@ export const FormComboBox = <T extends FieldValues>({
                 renderInput={(params) => {
                     return <TextField
                         {...params}
+                        name={field.name}
                         error={!!error}
                         size="small"
                         variant={variant || 'standard'}

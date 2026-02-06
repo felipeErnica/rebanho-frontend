@@ -9,9 +9,11 @@ import { FormRadioGroup } from "@shared/form-controls/FormRadioGroup"
 import { useEffect, useState } from "react"
 import dayjs from "dayjs"
 import { RadioComponent } from "@shared/common/RadioComponent"
-import { addTest, replaceTest } from "./Controller"
+import { addTest } from "./Service"
 import { APIError } from "@utils/ApiRequest"
-import { TestEntryForm } from "./Entities"
+import { TestEntrySave } from "./Entities"
+import { searchMothers } from "../animals/Service"
+import { Animal, getAnimalLabel } from "../animals/Entities"
 
 type AddTestDialogProps = {
     addTestOpen: boolean
@@ -21,37 +23,30 @@ type AddTestDialogProps = {
 
 export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDialogProps) => {
 
-    const { handleSubmit, control, reset, setValue, getValues } = useForm<TestEntryForm>({
+    const { handleSubmit, control, reset, setValue, getValues } = useForm<TestEntrySave>({
         defaultValues: { testDate }
     })
 
     const [disableForecast, setDisableForecast] = useState(true)
     const [forecastType, setForecastType] = useState<'days' | 'date'>('days')
+    const [mothers, setMothers] = useState<Animal[]>([])
+    const [loadingControls, setLoadingControls] = useState(false)
 
     const [added, setAdded] = useState(false)
-    const [warningProps, setWarningProps] = useState<APIError>()
+    const [warning, setWarning] = useState<APIError>()
     const [error, setError] = useState<APIError>()
     const [loading, setLoading] = useState(false)
 
     useEffect(() => testDate && setValue('testDate', testDate), [setValue, testDate])
+    useEffect(() => {
+        setLoadingControls(true)
+        searchMothers()
+            .then(response => setMothers(response))
+            .catch(() => setMothers([]))
+            .finally(() => setLoadingControls(false))
+    }, [])
 
-    const onReplace: SubmitHandler<TestEntryForm> = (data: TestEntryForm) => {
-        setLoading(true)
-        replaceTest(data)
-            .then(() => {
-                reset({
-                    testDate: data.testDate,
-                    pregnancyStatus: data.pregnancyStatus
-                })
-                setAdded(true)
-                setError(undefined)
-                setWarningProps(undefined)
-            })
-            .catch(err => setError(err))
-            .finally(() => setLoading(false))
-    }
-
-    const onSubmit: SubmitHandler<TestEntryForm> = (data: TestEntryForm) => {
+    const onSubmit: SubmitHandler<TestEntrySave> = (data: TestEntrySave) => {
         setLoading(true)
         addTest(data)
             .then(() => {
@@ -61,14 +56,14 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
                 })
                 setAdded(true)
                 setError(undefined)
-                setWarningProps(undefined)
+                setWarning(undefined)
             })
             .catch((err: APIError) => {
                 if (err.errType === ERROR_TYPE) {
                     setError(err)
                     return
                 }
-                setWarningProps(err)
+                setWarning(err)
             })
             .finally(() => setLoading(false))
     }
@@ -76,7 +71,7 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
     const onClose = () => {
         reset()
         setError(undefined)
-        setWarningProps(undefined)
+        setWarning(undefined)
         closeAddTest(added)
     }
 
@@ -106,7 +101,11 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
                 <FormSearchBox
                     label="Vaca"
                     className="w-100"
-                    searchOptions={searchOwnedMothers}
+                    loading={loadingControls}
+                    options={mothers.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
                     formProps={{
                         control,
                         rules: { required: REQUIRED_FIELD_MSG },
@@ -168,20 +167,23 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
             />
         </DialogActions>
         <YesNoDialog
-            openYesNo={!!warningProps}
-            title={warningProps?.title}
-            message={warningProps?.message}
-            onYes={handleSubmit(onReplace)}
-            onClose={() => setWarningProps(undefined)}
+            openYesNo={!!warning}
+            title={warning?.title}
+            message={warning?.message}
+            onYes={() => {
+                setValue('overwrite', true)
+                handleSubmit(onSubmit)
+            }}
+            onClose={() => setWarning(undefined)}
         />
     </Dialog>
 }
 
 type ForecastControlProps = {
-    setValue: UseFormSetValue<TestEntryForm>
-    getValue: UseFormGetValues<TestEntryForm>
+    setValue: UseFormSetValue<TestEntrySave>
+    getValue: UseFormGetValues<TestEntrySave>
     forecastType: "date" | "days" | undefined
-    control: Control<TestEntryForm, any, TestEntryForm>
+    control: Control<TestEntrySave, any, TestEntrySave>
     disableForecast: boolean
 }
 

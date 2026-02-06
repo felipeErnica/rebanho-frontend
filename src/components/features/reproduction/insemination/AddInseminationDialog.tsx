@@ -1,17 +1,19 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
-import { SubmitHandler, useForm } from "react-hook-form"
-import { InseminationEntrySave } from "./Entities"
+import { AddBullDialog } from "@features/animals/AddBullDialog"
+import { AddCowDialog } from "@features/animals/AddCowDialog"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
+import { searchMothers } from "@features/animals/Service"
+import { Alert, AlertTitle, Collapse, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
+import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
 import { FormTextField } from "@shared/form-controls/FormTextField"
-import { REQUIRED_FIELD_MSG } from "@shared/Globals"
-import { addInsemination, replaceInsemination, searchInseminationBulls } from "./Controller"
-import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
-import { useCallback, useEffect, useState } from "react"
+import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
 import { APIError } from "@utils/ApiRequest"
-import { AddBullDialog } from "@features/animals/AddBullDialog"
-import { AddCowDialog } from "@features/animals/AddCowDialog"
+import { useCallback, useEffect, useState } from "react"
+import { SubmitHandler, useForm } from "react-hook-form"
 import { AddInseminationBullDialog } from "./AddInseminationBull"
+import { InseminationEntrySave } from "./Entities"
+import { addInsemination, searchInseminationBulls } from "./Service"
 
 type AddInseminationDialogProps = {
     addInseminationOpen: boolean
@@ -29,8 +31,12 @@ export const AddInseminationDialog = ({
 
     const [loading, setLoading] = useState(false)
     const [warning, setWarning] = useState<APIError>()
+    const [error, setError] = useState<APIError>()
     const [added, setAdded] = useState(false)
     const [reload, setReload] = useState(0)
+
+    const [bulls, setBulls] = useState<Animal[]>([])
+    const [mothers, setMothers] = useState<Animal[]>([])
 
     const [addInseminationBull, setAddInseminationBull] = useState(false)
     const [addBullOpen, setAddBullOpen] = useState(false)
@@ -44,6 +50,21 @@ export const AddInseminationDialog = ({
         if (!inseminationDate) return
         setValue('inseminationDate', inseminationDate)
     }, [inseminationDate, setValue])
+
+    useEffect(() => {
+        Promise.all([
+            searchInseminationBulls(),
+            searchMothers()
+        ])
+            .then(resp => {
+                setBulls(resp[0])
+                setMothers(resp[1])
+            })
+            .catch(() => {
+                setBulls([])
+                setMothers([])
+            })
+    }, [reload])
 
     const onClose = useCallback(() => {
         reset()
@@ -77,21 +98,12 @@ export const AddInseminationDialog = ({
                 setWarning(undefined)
                 setAdded(true)
             })
-            .catch(err => setWarning(err))
-            .finally(() => setLoading(false))
-    }
-
-    const onReplace: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
-        setLoading(true)
-        replaceInsemination(data)
-            .then(() => {
-                reset({
-                    inseminationDate: data.inseminationDate,
-                    bullId: data.bullId
-                })
-                setFocus('animalId')
-                setWarning(undefined)
-                setAdded(true)
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                setWarning(err)
             })
             .finally(() => setLoading(false))
     }
@@ -103,6 +115,12 @@ export const AddInseminationDialog = ({
         <DialogTitle>Adicionar Inseminação</DialogTitle>
         <DialogContent>
             <DialogContainer>
+                <Collapse in={!!error}>
+                    <Alert severity="error" onClose={() => setError(undefined)}>
+                        <AlertTitle title={error?.title} />
+                        {error?.message}
+                    </Alert>
+                </Collapse>
                 <FormDatePicker
                     className="w-[200px]"
                     label="*Data de Inseminação"
@@ -114,8 +132,10 @@ export const AddInseminationDialog = ({
                 />
                 <FormSearchBox
                     label="*Touro"
-                    reload={reload}
-                    searchOptions={searchInseminationBulls}
+                    options={bulls.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
                     emptyProps={[
                         {
                             id: 'addExistingBull',
@@ -136,9 +156,11 @@ export const AddInseminationDialog = ({
                 />
                 <FormSearchBox
                     label="*Vaca"
-                    reload={reload}
                     className="w-[400px]"
-                    searchOptions={searchOwnedMothers}
+                    options={mothers.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
                     emptyProps={[{
                         id: 'newCow',
                         title: '+ Adicionar Vaca',
@@ -167,18 +189,21 @@ export const AddInseminationDialog = ({
             <AddCowDialog {...{ addCowOpen, closeAddCow }} />
         </DialogContent>
         <DialogActions>
-            <DialogActionButtons 
+            <DialogActionButtons
                 loading={loading}
                 saveText="Adicionar"
                 onSave={handleSubmit(onSubmit)}
                 onClose={onClose}
             />
         </DialogActions>
-        <YesNoDialog 
+        <YesNoDialog
             openYesNo={!!warning}
             title={warning?.title}
             message={warning?.message}
-            onYes={handleSubmit(onReplace)}
+            onYes={() => {
+                setValue('overwrite', true)
+                handleSubmit(onSubmit)
+            }}
             onClose={() => setWarning(undefined)}
         />
     </Dialog>

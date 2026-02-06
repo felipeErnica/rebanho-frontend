@@ -6,10 +6,10 @@ import { Outlet, useParams } from "react-router";
 import { findLactationById } from "./Service";
 import { LactationHist } from "./Entities";
 import { dateTransform } from "@/utils/Transformations";
-import { GroupEntriesTablePage } from "./milk-tables/GroupEntriesTable";
-import { LactationEntriesTablePage } from "./milk-tables/LactationEntriesTable";
-import { MilkEntriesTablePage } from "./milk-tables/MilkEntriesTable";
-import { GroupTablePage } from "./milk-tables/MilkGroupTable";
+import { GroupEntriesTablePage } from "@features/milk/GroupEntriesTable";
+import { LactationEntriesTablePage } from "@features/milk/LactationEntriesTable";
+import { MilkEntriesTablePage } from "@features/milk/MilkEntriesTable";
+import { GroupTablePage } from "@features/milk/MilkGroupTable";
 import { DryAnimalsTablePage } from "./DryAnimalsTable";
 import { LacAnimalsTablePage } from "./LacAnimalsTable";
 import { LongLactationsTablePage } from "./LongLactationsTable";
@@ -81,7 +81,7 @@ export const lactationRoutes: AppRoute = {
                         return findLactationById(lactationId)
                     },
                     handle: {
-                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate) 
+                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate)
                     }
                 }
             ]
@@ -103,7 +103,7 @@ export const lactationRoutes: AppRoute = {
                         return findLactationById(lactationId)
                     },
                     handle: {
-                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate) 
+                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate)
                     }
                 }
 
@@ -126,7 +126,7 @@ export const lactationRoutes: AppRoute = {
                         return findLactationById(lactationId)
                     },
                     handle: {
-                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate) 
+                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate)
                     }
                 }
 
@@ -134,8 +134,25 @@ export const lactationRoutes: AppRoute = {
         },
         {
             path: 'long-lactations',
-            element: <LongLactationsTablePage />,
-            handle: { title: 'Lactações Longas'}
+            element: <Outlet />,
+            handle: { title: 'Lactações Longas' },
+            children: [
+                {
+                    index: true,
+                    element: <LongLactationsTablePage />,
+                },
+                {
+                    path: ":lactationId",
+                    element: <LactationEntriesTablePageWrapper />,
+                    loader: async ({ params }) => {
+                        const { lactationId } = params
+                        return findLactationById(lactationId)
+                    },
+                    handle: {
+                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate)
+                    }
+                }
+            ]
         }
     ]
 }

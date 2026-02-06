@@ -2,26 +2,34 @@ import { DialogActionButtons, DialogContainer } from "@shared/dialog/DialogCompo
 import { SearchBox } from "@shared/dialog/SearchBox"
 import { Alert, AlertTitle, Collapse, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import Dialog from "@mui/material/Dialog"
-import { useState } from "react"
-import { searchNonBreedingBulls, transferBreedingBull } from "./Controller"
+import { useEffect, useState } from "react"
+import { searchBreedingBulls } from "./Service"
 import { APIError } from "@utils/ApiRequest"
 import { REQUIRED_FIELD_MSG } from "@shared/Globals"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
+import { updateAnimal } from "@features/animals/Service"
 
 type AddBreddingBullProps = {
-    addBreedingBull: boolean
+    openBreedingBull: boolean
     closeAddBreedingBull: (added?: boolean) => void
 }
 
-export function AddBreddingBullDialog({ addBreedingBull, closeAddBreedingBull }: AddBreddingBullProps) {
+export function AddBreddingBullDialog({ openBreedingBull, closeAddBreedingBull }: AddBreddingBullProps) {
 
-    const [reload, setReload] = useState(0)
     const [bullId, setBullId] = useState<string>()
+    const [bulls, setBulls] = useState<Animal[]>([])
     const [added, setAdded] = useState(false)
     const [searchError, setSearchError] = useState(false)
     const [error, setError] = useState<APIError>()
 
+    useEffect(() => {
+        searchBreedingBulls()
+            .then(response => setBulls(response))
+            .catch(() => setBulls([]))
+    }, [])
+
     return <Dialog
-        open={addBreedingBull}
+        open={openBreedingBull}
         onClose={() => {
             setBullId(undefined)
             closeAddBreedingBull(added)
@@ -38,10 +46,12 @@ export function AddBreddingBullDialog({ addBreedingBull, closeAddBreedingBull }:
                 </Collapse>
                 <SearchBox
                     value={bullId}
-                    reload={reload}
                     className="w-[400px]"
                     label="*Touro"
-                    searchOptions={searchNonBreedingBulls}
+                    options={bulls.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
                     error={searchError}
                     helperText={searchError ? REQUIRED_FIELD_MSG : undefined}
                     onChange={(id) => {
@@ -59,11 +69,12 @@ export function AddBreddingBullDialog({ addBreedingBull, closeAddBreedingBull }:
                         setSearchError(true)
                         return
                     }
-                    transferBreedingBull(bullId)
+
+                    const entry = bulls.find(item => item.id === bullId)
+                    updateAnimal({ ...entry, isBreedingBull: true, ignoreDead: false })
                         .then(() => {
                             setBullId(undefined)
                             setError(undefined)
-                            setReload(prev => prev + 1)
                             setAdded(true)
                         })
                         .catch(err => setError(err))

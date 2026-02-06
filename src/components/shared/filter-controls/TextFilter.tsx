@@ -12,6 +12,7 @@ type TextFilterProps = {
     className?: string
     multiline?: boolean
     maxRows?: number
+    disabled?: boolean
     rows?: number
 }
 
@@ -24,6 +25,7 @@ export const TextFilter = ({
     setFilter,
     multiline,
     maxRows,
+    disabled,
     rows
 }: TextFilterProps) => {
 
@@ -37,6 +39,7 @@ export const TextFilter = ({
         variant="standard"
         type="search"
         label={label}
+        disabled={disabled}
         multiline={multiline}
         maxRows={maxRows}
         rows={rows}

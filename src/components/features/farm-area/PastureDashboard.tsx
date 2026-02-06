@@ -9,7 +9,7 @@ import {
 import { DashboardInformationProps, DashboardTopBarProps } from "@/components/shared/dashboard/Entities"
 import { ReloadButton } from "@/components/shared/table/TableTopBarComponents"
 import { useCallback, useEffect, useState } from "react"
-import { getPastureDashboardStats, getPastureOccupancy } from "./Controller"
+import { getPastureDashboardStats, getPastureOccupancy } from "./Service"
 import {  PastureOccupancy, PastureStats } from "./Entities"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { dateTransform,  positiveTransform } from "@/utils/Transformations"

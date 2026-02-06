@@ -6,10 +6,6 @@ import {
     useRef,
     useState
 } from "react"
-import {
-    findDryAnimalsPage,
-    getDryAnimalsPageFoot
-} from "./Service"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
@@ -25,8 +21,9 @@ import {
 } from "@shared/table/TableComponents"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { ComboBoxItem } from "@/components/shared/common/ComboBox"
-import { LactationHist, LactationHistFilter, LactationHistFoot } from "./Entities"
-import { LacHistFilter } from "./LacHistFilter"
+import { LactationAnimalFilter, LactationHist, LactationHistFoot } from "./Entities"
+import { findLactationsAnimalsPage, getLactationsAnimalsPageFoot } from "./Service"
+import { LactationAnimalsFilter } from "./LactationAnimalsFilter"
 
 export const DryAnimalsTablePage = () => {
 
@@ -40,7 +37,7 @@ export const DryAnimalsTablePage = () => {
     }), [])
     const defaultSort = 'animal_order'
 
-    const [filter, setFilter] = useState<LactationHistFilter>({ isFiltered: false })
+    const [filter, setFilter] = useState<LactationAnimalFilter>({ isFiltered: true, isLactating: false })
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [foot, setFoot] = useState(defaultFoot)
@@ -50,13 +47,13 @@ export const DryAnimalsTablePage = () => {
     const anchorEl = useRef<HTMLButtonElement>(null)
 
     const fetchPage = useCallback((cursor?: string) => {
-        getDryAnimalsPageFoot(filter)
+        getLactationsAnimalsPageFoot(filter)
             .then(response => setFoot(response))
             .catch(() => setFoot(defaultFoot))
-        return findDryAnimalsPage(filter, sort, order, cursor)
+        return findLactationsAnimalsPage(filter, sort, order, cursor)
     }, [defaultFoot, filter, order, sort])
 
-    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
+    const onReload = useCallback(() => setFilter({ isFiltered: true, isLactating: false }), [])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: defaultSort },
@@ -80,7 +77,7 @@ export const DryAnimalsTablePage = () => {
             orderProps={{ order, setOrder }}
         />
         <DryAnimalsTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
-        <LacHistFilter {...{ setFilter: setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
+        <LactationAnimalsFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
     </div>
 }
 

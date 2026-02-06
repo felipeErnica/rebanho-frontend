@@ -8,16 +8,16 @@ import {
     DashboardTopContainer,
     TrendComponent
 } from "@shared/dashboard/DashboardComponents"
-import { 
-    createContext, 
-    Dispatch, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useMemo, 
-    useRef, 
-    useState 
+import {
+    createContext,
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
 } from "react"
 import {
     getBirthRate,
@@ -30,7 +30,7 @@ import {
     getRankedResults,
     deleteTest,
     updateTest
-} from "./Controller"
+} from "./Service"
 import {
     BarPlot,
     ChartDataProvider,
@@ -44,7 +44,7 @@ import {
     LinePlot,
     SparkLineChart
 } from "@mui/x-charts"
-import { dateTransform, percentageTransform } from "@utils/Transformations"
+import { dateToISO, dateTransform, percentageTransform } from "@utils/Transformations"
 import {
     AnimalsNumberHist,
     BirthRateStats,
@@ -57,6 +57,7 @@ import {
     PregnancyTestsHist,
     TestAnimal,
     TestEntry,
+    TestEntrySave,
     TestGroup
 } from "./Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
@@ -78,7 +79,7 @@ import IconButton from "@mui/material/IconButton"
 import { CardEntry } from "@utils/Entities"
 import { ChipColorScheme } from "@shared/Globals"
 import { orange, yellow } from "@mui/material/colors"
-import { EditRowProps, TableRowProp } from "@shared/table/Entities"
+import { EditRowProps } from "@shared/table/Entities"
 import { APIError } from "@utils/ApiRequest"
 import { ErrorDialog } from "@shared/dialog/DialogComponents"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
@@ -143,7 +144,7 @@ const DashboardTopBar = ({ setReloadFlag, activeRequests }: DashboardTopBarProps
         >
             Opções
         </Button>
-        <OptionsMenu 
+        <OptionsMenu
             openMenu={openMenu}
             closeMenu={() => setOpenMenu(false)}
             menuAnchorEl={menuAnchorEl}
@@ -596,8 +597,7 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
                                         </IconButton>
                                     )}
                                     onShow={() => {
-                                        const testDate = new Date(item.testDate)
-                                        const dateStr = testDate.toISOString().split('T')[0]
+                                        const dateStr = dateToISO(item.testDate)
                                         navigate(`groups/${dateStr}`)
                                     }}
                                 />
@@ -697,7 +697,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
     </DashboardCard>
 }
 
-function EntriesRow({ row }: TableRowProp<TestEntry>) {
+function EntriesRow({ row }) {
 
     const [rowData, setRowData] = useState(row)
     const [editing, setEditing] = useState(false)
@@ -750,12 +750,12 @@ function EditEntriesRow({ setRowData, setEditing, rowData }: EditRowProps<TestEn
     const [showForecast, setShowForecast] = useState(rowData.pregnancyStatus === 'SUCCESS')
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit, setValue } = useForm<TestEntry>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue } = useForm<TestEntrySave>({ defaultValues: rowData })
     const { setError } = useContext(ReloadContext)
 
     useEffect(() => setShowForecast(rowData.pregnancyStatus === 'SUCCESS'), [rowData])
 
-    const onSubmit: SubmitHandler<TestEntry> = (data: TestEntry) => {
+    const onSubmit: SubmitHandler<TestEntrySave> = (data: TestEntrySave) => {
         setLoading(true)
         updateTest(data)
             .then(response => {

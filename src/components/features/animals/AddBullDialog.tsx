@@ -4,7 +4,7 @@ import {
     ErrorDialog,
     YesNoDialog,
 } from "@shared/dialog/DialogComponents"
-import { DefaultWarning, ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
+import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
 import { APIError } from "@utils/ApiRequest"
 import Alert from "@mui/material/Alert"
 import AlertTitle from "@mui/material/AlertTitle"
@@ -57,7 +57,7 @@ export const AddBullDialog = ({
     const [formType, setFormType] = useState('newAnimal')
     const [error, setError] = useState<APIError>()
     const [added, setAdded] = useState(false)
-    const [warningProps, setWarningProps] = useState(DefaultWarning)
+    const [warning, setWarning] = useState<APIError>()
     const [loading, setLoading] = useState(false)
     const [externalAnimal, setExternalAnimal] = useState(false)
 
@@ -72,13 +72,14 @@ export const AddBullDialog = ({
             .then(() => {
                 setAdded(true)
                 setError(undefined)
-                setWarningProps(DefaultWarning)
+                setWarning(undefined)
                 reset()
             })
             .catch((err: APIError) => {
                 if (err.errType === ERROR_TYPE) {
                     setError(err)
-                    return
+                } else {
+                    setWarning(err)
                 }
             })
             .finally(() => setLoading(false))
@@ -101,12 +102,13 @@ export const AddBullDialog = ({
             .then(() => {
                 setAdded(true)
                 setError(undefined)
-                setWarningProps(DefaultWarning)
+                setWarning(undefined)
             })
             .catch((err: APIError) => {
                 if (err.errType === ERROR_TYPE) {
                     setError(err)
-                    return
+                } else {
+                    setWarning(err)
                 }
             })
             .finally(() => setLoading(false))
@@ -191,7 +193,13 @@ export const AddBullDialog = ({
                 message={error?.message}
                 onClose={() => setError(undefined)}
             />
-            <YesNoDialog {...warningProps} />
+            <YesNoDialog
+                openYesNo={!!warning}
+                title={warning?.title}
+                message={warning?.message}
+                onClose={() => setWarning(undefined)}
+                onYes={() => setValue('ignoreDead', true)}
+            />
         </DialogContent>
         <DialogActions>
             <DialogActionButtons

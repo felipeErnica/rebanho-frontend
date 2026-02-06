@@ -1,3 +1,26 @@
+import Add from "@mui/icons-material/Add"
+import { Button, Chip, TableBody } from "@mui/material"
+import Table from "@mui/material/Table"
+import TableHead from "@mui/material/TableHead"
+import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
+import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
+import { FormTextField } from "@shared/form-controls/FormTextField"
+import { DefaultWarning, ERROR_TYPE } from "@shared/Globals"
+import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
+import {
+    FooterContent,
+    ResizableHeadCell,
+    StickyTableFooter,
+    TableBodyCell,
+    TableBodyRow,
+    TableFooterRow,
+    TableHeadControlCell,
+    TableHeadRow,
+    TablePageBody
+} from "@shared/table/TableComponents"
+import { TableTopBar } from "@shared/table/TableTopBarComponents"
+import { APIError } from "@utils/ApiRequest"
+import { percentageTransform } from "@utils/Transformations"
 import {
     createContext,
     Dispatch,
@@ -6,61 +29,33 @@ import {
     useContext,
     useEffect,
     useMemo,
-    useRef,
     useState
 } from "react"
+import { SubmitHandler, useForm } from "react-hook-form"
+import { AddInseminationDialog } from "./AddInseminationDialog"
 import {
     InseminationEntry,
+    InseminationEntryDelete,
     InseminationEntrySave,
     InseminationFooter,
     InseminationStatusColorMap,
     InseminationStatusMap,
 } from "./Entities"
 import {
-    deleteAndChangeFather,
     deleteInsemination,
-    deleteNoValidate,
     findEntriesByGroup,
     getEntriesByGroupFoot,
     searchInseminationBulls,
     updateInsemination,
-    updateNoValidation
-} from "./Controller"
-import Table from "@mui/material/Table"
-import {
-    FooterContent,
-    ResizableHeadCell,
-    StickyTableFooter,
-    TableBodyCell,
-    TableBodyRow,
-    TableFooterRow,
-    TableHeadCell,
-    TableHeadRow,
-    TableLoadingRow
-} from "@shared/table/TableComponents"
-import TableHead from "@mui/material/TableHead"
-import { Button, Chip, TableBody } from "@mui/material"
-import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { SubmitHandler, useForm } from "react-hook-form"
-import { FormTextField } from "@shared/form-controls/FormTextField"
-import { percentageTransform } from "@utils/Transformations"
-import { AddInseminationDialog } from "./AddInseminationDialog"
-import { TableTopBar } from "@shared/table/TableTopBarComponents"
-import Add from "@mui/icons-material/Add"
-import { APIError } from "@utils/ApiRequest"
-import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
-import { ERROR_TYPE } from "@shared/Globals"
-import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
+} from "./Service"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
 
-type GroupEntriesTablePageProps = {
-    inseminationDate: Date
-}
+type GroupEntriesTablePageProps = { inseminationDate: Date }
 
 type DeleteContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
     setWarningProps: Dispatch<SetStateAction<YesNoDialogProps>>
     setRows: Dispatch<SetStateAction<InseminationEntry[]>>
-    defaultWarning: YesNoDialogProps
     loadFoot: () => void
 }
 
@@ -74,20 +69,12 @@ export const GroupEntriesTablePage = ({ inseminationDate }: GroupEntriesTablePag
         averagePregnancyRate: 0
     }), [])
 
-    const defaultWarning: YesNoDialogProps = {
-        openYesNo: false,
-        title: undefined,
-        message: undefined,
-        onYes: undefined,
-        onClose: undefined
-    }
-
     const [loading, setLoading] = useState(false)
     const [rows, setRows] = useState<InseminationEntry[]>([])
     const [foot, setFoot] = useState<InseminationFooter>(defaultValue)
     const [addInseminationOpen, setAddInseminationOpen] = useState(false)
 
-    const [warningProps, setWarningProps] = useState(defaultWarning)
+    const [warningProps, setWarningProps] = useState(DefaultWarning)
     const [error, setError] = useState<APIError>()
 
     const loadFoot = useCallback(() => {
@@ -126,7 +113,7 @@ export const GroupEntriesTablePage = ({ inseminationDate }: GroupEntriesTablePag
                 </Button>
             )}
         />
-        <DeleteContext.Provider value={{ setWarningProps, setError, setRows, defaultWarning, loadFoot }}>
+        <DeleteContext.Provider value={{ setWarningProps, setError, setRows, loadFoot }}>
             <GroupEntriesTable {...{ rows, foot, loading }} />
         </DeleteContext.Provider>
         <YesNoDialog {...warningProps} />
@@ -145,41 +132,33 @@ type GroupEntriesTableProps = {
     loading: boolean
 }
 
+const COLUMN_COUNT = 7
+
 const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
 
-    const [tableUnit, setTableUnit] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setTableUnit(table.offsetWidth / 100)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-
-    return <div className="h-full w-full overflow-auto" ref={tableRef}>
+    return <div className="h-full w-full overflow-auto">
         <Table stickyHeader className="w-max min-w-full">
             <TableHead>
                 <TableHeadRow>
-                    <TableHeadCell width={tableUnit * 10} />
-                    <ResizableHeadCell width={tableUnit * 20}>Vaca</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 10}>Touro</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={tableUnit * 15}>Prenhez</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={tableUnit * 15}>Nascimento</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 15}>Informações da Cria</ResizableHeadCell>
-                    <ResizableHeadCell width={tableUnit * 15}>Observações</ResizableHeadCell>
+                    <TableHeadControlCell />
+                    <ResizableHeadCell>Vaca</ResizableHeadCell>
+                    <ResizableHeadCell width={250}>Touro</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Nascimento</ResizableHeadCell>
+                    <ResizableHeadCell width={300}>Informações da Cria</ResizableHeadCell>
+                    <ResizableHeadCell width={400}>Observações</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>
-                {rows.map(item => <EntriesRow {...{ item, loading }} />)}
+                <TablePageBody
+                    dataset={rows}
+                    colSpan={COLUMN_COUNT}
+                    loading={loading}
+                    render={(item) => <EntriesRow {...{ item }} />}
+                />
             </TableBody>
             <StickyTableFooter>
-                <TableFooterRow colSpan={7}>
+                <TableFooterRow colSpan={COLUMN_COUNT}>
                     <FooterContent title="Total" content={foot.totals} />
                     <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.averagePregnancyRate)} />
                     <FooterContent title="Taxa de Nascimento" content={percentageTransform(foot.averageBirthRate)} />
@@ -191,42 +170,26 @@ const GroupEntriesTable = ({ rows, foot, loading }: GroupEntriesTableProps) => {
 
 type EntriesRowProps = {
     item: InseminationEntry
-    loading: boolean
 }
 
-const EntriesRow = ({ item, loading }: EntriesRowProps) => {
+const EntriesRow = ({ item }: EntriesRowProps) => {
 
     const [rowData, setRowData] = useState<InseminationEntry>(item)
     const [editing, setEditing] = useState(false)
+    const [params, setParams] = useState<InseminationEntryDelete>({
+        id: item.id,
+        ignorePregnancy: false,
+        changeFather: false
+    })
 
-    const { setError, setWarningProps, setRows, defaultWarning, loadFoot } = useContext(DeleteContext)
+    const { setError, setWarningProps, setRows, loadFoot } = useContext(DeleteContext)
 
     useEffect(() => setRowData(item), [item])
 
-    const onDeleteNoValidation = () => {
-        deleteNoValidate(rowData.id)
+    const onDelete = useCallback(() => {
+        deleteInsemination(params)
             .then(() => {
-                setError(undefined)
-                loadFoot()
-                setRows(prev => prev.filter(item => item.id != rowData.id))
-            })
-            .catch((error: APIError) => setError(error))
-    }
-
-    const onDeleteAndChangeFather = () => {
-        deleteAndChangeFather(rowData.id)
-            .then(() => {
-                setError(undefined)
-                loadFoot()
-                setRows(prev => prev.filter(item => item.id != rowData.id))
-            })
-            .catch((error: APIError) => setError(error))
-    }
-
-    const onDelete = () => {
-        deleteInsemination(rowData.id)
-            .then(() => {
-                setWarningProps(defaultWarning)
+                setWarningProps(DefaultWarning)
                 setError(undefined)
                 loadFoot()
                 setRows(prev => prev.filter(item => item.id != rowData.id))
@@ -236,27 +199,36 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
                     setError(error)
                     return
                 }
-                if (error.kind == "ChildrenWarning") {
-                    setWarningProps({
-                        openYesNo: true,
-                        title: error.title,
-                        message: error.message,
-                        onYes: onDeleteAndChangeFather,
-                        onClose: () => setWarningProps(defaultWarning)
-                    })
-                    return
-                }
-                setWarningProps({
+
+                const warn: YesNoDialogProps = {
                     openYesNo: true,
                     title: error.title,
                     message: error.message,
-                    onYes: onDeleteNoValidation,
-                    onClose: () => setWarningProps(defaultWarning)
+                    onClose: () => setWarningProps(DefaultWarning),
+                    onYes: undefined
+                }
+
+                if (error.kind == "ChildrenWarning") {
+                    setWarningProps({
+                        ...warn,
+                        onYes: () => {
+                            setParams(params => ({ ...params, changeFather: true }))
+                            onDelete()
+                        }
+                    })
+                    return
+                }
+
+                setWarningProps({
+                    ...warn,
+                    onYes: () => {
+                        setParams(params => ({ ...params, ignorePregnancy: true }))
+                        onDelete()
+                    }
                 })
             })
-    }
+    }, [params])
 
-    if (loading) return <TableLoadingRow colSpan={7} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <TableBodyRow>
@@ -295,27 +267,23 @@ type EntriesRowEditingProps = {
 const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
 
     const [loading, setLoading] = useState(false)
+    const [bulls, setBulls] = useState<Animal[]>([])
 
-    const { control, handleSubmit } = useForm<InseminationEntry>({ defaultValues: rowData })
-    const { setError, setWarningProps, defaultWarning, loadFoot } = useContext(DeleteContext)
+    const { control, handleSubmit, setValue } = useForm<InseminationEntrySave>({ defaultValues: rowData })
+    const { setError, setWarningProps, loadFoot } = useContext(DeleteContext)
 
-    const onNoValidation: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
-        setLoading(true)
-        updateNoValidation(data)
-            .then((result: InseminationEntry) => {
-                setRowData(result)
-                loadFoot()
-                setEditing(false)
-            })
-            .catch(err => setError(err))
-            .finally(() => setLoading(false))
-    }
+    useEffect(() => {
+        searchInseminationBulls()
+            .then(resp => setBulls(resp))
+            .catch(() => setBulls([]))
+    }, [])
 
     const onSubmit: SubmitHandler<InseminationEntrySave> = (data: InseminationEntrySave) => {
         setLoading(true)
         updateInsemination(data)
             .then((result: InseminationEntry) => {
                 setRowData(result)
+                setWarningProps(DefaultWarning)
                 loadFoot()
                 setEditing(false)
             })
@@ -328,8 +296,11 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                     openYesNo: true,
                     title: err.title,
                     message: err.message,
-                    onClose: () => setWarningProps(defaultWarning),
-                    onYes: () => handleSubmit(onNoValidation)
+                    onClose: () => setWarningProps(DefaultWarning),
+                    onYes: () => {
+                        setValue('ignoreWarnings', true)
+                        onSave()
+                    }
                 })
             })
             .finally(() => setLoading(false))
@@ -344,8 +315,11 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
+                options={bulls.map(item => ({
+                    id: item.id,
+                    label: getAnimalLabel(item)
+                }))}
                 formProps={{ control, name: 'bullId' }}
-                searchOptions={searchInseminationBulls}
             />
         </TableBodyCell>
         <TableBodyCell align="center">

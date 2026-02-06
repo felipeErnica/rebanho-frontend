@@ -16,11 +16,6 @@ export type InseminationEntry = {
     calfId?: string
 }
 
-export type LastEntry = {
-    inseminationDate: Date
-    entries: InseminationEntry[]
-}
-
 export type InseminationEntryFilter = {
     isFiltered: boolean
     animals?: string[]
@@ -37,6 +32,14 @@ export type InseminationEntrySave = {
     inseminationDate: Date
     bullId: string
     observation?: string
+    overwrite: boolean
+    ignoreWarnings: boolean
+}
+
+export type InseminationEntryDelete = {
+    id: string
+    changeFather: boolean
+    ignorePregnancy: boolean
 }
 
 export const InseminationStatusMap: Map<string, string> = new Map([
@@ -66,6 +69,16 @@ export type InseminationGroup = {
     pregnancyRate: number
     birthComparisonRate: number
     pregnancyComparisonRate: number
+}
+
+export type InseminationGroupSave = {
+    inseminationDate: Date
+    oldInseminationDate: Date
+}
+
+export type InseminationGroupDelete = {
+    inseminationDate: Date
+    changeFather: boolean
 }
 
 export type InseminationFooter = {

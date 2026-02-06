@@ -31,17 +31,12 @@ import {
     TotalMilkHist
 } from "./Entities"
 import {
-    getLastAverageMilk,
     getLastLactating,
-    getLastLac,
-    getLastGroups,
-    getLastMilk,
     getParentRatings,
     getRankedAnimals,
-    getMilkProduction,
-    getDairyTypes,
     getLastDry,
-    getLongLactations,
+    getLactationsPageFoot,
+    getDairyTypes,
 } from "./Service"
 import { dateToISO, dateTransform, decimalTransform, positiveTransform } from "@utils/Transformations"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
@@ -80,9 +75,18 @@ import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
 import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
 import { useNavigate } from "react-router"
-import { AddMilkEntryDialog } from "./milk-tables/AddMilkEntryDialog"
-import { LactationGroup, LactationGroupSave, MilkEntry } from "./milk-tables/Entities"
-import { deleteMilkEntry, deleteMilkGroup, updateMilkGroup } from "./milk-tables/Service"
+import { AddMilkEntryDialog } from "@features/milk/AddMilkEntryDialog"
+import { LactationGroup, LactationGroupSave, MilkEntry } from "@features/milk/Entities"
+import { 
+    deleteMilkEntry, 
+    deleteMilkGroup, 
+    getLastAverageMilk, 
+    getLastEntries, 
+    getLastGroups, 
+    getLastMilk, 
+    getMilkProduction, 
+    updateMilkGroup 
+} from "@features/milk/Service"
 import BackHand from "@mui/icons-material/BackHand"
 
 export const LactationDashboard = () => {
@@ -231,17 +235,24 @@ const LongLactationAlert = ({ startLoading, stopLoading, reloadFlag }: Dashboard
 
     useEffect(() => {
         startLoading()
-        getLongLactations()
+        getLactationsPageFoot({ 
+            isFiltered: true, 
+            minLacPeriod: LONG_LACTATION_DAYS, 
+            hasEndDate: false 
+        })
             .then(res => {
                 setData(res)
                 setOpen(res.totalLacs > 0)
             })
-            .catch(() => setData(defaultData))
+            .catch(() => {
+                setData(defaultData)
+                setOpen(false)
+            })
             .finally(() => stopLoading())
     }, [reloadFlag, defaultData, startLoading, stopLoading])
 
     return <Collapse in={open}>
-        <Alert severity="warning" onClose={() => setOpen(prev => !prev)}>
+        <Alert severity="warning" onClose={() => setOpen(false)}>
             <AlertTitle>{`${data.totalLacs} vacas possuem uma lactação maior que ${LONG_LACTATION_DAYS} dias.`}</AlertTitle>
             <Button
                 variant="outlined"
@@ -677,7 +688,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading, setReloadFlag
     useEffect(() => {
         startLoading()
         setLoading(true)
-        getLastLac()
+        getLastEntries()
             .then(response => {
                 const entries: MilkEntry[] = response
                 const entryDate = new Date(entries[0].entryDate ?? '')

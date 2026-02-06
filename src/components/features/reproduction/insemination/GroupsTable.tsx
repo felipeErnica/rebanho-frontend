@@ -2,25 +2,24 @@ import React, {
     createContext,
     Dispatch,
     SetStateAction,
+    useCallback,
     useContext,
     useEffect,
-    useRef,
     useState
 } from "react"
-import { InseminationGroup } from "./Entities"
-import { deleteBatch, findGroups, updateBatch } from "./Controller"
+import { InseminationGroup, InseminationGroupDelete, InseminationGroupSave } from "./Entities"
+import { deleteBatch, findGroups, updateBatch } from "./Service"
 import { IconButton, Table, TableBody, TableHead } from "@mui/material"
 import {
     ResizableHeadCell,
     TableBodyCell,
     TableBodyRow,
-    TableHeadCell,
+    TableHeadControlCell,
     TableHeadRow,
-    TableLoadingRow,
+    TablePageBody,
     TrendValues
 } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { useNavigate } from "react-router"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
@@ -28,8 +27,9 @@ import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import Add from "@mui/icons-material/Add"
 import { APIError } from "@utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@shared/dialog/DialogComponents"
-import { DefaultTimerWarning } from "@shared/Globals"
+import { DefaultTimerWarning, ERROR_TYPE } from "@shared/Globals"
 import { AddInseminationDialog } from "./AddInseminationDialog"
+import { useNavigate } from "react-router"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -108,39 +108,28 @@ type GroupsTableProps = {
     rows: InseminationGroup[]
 }
 
-const GroupsTable = ({ reload, loading, rows }: GroupsTableProps) => {
+const COLUMN_COUNT = 5
 
-    const [unit, setUnit] = useState(0)
+const GroupsTable = ({ loading, rows }: GroupsTableProps) => {
 
-    const tableRef = useRef<HTMLDivElement>(null)
-    const navigate = useNavigate()
-
-    useEffect(() => {
-
-        const handleResize = () => {
-            if (!tableRef.current) return
-            setUnit(tableRef.current.offsetWidth / 100)
-        }
-
-        handleResize()
-
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [reload])
-
-    return <div className="w-max min-w-full flex flex-col" ref={tableRef}>
+    return <div className="w-max min-w-full flex flex-col">
         <Table stickyHeader>
             <TableHead>
                 <TableHeadRow>
-                    <TableHeadCell width={unit * 10} />
-                    <ResizableHeadCell align="center" width={unit * 20}>Data de Inseminação</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 20}>Total de Animais</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 25}>Taxa de Prenhez</ResizableHeadCell>
-                    <ResizableHeadCell align="center" width={unit * 25}>Taxa de Natalidade</ResizableHeadCell>
+                    <TableHeadControlCell />
+                    <ResizableHeadCell align="center" width={150}>Data de Inseminação</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Total de Animais</ResizableHeadCell>
+                    <ResizableHeadCell align="center" width={150}>Taxa de Prenhez</ResizableHeadCell>
+                    <ResizableHeadCell align="center">Taxa de Natalidade</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>
-                {rows.map(item => <GroupsRow {...{ item, loading, navigate }} />)}
+                <TablePageBody
+                    dataset={rows}
+                    colSpan={COLUMN_COUNT}
+                    loading={loading}
+                    render={item => <GroupsRow {...{ item }} />}
+                />
             </TableBody>
         </Table>
     </div>
@@ -148,44 +137,65 @@ const GroupsTable = ({ reload, loading, rows }: GroupsTableProps) => {
 
 type GroupsRowProps = {
     item: InseminationGroup
-    loading: boolean
-    navigate: ReturnType<typeof useNavigate>
 }
 
-const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
+const GroupsRow = ({ item }: GroupsRowProps) => {
 
     const [rowData, setRowData] = useState<InseminationGroup>(item)
     const [editing, setEditing] = useState(false)
-    const [loadingControls, setLoadingControls] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [params, setParams] = useState<InseminationGroupDelete>({
+        inseminationDate: item.inseminationDate,
+        changeFather: false
+    })
 
-    const { 
-        setWarningProps, 
-        setRows, 
-        setError, 
-        setInseminationDate, 
-        setAddInseminationOpen 
+    const navigate = useNavigate()
+
+    const {
+        setWarningProps,
+        setRows,
+        setError,
+        setInseminationDate,
+        setAddInseminationOpen
     } = useContext(EditContext)
 
-    if (loading) return <TableLoadingRow colSpan={5} />
     if (editing) return <GroupsRowEditing {...{ setEditing, setRowData, rowData }} />
 
-    const onDelete = () => {
+    const onDelete = useCallback(() => {
         setWarningProps(DefaultTimerWarning)
-        setLoadingControls(true)
-        deleteBatch(rowData.inseminationDate)
+        setLoading(true)
+        deleteBatch(params)
             .then(() => {
                 setError(undefined)
-                setRows(prev => prev.filter(item => item.inseminationDate != rowData.inseminationDate))
+                setRows(prev => prev.filter(item => item.inseminationDate != params.inseminationDate))
             })
-            .catch(err => setError(err))
-            .finally(() => setLoadingControls(false))
-    }
+            .catch((err: APIError) => {
+                if (err.errType == ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+
+                setWarningProps({
+                    waitTime: 5,
+                    openYesNo: true,
+                    title: err.title,
+                    message: err.message,
+                    onClose: () => setWarningProps(DefaultTimerWarning),
+                    onYes: () => {
+                        setParams(params => ({ ...params, changeFather: true }))
+                        onDelete()
+                    }
+                })
+
+            })
+            .finally(() => setLoading(false))
+    }, [params])
 
     return <TableBodyRow>
         <TableBodyCell>
             <EditControlButtons
                 setEditing={setEditing}
-                loading={loadingControls}
+                loading={loading}
                 onDelete={() => {
                     setWarningProps({
                         openYesNo: true,
@@ -241,14 +251,19 @@ type GroupsRowEditingProps = {
 
 const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingProps) => {
 
-    const { control, handleSubmit } = useForm<InseminationGroup>({ defaultValues: rowData })
+    const { control, handleSubmit } = useForm<InseminationGroupSave>({
+        defaultValues: {
+            ...rowData,
+            oldInseminationDate: rowData.inseminationDate
+        }
+    })
     const { setError, setWarningProps } = useContext(EditContext)
     const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<InseminationGroup> = (data: InseminationGroup) => {
+    const onSubmit: SubmitHandler<InseminationGroupSave> = (data: InseminationGroupSave) => {
         setWarningProps(DefaultTimerWarning)
         setLoading(true)
-        updateBatch(rowData.inseminationDate, data)
+        updateBatch(data)
             .then(res => {
                 setRowData(res)
                 setError(undefined)

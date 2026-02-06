@@ -1,8 +1,9 @@
-import { FormControlLabel, FormHelperText, Radio, RadioGroup } from "@mui/material"
+import Close from "@mui/icons-material/Close"
+import { FormControlLabel, FormHelperText, IconButton, Radio, RadioGroup } from "@mui/material"
 import { red } from "@mui/material/colors"
 import FormControl from "@mui/material/FormControl"
 import FormLabel from "@mui/material/FormLabel"
-import { ChangeEvent, FocusEventHandler, useEffect, useState } from "react"
+import { ChangeEvent, FocusEventHandler, useCallback, useEffect, useState } from "react"
 import { RefCallBack } from "react-hook-form"
 
 export type RadioControlProps = {
@@ -19,6 +20,7 @@ function RadioControl({ value, label, disabled, error }: RadioControlProps) {
         label={label || value}
         control={(
             <Radio
+                key={value}
                 sx={{
                     color: error ? red[700] : undefined,
                     '&.Mui-checked': { color: error ? red[700] : undefined }
@@ -42,29 +44,44 @@ type RadioComponentProps = {
     errorText?: string
     onChange?: (event: ChangeEvent<HTMLInputElement>, value: string) => void
     onBlur?: FocusEventHandler<HTMLDivElement>
+    onReset?: () => void
 }
 
-export function RadioComponent({ 
+export const RadioComponent = ({
     value,
-    error, 
+    error,
     className,
-    name, 
-    ref,
+    name,
     disabled,
     label,
     controls,
     row,
     errorText,
+    ref,
     onChange,
     onBlur,
-}: RadioComponentProps) {
+    onReset
+}: RadioComponentProps) => {
 
     const [radioValue, setRadioValue] = useState(value)
 
     useEffect(() => setRadioValue(value), [value])
 
-    return <FormControl 
-        error={error} 
+    const ResetButton = useCallback(() => {
+        if (!onReset) return
+        if (!radioValue) return
+        return <div>
+            <IconButton
+                size="small"
+                onClick={onReset}
+            >
+                <Close />
+            </IconButton>
+        </div>
+    }, [radioValue, onReset])
+
+    return <FormControl
+        error={error}
         className={className}
         disabled={disabled}
     >
@@ -87,6 +104,7 @@ export function RadioComponent({
                     error={!!error}
                 />
             ))}
+            <ResetButton />
         </RadioGroup>
         <FormHelperText>{errorText}</FormHelperText>
     </FormControl>

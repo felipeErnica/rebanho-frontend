@@ -95,6 +95,7 @@ export type AnimalSave = {
     isBreedingBull?: boolean
     isEmbryoDonor?: boolean
     isOutsideAnimal?: boolean
+    ignoreDead: boolean
 }
 
 export type AnimalFilter = {
@@ -119,8 +120,9 @@ export type AnimalFilter = {
     maxAverageBirthInterval?: number
     minAveragePeak?: number
     maxAveragePeak?: number
-    minChildrenQuantity?: number
-    maxChildrenQuantity?: number
+    minChildrenNumber?: number
+    maxChildrenNumber?: number
+    hasName?: boolean
     isLactating?: boolean
     isAlive?: boolean
     isInseminationBull?: boolean

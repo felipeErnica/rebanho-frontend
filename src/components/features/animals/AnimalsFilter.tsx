@@ -1,12 +1,14 @@
-import { SexValues } from "@utils/enums"
+import { getPastureLabel, Pasture } from "@features/farm-area/Entities"
+import { searchPastures } from "@features/farm-area/Service"
 import { AbstractFilterGroup } from "@shared/filter-controls/AbstractFilterGroup"
 import { ComboBoxFilter } from "@shared/filter-controls/ComboBoxFilter"
 import { DateFilter } from "@shared/filter-controls/DateFilter"
+import { FilterPopover } from "@shared/filter-controls/FilterPopover"
 import { MultipleSearchBoxFilter } from "@shared/filter-controls/SearchBoxFilter"
 import { TextFilter } from "@shared/filter-controls/TextFilter"
+import { SexValues } from "@utils/enums"
 import { RefObject, useEffect, useState } from "react"
-import { FilterPopover } from "@shared/filter-controls/FilterPopover"
-import { animalTypeToComboBox, AnimalFilter, Animal, getAnimalLabel } from "./Entities"
+import { Animal, AnimalFilter, animalTypeToComboBox, getAnimalLabel } from "./Entities"
 import { searchAnimal } from "./Service"
 
 type AnimalsFilterProps = {
@@ -27,19 +29,23 @@ export const AnimalsFilter = ({
 
     const [fathers, setFathers] = useState<Animal[]>([])
     const [mothers, setMothers] = useState<Animal[]>([])
+    const [pastures, setPastures] = useState<Pasture[]>([])
 
     useEffect(() => {
         Promise.all([
             searchAnimal({ isFiltered: true, sex: 'F', types: ['REPRODUCTION_ANIMAL', 'DAIRY_ANIMAL'] }),
             searchAnimal({ isFiltered: true, sex: 'M', types: ['REPRODUCTION_ANIMAL'] }),
+            searchPastures()
         ])
             .then(values => {
                 setMothers(values[0])
                 setFathers(values[1])
+                setPastures(values[2])
             })
             .catch(() => {
                 setFathers([])
                 setMothers([])
+                setPastures([])
             })
     }, [])
 
@@ -105,14 +111,18 @@ export const AnimalsFilter = ({
                     fieldName="mothers"
                     className="col-span-6"
                 />
-                {/* <MultipleSearchBoxFilter */}
-                {/*     label="Pastos" */}
-                {/*     limitTags={2} */}
-                {/*     filter={filter} */}
-                {/*     setFilter={setFilter} */}
-                {/*     fieldName="pastures" */}
-                {/*     className="col-span-6" */}
-                {/* /> */}
+                <MultipleSearchBoxFilter
+                    label="Pastos"
+                    limitTags={2}
+                    filter={filter}
+                    setFilter={setFilter}
+                    options={pastures.map(item => ({
+                        id: item.id,
+                        label: getPastureLabel(item)
+                    }))}
+                    fieldName="pastures"
+                    className="col-span-6"
+                />
             </div>
         </AbstractFilterGroup>
 

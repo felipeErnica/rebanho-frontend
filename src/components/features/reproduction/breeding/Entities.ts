@@ -39,7 +39,15 @@ export type BreedingEntrySave = {
     breedingDate: Date;
     bullId: string;
     observation?: string;
+    overwrite: boolean
+    skipValidation: boolean
 };
+
+export type BreedingEntryDelete = {
+    id: string
+    ignorePregnancy: boolean
+    changeFather: boolean
+}
 
 export type BreedingEntryFilter = {
     isFiltered: boolean;

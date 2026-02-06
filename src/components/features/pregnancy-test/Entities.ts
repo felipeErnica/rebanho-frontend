@@ -38,20 +38,12 @@ export type TestEntrySave = {
     id: string
     testDate: Date
     animalId: string
-    pregnancyStatus: string
+    birthForecast?: Date
     pregnancyTime?: number
-    observation?: string
-}
-
-export type TestEntryForm = {
-    id: string
-    testDate: Date
-    animalId: string
-    birthForecast?: Date 
-    pregnancyTime?: number 
     forecastType: 'days' | 'date'
     pregnancyStatus: string
-    observation?: string 
+    observation?: string
+    overwrite: boolean
 }
 
 export type LastEntryProps = {
@@ -70,7 +62,7 @@ export type TestEntryFilter = {
     pregnancyStatus?: string
 }
 
-export type TestEntryFooter = {
+export type TestEntryFoot = {
     totals: number
     pregnancyRate: number
     birthRate: number
@@ -131,4 +123,9 @@ export type TestGroup = {
     pregnancyComparison: number
     birthRate: number
     birthComparison: number
+}
+
+export type TestGroupSave = {
+    oldTestDate: Date
+    testDate: Date
 }

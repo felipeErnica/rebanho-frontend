@@ -16,7 +16,7 @@ import {
     PregnancyStatusMap,
     TestEntry,
     TestEntryFilter,
-    TestEntryFooter,
+    TestEntryFoot,
     TestEntrySave
 } from "./Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
@@ -25,9 +25,9 @@ import {
     FooterContent,
     TableBodyCell,
     TableFooterRow,
+    TableHeadControlCell,
     TableHeadRow,
     TableLoadingCells,
-    VirtuosoHeadCell,
     VirtuosoResizeHeadCell
 } from "@shared/table/TableComponents"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
@@ -38,7 +38,7 @@ import { FormTextField } from "@shared/form-controls/FormTextField"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import { deleteTest, findEntriesPage, getEntriesFoot, updateTest } from "./Controller"
+import { deleteTest, findEntriesPage, getEntriesFoot, updateTest } from "./Service"
 import { BirthTestFilter } from "./BirthTestFilter"
 import { ChipColorScheme } from "@shared/Globals"
 import { FormComboBox } from "@shared/form-controls/FormComboBox"
@@ -60,7 +60,7 @@ export const EntriesTablePage = () => {
 
     const defaultSort = 'test_date, animal_order'
 
-    const defaultFoot: TestEntryFooter = useMemo(() => ({
+    const defaultFoot: TestEntryFoot = useMemo(() => ({
         totals: 0,
         pregnancyRate: 0,
         birthRate: 0
@@ -133,52 +133,35 @@ export const EntriesTablePage = () => {
 
 type EntriesTableProps = {
     rows: TestEntry[]
-    foot: TestEntryFooter
+    foot: TestEntryFoot
     loading: boolean
     scrollRef: RefObject<VirtuosoHandle | null>
     fetchNextPage: () => void
 }
 
+const COLUMN_COUNT = 8
+
 const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTableProps) => {
 
-    const [tableWidth, setTableWidth] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setTableWidth(table.offsetWidth)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
     return <TableVirtuoso
-        scrollerRef={(ref) => tableRef.current = ref as HTMLDivElement}
         ref={scrollRef}
         data={rows}
-        components={useVirtuosoComponents(8)}
+        components={useVirtuosoComponents(COLUMN_COUNT)}
         endReached={fetchNextPage}
-        fixedHeaderContent={() => {
-
-            const unit = tableWidth / 100
-
-            return <TableHeadRow>
-                <VirtuosoHeadCell width={unit * 10} />
-                <VirtuosoResizeHeadCell width={unit * 15}>Vaca</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Data do Exame</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Prenhez</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 10}>Nascimento</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell align="center" width={unit * 15}>Data de Previsão</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 15}>Informações de Cria</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={unit * 25}>Observações</VirtuosoResizeHeadCell>
+        fixedHeaderContent={() => (
+            <TableHeadRow>
+                <TableHeadControlCell />
+                <VirtuosoResizeHeadCell>Vaca</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Data do Exame</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Prenhez</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={150}>Data de Previsão</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={300}>Informações de Cria</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={600}>Observações</VirtuosoResizeHeadCell>
             </TableHeadRow>
-
-        }}
+        )}
         fixedFooterContent={() => (
-            <TableFooterRow colSpan={8}>
+            <TableFooterRow colSpan={COLUMN_COUNT}>
                 <FooterContent title="Total" content={foot.totals} />
                 <FooterContent title="Taxa de Prenhez" content={percentageTransform(foot.pregnancyRate)} />
                 <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.birthRate)} />
@@ -204,7 +187,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingCells colSpan={8} />
+    if (loading) return <TableLoadingCells colSpan={COLUMN_COUNT} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     const onDelete = () => {
@@ -242,27 +225,17 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
     </>
 }
 
-type EntriesRowEditingProps = {
-    rowData: TestEntry
-    setRowData: (rowData: TestEntry) => void
-    setEditing: (editing: boolean) => void
-}
-
-type TestEntryForm = TestEntrySave & {
-    birthForecast?: Date
-}
-
-const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditingProps) => {
+const EntriesRowEditing = ({ rowData, setRowData, setEditing }) => {
 
     const [showForecast, setShowForecast] = useState(rowData.pregnancyStatus === 'SUCCESS')
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit, setValue, getValues } = useForm<TestEntryForm>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue, getValues } = useForm<TestEntrySave>({ defaultValues: rowData })
     const { setError } = useContext(ErrorContext)
 
     useEffect(() => setShowForecast(rowData.pregnancyStatus === 'SUCCESS'), [rowData])
 
-    const onSubmit: SubmitHandler<TestEntryForm> = (data: TestEntryForm) => {
+    const onSubmit: SubmitHandler<TestEntrySave> = (data: TestEntrySave) => {
         setLoading(true)
         updateTest(data)
             .then(response => {
@@ -319,7 +292,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
                 <FormDatePicker
                     formProps={{ control, name: 'birthForecast' }}
                     onChange={(value) => {
-                        
+
                         const PREGNANCY_DURATION_EST = 310
 
                         if (!value) {

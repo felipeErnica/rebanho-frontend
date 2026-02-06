@@ -31,7 +31,8 @@ import {
     PregnancyRateEntry,
     StatusColorMap,
     StatusMap,
-    BreedingEntrySave
+    BreedingEntrySave,
+    BreedingEntryDelete
 } from "./Entities"
 import {
     BarPlot,
@@ -55,21 +56,18 @@ import {
     getAnimalsNumber,
     getFutureBirths,
     getBestBulls,
-    deleteNoValidation,
-    deleteChangeFather,
     deleteBreeding,
     searchBreedingBulls,
-    updateNoValidation,
     updateBreeding,
     deleteBatch
-} from "./Controller"
-import { 
-    DefaultTimerWarning, 
-    DefaultWarning, 
-    ERROR_TYPE, 
-    LOADING_MSG, 
-    NO_DATA_AVAILABLE, 
-    OTHER_ERROR 
+} from "./Service"
+import {
+    DefaultTimerWarning,
+    DefaultWarning,
+    ERROR_TYPE,
+    LOADING_MSG,
+    NO_DATA_AVAILABLE,
+    OTHER_ERROR
 } from "@shared/Globals"
 import {
     Button,
@@ -85,7 +83,7 @@ import {
     TableHead,
     TableRow,
 } from "@mui/material"
-import { dateTransform, percentageTransform } from "@utils/Transformations"
+import { dateToISO, dateTransform, percentageTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import ChevronRight from "@mui/icons-material/ChevronRight"
 import { useNavigate } from "react-router"
@@ -105,6 +103,7 @@ import { OptionMenuProps } from "@shared/dashboard/Entities"
 import { AddBullDialog } from "../../animals/AddBullDialog"
 import { AddBreddingBullDialog } from "./AddBreedingBull"
 import ExpandMore from "@mui/icons-material/ExpandMore"
+import { Animal, getAnimalLabel } from "../../animals/Entities"
 
 type AddContextProps = {
     setReloadFlag: Dispatch<SetStateAction<number>>
@@ -152,7 +151,7 @@ const DashboardToolbar = ({ setReloadFlag, activeRequests }: DashboardToolbarPro
         >
             Opções
         </Button>
-        <OptionsMenu 
+        <OptionsMenu
             openMenu={openMenu}
             closeMenu={() => setOpenMenu(false)}
             menuAnchorEl={menuAnchorEl}
@@ -168,7 +167,7 @@ type OptionsMenuProps = OptionMenuProps & {
 const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: OptionsMenuProps) => {
 
     const [addBreedingOpen, setAddBreedingOpen] = useState(false)
-    const [addBreedingBull, setAddBreedingBull] = useState(false)
+    const [openBreedingBull, setOpenBreedingBull] = useState(false)
     const [addBullOpen, setAddBullOpen] = useState(false)
     const navigate = useNavigate()
 
@@ -179,7 +178,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
 
     const closeAddBreedingBull = (added?: boolean) => {
         if (added) setReloadFlag(prev => prev + 1)
-        setAddBreedingBull(false)
+        setOpenBreedingBull(false)
     }
 
     const closeAddBull = (added?: boolean) => {
@@ -199,7 +198,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 </ListItemIcon>
                 Adicionar Cobertura
             </MenuItem>
-            <MenuItem onClick={() => setAddBreedingBull(true)} >
+            <MenuItem onClick={() => setOpenBreedingBull(true)} >
                 <ListItemIcon>
                     <Add />
                 </ListItemIcon>
@@ -230,7 +229,7 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
             </MenuItem>
         </Menu>
         <AddBreedingDialog {...{ addBreedingOpen, closeAddBreeding }} />
-        <AddBreddingBullDialog {...{ addBreedingBull, closeAddBreedingBull }} />
+        <AddBreddingBullDialog {...{ openBreedingBull, closeAddBreedingBull }} />
         <AddBullDialog {...{ addBullOpen, closeAddBull, isBreedingBull: true }} />
     </>
 }
@@ -652,7 +651,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             startIcon={<ChevronRight />}
             onClick={() => {
                 if (lastDate === 'Sem dados') {
-                    setError({ 
+                    setError({
                         kind: OTHER_ERROR,
                         errType: ERROR_TYPE,
                         title: 'ATENÇÃO: Não há dados!',
@@ -660,7 +659,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
                     })
                     return
                 }
-                const dateStr = breedingDate.toISOString().split('T')[0]
+                const dateStr = dateToISO(breedingDate)
                 navigate(`groups/${dateStr}`)
             }}
         >
@@ -673,69 +672,65 @@ const LastEntriesRow = ({ row }: TableRowProp<BreedingEntry>) => {
 
     const [editing, setEditing] = useState(false)
     const [rowData, setRowData] = useState<BreedingEntry>(row)
+    const [params, setParams] = useState<BreedingEntryDelete>({
+        id: rowData.id,
+        ignorePregnancy: false,
+        changeFather: false
+    })
 
     const { setError, setWarningProps, setData } = useContext(EditContext)
 
     useEffect(() => setRowData(row), [row])
 
-    if (editing) return <EditLastEntriesRow {...{ setEditing, setRowData, rowData }} />
-
-    const onDeleteNoValidation = () => {
-        deleteNoValidation(rowData.id)
-            .then(() => {
-                setError(undefined)
-                setWarningProps(DefaultWarning)
-                setData(prev => prev.filter(item => item.id != rowData.id))
-            })
-            .catch((error: APIError) => setError(error))
-            .finally(() => setWarningProps(DefaultWarning))
-    }
-
-    const onDeleteAndChangeFather = () => {
-        deleteChangeFather(rowData.id)
-            .then(() => {
-                setError(undefined)
-                setData(prev => prev.filter(item => item.id != rowData.id))
-            })
-            .catch((error: APIError) => setError(error))
-            .finally(() => setWarningProps(DefaultWarning))
-    }
-
-    const onDelete = () => {
-        deleteBreeding(rowData.id)
+    const onDelete = useCallback(() => {
+        deleteBreeding(params)
             .then(() => {
                 setWarningProps(DefaultWarning)
                 setError(undefined)
-                setData(prev => prev.filter(item => item.id != rowData.id))
+                setData(prev => prev.filter(item => item.id != params.id))
             })
             .catch((error: APIError) => {
                 if (error.errType === ERROR_TYPE) {
                     setError(error)
-                    return
                 }
-                if (error.kind == "ChildrenWarning") {
+
+                if (error.kind === "PregnancyWarning") {
                     setWarningProps({
                         openYesNo: true,
                         title: error.title,
                         message: error.message,
-                        onYes: onDeleteAndChangeFather,
+                        onYes: () => {
+                            setParams(params => ({ ...params, ignorePregnancy: true }))
+                            onDelete()
+                        },
                         onClose: () => setWarningProps(DefaultWarning)
                     })
-                    return
                 }
-                setWarningProps({
-                    openYesNo: true,
-                    title: error.title,
-                    message: error.message,
-                    onYes: onDeleteNoValidation,
-                    onClose: () => setWarningProps(DefaultWarning)
-                })
+
+                if (error.kind === "ChildrenWarning") {
+                    setWarningProps({
+                        openYesNo: true,
+                        title: error.title,
+                        message: error.message,
+                        onYes: () => {
+                            setParams(params => ({ ...params, changeFather: true }))
+                            onDelete()
+                        },
+                        onClose: () => setWarningProps(DefaultWarning)
+                    })
+                }
+
             })
-    }
+    }, [params, setData, setError, setWarningProps])
+
+    if (editing) return <EditLastEntriesRow {...{ setEditing, setRowData, rowData }} />
 
     return <TableRow>
         <TableCell>
-            <EditControlButtons {...{ setEditing, onDelete }} />
+            <EditControlButtons
+                setEditing={setEditing}
+                onDelete={() => onDelete()}
+            />
         </TableCell>
         <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell>{rowData.bullName}</TableCell>
@@ -758,23 +753,16 @@ const LastEntriesRow = ({ row }: TableRowProp<BreedingEntry>) => {
 const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<BreedingEntry>) => {
 
     const [loading, setLoading] = useState(false)
+    const [bulls, setBulls] = useState<Animal[]>([])
 
-    const { control, handleSubmit } = useForm<BreedingEntrySave>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue } = useForm<BreedingEntrySave>({ defaultValues: rowData })
     const { setError, setWarningProps } = useContext(EditContext)
 
-    const onNoValidation: SubmitHandler<BreedingEntrySave> = (data: BreedingEntrySave) => {
-        setLoading(true)
-        updateNoValidation(data)
-            .then((result: BreedingEntry) => {
-                setRowData(result)
-                setEditing(false)
-            })
-            .catch(err => setError(err))
-            .finally(() => {
-                setLoading(false)
-                setWarningProps(DefaultWarning)
-            })
-    }
+    useEffect(() => {
+        searchBreedingBulls()
+            .then(response => setBulls(response))
+            .catch(() => setBulls([]))
+    }, [])
 
     const onSubmit: SubmitHandler<BreedingEntrySave> = (data: BreedingEntrySave) => {
         setLoading(true)
@@ -793,7 +781,10 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<Br
                     title: err.title,
                     message: err.message,
                     onClose: () => setWarningProps(DefaultWarning),
-                    onYes: handleSubmit(onNoValidation)
+                    onYes: () => {
+                        setValue('skipValidation', true)
+                        handleSubmit(onSubmit)
+                    }
                 })
             })
             .finally(() => setLoading(false))
@@ -808,8 +799,11 @@ const EditLastEntriesRow = ({ setEditing, setRowData, rowData }: EditRowProps<Br
         <TableCell>{rowData.animalInfo}</TableCell>
         <TableCell>
             <FormSearchBox
+                options={bulls.map(item => ({
+                    id: item.id,
+                    label: getAnimalLabel(item)
+                }))}
                 formProps={{ control, name: 'bullId' }}
-                searchOptions={searchBreedingBulls}
             />
         </TableCell>
         <TableCell>

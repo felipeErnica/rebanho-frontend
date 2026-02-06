@@ -1,24 +1,22 @@
-import { 
-    apiDelete, 
-    apiGet, 
-    apiPost, 
-    apiPut, 
-    buildFilterParams, 
-    buildPageCall, 
-    buildPageParams 
+import {
+    apiDelete,
+    apiGet,
+    apiPost,
+    apiPut,
+    buildFilterParams,
+    buildPageParams
 } from "@utils/ApiRequest"
-import { LactationSave,  LactationHistFilter } from "./Entities";
-import { LONG_LACTATION_DAYS } from "@/components/shared/Globals";
+import { LactationSave, LactationHistFilter, LactationAnimalFilter } from "./Entities";
 
 export const DASHBOARD_BASE = "lactation/stats/"
 export const LAC_BASE = "lactation/"
 
-export function getLastMilk() {
-    return apiGet(DASHBOARD_BASE + "last-milk")
+export function getLactationEntries(lacId: string) {
+    return apiGet(LAC_BASE + `${lacId}/entries`)
 }
 
-export function getLastAverageMilk() {
-    return apiGet(DASHBOARD_BASE + "last-avg-milk")
+export function getLactationEntriesFoot(lacId: string) {
+    return apiGet(LAC_BASE + `${lacId}/entries/foot`)
 }
 
 export function getLastLactating() {
@@ -33,36 +31,12 @@ export function getRankedAnimals(rankBy: string) {
     return apiGet(DASHBOARD_BASE + rankBy)
 }
 
-export function getLastLac() {
-    return apiGet(DASHBOARD_BASE + "last-entries")
-}
-
-export function getMilkProduction() {
-    return apiGet(DASHBOARD_BASE + "milk-production")
-}
-
-export function getYearProduction() {
-    return apiGet(DASHBOARD_BASE + "year-milk")
-}
-
-export function getYearAverage() {
-    return apiGet(DASHBOARD_BASE + "year-avg-milk")
-}
-
 export function getParentRatings(ratingOption: string) {
     return apiGet(DASHBOARD_BASE + ratingOption)
 }
 
-export function getLastGroups() {
-    return apiGet(DASHBOARD_BASE + "last-groups")
-}
-
 export function getDairyTypes() {
     return apiGet(DASHBOARD_BASE + "dairy-types")
-}
-
-export function getLongLactations() {
-    return apiGet(DASHBOARD_BASE + `long-lactations?lacPeriod=${LONG_LACTATION_DAYS}`)
 }
 
 export function findLactationsPage(
@@ -71,7 +45,7 @@ export function findLactationsPage(
     order: string,
     cursor?: string,
 ) {
-    const params = buildPageParams(sort, order, filter, cursor)
+    const params = buildPageParams("?", sort, order, filter, cursor)
     return apiGet(LAC_BASE + `page?${params}`)
 }
 
@@ -80,38 +54,23 @@ export function getLactationsPageFoot(filter: LactationHistFilter) {
     return apiGet(LAC_BASE + "page/foot" + params)
 }
 
-export function findLongLactationsPage(
-    filter: LactationHistFilter,
+export function findLactationsAnimalsPage(
+    filter: LactationAnimalFilter,
     sort: string,
     order: string,
     cursor?: string,
 ) {
-    const pageQuery = "long-lactations/" + buildPageCall(sort, order, cursor)
-    return apiPost(LAC_BASE + pageQuery, filter)
+    const params = buildPageParams("?", sort, order, filter, cursor)
+    return apiGet(LAC_BASE + `animals/page?${params}`)
 }
 
-export function getLongLactationsPageFoot(filter: LactationHistFilter) {
-    return apiPost(LAC_BASE + "long-lactations/page/foot", filter)
+export function getLactationsAnimalsPageFoot(filter: LactationAnimalFilter) {
+    const params = buildFilterParams(filter, "?")
+    return apiGet(LAC_BASE + "animals/page/foot" + params)
 }
 
 export function findLactationById(id: string) {
     return apiGet(LAC_BASE + id)
-}
-
-export function searchLactating() {
-    return apiGet(LAC_BASE + "search-lactating")
-}
-
-export function searchDryAnimals() {
-    return apiGet(LAC_BASE + "search-dry")
-}
-
-export function searchCalfs() {
-    return apiGet(LAC_BASE + "search-calfs")
-}
-
-export function updateEndDate(data: LactationSave) {
-    return apiPut(LAC_BASE + `end-lac`, data)
 }
 
 export function updateLactation(data: LactationSave) {
@@ -119,37 +78,9 @@ export function updateLactation(data: LactationSave) {
 }
 
 export function deleteLactation(id: string) {
-    return apiDelete(LAC_BASE + `delete/${id}`)
+    return apiDelete(LAC_BASE + id)
 }
 
 export function addLactation(entry: LactationSave) {
-    return apiPut(LAC_BASE, entry)
-}
-
-export function findLacAnimalsPage(
-    filter: LactationHistFilter,
-    sort: string,
-    order:string,
-    cursor?: string,
-) {
-    const pageQuery = `lac-animals/${buildPageCall(sort, order, cursor)}`
-    return apiPost(LAC_BASE + pageQuery, filter)
-}
-
-export function getLacAnimalsPageFoot(filter: LactationHistFilter) {
-    return apiPost(LAC_BASE + "lac-animals/page/foot", filter)
-}
-
-export function findDryAnimalsPage(
-    filter: LactationHistFilter,
-    sort: string,
-    order:string,
-    cursor?: string,
-) {
-    const pageQuery = `dry-animals/${buildPageCall(sort, order, cursor)}`
-    return apiPost(LAC_BASE + pageQuery, filter)
-}
-
-export function getDryAnimalsPageFoot(filter: LactationHistFilter) {
-    return apiPost(LAC_BASE + "dry-animals/page/foot", filter)
+    return apiPost(LAC_BASE, entry)
 }

@@ -34,7 +34,8 @@ export const FormDatePicker = <T extends FieldValues>({
         {...formProps}
         render={({ field, fieldState: { error } }) => (
             <DateComponent
-                {...field}
+                ref={field.ref}
+                name={field.name}
                 disableFuture={disableFuture}
                 onBlur={(event) => {
                     field.onBlur()

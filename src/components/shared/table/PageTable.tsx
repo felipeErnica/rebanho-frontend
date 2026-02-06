@@ -12,7 +12,7 @@ import { VirtuosoNoDataPlaceholder } from "./TableComponents";
 
 export function useVirtuosoComponents(colSpan: number) {
 
-    const [tableComponents, setTableComponents] = useState<TableVirtuosoProps<IData,any>['components']>({
+    const [tableComponents, setTableComponents] = useState<TableVirtuosoProps<IData, any>['components']>({
         Scroller: forwardRef((props, ref) => (
             <TableContainer
                 component={Paper}
@@ -45,7 +45,7 @@ export function useVirtuosoComponents(colSpan: number) {
 }
 
 export type PaginationResponse<T> = {
-    setRows: Dispatch<SetStateAction<T[]>> 
+    setRows: Dispatch<SetStateAction<T[]>>
     rows: T[]
     fetchNextPage: () => void
     scrollRef: RefObject<VirtuosoHandle | null>

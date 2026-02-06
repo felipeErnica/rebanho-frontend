@@ -10,7 +10,7 @@ import {
     useRef,
     useState
 } from "react"
-import { LactationHist, LactationHistFilter, LactationHistFoot } from "./Entities"
+import { LactationHist, LactationHistFilter, LactationHistFoot, LactationSave } from "./Entities"
 import {
     deleteLactation,
     findLactationsPage,
@@ -105,7 +105,11 @@ export const LactationHistTablePage = () => {
     const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
     const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
 
-    useEffect(() => { if (reloadFlag > 0) onReload() }, [onReload, reloadFlag])
+    useEffect(() => {
+        if (reloadFlag > 0) {
+            onReload()
+        }
+    }, [onReload, reloadFlag])
 
     useEffect(() => {
         if (filter.isFiltered) {
@@ -319,20 +323,20 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
 
     const [loading, setLoading] = useState(false)
     const [loadingSearch, setLoadingSearch] = useState(false)
-    const [calves, setCalfs] = useState<Animal[]>([])
+    const [calves, setCalves] = useState<Animal[]>([])
 
-    const { control, handleSubmit } = useForm<LactationHist>({ defaultValues: rowData })
+    const { control, handleSubmit } = useForm<LactationSave>({ defaultValues: rowData })
     const { setError } = useContext(ErrorContext)
 
     useEffect(() => {
         setLoadingSearch(true)
         searchAnimal({ isFiltered: true, isOutsideAnimal: false })
-            .then(res => setCalfs(res))
-            .catch(() => setCalfs([]))
+            .then(res => setCalves(res))
+            .catch(() => setCalves([]))
             .finally(() => setLoadingSearch(false))
     }, [])
 
-    const onSubmit: SubmitHandler<LactationHist> = (data: LactationHist) => {
+    const onSubmit: SubmitHandler<LactationSave> = (data: LactationSave) => {
         setLoading(true)
         updateLactation(data)
             .then(res => {

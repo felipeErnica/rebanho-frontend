@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Animal, getAnimalLabel } from "@features/animals/Entities";
 import { Pasture } from "@features/farm-area/Entities";
 import { searchAnimal } from "@features/animals/Service";
-import { searchPastures } from "@features/farm-area/Controller";
+import { searchPastures } from "@features/farm-area/Service";
 
 export const MilkEntriesFilter = ({
     setFilter: setFilter,

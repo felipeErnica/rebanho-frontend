@@ -21,8 +21,8 @@ import { LactationSave } from "./Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { Pasture } from "@features/farm-area/Entities"
 import { searchAnimal } from "@features/animals/Service"
-import { searchPastures } from "@features/farm-area/Controller"
 import { Animal, getAnimalFullLabel, getAnimalLabel } from "@features/animals/Entities"
+import { searchPastures } from "@features/farm-area/Service"
 
 type StartLacDialogProps = {
     openStartLac: boolean
@@ -215,12 +215,11 @@ export const AddLactationDialog = ({ openStartLac, closeStartLac }: StartLacDial
         </DialogActions>
         <YesNoDialog
             openYesNo={!!warning}
-            title={warning.title}
-            message={warning.message}
+            title={warning?.title}
+            message={warning?.message}
             onClose={() => setWarning(undefined)}
             onYes={() => {
                 if (warning.kind == CONFLICT_WARNING) {
-                    setValue('id', warning.replacingId)
                     setValue('overwrite', true)
                 }
                 if (warning.kind == "PastureWarning") {

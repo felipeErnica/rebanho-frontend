@@ -11,6 +11,7 @@ type NumberFilterProps = {
     setFilter: (filter: IFilters) => void
     step?: string
     className?: string
+    disabled?: boolean
 }
 
 export const NumberFilter = ({
@@ -21,6 +22,7 @@ export const NumberFilter = ({
     minFieldName,
     filter,
     setFilter,
+    disabled
 }: NumberFilterProps) => {
 
     const [minError, setMinError] = useState(false)
@@ -32,6 +34,7 @@ export const NumberFilter = ({
         <div className="flex flex-row gap-4">
             <TextField
                 type="number"
+                disabled={disabled}
                 error={minError}
                 value={filter[minFieldName] || ''}
                 label='De'
@@ -61,6 +64,7 @@ export const NumberFilter = ({
             />
             <TextField
                 type="number"
+                disabled={disabled}
                 error={maxError}
                 helperText={maxError ? 'Insira um valor maior que o do campo acima' : null}
                 value={filter[maxFieldName] || null}

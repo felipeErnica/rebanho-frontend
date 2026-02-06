@@ -1,16 +1,19 @@
 import { IFilters } from "@/utils/Filter"
 import { Dispatch, SetStateAction, useCallback } from "react"
 import { RadioComponent } from "@shared/common/RadioComponent"
+import { IconButton } from "@mui/material"
 
 type RadioFilterControlProps = {
-    fieldName: string
     label: string
     disabled?: boolean
+    value: string
 }
 
 type RadioFilterProps = {
     filter: IFilters
     setFilter: Dispatch<SetStateAction<IFilters>>
+    fieldName: string
+    label: string
     controls: RadioFilterControlProps[]
     row?: boolean
     className?: string
@@ -19,15 +22,22 @@ type RadioFilterProps = {
 export const RadioComponentFilter = ({
     filter,
     setFilter,
+    fieldName,
+    label,
+    row,
     controls
 }: RadioFilterProps) => {
 
     return <RadioComponent
+        row={row}
+        label={label}
+        value={filter[fieldName]}
+        onChange={(_, value) => setFilter({ ...filter, isFiltered: true, [fieldName]: value })}
+        onReset={() => setFilter({ ...filter, [fieldName]: undefined })}
         controls={controls.map(item => ({
             label: item.label,
-            value: filter[item.fieldName],
+            value: item.value,
             disabled: item.disabled,
-            onChange: (_, value) => setFilter({ ...filter, isFiltered: true, [item.fieldName]: value })
         }))}
     />
 }
@@ -39,16 +49,20 @@ type RadioFilterHasFieldsProps = {
     allLabel: string
     hasLabel: string
     noneLabel: string
+    disabled?: boolean
+    label?: string
     row?: boolean
 }
 
 export const RadioFilterNullFields = ({
     setFilter,
     filter,
+    disabled,
     fieldName,
     allLabel,
     hasLabel,
     noneLabel,
+    label,
     row,
 }: RadioFilterHasFieldsProps) => {
 
@@ -66,6 +80,8 @@ export const RadioFilterNullFields = ({
 
     return <RadioComponent
         row={row}
+        label={label}
+        disabled={disabled}
         controls={[
             { label: allLabel, value: 'ALL' },
             { label: hasLabel, value: 'HAS_FIELD' },
