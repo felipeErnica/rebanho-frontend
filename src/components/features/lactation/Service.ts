@@ -6,10 +6,30 @@ import {
     buildFilterParams,
     buildPageParams
 } from "@utils/ApiRequest"
-import { LactationSave, LactationHistFilter, LactationAnimalFilter } from "./Entities";
+import { LactationSave, LactationFilter, LactationAnimalFilter } from "./Entities";
 
-export const DASHBOARD_BASE = "lactation/stats/"
+export const STATS_BASE = "lactation/stats/"
 export const LAC_BASE = "lactation/"
+
+export function getLastLactating() {
+    return apiGet(STATS_BASE + "last-lactating")
+}
+
+export function getLastDry() {
+    return apiGet(STATS_BASE + "last-dry")
+}
+
+export function getRankedAnimals(rankBy: string) {
+    return apiGet(STATS_BASE + rankBy)
+}
+
+export function getParentRatings(ratingOption: string) {
+    return apiGet(STATS_BASE + ratingOption)
+}
+
+export function getDairyTypes() {
+    return apiGet(STATS_BASE + "dairy-types")
+}
 
 export function getLactationEntries(lacId: string) {
     return apiGet(LAC_BASE + `${lacId}/entries`)
@@ -19,37 +39,17 @@ export function getLactationEntriesFoot(lacId: string) {
     return apiGet(LAC_BASE + `${lacId}/entries/foot`)
 }
 
-export function getLastLactating() {
-    return apiGet(DASHBOARD_BASE + "last-lactating")
-}
-
-export function getLastDry() {
-    return apiGet(DASHBOARD_BASE + "last-dry")
-}
-
-export function getRankedAnimals(rankBy: string) {
-    return apiGet(DASHBOARD_BASE + rankBy)
-}
-
-export function getParentRatings(ratingOption: string) {
-    return apiGet(DASHBOARD_BASE + ratingOption)
-}
-
-export function getDairyTypes() {
-    return apiGet(DASHBOARD_BASE + "dairy-types")
-}
-
 export function findLactationsPage(
-    filter: LactationHistFilter,
+    filter: LactationFilter,
     sort: string,
     order: string,
     cursor?: string,
 ) {
     const params = buildPageParams("?", sort, order, filter, cursor)
-    return apiGet(LAC_BASE + `page?${params}`)
+    return apiGet(LAC_BASE + "page" + params)
 }
 
-export function getLactationsPageFoot(filter: LactationHistFilter) {
+export function getLactationsPageFoot(filter: LactationFilter) {
     const params = buildFilterParams(filter, "?")
     return apiGet(LAC_BASE + "page/foot" + params)
 }
@@ -61,7 +61,7 @@ export function findLactationsAnimalsPage(
     cursor?: string,
 ) {
     const params = buildPageParams("?", sort, order, filter, cursor)
-    return apiGet(LAC_BASE + `animals/page?${params}`)
+    return apiGet(LAC_BASE + "animals/page" + params)
 }
 
 export function getLactationsAnimalsPageFoot(filter: LactationAnimalFilter) {

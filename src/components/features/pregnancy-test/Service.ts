@@ -1,10 +1,10 @@
 import { apiDelete, apiGet, apiPost, apiPut, buildFilterParams, buildPageParams } from "@utils/ApiRequest";
-import { TestEntryFilter, TestEntrySave, TestGroupSave } from "./Entities";
+import { TestEntryFilter, TestSave, TestGroupSave } from "./Entities";
 import { dateToISO } from "@utils/Transformations";
 
-const STATS_BASE = "pregnancy-test/stats/"
-const ENTRIES_BASE = "pregnancy-test/"
-const GROUP_BASE = "pregnancy-test/group/"
+const STATS_BASE = "tests/stats/"
+const ENTRIES_BASE = "tests/"
+const GROUP_BASE = "tests/group/"
 
 export function getPregnancyRate() {
     return apiGet(STATS_BASE + "pregnancy-rate")
@@ -65,11 +65,11 @@ export function getEntriesByGroupFoot(testDate: Date) {
     return apiGet(GROUP_BASE + dateToISO(testDate) + "/entries/foot")
 }
 
-export function addTest(entry: TestEntrySave) {
+export function addTest(entry: TestSave) {
     return apiPost(ENTRIES_BASE, entry)
 }
 
-export function updateTest(entry: TestEntrySave) {
+export function updateTest(entry: TestSave) {
     return apiPut(ENTRIES_BASE, entry)
 }
 

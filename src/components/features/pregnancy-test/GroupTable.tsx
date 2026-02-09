@@ -16,11 +16,11 @@ import {
     TableBodyRow,
     TableHeadCell,
     TableHeadRow,
-    TableLoadingRow,
+    TablePageBody,
     TrendValues
 } from "@shared/table/TableComponents"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { dateTransform, percentageTransform } from "@utils/Transformations"
+import { dateToISO, dateTransform, percentageTransform } from "@utils/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { useNavigate } from "react-router"
@@ -76,9 +76,9 @@ type GroupTableProps = {
     rows: TestGroup[]
 }
 
-const GroupTable = ({ loading, rows }: GroupTableProps) => {
+const COLUMN_COUNT = 5
 
-    const navigate = useNavigate()
+const GroupTable = ({ loading, rows }: GroupTableProps) => {
 
     return <Table>
         <TableHead>
@@ -91,26 +91,24 @@ const GroupTable = ({ loading, rows }: GroupTableProps) => {
             </TableHeadRow>
         </TableHead>
         <TableBody>
-            {rows.map(item => <GroupsRow {...{ item, loading, navigate }} />)}
+            <TablePageBody 
+                colSpan={COLUMN_COUNT}
+                dataset={rows}
+                loading={loading}
+                render={item => <GroupsRow {...item} />}
+            />
         </TableBody>
     </Table>
-
 }
 
-type GroupsRowProps = {
-    item: TestGroup
-    loading: boolean
-    navigate: ReturnType<typeof useNavigate>
-}
-
-const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
+const GroupsRow = (item: TestGroup) => {
 
     const [rowData, setRowData] = useState<TestGroup>(item)
     const [editing, setEditing] = useState(false)
     const [addTestOpen, setAddTestOpen] = useState(false)
     const [loadingControl, setLoadingControl] = useState(false)
-
     const { onReload, setWarningProps, setError, setRows } = useContext(ReloadContext)
+    const navigate = useNavigate()
 
     useEffect(() => setRowData(item), [item])
 
@@ -130,7 +128,6 @@ const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
             .finally(() => setLoadingControl(false))
     }
 
-    if (loading) return <TableLoadingRow colSpan={6} />
     if (editing) return <GroupsRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <TableBodyRow>
@@ -142,11 +139,7 @@ const GroupsRow = ({ item, loading, navigate }: GroupsRowProps) => {
                         <Add />
                     </IconButton>
                 )}
-                onShow={() => {
-                    const testDate = new Date(rowData.testDate)
-                    const dateStr = testDate.toISOString().split('T')[0]
-                    navigate(`groups/${dateStr}`)
-                }}
+                onShow={() => navigate(dateToISO(item.testDate))}
                 setEditing={setEditing}
                 onDelete={() => setWarningProps({
                     openYesNo: true,

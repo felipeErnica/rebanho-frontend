@@ -239,7 +239,7 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
                 }}
                 options={mothers.map(item => ({
                     id: item.id,
-                    label: [item.ringNumber, item.name].join(' - ')
+                    label: [item.tag, item.name].join(' - ')
                 }))}
                 formProps={{
                     control,
@@ -251,12 +251,12 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
                 label="*Animal"
                 options={mothers.map(item => ({
                     id: item.id,
-                    label: [item.ringNumber, item.name].join(' - ')
+                    label: [item.tag, item.name].join(' - ')
                 }))}
                 onChange={(id) => {
                     if (!id) return
                     const animal = children.find(item => item.id === id)
-                    setValue('fatherId', animal.fatherId)
+                    setValue('fatherId', animal.father?.id)
                     setValue('birthDate', animal.birthDate)
                     setValue('weaningDate', animal.weaningDate)
                     setValue('weightBirth', animal.weightBirth)
@@ -327,7 +327,7 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
             label="Pai"
             options={fathers.map(item => ({
                 id: item.id,
-                label: [item.ringNumber, item.name].join(' - ')
+                label: [item.tag, item.name].join(' - ')
             }))}
             formProps={{ control, name: 'fatherId' }}
         />
@@ -340,7 +340,7 @@ const FormBody = ({ formType, control, setValue }: FormBodyProps) => {
             }}
             options={mothers.map(item => ({
                 id: item.id,
-                label: [item.ringNumber, item.name].join(' - ')
+                label: [item.tag, item.name].join(' - ')
             }))}
             formProps={{
                 control,

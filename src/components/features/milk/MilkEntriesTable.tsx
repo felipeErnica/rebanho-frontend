@@ -22,8 +22,8 @@ import {
     TableFooterRow,
     TableHeadControlCell,
     TableHeadRow,
-    TableLoadingCells,
-    VirtuosoHeadCell
+    VirtuosoHeadCell,
+    VirtuosoRowRender
 } from "@shared/table/TableComponents"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
@@ -36,9 +36,13 @@ import { Button } from "@mui/material"
 import Add from "@mui/icons-material/Add"
 import { ErrorDialog } from "@shared/dialog/DialogComponents"
 import { APIError } from "@utils/ApiRequest"
+import { getAnimalLabel } from "@features/animals/Entities"
+import { getPastureLabel } from "@features/farm-area/Entities"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
+    setRows: Dispatch<SetStateAction<MilkEntry[]>>
+    getFoot: () => void
 }
 
 const ErrorContext = createContext<ErrorContextProps>(undefined!)
@@ -85,14 +89,6 @@ export const MilkEntriesTablePage = () => {
 
     const { rows, scrollRef, fetchNextPage, setRows } = usePagination<MilkEntry>({ setLoading, fetchPage })
 
-    const onDelete = useCallback((id: string) => {
-        deleteMilkEntry(id)
-            .then(() => {
-                setRows(prev => prev.filter(item => item.id != id))
-                getFoot()
-            })
-    }, [getFoot, setRows])
-
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
             reloadProps={{ onReload, loading }}
@@ -108,8 +104,8 @@ export const MilkEntriesTablePage = () => {
                 </Button>
             )}
         />
-        <ErrorContext.Provider value={{ setError }}>
-            <EntriesTable {...{ rows, foot, loading, scrollRef, fetchNextPage, onDelete }} />
+        <ErrorContext.Provider value={{ setError, setRows, getFoot }}>
+            <EntriesTable {...{ rows, foot, loading, scrollRef, fetchNextPage }} />
         </ErrorContext.Provider>
         <MilkEntriesFilter {...{ setFilter, filter, filterOpen, setFilterOpen, anchorEl }} />
         <AddMilkEntryDialog
@@ -129,7 +125,6 @@ export const MilkEntriesTablePage = () => {
 }
 
 type EntriesTableProps = {
-    onDelete: (id: string) => void
     rows: MilkEntry[]
     foot: MilkEntryFoot
     loading: boolean
@@ -137,12 +132,14 @@ type EntriesTableProps = {
     fetchNextPage: () => void
 }
 
-const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot, onDelete }: EntriesTableProps) => {
+const COLUMN_COUNT = 5
+
+const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTableProps) => {
 
     return <TableVirtuoso
         ref={scrollRef}
         data={rows}
-        components={useVirtuosoComponents(5)}
+        components={useVirtuosoComponents(COLUMN_COUNT)}
         endReached={fetchNextPage}
         fixedHeaderContent={() => (
             <TableHeadRow>
@@ -154,31 +151,39 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot, onDelete 
             </TableHeadRow>
         )}
         fixedFooterContent={() => (
-            <TableFooterRow colSpan={5}>
+            <TableFooterRow colSpan={COLUMN_COUNT}>
                 <FooterContent title="Total" content={foot.animalsNumber} />
                 <FooterContent title="Produção Média" content={decimalTransform(foot.averageMilk)} />
                 <FooterContent title="Produção Total" content={decimalTransform(foot.totalMilk)} />
             </TableFooterRow>
         )}
-        itemContent={(_, item) => <EntriesRow {...{ item, loading, onDelete }} />}
+        itemContent={(_, item) => (
+            <VirtuosoRowRender
+                colSpan={COLUMN_COUNT}
+                loading={loading}
+                render={() => <EntriesRow {...item as MilkEntry} />}
+            />
+        )}
     />
 
 }
 
-type EntriesRowProps = {
-    onDelete: (id: string) => void
-    item: MilkEntry
-    loading: boolean
-}
-
-const EntriesRow = ({ item, loading, onDelete }: EntriesRowProps) => {
+const EntriesRow = (item: MilkEntry) => {
 
     const [rowData, setRowData] = useState<MilkEntry>(item)
     const [editing, setEditing] = useState(false)
+    const { getFoot, setRows } = useContext(ErrorContext)
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingCells colSpan={5} />
+    const onDelete = useCallback((id: string) => {
+        deleteMilkEntry(id)
+            .then(() => {
+                setRows(prev => prev.filter(item => item.id != id))
+                getFoot()
+            })
+    }, [getFoot, setRows])
+
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     return <>
@@ -188,9 +193,9 @@ const EntriesRow = ({ item, loading, onDelete }: EntriesRowProps) => {
                 onDelete={() => onDelete(item.id)}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.cow)}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
     </>
 }
@@ -225,11 +230,11 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.cow)}</TableBodyCell>
         <TableBodyCell align="center">
             <FormDatePicker formProps={{ control, name: 'entryDate' }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell align="center">
             <FormTextField
                 type="number"

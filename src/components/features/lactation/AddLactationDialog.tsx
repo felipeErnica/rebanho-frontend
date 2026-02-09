@@ -21,7 +21,7 @@ import { LactationSave } from "./Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { Pasture } from "@features/farm-area/Entities"
 import { searchAnimal } from "@features/animals/Service"
-import { Animal, getAnimalFullLabel, getAnimalLabel } from "@features/animals/Entities"
+import { Animal, getAnimalBirthLabel, getAnimalLabel } from "@features/animals/Entities"
 import { searchPastures } from "@features/farm-area/Service"
 
 type StartLacDialogProps = {
@@ -178,7 +178,7 @@ export const AddLactationDialog = ({ openStartLac, closeStartLac }: StartLacDial
                         className="w-[400px]"
                         options={calves.map(item => ({
                             id: item.id,
-                            label: getAnimalFullLabel(item)
+                            label: getAnimalBirthLabel(item)
                         }))}
                     />
                     <FormControlLabel

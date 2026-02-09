@@ -1,9 +1,17 @@
-export type LactationHist = {
+import { Animal } from "@features/animals/Entities"
+
+export type LactationAnimal = {
     id: string
-    animalId: string
-    animalName: string
-    calfId: string
-    calfInfo: string
+    tag?: string
+    name?: string
+    birthDate?: Date
+    lactation?: Lactation
+}
+
+export type Lactation = {
+    id: string
+    cow: Animal
+    calf?: Animal
     startDate: Date
     endDate?: Date
     lacPeriod: number
@@ -28,7 +36,7 @@ export type LactationSave = {
     noBirth: boolean
 }
 
-export type LactationHistFilter = {
+export type LactationFilter = {
     isFiltered: boolean
     hasEndDate?: boolean
     hasCalf?: boolean
@@ -89,33 +97,6 @@ export type LactationHistFoot = {
 export type DairyAnimalsType = {
     dry: number
     lactating: number
-}
-
-export type AnimalsAverageHist = {
-    entryDate: Date
-    animalsNumber: number
-}
-
-export type TotalMilkHist = {
-    entryDate: Date
-    totalMilk: number
-}
-
-export type AverageMilkHist = {
-    entryDate: Date
-    averageMilk: number
-}
-
-export type AnimalsAverage = {
-    current: number
-    trend: number
-    hist: AnimalsAverageHist[]
-}
-
-export type MilkProductionHist = {
-    entryDate: Date
-    animalsNumber: number
-    totalMilk: number
 }
 
 export type AnimalsRating = {

@@ -25,6 +25,7 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/components/shared/form-controls/FormTextField"
 import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@/components/shared/form-controls/FormSearchBox"
+import { getPastureLabel } from "@features/farm-area/Entities"
 
 export const DeadAnimalsTablePage = () => {
 
@@ -88,7 +89,7 @@ type AnimalsTableProps = {
     foot: AnimalFoot
 }
 
-const COL_COUNT = 12
+const COL_COUNT = 13
 
 export const AnimalsTable = ({
     rows,
@@ -112,6 +113,7 @@ export const AnimalsTable = ({
                 <VirtuosoResizeHeadCell width={150} align="center">Data de Morte</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Pai</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Mãe</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Pasto</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Tipo de Animal</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={120} align="center">Prod. Média</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={150} align="center">Int. de Lac. Médio</VirtuosoResizeHeadCell>
@@ -152,12 +154,13 @@ const AnimalRow = ({ row, loading }: TableRowProp<Animal>) => {
         <TableBodyCell>
             <EditControlButtons {...{ onDelete, setEditing, loading: loadingControls }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.ringNumber}</TableBodyCell>
+        <TableBodyCell>{rowData.tag}</TableBodyCell>
         <TableBodyCell>{rowData.name}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.birthDate)}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.deathDate)}</TableBodyCell>
-        <TableBodyCell>{rowData.fatherName}</TableBodyCell>
-        <TableBodyCell>{rowData.motherName}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.father)}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.mother)}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.averageProd)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.averageProdInterval)}</TableBodyCell>
@@ -228,7 +231,7 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
             />
         </TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.averageProd, 1)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.averageProdInterval}</TableBodyCell>
         <TableBodyCell align="center">{rowData.averageBirthInterval}</TableBodyCell>

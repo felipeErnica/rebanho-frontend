@@ -1,3 +1,4 @@
+import { Animal } from "@features/animals/Entities"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 
 export const BirthStatusMap: Map<string, string> = new Map([
@@ -22,19 +23,18 @@ export const PregnancyStatusItems: ComboBoxItem[] = [
     { value: 'SUCCESS', name: 'Prenha' },
 ]
 
-export type TestEntry = {
+export type Test = {
     id: string
+    cow: Animal
+    calf?: Animal
     testDate: Date
-    animalId: string
-    animalInfo: string
     birthForecast?: Date
     birthStatus: string
     pregnancyStatus: string
-    childInformation?: string
     observation?: string
 }
 
-export type TestEntrySave = {
+export type TestSave = {
     id: string
     testDate: Date
     animalId: string
@@ -44,11 +44,6 @@ export type TestEntrySave = {
     pregnancyStatus: string
     observation?: string
     overwrite: boolean
-}
-
-export type LastEntryProps = {
-    testDate: Date
-    entries: TestEntry[]
 }
 
 export type TestEntryFilter = {
@@ -75,38 +70,6 @@ export type TestAnimal = {
     birthRate: number
     pregnancyComparison: number
     birthComparison: number
-}
-
-type PregnancyRateHist = {
-    testDate: Date
-    pregnancyRate: number
-}
-
-export type AnimalsNumberHist = {
-    testDate: Date
-    animalsNumber: number
-}
-
-export type PregnancyRateStats = {
-    current: number
-    trend: number
-    hist: PregnancyRateHist[]
-}
-
-type BirthRateHist = {
-    testDate: Date
-    birthRate: number
-}
-
-export type BirthRateStats = {
-    current: number
-    trend: number
-    hist: BirthRateHist[]
-}
-
-export type NextBirths = {
-    birthForecast: Date
-    birthNumbers: number
 }
 
 export type PregnancyTestsHist = {

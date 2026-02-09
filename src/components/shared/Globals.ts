@@ -6,7 +6,7 @@ export const REQUIRED_FIELD_MSG = 'Este campo é obrigatório!'
 export const LOADING_MSG = 'Carregando...'
 export const NO_DATA_AVAILABLE = 'Não há dados disponíveis'
 
-export const LONG_LACTATION_DAYS = 250
+export const LONG_LACTATION_DAYS = 280
 
 export const GROUP_UPDATE_TITLE = 'ATENÇÃO: Atualização em conjunto!'
 export const GROUP_DELETE_TITLE = 'ATENÇÃO: Exclusão de conjunto!'

@@ -32,6 +32,7 @@ import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog } from "@/components/shared/dialog/DialogComponents"
 import { getLactationEntries, getLactationEntriesFoot } from "@features/lactation/Service"
+import { getPastureLabel } from "@features/farm-area/Entities"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -161,7 +162,7 @@ const EntriesRow = ({ item }: EntriesRowProps) => {
             <EditControlButtons {...{ setEditing, onDelete, loading }} />
         </TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.entryDate)}</TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
     </TableBodyRow>
 }
@@ -199,7 +200,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell align="center">
             <FormDatePicker formProps={{ name: 'entryDate', control }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell align="center">
             <FormTextField
                 className="w-[100px]"

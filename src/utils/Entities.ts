@@ -4,10 +4,15 @@ export type Page<T> = {
     list: T[];
 }
 
-export type CardEntry<T> = {
+export type CardEntry = {
     current: number
     trend: number
-    hist: T[]
+    hist: GraphData[]
+}
+
+export type GraphData = {
+    date: Date
+    value: number
 }
 
 export type User = {
@@ -29,4 +34,10 @@ export interface IData {
 
 export interface IDashboardData {
     [key: string]: any
+}
+
+export const DefaultCard: CardEntry = {
+    hist: [],
+    trend: 0,
+    current: 0
 }

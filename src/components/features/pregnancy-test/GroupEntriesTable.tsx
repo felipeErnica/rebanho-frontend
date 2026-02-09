@@ -11,9 +11,9 @@ import {
 import {
     BirthStatusMap,
     PregnancyStatusMap,
-    TestEntry,
+    Test,
     TestEntryFoot,
-    TestEntrySave
+    TestSave
 } from "./Entities"
 import { deleteTest, findEntriesByGroup, getEntriesByGroupFoot, updateTest } from "./Service"
 import Table from "@mui/material/Table"
@@ -42,6 +42,8 @@ import { ChipColorScheme } from "@shared/Globals"
 import dayjs from "dayjs"
 import { APIError } from "@utils/ApiRequest"
 import { ErrorDialog } from "@shared/dialog/DialogComponents"
+import { getAnimalBirthLabel, getAnimalLabel } from "@features/animals/Entities"
+import { EditRowProps } from "@shared/table/Entities"
 
 type GroupEntriesTablePageProps = {
     testDate: Date
@@ -49,7 +51,7 @@ type GroupEntriesTablePageProps = {
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
-    setRows: Dispatch<SetStateAction<TestEntry[]>>
+    setRows: Dispatch<SetStateAction<Test[]>>
     loadFoot: () => void
 }
 
@@ -65,7 +67,7 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
         totals: 0
     }), [])
 
-    const [rows, setRows] = useState<TestEntry[]>([])
+    const [rows, setRows] = useState<Test[]>([])
     const [foot, setFoot] = useState<TestEntryFoot>(defaultFoot)
     const [loading, setLoading] = useState(false)
     const [addTestOpen, setAddTestOpen] = useState(false)
@@ -132,7 +134,7 @@ export const GroupEntriesTablePage = ({ testDate }: GroupEntriesTablePageProps) 
 }
 
 type EntriesTableProps = {
-    rows: TestEntry[]
+    rows: Test[]
     foot: TestEntryFoot
     loading: boolean
 }
@@ -146,19 +148,19 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
             <TableHead>
                 <TableHeadRow>
                     <TableHeadControlCell />
-                    <ResizableHeadCell>Vaca</ResizableHeadCell>
+                    <ResizableHeadCell width={250}>Vaca</ResizableHeadCell>
                     <ResizableHeadCell align="center" width={150}>Prenhez</ResizableHeadCell>
                     <ResizableHeadCell align="center" width={150}>Nascimento</ResizableHeadCell>
                     <ResizableHeadCell align="center" width={150}>Data de Previsão</ResizableHeadCell>
                     <ResizableHeadCell width={300}>Informações de Cria</ResizableHeadCell>
-                    <ResizableHeadCell width={500}>Observações</ResizableHeadCell>
+                    <ResizableHeadCell>Observações</ResizableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBodyContainer
                 dataset={rows}
                 colSpan={COLUMN_COUNT}
                 loading={loading}
-                render={(item) => <EntriesRow {...{ item }} />}
+                render={(item) => <EntriesRow {...item} />}
             />
             <StickyTableFooter>
                 <TableFooterRow colSpan={COLUMN_COUNT}>
@@ -171,9 +173,9 @@ const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
     </div>
 }
 
-const EntriesRow = ({ item }) => {
+const EntriesRow = (item: Test) => {
 
-    const [rowData, setRowData] = useState<TestEntry>(item)
+    const [rowData, setRowData] = useState<Test>(item)
     const [editing, setEditing] = useState(false)
     const [loadingControls, setLoadingControls] = useState(false)
 
@@ -199,7 +201,7 @@ const EntriesRow = ({ item }) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.cow)}</TableBodyCell>
         <TableBodyCell align="center">
             {rowData.pregnancyStatus &&
                 <Chip
@@ -217,19 +219,19 @@ const EntriesRow = ({ item }) => {
             }
         </TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.birthForecast)}</TableBodyCell>
-        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
+        <TableBodyCell>{getAnimalBirthLabel(rowData.calf)}</TableBodyCell>
         <TableBodyCell>{rowData.observation}</TableBodyCell>
     </TableBodyRow>
 }
 
-const EntriesRowEditing = ({ rowData, setRowData, setEditing }) => {
+const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<Test>) => {
 
-    const { control, handleSubmit, setValue, getValues } = useForm<TestEntrySave>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue, getValues } = useForm<TestSave>({ defaultValues: rowData })
     const { setError, loadFoot } = useContext(EditContext)
 
     const [loading, setLoading] = useState(false)
 
-    const onSubmit: SubmitHandler<TestEntrySave> = (data: TestEntrySave) => {
+    const onSubmit: SubmitHandler<TestSave> = (data: TestSave) => {
         setLoading(true)
         updateTest(data)
             .then(response => {
@@ -248,7 +250,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }) => {
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.cow)}</TableBodyCell>
         <TableBodyCell align="center">
             <Chip
                 label={PregnancyStatusMap.get(rowData.pregnancyStatus)}
@@ -280,7 +282,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }) => {
                 }}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
+        <TableBodyCell>{getAnimalBirthLabel(rowData.calf)}</TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'observation' }} />
         </TableBodyCell>

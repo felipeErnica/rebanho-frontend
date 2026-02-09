@@ -22,13 +22,10 @@ import {
     useState
 } from "react"
 import {
-    AnimalsAverageHist as AnimalsNumberHist,
     AnimalsRating,
-    AverageMilkHist,
     DairyAnimalsType,
     LactationHistFoot,
     ParentsRating,
-    TotalMilkHist
 } from "./Entities"
 import {
     getLastLactating,
@@ -51,7 +48,7 @@ import ChevronRight from "@mui/icons-material/ChevronRight"
 import Add from "@mui/icons-material/Add"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
-import { CardEntry } from "@utils/Entities"
+import { CardEntry, GraphData } from "@utils/Entities"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { EditRowProps, TableRowProp } from "@shared/table/Entities"
 import { SubmitHandler, useForm } from "react-hook-form"
@@ -59,13 +56,13 @@ import {
     LineChart,
     PieChart,
 } from "@mui/x-charts"
-import { 
-    DefaultTimerWarning, 
-    GROUP_DELETE_TITLE, 
-    GROUP_UPDATE_TITLE, 
-    LOADING_MSG, 
-    LONG_LACTATION_DAYS, 
-    NO_DATA_AVAILABLE 
+import {
+    DefaultTimerWarning,
+    GROUP_DELETE_TITLE,
+    GROUP_UPDATE_TITLE,
+    LOADING_MSG,
+    LONG_LACTATION_DAYS,
+    NO_DATA_AVAILABLE
 } from "@shared/Globals"
 import { green, yellow } from "@mui/material/colors"
 import ExpandMore from "@mui/icons-material/ExpandMore"
@@ -77,17 +74,20 @@ import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker
 import { useNavigate } from "react-router"
 import { AddMilkEntryDialog } from "@features/milk/AddMilkEntryDialog"
 import { LactationGroup, LactationGroupSave, MilkEntry } from "@features/milk/Entities"
-import { 
-    deleteMilkEntry, 
-    deleteMilkGroup, 
-    getLastAverageMilk, 
-    getLastEntries, 
-    getLastGroups, 
-    getLastMilk, 
-    getMilkProduction, 
-    updateMilkGroup 
+import {
+    deleteMilkEntry,
+    deleteMilkGroup,
+    getLastAverageMilk,
+    getLastEntries,
+    getLastGroups,
+    getLastMilk,
+    getMilkProduction,
+    updateMilkGroup
 } from "@features/milk/Service"
 import BackHand from "@mui/icons-material/BackHand"
+import { getAnimalLabel } from "@features/animals/Entities"
+import { getPastureLabel } from "@features/farm-area/Entities"
+import { LAC_HIST_STORAGE_KEY } from "./LactationHistTable"
 
 export const LactationDashboard = () => {
 
@@ -187,7 +187,10 @@ const OptionsMenu = ({ openMenu: open, menuAnchorEl, closeMenu: handleClose, set
                 </ListItemIcon>
                 Dias de Marcação
             </MenuItem>
-            <MenuItem onClick={() => navigate("history")}>
+            <MenuItem onClick={() => {
+                sessionStorage.removeItem(LAC_HIST_STORAGE_KEY)
+                navigate("history")
+            }}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
@@ -235,10 +238,10 @@ const LongLactationAlert = ({ startLoading, stopLoading, reloadFlag }: Dashboard
 
     useEffect(() => {
         startLoading()
-        getLactationsPageFoot({ 
-            isFiltered: true, 
-            minLacPeriod: LONG_LACTATION_DAYS, 
-            hasEndDate: false 
+        getLactationsPageFoot({
+            isFiltered: true,
+            minLacPeriod: LONG_LACTATION_DAYS,
+            hasEndDate: false
         })
             .then(res => {
                 setData(res)
@@ -253,11 +256,14 @@ const LongLactationAlert = ({ startLoading, stopLoading, reloadFlag }: Dashboard
 
     return <Collapse in={open}>
         <Alert severity="warning" onClose={() => setOpen(false)}>
-            <AlertTitle>{`${data.totalLacs} vacas possuem uma lactação maior que ${LONG_LACTATION_DAYS} dias.`}</AlertTitle>
+            <AlertTitle>{`${data.totalLacs} ${data.totalLacs > 1 ? ' vacas possuem ' : ' vaca possui '} uma lactação maior que ${LONG_LACTATION_DAYS} dias.`}</AlertTitle>
             <Button
                 variant="outlined"
                 color="warning"
-                onClick={() => navigate('long-lactations')}
+                onClick={() => {
+                    sessionStorage.removeItem(LAC_HIST_STORAGE_KEY)
+                    navigate('long-lactations')
+                }}
             >
                 Ver Mais...
             </Button>
@@ -268,13 +274,13 @@ const LongLactationAlert = ({ startLoading, stopLoading, reloadFlag }: Dashboard
 
 const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: CardEntry<TotalMilkHist> = useMemo(() => ({
+    const defaultValue: CardEntry = useMemo(() => ({
         trend: 0,
         current: 0,
         hist: []
     }), [])
 
-    const [stats, setStats] = useState<CardEntry<TotalMilkHist>>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(defaultValue)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -296,13 +302,13 @@ const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: Dashboard
             data={decimalTransform(stats.current)}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.totalMilk)}
+                    data={stats.hist.map(item => item.value)}
                     valueFormatter={(value) => decimalTransform(value ?? 0)}
                     height={90}
                     showHighlight
                     showTooltip
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
@@ -314,13 +320,13 @@ const MilkProductionCard = ({ stopLoading, startLoading, reloadFlag }: Dashboard
 
 const AverageMilkCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: CardEntry<AverageMilkHist> = useMemo(() => ({
+    const defaultValue: CardEntry = useMemo(() => ({
         trend: 0,
         current: 0,
         hist: []
     }), [])
 
-    const [stats, setStats] = useState<CardEntry<AverageMilkHist>>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(defaultValue)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -342,14 +348,14 @@ const AverageMilkCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
             data={decimalTransform(stats.current)}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.averageMilk)}
+                    data={stats.hist.map(item => item.value)}
                     valueFormatter={(value) => decimalTransform(value ?? 0)}
                     showHighlight
                     color={green[800]}
                     height={90}
                     showTooltip
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
@@ -361,13 +367,13 @@ const AverageMilkCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
 
 const LactatingCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: CardEntry<AnimalsNumberHist> = useMemo(() => ({
+    const defaultValue: CardEntry = useMemo(() => ({
         trend: 0,
         current: 0,
         hist: []
     }), [])
 
-    const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(defaultValue)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -389,13 +395,13 @@ const LactatingCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.animalsNumber)}
+                    data={stats.hist.map(item => item.value)}
                     height={90}
                     color={yellow[800]}
                     showHighlight
                     showTooltip
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
@@ -407,13 +413,13 @@ const LactatingCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
 
 const DryCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: CardEntry<AnimalsNumberHist> = useMemo(() => ({
+    const defaultValue: CardEntry = useMemo(() => ({
         trend: 0,
         current: 0,
         hist: []
     }), [])
 
-    const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(defaultValue)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -435,13 +441,13 @@ const DryCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformation
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.animalsNumber)}
+                    data={stats.hist.map(item => item.value)}
                     height={90}
                     color={yellow[800]}
                     showHighlight
                     showTooltip
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
@@ -608,12 +614,15 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
 
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit } = useForm<LactationGroupSave>({ defaultValues: rowData })
+    const { control, handleSubmit } = useForm<LactationGroupSave>({
+        defaultValues: { oldEntry: rowData.entryDate }
+    })
+
     const { setError, setWarning } = useContext(EditContext)
 
-    const onSubmit: SubmitHandler<LactationGroup> = (data: LactationGroupSave) => {
+    const onSubmit: SubmitHandler<LactationGroupSave> = (data: LactationGroupSave) => {
         setLoading(true)
-        updateMilkGroup(rowData.entryDate, data)
+        updateMilkGroup(data)
             .then(response => {
                 setRowData(response)
                 setEditing(false)
@@ -764,8 +773,8 @@ const EntriesRow = ({ row, onDelete }: TableRowProp<MilkEntry>) => {
                 onDelete={() => onDelete && onDelete(row.id)}
             />
         </TableCell>
-        <TableCell>{rowData.animalInfo}</TableCell>
-        <TableCell align="center">{rowData.pastureName}</TableCell>
+        <TableCell>{getAnimalLabel(rowData.cow)}</TableCell>
+        <TableCell align="center">{getPastureLabel(rowData.pasture)}</TableCell>
         <TableCell align="center">{decimalTransform(rowData.quantity ?? 0, 1)}</TableCell>
     </TableRow>
 
@@ -786,8 +795,8 @@ const EditingEntriesRow = ({ rowData, setRowData, setEditing }: EditRowProps<Mil
         <TableCell>
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableCell>
-        <TableCell>{rowData.animalInfo}</TableCell>
-        <TableCell align="center">{rowData.pastureName}</TableCell>
+        <TableCell>{getAnimalLabel(rowData.cow)}</TableCell>
+        <TableCell align="center">{getPastureLabel(rowData.pasture)}</TableCell>
         <TableCell align="center">
             <FormTextField
                 formProps={{ control, name: 'quantity' }}
@@ -842,8 +851,8 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
                 }
             }}
             onItemClick={(_, item) => {
-                if (item.dataIndex === 1) navigate('dry-animals')
                 if (item.dataIndex === 0) navigate('lac-animals')
+                if (item.dataIndex === 1) navigate('dry-animals')
             }}
             series={[{
                 innerRadius: 180,
@@ -861,7 +870,7 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
 
 const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const [dataset, setDataset] = useState<TotalMilkHist[]>([])
+    const [dataset, setDataset] = useState<GraphData[]>([])
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -885,20 +894,17 @@ const MilkProductionChart = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                 noData: NO_DATA_AVAILABLE
             }}
             series={[{
-                data: dataset.map(item => item.totalMilk),
+                data: dataset.map(item => item.value),
                 valueFormatter: value => decimalTransform(value),
                 curve: 'linear',
                 showMark: false,
                 area: true
             }]}
             xAxis={[{
-                data: dataset.map(item => new Date(item.entryDate)),
+                data: dataset.map(item => new Date(item.date)),
                 scaleType: 'time',
                 domainLimit: 'strict',
-                valueFormatter: (value: Date) => value.toLocaleString('pt-BR', {
-                    month: 'short',
-                    year: 'numeric'
-                })
+                valueFormatter: (value: Date) => dateTransform(value)
             }]}
             yAxis={[
                 { id: 'totalAxis', min: 0, label: 'Leite Produzido' },
@@ -945,7 +951,10 @@ const AnimalsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 className="ml-auto"
                 variant="text"
                 startIcon={<ChevronRight />}
-                onClick={() => navigate("history")}
+                onClick={() => {
+                    sessionStorage.removeItem(LAC_HIST_STORAGE_KEY)
+                    navigate("history")
+                }}
             >
                 Ver Histórico de Lactação
             </Button>
@@ -1042,7 +1051,10 @@ const ParentsRatingTable = ({ reloadFlag, stopLoading, startLoading }: Dashboard
                 className="ml-auto"
                 variant="text"
                 startIcon={<ChevronRight />}
-                onClick={() => navigate("history")}
+                onClick={() => { 
+                    sessionStorage.removeItem(LAC_HIST_STORAGE_KEY)
+                    navigate("history")
+                }}
             >
                 Ver Histórico de Lactação
             </Button>

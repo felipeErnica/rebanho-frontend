@@ -15,7 +15,6 @@ import {
     useCallback,
     useContext,
     useEffect,
-    useMemo,
     useRef,
     useState
 } from "react"
@@ -46,18 +45,13 @@ import {
 } from "@mui/x-charts"
 import { dateToISO, dateTransform, percentageTransform } from "@utils/Transformations"
 import {
-    AnimalsNumberHist,
-    BirthRateStats,
     BirthStatusMap,
-    LastEntryProps,
-    NextBirths,
-    PregnancyRateStats,
     PregnancyStatusItems,
     PregnancyStatusMap,
     PregnancyTestsHist,
     TestAnimal,
-    TestEntry,
-    TestEntrySave,
+    Test,
+    TestSave,
     TestGroup
 } from "./Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
@@ -76,7 +70,7 @@ import { useNavigate } from "react-router"
 import Add from "@mui/icons-material/Add"
 import { AddTestDialog } from "./AddTestDialog"
 import IconButton from "@mui/material/IconButton"
-import { CardEntry } from "@utils/Entities"
+import { CardEntry, DefaultCard, GraphData } from "@utils/Entities"
 import { ChipColorScheme } from "@shared/Globals"
 import { orange, yellow } from "@mui/material/colors"
 import { EditRowProps } from "@shared/table/Entities"
@@ -88,6 +82,7 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import ExpandMore from "@mui/icons-material/ExpandMore"
 import { OptionMenuProps } from "@/components/shared/dashboard/Entities"
 import { Divider, ListItemIcon, Menu, MenuItem } from "@mui/material"
+import { getAnimalLabel } from "@features/animals/Entities"
 
 type ReloadContextProps = {
     setReloadFlag: Dispatch<SetStateAction<number>>
@@ -222,13 +217,7 @@ const DashboardInformation = ({ startLoading, stopLoading, reloadFlag }: Dashboa
 
 const PregnancyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: PregnancyRateStats = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [stats, setStats] = useState<PregnancyRateStats>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -236,12 +225,12 @@ const PregnancyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
         startLoading()
         getPregnancyRate()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultValue))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -250,15 +239,15 @@ const PregnancyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
             data={percentageTransform(stats.current)}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.pregnancyRate)}
+                    data={stats.hist.map(item => item.value)}
                     valueFormatter={(value) => percentageTransform(value ?? 0)}
                     color={yellow[800]}
                     height={50}
                     showTooltip
                     showHighlight
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.testDate)),
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' })
+                        data: stats.hist.map(item => new Date(item.date)),
+                        valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
             )}
@@ -269,13 +258,7 @@ const PregnancyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
 
 const AnimalsNumberCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: CardEntry<AnimalsNumberHist> = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -283,12 +266,12 @@ const AnimalsNumberCard = ({ stopLoading, startLoading, reloadFlag }: DashboardI
         startLoading()
         getAnimalsNumber()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultValue))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -297,13 +280,13 @@ const AnimalsNumberCard = ({ stopLoading, startLoading, reloadFlag }: DashboardI
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.animalsNumber)}
+                    data={stats.hist.map(item => item.value)}
                     height={50}
                     showTooltip
                     showHighlight
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.testDate)),
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' })
+                        data: stats.hist.map(item => new Date(item.date)),
+                        valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
             )}
@@ -314,13 +297,7 @@ const AnimalsNumberCard = ({ stopLoading, startLoading, reloadFlag }: DashboardI
 
 const BirthCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: BirthRateStats = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [stats, setStats] = useState<BirthRateStats>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -328,12 +305,12 @@ const BirthCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
         startLoading()
         getBirthRate()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultValue))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -342,15 +319,15 @@ const BirthCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
             data={percentageTransform(stats.current)}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.birthRate)}
+                    data={stats.hist.map(item => item.value)}
                     valueFormatter={(value) => percentageTransform(value ?? 0)}
                     color={orange[800]}
                     height={50}
                     showTooltip
                     showHighlight
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.testDate)),
-                        valueFormatter: (value: Date) => value.toLocaleString('pt-BR', { dateStyle: 'short' })
+                        data: stats.hist.map(item => new Date(item.date)),
+                        valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
             )}
@@ -494,16 +471,13 @@ const TestHistChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
 const NextBirthsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
     const [loading, setLoading] = useState(false)
-    const [data, setData] = useState<NextBirths[]>([])
+    const [data, setData] = useState<GraphData[]>([])
 
     useEffect(() => {
         startLoading()
         setLoading(true)
         getNextBirths()
-            .then((response: NextBirths[]) => {
-                response.forEach(item => item.birthForecast = new Date(item.birthForecast))
-                setData(response)
-            })
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -526,12 +500,9 @@ const NextBirthsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
                     : data.map(item => (
                         <TableRow>
                             <TableCell>
-                                {item.birthForecast.toLocaleString('pt-BR', {
-                                    month: 'short',
-                                    year: 'numeric'
-                                })}
+                                {dateTransform(item.date, { month: 'short', year: 'numeric' })}
                             </TableCell>
-                            <TableCell>{item.birthNumbers}</TableCell>
+                            <TableCell>{item.value}</TableCell>
                         </TableRow>
                     ))
                 }
@@ -633,7 +604,7 @@ const LastGroupTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInfo
 
 const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
-    const [data, setData] = useState<TestEntry[]>([])
+    const [data, setData] = useState<Test[]>([])
     const [testDate, setTestDate] = useState(new Date())
     const [textDate, setTextDate] = useState('Sem dados')
     const [loading, setLoading] = useState(false)
@@ -643,9 +614,9 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
         startLoading()
         setLoading(true)
         getLastEntries()
-            .then((response: LastEntryProps) => {
-                setData(response.entries)
-                const date = new Date(response.testDate)
+            .then((response: Test[]) => {
+                setData(response)
+                const date = new Date(response[0].testDate)
                 setTestDate(date)
                 setTextDate(dateTransform(date))
             })
@@ -688,8 +659,7 @@ const LastEntriesTable = ({ reloadFlag, stopLoading, startLoading }: DashboardIn
             className="ml-auto"
             endIcon={<ChevronRight />}
             onClick={() => {
-                const dateStr = testDate.toISOString().split('T')[0]
-                navigate(`groups/${dateStr}`)
+                navigate(`groups/${dateToISO(testDate)}`)
             }}
         >
             Ver Mais...
@@ -745,17 +715,17 @@ function EntriesRow({ row }) {
 
 }
 
-function EditEntriesRow({ setRowData, setEditing, rowData }: EditRowProps<TestEntry>) {
+function EditEntriesRow({ setRowData, setEditing, rowData }: EditRowProps<Test>) {
 
     const [showForecast, setShowForecast] = useState(rowData.pregnancyStatus === 'SUCCESS')
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit, setValue } = useForm<TestEntrySave>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue } = useForm<TestSave>({ defaultValues: rowData })
     const { setError } = useContext(ReloadContext)
 
     useEffect(() => setShowForecast(rowData.pregnancyStatus === 'SUCCESS'), [rowData])
 
-    const onSubmit: SubmitHandler<TestEntrySave> = (data: TestEntrySave) => {
+    const onSubmit: SubmitHandler<TestSave> = (data: TestSave) => {
         setLoading(true)
         updateTest(data)
             .then(response => {
@@ -773,7 +743,7 @@ function EditEntriesRow({ setRowData, setEditing, rowData }: EditRowProps<TestEn
         <TableCell>
             <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableCell>
-        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell>{getAnimalLabel(rowData.cow)}</TableCell>
         <TableCell align="center" width={200}>
             <FormDatePicker formProps={{ control, name: 'testDate' }} />
         </TableCell>

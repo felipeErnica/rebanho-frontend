@@ -14,10 +14,10 @@ import {
     BirthStatusMap,
     PregnancyStatusItems,
     PregnancyStatusMap,
-    TestEntry,
+    Test,
     TestEntryFilter,
     TestEntryFoot,
-    TestEntrySave
+    TestSave
 } from "./Entities"
 import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
@@ -27,8 +27,8 @@ import {
     TableFooterRow,
     TableHeadControlCell,
     TableHeadRow,
-    TableLoadingCells,
-    VirtuosoResizeHeadCell
+    VirtuosoResizeHeadCell,
+    VirtuosoRowRender
 } from "@shared/table/TableComponents"
 import { dateTransform, percentageTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
@@ -48,10 +48,12 @@ import { Button } from "@mui/material"
 import Add from "@mui/icons-material/Add"
 import { AddTestDialog } from "./AddTestDialog"
 import dayjs from "dayjs"
+import { getAnimalBirthLabel, getAnimalLabel } from "@features/animals/Entities"
+import { EditRowProps } from "@shared/table/Entities"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
-    setRows: Dispatch<SetStateAction<TestEntry[]>>
+    setRows: Dispatch<SetStateAction<Test[]>>
 }
 
 const ErrorContext = createContext<ErrorContextProps>(undefined!)
@@ -94,7 +96,7 @@ export const EntriesTablePage = () => {
         { name: 'Data de Previsão', value: "birth_forecast, animal_order" }
     ]
 
-    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<TestEntry>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<Test>({ setLoading, fetchPage })
 
     const closeAddTest = (added?: boolean) => {
         setAddTestOpen(false)
@@ -132,7 +134,7 @@ export const EntriesTablePage = () => {
 }
 
 type EntriesTableProps = {
-    rows: TestEntry[]
+    rows: Test[]
     foot: TestEntryFoot
     loading: boolean
     scrollRef: RefObject<VirtuosoHandle | null>
@@ -151,12 +153,12 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
         fixedHeaderContent={() => (
             <TableHeadRow>
                 <TableHeadControlCell />
-                <VirtuosoResizeHeadCell>Vaca</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={250}>Vaca</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={150}>Data do Exame</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={150}>Prenhez</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={150}>Nascimento</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={150}>Data de Previsão</VirtuosoResizeHeadCell>
-                <VirtuosoResizeHeadCell width={300}>Informações de Cria</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={400}>Informações de Cria</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={600}>Observações</VirtuosoResizeHeadCell>
             </TableHeadRow>
         )}
@@ -167,27 +169,26 @@ const EntriesTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: Entries
                 <FooterContent title="Taxa de Natalidade" content={percentageTransform(foot.birthRate)} />
             </TableFooterRow>
         )}
-        itemContent={(_, item) => <EntriesRow {...{ item: item as TestEntry, loading }} />}
+        itemContent={(_, item) => (
+            <VirtuosoRowRender
+                colSpan={COLUMN_COUNT}
+                loading={loading}
+                render={() => <EntriesRow {...item as Test} />}
+            />
+        )}
     />
 
 }
 
-type EntriesRowProps = {
-    item: TestEntry
-    loading: boolean
-}
+const EntriesRow = (item: Test) => {
 
-const EntriesRow = ({ item, loading }: EntriesRowProps) => {
-
-    const [rowData, setRowData] = useState<TestEntry>(item)
+    const [rowData, setRowData] = useState<Test>(item)
     const [editing, setEditing] = useState(false)
     const [loadingButton, setLoading] = useState(false)
-
     const { setError, setRows } = useContext(ErrorContext)
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingCells colSpan={COLUMN_COUNT} />
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
     const onDelete = () => {
@@ -205,7 +206,7 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
         <TableBodyCell>
             <EditControlButtons {...{ setEditing, onDelete, loading: loadingButton }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(item.cow)}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.testDate)}</TableBodyCell>
         <TableBodyCell align="center">
             <Chip
@@ -220,22 +221,22 @@ const EntriesRow = ({ item, loading }: EntriesRowProps) => {
             />
         </TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.birthForecast)}</TableBodyCell>
-        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
+        <TableBodyCell>{getAnimalBirthLabel(item.calf)}</TableBodyCell>
         <TableBodyCell>{rowData.observation}</TableBodyCell>
     </>
 }
 
-const EntriesRowEditing = ({ rowData, setRowData, setEditing }) => {
+const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EditRowProps<Test>) => {
 
     const [showForecast, setShowForecast] = useState(rowData.pregnancyStatus === 'SUCCESS')
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit, setValue, getValues } = useForm<TestEntrySave>({ defaultValues: rowData })
+    const { control, handleSubmit, setValue, getValues } = useForm<TestSave>({ defaultValues: rowData })
     const { setError } = useContext(ErrorContext)
 
     useEffect(() => setShowForecast(rowData.pregnancyStatus === 'SUCCESS'), [rowData])
 
-    const onSubmit: SubmitHandler<TestEntrySave> = (data: TestEntrySave) => {
+    const onSubmit: SubmitHandler<TestSave> = (data: TestSave) => {
         setLoading(true)
         updateTest(data)
             .then(response => {
@@ -253,7 +254,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }) => {
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.cow)}</TableBodyCell>
         <TableBodyCell align="center">
             <FormDatePicker formProps={{ control, name: 'testDate' }} />
         </TableBodyCell>
@@ -308,7 +309,7 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }) => {
                 />
             }
         </TableBodyCell>
-        <TableBodyCell>{rowData.childInformation}</TableBodyCell>
+        <TableBodyCell>{getAnimalBirthLabel(rowData.calf)}</TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'observation' }} />
         </TableBodyCell>

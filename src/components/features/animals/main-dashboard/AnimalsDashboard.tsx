@@ -9,9 +9,9 @@ import {
 } from "@shared/dashboard/DashboardComponents"
 import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@shared/dashboard/Entities"
-import { CardEntry } from "@/utils/Entities"
+import { CardEntry, DefaultCard, GraphData } from "@/utils/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
-import { AnimalByType, AnimalsByAge, AnimalsNumberHist } from "./Entities"
+import { AnimalByType, AnimalsByAge } from "./Entities"
 import { getAgeAndSex, getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getLastDeaths, getSlaughterHist } from "./Service"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { dateToISO, dateTransform, decimalTransform, percentageTransform, positiveTransform, transformWeight } from "@/utils/Transformations"
@@ -50,11 +50,12 @@ import { SlaughterEntry, SlaughterEntrySave } from "@features/slaughter/Entities
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog } from "@shared/dialog/DialogComponents"
 import { deleteSlaughter, getLastSlaughter, updateSlaughter } from "@features/slaughter/Controller"
-import { NextBirths } from "@/components/features/pregnancy-test/Entities"
 import { getNextBirths } from "@/components/features/pregnancy-test/Service"
-import { Animal, transformAnimalType } from "@features/animals/Entities"
+import { Animal, getAnimalLabel, transformAnimalType } from "@features/animals/Entities"
 import { LactationHistFoot } from "@features/lactation/Entities"
 import { Alert, AlertTitle, Collapse } from "@mui/material"
+import { getPastureLabel } from "@features/farm-area/Entities"
+import { LAC_HIST_STORAGE_KEY } from "@features/lactation/LactationHistTable"
 
 type EditContextProps = { setReloadFlag: Dispatch<SetStateAction<number>> }
 
@@ -211,11 +212,14 @@ const LongLactationAlert = ({ startLoading, stopLoading, reloadFlag }: Dashboard
 
     return <Collapse in={open}>
         <Alert severity="warning" onClose={() => setOpen(prev => !prev)}>
-            <AlertTitle>{`${data.totalLacs} vacas possuem uma lactação maior que ${LONG_LACTATION_DAYS} dias.`}</AlertTitle>
+            <AlertTitle>{`${data.totalLacs} ${data.totalLacs > 1 ? ' vacas possuem ' : ' vaca possui '} uma lactação maior que ${LONG_LACTATION_DAYS} dias.`}</AlertTitle>
             <Button
                 variant="outlined"
                 color="warning"
-                onClick={() => navigate('lactation/long-lactations')}
+                onClick={() => {
+                    sessionStorage.removeItem(LAC_HIST_STORAGE_KEY)
+                    navigate('lactation/long-lactations')
+                }}
             >
                 Ver Mais...
             </Button>
@@ -226,13 +230,7 @@ const LongLactationAlert = ({ startLoading, stopLoading, reloadFlag }: Dashboard
 
 const BirthsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: CardEntry<AnimalsNumberHist> = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     const navigate = useNavigate()
@@ -242,12 +240,12 @@ const BirthsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
         startLoading()
         getBirthHist()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultValue))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -256,12 +254,12 @@ const BirthsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.animalsNumber)}
+                    data={stats.hist.map(item => item.value)}
                     height={80}
                     showHighlight
                     showTooltip
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => dateTransform(value, { month: 'short', year: 'numeric' })
                     }}
                 />
@@ -280,13 +278,7 @@ const BirthsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
 
 const DeathsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: CardEntry<AnimalsNumberHist> = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     const navigate = useNavigate()
@@ -296,12 +288,12 @@ const DeathsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
         startLoading()
         getDeathHist()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultValue))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -310,13 +302,13 @@ const DeathsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.animalsNumber)}
+                    data={stats.hist.map(item => item.value)}
                     height={80}
                     showHighlight
                     showTooltip
                     color={red[600]}
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => dateTransform(value, { month: 'short', year: 'numeric' })
                     }}
                 />
@@ -335,13 +327,7 @@ const DeathsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
 
 const DairyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: CardEntry<AnimalsNumberHist> = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     const navigate = useNavigate()
@@ -351,12 +337,12 @@ const DairyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
         startLoading()
         getDairyHist()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultValue))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -365,13 +351,13 @@ const DairyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.animalsNumber)}
+                    data={stats.hist.map(item => item.value)}
                     height={80}
                     color={yellow[600]}
                     showHighlight
                     showTooltip
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => dateTransform(value, { month: 'short', year: 'numeric' })
                     }}
                 />
@@ -390,13 +376,7 @@ const DairyCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformati
 
 const SlaughterCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValue: CardEntry<AnimalsNumberHist> = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [stats, setStats] = useState<CardEntry<AnimalsNumberHist>>(defaultValue)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
@@ -405,12 +385,12 @@ const SlaughterCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
         startLoading()
         getSlaughterHist()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultValue))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValue, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -419,13 +399,13 @@ const SlaughterCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfor
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.animalsNumber)}
+                    data={stats.hist.map(item => item.value)}
                     height={80}
                     color={purple[600]}
                     showHighlight
                     showTooltip
                     xAxis={{
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
@@ -521,13 +501,13 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                         loading={loading}
                         render={row => (
                             <TableRow>
-                                <TableCell>{row.motherInfo}</TableCell>
-                                <TableCell align="center">{dateTransform(row.calfBirthDate)}</TableCell>
+                                <TableCell>{getAnimalLabel(row.mother)}</TableCell>
+                                <TableCell align="center">{dateTransform(row.calf.birthDate)}</TableCell>
                                 <TableCell align="center">
                                     {row.birthInterval ?? '1ª Cria'}
                                 </TableCell>
-                                <TableCell align="center">{row.calfSex}</TableCell>
-                                <TableCell>{row.calfFather}</TableCell>
+                                <TableCell align="center">{row.calf.sex}</TableCell>
+                                <TableCell>{getAnimalLabel(row.father)}</TableCell>
                             </TableRow>
                         )}
                     />
@@ -870,8 +850,8 @@ const EntriesRow = ({ row, onDelete }: TableRowProp<MilkEntry>) => {
                 onDelete={() => onDelete && onDelete(row.id)}
             />
         </TableCell>
-        <TableCell>{rowData.animalInfo}</TableCell>
-        <TableCell align="center">{rowData.pastureName}</TableCell>
+        <TableCell>{getAnimalLabel(rowData.cow)}</TableCell>
+        <TableCell align="center">{getPastureLabel(rowData.pasture)}</TableCell>
         <TableCell align="center">{decimalTransform(rowData.quantity ?? 0, 1)}</TableCell>
     </TableRow>
 
@@ -892,8 +872,8 @@ const EditingEntriesRow = ({ rowData, setRowData, setEditing }: EditRowProps<Mil
         <TableCell>
             <EditingControlButtons {...{ setEditing, onSave }} />
         </TableCell>
-        <TableCell>{rowData.animalInfo}</TableCell>
-        <TableCell align="center">{rowData.pastureName}</TableCell>
+        <TableCell>{getAnimalLabel(rowData.cow)}</TableCell>
+        <TableCell align="center">{getPastureLabel(rowData.pasture)}</TableCell>
         <TableCell align="center">
             <FormTextField
                 formProps={{ control, name: 'quantity' }}
@@ -993,7 +973,7 @@ const AgeChart = ({ stopLoading, startLoading, reloadFlag }: DashboardInformatio
 const NextBirthsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInformationProps) => {
 
     const [loading, setLoading] = useState(false)
-    const [data, setData] = useState<NextBirths[]>([])
+    const [data, setData] = useState<GraphData[]>([])
 
     const navigate = useNavigate()
 
@@ -1001,7 +981,7 @@ const NextBirthsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
         startLoading()
         setLoading(true)
         getNextBirths()
-            .then((response: NextBirths[]) => setData(response))
+            .then(response => setData(response))
             .catch(() => setData([]))
             .finally(() => {
                 setLoading(false)
@@ -1025,13 +1005,8 @@ const NextBirthsTable = ({ reloadFlag, stopLoading, startLoading }: DashboardInf
                     dataset={data}
                     render={item => (
                         <TableRow>
-                            <TableCell>
-                                {item.birthForecast.toLocaleString('pt-BR', {
-                                    month: 'short',
-                                    year: 'numeric'
-                                })}
-                            </TableCell>
-                            <TableCell>{item.birthNumbers}</TableCell>
+                            <TableCell>{dateTransform(item.date, { month: 'short', year: 'numeric' })}</TableCell>
+                            <TableCell>{item.value}</TableCell>
                         </TableRow>
                     )}
                 />

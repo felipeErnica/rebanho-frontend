@@ -1,13 +1,13 @@
-import { 
-    createContext, 
-    Dispatch, 
-    RefObject, 
-    SetStateAction, 
-    useCallback, 
-    useContext, 
-    useEffect, 
-    useRef, 
-    useState 
+import {
+    createContext,
+    Dispatch,
+    RefObject,
+    SetStateAction,
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState
 } from "react"
 import { LactationGroup, LactationGroupFilter, LactationGroupSave } from "./Entities"
 import { deleteMilkGroup, findGroupsPage, updateMilkGroup } from "./Service"
@@ -194,12 +194,16 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
 
     const [loading, setLoading] = useState(false)
 
-    const { control, handleSubmit } = useForm<LactationGroupSave>({ defaultValues: rowData })
+    const { control, handleSubmit } = useForm<LactationGroupSave>({
+        defaultValues: {
+            oldEntry: rowData.entryDate
+        }
+    })
     const { setError, setWarning } = useContext(EditContext)
 
     const onSubmit: SubmitHandler<LactationGroupSave> = (data: LactationGroupSave) => {
         setLoading(true)
-        updateMilkGroup(rowData.entryDate, data)
+        updateMilkGroup(data)
             .then(response => {
                 setRowData(response)
                 setEditing(false)
@@ -232,7 +236,7 @@ const GroupsRowEditing = ({ rowData, setRowData, setEditing }: GroupsRowEditingP
         <TableBodyCell align="center">
             <TrendValues
                 value={rowData.animalsNumber}
-                trendProps={{ trend: rowData.numberDifference, text: rowData.numberDifference.toString() }}
+                trendProps={{ trend: rowData.numberDifference }}
             />
         </TableBodyCell>
         <TableBodyCell align="center">

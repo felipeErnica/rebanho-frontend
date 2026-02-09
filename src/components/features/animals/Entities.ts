@@ -1,5 +1,7 @@
 import { dateTransform } from "@/utils/Transformations"
+import { Pasture } from "@features/farm-area/Entities"
 import { ComboBoxItem } from "@shared/common/ComboBox"
+import { render } from "react-dom"
 
 export enum AnimalType {
     REPRODUCTION_ANIMAL = "REPRODUCTION_ANIMAL",
@@ -31,36 +33,42 @@ export function transformAnimalType(type?: string, sex?: string) {
 }
 
 export function getAnimalLabel(item: Animal) {
-    if (!item.ringNumber) return item.name
-    return item.ringNumber + " - " + item.name
+    if (!item) return "-"
+    if (!item.tag) return item.name
+    if (!item.name) return item.tag
+    return item.tag + " - " + item.name
 }
 
-export function getAnimalFullLabel(item: Animal) {
-    if (!item.ringNumber && !item.name) return item.sex + ` - ${item.birthDate ? dateTransform(item.birthDate) : 'Sem Data'}` + ` (${item.motherName})`
-    if (!item.name) return item.ringNumber + " - " + item.sex + ` - ${item.birthDate ? dateTransform(item.birthDate) : 'Sem Data'}`
-    return item.ringNumber + " - " + item.name + ` - ${item.birthDate ? dateTransform(item.birthDate) : 'Sem Data'}`
+export function getAnimalBirthLabel(item: Animal) {
+    if (!item) return "-"
+    const name = item.tag ? getAnimalLabel(item) : 'Desc.'
+    const birthDate = item.birthDate ? dateTransform(item.birthDate) : 'Data Desc.'
+    return name + ' - ' + item.sex + ' - ' + birthDate + ` ${getDeathLabel(item)}`
+}
+
+function getDeathLabel(item: Animal) {
+    if (!item.deathDate) return ""
+    if (!item.sex) return "(Morto)"
+    return item.sex == 'F' ? "(Morta)" : "(Morto)"
 }
 
 export type Animal = {
     id: string
     name?: string
-    ringNumber?: string
-    weightBirth: number
+    tag?: string
     sex: string
-    weaningDate?: Date
-    fatherName?: string
-    fatherId?: string
-    motherName?: string
-    motherId?: string
     birthDate?: Date
+    father?: Animal
+    mother?: Animal
+    weightBirth: number
+    weaningDate?: Date
     deathDate?: Date
     animalType: string
+    pasture?: Pasture
     averageProd?: number
     averageProdInterval?: number
     averageBirthInterval?: number
     averagePeak?: number
-    pastureId?: string
-    pastureName?: string
     isInseminationBull?: boolean
     isTransferBull?: boolean
     isBreedingBull?: boolean

@@ -1,8 +1,3 @@
-export type AnimalsNumberHist = {
-    entryDate: Date
-    animalsNumber: number
-}
-
 export type AnimalByType = {
 	beefAnimals: number
 	dairyAnimals: number

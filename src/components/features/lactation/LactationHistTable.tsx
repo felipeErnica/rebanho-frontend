@@ -10,7 +10,7 @@ import {
     useRef,
     useState
 } from "react"
-import { LactationHist, LactationHistFilter, LactationHistFoot, LactationSave } from "./Entities"
+import { Lactation, LactationFilter, LactationHistFoot, LactationSave } from "./Entities"
 import {
     deleteLactation,
     findLactationsPage,
@@ -29,7 +29,8 @@ import {
     TableHeadRow,
     TableLoadingCells,
     VirtuosoHeadCell,
-    VirtuosoResizeHeadCell
+    VirtuosoResizeHeadCell,
+    VirtuosoRowRender
 } from "@shared/table/TableComponents"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
@@ -50,19 +51,19 @@ import { DefaultTimerWarning, GROUP_DELETE_TITLE } from "@/components/shared/Glo
 import { useNavigate } from "react-router"
 import BackHand from "@mui/icons-material/BackHand"
 import { searchAnimal } from "@features/animals/Service"
-import { Animal, getAnimalFullLabel } from "@features/animals/Entities"
+import { Animal, getAnimalBirthLabel, getAnimalLabel } from "@features/animals/Entities"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
-    setRows: Dispatch<SetStateAction<LactationHist[]>>
+    setRows: Dispatch<SetStateAction<Lactation[]>>
     setWarning: Dispatch<SetStateAction<TimerYesNoDialogProps>>
 }
 
-const STORAGE_KEY = "lactation_history_filter_cache";
+export const LAC_HIST_STORAGE_KEY = "lactation_history_filter_cache";
 
 const ErrorContext = createContext<EditContextProps>(undefined!)
 
-export const LactationHistTablePage = () => {
+export const LactationHistTablePage = (defaultFilter: LactationFilter) => {
 
     const defaultSort = "animal_order, start_date"
 
@@ -75,10 +76,10 @@ export const LactationHistTablePage = () => {
         averageProduction: 0,
     }), [])
 
-    const [filter, setFilter] = useState<LactationHistFilter>(() => {
-        const saved = sessionStorage.getItem(STORAGE_KEY)
+    const [filter, setFilter] = useState<LactationFilter>(() => {
+        const saved = sessionStorage.getItem(LAC_HIST_STORAGE_KEY)
         if (saved) return JSON.parse(saved)
-        return { isFiltered: false }
+        return defaultFilter
     })
 
     const [filterOpen, setFilterOpen] = useState(false)
@@ -102,8 +103,8 @@ export const LactationHistTablePage = () => {
         return findLactationsPage(filter, sort, order, cursor)
     }, [DEFAULT_FOOT, filter, order, sort])
 
-    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
-    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
+    const onReload = useCallback(() => setFilter(defaultFilter), [defaultFilter])
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<Lactation>({ setLoading, fetchPage })
 
     useEffect(() => {
         if (reloadFlag > 0) {
@@ -113,9 +114,9 @@ export const LactationHistTablePage = () => {
 
     useEffect(() => {
         if (filter.isFiltered) {
-            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(filter));
+            sessionStorage.setItem(LAC_HIST_STORAGE_KEY, JSON.stringify(filter));
         } else {
-            sessionStorage.removeItem(STORAGE_KEY);
+            sessionStorage.removeItem(LAC_HIST_STORAGE_KEY);
         }
     }, [filter]);
 
@@ -207,19 +208,21 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu }: OptionMenuProps) => 
 }
 
 type EntriesTableProps = {
-    rows: LactationHist[]
+    rows: Lactation[]
     foot: LactationHistFoot
     loading: boolean
     scrollRef: RefObject<VirtuosoHandle | null>
     fetchNextPage: () => void
 }
 
+const COLUMN_COUNT = 11
+
 const LacTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTableProps) => {
 
     return <TableVirtuoso
         ref={scrollRef}
         data={rows}
-        components={useVirtuosoComponents(11)}
+        components={useVirtuosoComponents(COLUMN_COUNT)}
         endReached={fetchNextPage}
         fixedHeaderContent={() => (
             <TableHeadRow>
@@ -237,7 +240,7 @@ const LacTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTabl
             </TableHeadRow>
         )}
         fixedFooterContent={() => (
-            <TableFooterRow colSpan={11}>
+            <TableFooterRow colSpan={COLUMN_COUNT}>
                 <FooterContent title="Total" content={foot.totalLacs} />
                 <FooterContent title="Intervalo Médio" content={decimalTransform(foot.averageInterval)} />
                 <FooterContent title="Período Médio" content={decimalTransform(foot.averagePeriod)} />
@@ -246,19 +249,20 @@ const LacTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: EntriesTabl
                 <FooterContent title="Produção Média" content={decimalTransform(foot.averageTotal)} />
             </TableFooterRow>
         )}
-        itemContent={(_, item) => <LacRow {...{ item: item as LactationHist, loading }} />}
+        itemContent={(_, item) => (
+            <VirtuosoRowRender
+                colSpan={COLUMN_COUNT}
+                loading={loading}
+                render={() => <LacRow {...item as Lactation} />}
+            />
+        )}
     />
 
 }
 
-type LacRowProps = {
-    item: LactationHist
-    loading: boolean
-}
+const LacRow = (item: Lactation) => {
 
-const LacRow = ({ item, loading }: LacRowProps) => {
-
-    const [rowData, setRowData] = useState<LactationHist>(item)
+    const [rowData, setRowData] = useState<Lactation>(item)
     const [editing, setEditing] = useState(false)
     const [loadingControls, setLoadingControls] = useState(false)
     const navigate = useNavigate()
@@ -267,7 +271,6 @@ const LacRow = ({ item, loading }: LacRowProps) => {
 
     useEffect(() => setRowData(item), [item])
 
-    if (loading) return <TableLoadingCells colSpan={11} />
     if (editing) return <LacRowEditing {...{ rowData, setEditing, setRowData }} />
 
     const deleteLac = () => {
@@ -285,7 +288,7 @@ const LacRow = ({ item, loading }: LacRowProps) => {
         openYesNo: true,
         waitTime: 10,
         title: GROUP_DELETE_TITLE,
-        message: `Ao confirmar, todas as marcações da ${rowData.animalName}, dos dias ${dateTransform(rowData.startDate)} ` +
+        message: `Ao confirmar, todas as marcações da ${getAnimalLabel(rowData.cow)}, dos dias ${dateTransform(rowData.startDate)} ` +
             `até ${rowData.endDate ? dateTransform(rowData.endDate) : 'hoje'}, serão excluídas. Deseja continuar?`,
         onClose: () => setWarning(DefaultTimerWarning),
         onYes: deleteLac
@@ -300,8 +303,8 @@ const LacRow = ({ item, loading }: LacRowProps) => {
                 onShow={() => navigate(rowData.id)}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
-        <TableBodyCell>{rowData.calfInfo}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.cow)}</TableBodyCell>
+        <TableBodyCell>{getAnimalBirthLabel(rowData.calf)}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.startDate)}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.endDate)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.lacInterval ?? "1ª Lactação"}</TableBodyCell>
@@ -314,8 +317,8 @@ const LacRow = ({ item, loading }: LacRowProps) => {
 }
 
 type LacRowEditingProps = {
-    rowData: LactationHist
-    setRowData: (rowData: LactationHist) => void
+    rowData: Lactation
+    setRowData: (rowData: Lactation) => void
     setEditing: (editing: boolean) => void
 }
 
@@ -353,14 +356,14 @@ const LacRowEditing = ({ rowData, setRowData, setEditing }: LacRowEditingProps) 
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.cow)}</TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
                 loading={loadingSearch}
                 formProps={{ control, name: 'calfId' }}
                 options={calves.map(item => ({
                     id: item.id,
-                    label: getAnimalFullLabel(item)
+                    label: getAnimalBirthLabel(item)
                 }))}
             />
         </TableBodyCell>

@@ -181,7 +181,7 @@ type ErrorDialogProps = {
     onClose: () => void
 }
 
-export const ErrorDialog = ({ onClose, openError, title, message: content }: ErrorDialogProps) => {
+export const ErrorDialog = ({ onClose, openError, title, message }: ErrorDialogProps) => {
     return <Dialog
         open={openError}
         onClose={onClose}
@@ -191,7 +191,7 @@ export const ErrorDialog = ({ onClose, openError, title, message: content }: Err
             <div className="flex flex-row gap-8 items-center p-4">
                 <Error sx={{ fontSize: 60 }} color="error" />
                 <Typography className="whitespace-pre-wrap" fontSize={16} variant="body2">
-                    {content ?? 'Sem Informações'}
+                    {message ?? 'Sem Informações'}
                 </Typography>
             </div>
         </DialogContent>

@@ -18,13 +18,13 @@ import {
     TableFooterRow,
     TableHeadControlCell,
     TableHeadRow,
-    TableLoadingCells,
     VirtuosoHeadCell,
-    VirtuosoResizeHeadCell
+    VirtuosoResizeHeadCell,
+    VirtuosoRowRender
 } from "@shared/table/TableComponents"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { ComboBoxItem } from "@/components/shared/common/ComboBox"
-import { LactationAnimalFilter, LactationHist, LactationHistFoot } from "./Entities"
+import { LactationAnimalFilter, Lactation, LactationHistFoot, LactationAnimal } from "./Entities"
 import { useNavigate } from "react-router"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps } from "@/components/shared/dialog/DialogComponents"
@@ -32,16 +32,17 @@ import { DefaultTimerWarning } from "@/components/shared/Globals"
 import { EditControlButtons } from "@/components/shared/table/ControlButtons"
 import { findLactationsAnimalsPage, getLactationsAnimalsPageFoot } from "./Service"
 import { LactationAnimalsFilter } from "./LactationAnimalsFilter"
+import { getAnimalBirthLabel } from "@features/animals/Entities"
 
 type EditContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
-    setRows: Dispatch<SetStateAction<LactationHist[]>>
+    setRows: Dispatch<SetStateAction<Lactation[]>>
     setWarning: Dispatch<SetStateAction<TimerYesNoDialogProps>>
 }
 
 const ErrorContext = createContext<EditContextProps>(undefined!)
 
-export const LacAnimalsTablePage = () => {
+export const LacAnimalsTablePage = (defaultFilter: LactationAnimalFilter) => {
 
     const defaultFoot: LactationHistFoot = useMemo(() => ({
         totalLacs: 0,
@@ -51,12 +52,9 @@ export const LacAnimalsTablePage = () => {
         averageInterval: 0,
         averagePeak: 0,
     }), [])
-    const defaultSort = 'animal_order'
 
-    const [filter, setFilter] = useState<LactationAnimalFilter>({
-        isFiltered: true,
-        isLactating: true
-    })
+    const defaultSort = 'tag_order'
+    const [filter, setFilter] = useState<LactationAnimalFilter>(defaultFilter)
     const [filterOpen, setFilterOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [foot, setFoot] = useState(defaultFoot)
@@ -75,24 +73,21 @@ export const LacAnimalsTablePage = () => {
         return findLactationsAnimalsPage(filter, sort, order, cursor)
     }, [defaultFoot, filter, order, sort])
 
-    const onReload = useCallback(() => setFilter({
-        isFiltered: true,
-        isLactating: true
-    }), [])
+    const onReload = useCallback(() => setFilter(defaultFilter), [])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco da Vaca', value: defaultSort },
-        { name: 'Nome da Vaca', value: 'name, start_date' },
-        { name: 'Início de Lactação', value: 'start_date, animal_order' },
-        { name: 'Fim de Lactação', value: 'end_date, animal_order' },
-        { name: 'Nascimento do Bezerro', value: 'calf_birth_date, start_date, animal_order' },
-        { name: 'Produção Média', value: 'avg_production, start_date, animal_order' },
-        { name: 'Período em Lactação', value: 'lac_period, start_date, animal_order' },
-        { name: 'Produção Total', value: 'total_production, start_date, animal_order' },
-        { name: 'Intervalo de Lactação', value: 'lac_interval, start_date, animal_order' },
+        { name: 'Nome da Vaca', value: 'name, lac_start' },
+        { name: 'Início de Lactação', value: 'lac_start, tag_order' },
+        { name: 'Fim de Lactação', value: 'lac_end, tag_order' },
+        { name: 'Nascimento do Bezerro', value: 'calf_birth_date, lac_start, tag_order' },
+        { name: 'Produção Média', value: 'lac_average' },
+        { name: 'Período em Lactação', value: 'lac_period, lac_start, tag_order' },
+        { name: 'Produção Total', value: 'lac_total' },
+        { name: 'Intervalo de Lactação', value: 'lac_interval, lac_start, tag_order' },
     ]
 
-    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationHist>({ setLoading, fetchPage })
+    const { rows, scrollRef, fetchNextPage, setRows } = usePagination<LactationAnimal>({ setLoading, fetchPage })
 
     return <div className="w-full h-full flex flex-col">
         <TableTopBar
@@ -115,17 +110,17 @@ export const LacAnimalsTablePage = () => {
     </div>
 }
 
-const COLUMN_COUNT = 11
+const COLUMN_COUNT = 12
 
-type DryAnimalsTableProps = {
-    rows: LactationHist[]
+type LacAnimalsTableProps = {
+    rows: LactationAnimal[]
     foot: LactationHistFoot
     loading: boolean
     scrollRef: RefObject<VirtuosoHandle | null>
     fetchNextPage: () => void
 }
 
-const LacAnimalsTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: DryAnimalsTableProps) => {
+const LacAnimalsTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: LacAnimalsTableProps) => {
 
     return <TableVirtuoso
         ref={scrollRef}
@@ -135,7 +130,9 @@ const LacAnimalsTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: DryA
         fixedHeaderContent={() => (
             <TableHeadRow>
                 <TableHeadControlCell />
-                <VirtuosoResizeHeadCell width={220}>Vaca</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={120}>Brinco</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={300}>Nome</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell align="center" width={180}>Data de Nascimento</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={300}>Bezerro</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={150}>Início de Lactação</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell align="center" width={200}>Intervalo entre Lactações</VirtuosoResizeHeadCell>
@@ -156,36 +153,37 @@ const LacAnimalsTable = ({ rows, loading, scrollRef, fetchNextPage, foot }: DryA
                 <FooterContent title="Produção Média" content={decimalTransform(foot.averageTotal)} />
             </TableFooterRow>
         )}
-        itemContent={(_, item) => <LacAnimalRow {...{ item: item as LactationHist, loading }} />}
+        itemContent={(_, item) => (
+            <VirtuosoRowRender
+                colSpan={COLUMN_COUNT}
+                loading={loading}
+                render={() => <LacAnimalRow {...item} />}
+            />
+        )}
     />
 }
 
-type DryAnimalRowProps = {
-    item: LactationHist
-    loading: boolean
-}
+const LacAnimalRow = (item: LactationAnimal) => {
 
-const LacAnimalRow = ({ item, loading }: DryAnimalRowProps) => {
-
-    const [rowData, setRowData] = useState<LactationHist>(item)
+    const [rowData, setRowData] = useState<LactationAnimal>(item)
     const navigate = useNavigate()
 
     useEffect(() => setRowData(item), [item])
-
-    if (loading) return <TableLoadingCells colSpan={COLUMN_COUNT} />
 
     return <>
         <TableBodyCell>
             <EditControlButtons onShow={() => navigate(rowData.id)} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalName}</TableBodyCell>
-        <TableBodyCell>{rowData.calfInfo}</TableBodyCell>
-        <TableBodyCell align="center">{dateTransform(rowData.startDate)}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.lacInterval ?? "1ª Lactação"}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.lacPeriod}</TableBodyCell>
-        <TableBodyCell align="center">{decimalTransform(rowData.averageProduction ?? 0)}</TableBodyCell>
-        <TableBodyCell align="center">{decimalTransform(rowData.peak ?? 0, 1)}</TableBodyCell>
-        <TableBodyCell align="center">{decimalTransform(rowData.totalProduction ?? 0)}</TableBodyCell>
-        <TableBodyCell>{rowData.observation}</TableBodyCell>
+        <TableBodyCell>{rowData.tag}</TableBodyCell>
+        <TableBodyCell>{rowData.name}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.birthDate)}</TableBodyCell>
+        <TableBodyCell>{getAnimalBirthLabel(rowData.lactation?.calf)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.lactation?.startDate)}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.lactation?.lacInterval ?? "1ª Lactação"}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.lactation?.lacPeriod ?? "-"}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.lactation?.averageProduction)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.lactation?.peak, 1)}</TableBodyCell>
+        <TableBodyCell align="center">{decimalTransform(rowData.lactation?.totalProduction)}</TableBodyCell>
+        <TableBodyCell>{rowData.lactation?.observation ?? '-'}</TableBodyCell>
     </>
 }

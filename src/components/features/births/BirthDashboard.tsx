@@ -10,13 +10,9 @@ import {
 import { BarChart, LineChart, SparkLineChart } from "@mui/x-charts"
 import {
     BirthEntry,
-    BirthNumberEntry,
     BirthsByDate,
     BirthsBySex,
-    DeathNumberEntry,
-    DeathStats,
     IntervalAnimal,
-    IntervalStats,
 } from "./Entities"
 import {
     getIntervalsRanking,
@@ -32,7 +28,7 @@ import {
 } from "./Service"
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { green, lightBlue, pink, red } from "@mui/material/colors"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { dateTransform, decimalTransform, positiveTransform } from "@utils/Transformations"
 import { Button, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import { TrendValues } from "@shared/table/TableComponents"
@@ -41,9 +37,10 @@ import ChevronRight from "@mui/icons-material/ChevronRight"
 import { DashboardInformationProps, DashboardTopBarProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
 import { ComboBox, ComboBoxItem } from "@shared/common/ComboBox"
-import { CardEntry } from "@utils/Entities"
+import { CardEntry, DefaultCard } from "@utils/Entities"
 import { useNavigate } from "react-router"
 import { AddBirthDialog } from "./AddBirthDialog"
+import { getAnimalLabel } from "@features/animals/Entities"
 
 export const BirthDashboard = () => {
 
@@ -117,13 +114,7 @@ const DashboardInformations = ({ stopLoading, startLoading, reloadFlag }: Dashbo
 
 const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultStats: CardEntry<BirthNumberEntry> = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: [],
-    }), [])
-
-    const [stats, setStats] = useState<CardEntry<BirthNumberEntry>>(defaultStats)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -131,12 +122,12 @@ const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
         setLoading(true)
         getLastBirthsNumber()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultStats))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultStats, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -145,7 +136,7 @@ const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.birthTotal)}
+                    data={stats.hist.map(item => item.value)}
                     height={80}
                     color={green[600]}
                     showTooltip
@@ -153,7 +144,7 @@ const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                     xAxis={{
                         scaleType: 'time',
                         domainLimit: 'strict',
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => value.toLocaleString("pt-BR", {
                             month: 'short',
                             year: 'numeric'
@@ -169,13 +160,7 @@ const LastBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
 
 const BirthIntervalCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultStats: IntervalStats = useMemo(() => ({
-        intervalTrend: 0,
-        intervalHist: [],
-        currentInterval: 0
-    }), [])
-
-    const [stats, setStats] = useState<IntervalStats>(defaultStats)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -183,21 +168,21 @@ const BirthIntervalCard = ({ startLoading, stopLoading, reloadFlag }: DashboardI
         setLoading(true)
         getBirthIntervalStats()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultStats))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultStats, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
             title="Intervalo de Parição Médio"
             loading={loading}
-            data={decimalTransform(stats.currentInterval)}
+            data={decimalTransform(stats.current)}
             chart={(
                 <SparkLineChart
-                    data={stats ? stats.intervalHist.map(item => item.intervalAverage) : []}
+                    data={stats.hist.map(item => item.value)}
                     height={80}
                     valueFormatter={(value: number | null) => decimalTransform(value ?? 0)}
                     showTooltip
@@ -205,25 +190,19 @@ const BirthIntervalCard = ({ startLoading, stopLoading, reloadFlag }: DashboardI
                     xAxis={{
                         scaleType: 'time',
                         domainLimit: 'strict',
-                        data: stats.intervalHist.map(item => new Date(item.birthDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => value.getFullYear().toString()
                     }}
                 />
             )}
-            trendProps={{ trend: stats.intervalTrend, inverse: true }}
+            trendProps={{ trend: stats.trend, inverse: true }}
         />
     </DashboardCard>
 }
 
 const DeathIndexCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultStats: DeathStats = useMemo(() => ({
-        currentDeathIndex: 0,
-        deathIndexHist: [],
-        deathTrend: 0
-    }), [])
-
-    const [stats, setStats] = useState<DeathStats>(defaultStats)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -231,35 +210,35 @@ const DeathIndexCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
         setLoading(true)
         getDeathIndex()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultStats))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 stopLoading()
                 setLoading(false)
             })
-    }, [defaultStats, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
             title="Índice de Mortalidade"
             loading={loading}
-            data={decimalTransform(stats.currentDeathIndex)}
+            data={decimalTransform(stats.current)}
             chart={(
                 <SparkLineChart
-                    data={stats.deathIndexHist.map(item => item.deathIndex)}
+                    data={stats.hist.map(item => item.value)}
                     color={red[600]}
                     height={80}
                     valueFormatter={(value) => decimalTransform(value ?? 0)}
                     xAxis={{
                         scaleType: 'time',
                         domainLimit: 'strict',
-                        data: stats.deathIndexHist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => value.getFullYear().toString()
                     }}
                     showTooltip
                     showHighlight
                 />
             )}
-            trendProps={{ trend: stats.deathTrend, inverse: true }}
+            trendProps={{ trend: stats.trend, inverse: true }}
         />
     </DashboardCard>
 }
@@ -318,13 +297,7 @@ const BirthByDateGraph = ({ stopLoading, startLoading, reloadFlag }: DashboardIn
 
 const YearBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultStats: CardEntry<BirthNumberEntry> = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: [],
-    }), [])
-
-    const [stats, setStats] = useState<CardEntry<BirthNumberEntry>>(defaultStats)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -332,12 +305,12 @@ const YearBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
         setLoading(true)
         getYearBirthsNumber()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultStats))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultStats, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -346,7 +319,7 @@ const YearBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.birthTotal)}
+                    data={stats.hist.map(item => item.value)}
                     height={100}
                     showTooltip
                     showHighlight
@@ -355,7 +328,7 @@ const YearBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                     xAxis={{
                         scaleType: 'time',
                         domainLimit: 'strict',
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => value.getFullYear().toString()
                     }}
                 />
@@ -367,13 +340,7 @@ const YearBirthNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
 
 const YearDeathNumberCard = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultStats: CardEntry<DeathNumberEntry> = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: [],
-    }), [])
-
-    const [stats, setStats] = useState<CardEntry<DeathNumberEntry>>(defaultStats)
+    const [stats, setStats] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -381,12 +348,12 @@ const YearDeathNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
         setLoading(true)
         getYearDeathsNumber()
             .then(response => setStats(response))
-            .catch(() => setStats(defaultStats))
+            .catch(() => setStats(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultStats, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -395,7 +362,7 @@ const YearDeathNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
             data={stats.current}
             chart={(
                 <SparkLineChart
-                    data={stats.hist.map(item => item.deathsTotal)}
+                    data={stats.hist.map(item => item.value)}
                     height={100}
                     showTooltip
                     showHighlight
@@ -404,7 +371,7 @@ const YearDeathNumberCard = ({ startLoading, stopLoading, reloadFlag }: Dashboar
                     xAxis={{
                         scaleType: 'time',
                         domainLimit: 'strict',
-                        data: stats.hist.map(item => new Date(item.entryDate)),
+                        data: stats.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => value.getFullYear().toString()
                     }}
                 />
@@ -512,13 +479,13 @@ const LastBirthsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
                     loading={loading}
                     render={row => (
                         <TableRow>
-                            <TableCell>{row.motherInfo}</TableCell>
-                            <TableCell align="center">{dateTransform(row.calfBirthDate)}</TableCell>
+                            <TableCell>{getAnimalLabel(row.mother)}</TableCell>
+                            <TableCell align="center">{dateTransform(row.calf.birthDate)}</TableCell>
                             <TableCell align="center">
                                 {row.birthInterval ?? '1ª Cria'}
                             </TableCell>
-                            <TableCell align="center">{row.calfSex}</TableCell>
-                            <TableCell>{row.calfFather}</TableCell>
+                            <TableCell align="center">{row.calf.sex}</TableCell>
+                            <TableCell>{getAnimalLabel(row.father)}</TableCell>
                         </TableRow>
                     )}
                 />

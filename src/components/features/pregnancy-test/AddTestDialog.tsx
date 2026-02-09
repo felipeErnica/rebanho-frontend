@@ -11,9 +11,9 @@ import dayjs from "dayjs"
 import { RadioComponent } from "@shared/common/RadioComponent"
 import { addTest } from "./Service"
 import { APIError } from "@utils/ApiRequest"
-import { TestEntrySave } from "./Entities"
+import { TestSave } from "./Entities"
 import { searchMothers } from "../animals/Service"
-import { Animal, getAnimalLabel } from "../animals/Entities"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
 
 type AddTestDialogProps = {
     addTestOpen: boolean
@@ -23,7 +23,7 @@ type AddTestDialogProps = {
 
 export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDialogProps) => {
 
-    const { handleSubmit, control, reset, setValue, getValues } = useForm<TestEntrySave>({
+    const { handleSubmit, control, reset, setValue, getValues } = useForm<TestSave>({
         defaultValues: { testDate }
     })
 
@@ -46,7 +46,7 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
             .finally(() => setLoadingControls(false))
     }, [])
 
-    const onSubmit: SubmitHandler<TestEntrySave> = (data: TestEntrySave) => {
+    const onSubmit: SubmitHandler<TestSave> = (data: TestSave) => {
         setLoading(true)
         addTest(data)
             .then(() => {
@@ -180,10 +180,10 @@ export const AddTestDialog = ({ addTestOpen, closeAddTest, testDate }: AddTestDi
 }
 
 type ForecastControlProps = {
-    setValue: UseFormSetValue<TestEntrySave>
-    getValue: UseFormGetValues<TestEntrySave>
+    setValue: UseFormSetValue<TestSave>
+    getValue: UseFormGetValues<TestSave>
     forecastType: "date" | "days" | undefined
-    control: Control<TestEntrySave, any, TestEntrySave>
+    control: Control<TestSave, any, TestSave>
     disableForecast: boolean
 }
 

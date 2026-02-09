@@ -4,7 +4,7 @@ import { findAnimals, getAnimalsFoot, searchAnimal } from "./Service"
 import { ComboBoxItem } from "@shared/common/ComboBox"
 import { AnimalsFilter } from "./AnimalsFilter"
 import { usePagination } from "@shared/table/PageTable"
-import { Animal, AnimalFoot, AnimalSave, AnimalFilter } from "./Entities"
+import { Animal, AnimalFoot, AnimalSave, AnimalFilter, getAnimalLabel } from "./Entities"
 import { Ref, useEffect } from "react"
 import { transformAnimalType } from "./Entities"
 import { dateTransform, decimalTransform } from "@utils/Transformations"
@@ -25,6 +25,7 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@/components/shared/form-controls/FormTextField"
 import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker"
 import { FormSearchBox } from "@/components/shared/form-controls/FormSearchBox"
+import { getPastureLabel } from "@features/farm-area/Entities"
 
 export const AnimalsTablePage = () => {
 
@@ -89,7 +90,7 @@ type AnimalsTableProps = {
     foot: AnimalFoot
 }
 
-const COL_COUNT = 12
+const COL_COUNT = 13
 
 export const AnimalsTable = ({
     rows,
@@ -112,6 +113,7 @@ export const AnimalsTable = ({
                 <VirtuosoResizeHeadCell width={180} align="center">Data de Nascimento</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Pai</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Mãe</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={200}>Pasto</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Tipo de Animal</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={150} align="center">Data de Morte</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={120} align="center">Prod. Média</VirtuosoResizeHeadCell>
@@ -153,11 +155,12 @@ const AnimalRow = ({ row, loading }: TableRowProp<Animal>) => {
         <TableBodyCell>
             <EditControlButtons {...{ onDelete, setEditing, loading: loadingControls }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.ringNumber}</TableBodyCell>
+        <TableBodyCell>{rowData.tag}</TableBodyCell>
         <TableBodyCell>{rowData.name}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.birthDate)}</TableBodyCell>
-        <TableBodyCell>{rowData.fatherName}</TableBodyCell>
-        <TableBodyCell>{rowData.motherName}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.father)}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.mother)}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.deathDate)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.averageProd)}</TableBodyCell>
@@ -218,7 +221,7 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
                 formProps={{ control, name: 'fatherId' }}
                 options={fathers.map(item => ({
                     id: item.id,
-                    label: [item.ringNumber, item.name].join(' - ')
+                    label: [item.tag, item.name].join(' - ')
                 }))}
             />
         </TableBodyCell>
@@ -227,12 +230,12 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
                 formProps={{ control, name: 'motherId' }}
                 options={mothers.map(item => ({
                     id: item.id,
-                    label: [item.ringNumber, item.name].join(' - ')
+                    label: [item.tag, item.name].join(' - ')
                 }))}
             />
         </TableBodyCell>
         <TableBodyCell>{transformAnimalType(rowData.animalType, rowData.sex)}</TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell align="center">{decimalTransform(rowData.averageProd, 1)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.averageProdInterval}</TableBodyCell>
         <TableBodyCell align="center">{rowData.averageBirthInterval}</TableBodyCell>

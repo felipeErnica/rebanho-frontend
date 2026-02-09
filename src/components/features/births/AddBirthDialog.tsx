@@ -128,8 +128,8 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                             getFatherId()
                             const mother = mothers.find(item => item.id === id)
                             if (!mother) return
-                            setValue('ringNumber', mother.ringNumber)
-                            setValue('pastureId', mother.pastureId)
+                            setValue('tag', mother.tag)
+                            setValue('pastureId', mother.pasture?.id)
                         }}
                         formProps={{
                             control,
@@ -143,7 +143,7 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                             className="w-[80px]"
                             formProps={{
                                 control,
-                                name: 'ringNumber',
+                                name: 'tag',
                                 rules: { required: REQUIRED_FIELD_MSG }
                             }}
                         />

@@ -1,15 +1,30 @@
-import { useVirtuosoComponents, usePagination } from "@shared/table/PageTable"
+import { Animal, getAnimalLabel } from "@features/animals/Entities"
+import { searchAnimal } from "@features/animals/Service"
+import Add from "@mui/icons-material/Add"
+import { Button } from "@mui/material"
+import { ComboBoxItem } from "@shared/common/ComboBox"
+import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
+import { FormComboBox } from "@shared/form-controls/FormComboBox"
+import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
+import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
+import { FormTextField } from "@shared/form-controls/FormTextField"
+import { DefaultWarning, ERROR_TYPE } from "@shared/Globals"
+import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
+import { usePagination, useVirtuosoComponents } from "@shared/table/PageTable"
 import {
     FooterContent,
     TableBodyCell,
     TableFooterRow,
     TableHeadControlCell,
     TableHeadRow,
-    TableLoadingCells,
     VirtuosoHeadCell,
-    VirtuosoResizeHeadCell
+    VirtuosoResizeHeadCell,
+    VirtuosoRowRender
 } from "@shared/table/TableComponents"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
+import { APIError } from "@utils/ApiRequest"
+import { SexValues } from "@utils/enums"
+import { dateTransform, decimalTransform } from "@utils/Transformations"
 import {
     createContext,
     Dispatch,
@@ -18,30 +33,16 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useRef,
     useState
 } from "react"
-import { deleteBirth, findBirthsPage, findBirthsPageFooter, updateBirth } from "./Service"
-import { ComboBoxItem } from "@shared/common/ComboBox"
-import { BirthEntry, BirthEntryFilter, BirthEntrySave, BirthFooter } from "./Entities"
-import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
-import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { dateTransform, decimalTransform } from "@utils/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import { FormComboBox } from "@shared/form-controls/FormComboBox"
-import { SexValues } from "@utils/enums"
-import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-import { BirthFilter } from "./BirthFilter"
-import { Button } from "@mui/material"
-import Add from "@mui/icons-material/Add"
-import { APIError } from "@utils/ApiRequest"
-import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
-import { DefaultWarning, ERROR_TYPE } from "@shared/Globals"
+import { TableVirtuoso, VirtuosoHandle } from "react-virtuoso"
 import { AddBirthDialog } from "./AddBirthDialog"
-import { FormTextField } from "@shared/form-controls/FormTextField"
-import { Animal, getAnimalLabel } from "@features/animals/Entities"
-import { searchAnimal } from "@features/animals/Service"
+import { BirthFilter } from "./BirthFilter"
+import { BirthEntry, BirthEntryFilter, BirthEntrySave, BirthFooter } from "./Entities"
+import { deleteBirth, findBirthsPage, findBirthsPageFooter, updateBirth } from "./Service"
 
 type ErrorContextProps = {
     setError: Dispatch<SetStateAction<APIError | undefined>>
@@ -56,7 +57,7 @@ export const BirthTablePage = () => {
 
     const DEFAULT_SORT = 'mother_order,calf_birth_date'
 
-    const [isLoading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(false)
     const [sort, setSort] = useState(DEFAULT_SORT)
     const [order, setOrder] = useState('asc')
     const [filter, setFilter] = useState<BirthEntryFilter>({ isFiltered: false })
@@ -108,11 +109,11 @@ export const BirthTablePage = () => {
             sortProps={{ defaultSort: DEFAULT_SORT, sort, setSort, sortColumns }}
             filterProps={{ setFilterOpen, anchorEl }}
             orderProps={{ order, setOrder }}
-            reloadProps={{ loading: isLoading, onReload }}
+            reloadProps={{ loading, onReload }}
             otherProps={otherActions}
         />
         <ErrorContext.Provider value={{ setError, setWarningProps, setRows, loadFoot }}>
-            <BirthTable {...{ rows, scrollRef, fetchNextPage, isLoading, footerData }} />
+            <BirthTable {...{ rows, scrollRef, fetchNextPage, loading, footerData }} />
         </ErrorContext.Provider>
         <BirthFilter {...{ setFilterOpen, filterOpen, filter, setFilter, anchorEl }} />
         <ErrorDialog
@@ -131,16 +132,20 @@ type BirthTableProps = {
     footerData: BirthFooter
     scrollRef: RefObject<VirtuosoHandle | null>
     fetchNextPage: () => void
-    isLoading: boolean
+    loading: boolean
 }
 
-const BirthTable = ({ rows, scrollRef, fetchNextPage, isLoading, footerData }: BirthTableProps) => {
+const COLUMN_COUNT = 8
+
+const BirthTable = ({ rows, scrollRef, fetchNextPage, loading, footerData }: BirthTableProps) => {
+
+    console.log(rows)
 
     return <TableVirtuoso
         ref={scrollRef}
         endReached={fetchNextPage}
-        data={rows}
-        components={useVirtuosoComponents(8)}
+        data={rows.map(item => ({ ...item, id: item.calf.id }))}
+        components={useVirtuosoComponents(COLUMN_COUNT)}
         fixedHeaderContent={() => (
             <TableHeadRow>
                 <TableHeadControlCell />
@@ -154,37 +159,50 @@ const BirthTable = ({ rows, scrollRef, fetchNextPage, isLoading, footerData }: B
             </TableHeadRow>
         )}
         fixedFooterContent={() => {
-            return <TableFooterRow colSpan={8}>
+            return <TableFooterRow colSpan={COLUMN_COUNT}>
                 <FooterContent title="Total" content={footerData.total} />
                 <FooterContent title="Intervalo Médio" content={decimalTransform(footerData.intervalAverage)} />
             </TableFooterRow>
         }}
-        itemContent={(_, data) => <BirthRow {...{ data: data as BirthEntry, isLoading }} />}
+        itemContent={index => (
+            <VirtuosoRowRender
+                colSpan={COLUMN_COUNT}
+                loading={loading}
+                render={() => {
+                    const data = rows[index]
+                    return <BirthRow {...{ data }} />
+                }}
+            />
+        )}
     />
 }
 
 type BirthRowProps = {
     data: BirthEntry
-    isLoading: boolean
 }
 
-const BirthRow = ({ data, isLoading }: BirthRowProps) => {
+const BirthRow = ({ data }: BirthRowProps) => {
 
     const [editing, setEditing] = useState(false)
     const [rowData, setRowData] = useState<BirthEntry>(data)
-    const [loadingControls, setLoadingControls] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     const { setError, setWarningProps, setRows, loadFoot } = useContext(ErrorContext)
 
     useEffect(() => setRowData(data), [data])
 
+    const calfName = useMemo(() => {
+        if (!data.calf.name) return "-"
+        return getAnimalLabel(data.calf)
+    }, [data])
+
     const onDelete = useCallback((skipValidation: boolean) => {
-        setLoadingControls(true)
-        deleteBirth(data.id, skipValidation)
+        setLoading(true)
+        deleteBirth(data.calf.id, skipValidation)
             .then(() => {
                 setError(undefined)
                 setWarningProps(DefaultWarning)
-                setRows(prev => prev.filter(item => item.id != data.id))
+                setRows(prev => prev.filter(item => item.calf.id != data.calf.id))
                 loadFoot()
             })
             .catch((error: APIError) => {
@@ -200,27 +218,26 @@ const BirthRow = ({ data, isLoading }: BirthRowProps) => {
                     onClose: () => setWarningProps(DefaultWarning)
                 })
             })
-            .finally(() => setLoadingControls(false))
-    }, [data.id, loadFoot, setError, setRows, setWarningProps])
+            .finally(() => setLoading(false))
+    }, [data, loadFoot, setError, setRows, setWarningProps])
 
-    if (isLoading) return <TableLoadingCells colSpan={8} />
     if (editing) return <BirthRowEdit {...{ setEditing, rowData, setRowData }} />
 
     return <>
         <TableBodyCell>
             <EditControlButtons
-                loading={loadingControls}
+                loading={loading}
                 onDelete={() => onDelete(false)}
                 setEditing={setEditing}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.motherInfo}</TableBodyCell>
-        <TableBodyCell align="center">{dateTransform(rowData.calfBirthDate)}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.mother)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.calf.birthDate)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.birthInterval ?? '1ª CRIA'}</TableBodyCell>
-        <TableBodyCell align="center">{rowData.calfSex}</TableBodyCell>
-        <TableBodyCell>{rowData.calfFather}</TableBodyCell>
-        <TableBodyCell>{rowData.calfName}</TableBodyCell>
-        <TableBodyCell>{rowData.observation}</TableBodyCell>
+        <TableBodyCell align="center">{rowData.calf.sex}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.father)}</TableBodyCell>
+        <TableBodyCell>{calfName}</TableBodyCell>
+        <TableBodyCell>{rowData.calf.observation}</TableBodyCell>
     </>
 }
 
@@ -244,14 +261,19 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
             .finally(() => setLoadingControls(false))
     }, [])
 
+    const calfName = useMemo(() => {
+        if (!rowData.calf.name) return "-"
+        return getAnimalLabel(rowData.calf)
+    }, [rowData])
+
     const { handleSubmit, control, setValue } = useForm<BirthEntrySave>({
         defaultValues: {
-            id: rowData.id,
-            birthDate: rowData.calfBirthDate,
-            sex: rowData.calfSex,
-            motherId: rowData.motherId,
-            fatherId: rowData.calfFatherId,
-            observation: rowData.observation
+            id: rowData.calf.id,
+            birthDate: rowData.calf.birthDate,
+            sex: rowData.calf.sex,
+            motherId: rowData.mother.id,
+            fatherId: rowData.father?.id,
+            observation: rowData.calf.observation
         }
     })
     const { setError, setWarningProps, loadFoot } = useContext(ErrorContext)
@@ -293,7 +315,7 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
                 loading={loading}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.motherInfo}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.mother)}</TableBodyCell>
         <TableBodyCell>
             <FormDatePicker formProps={{ control, name: 'birthDate' }} />
         </TableBodyCell>
@@ -314,7 +336,7 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
                 formProps={{ control, name: 'fatherId' }}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.calfName}</TableBodyCell>
+        <TableBodyCell>{calfName}</TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'observation' }} />
         </TableBodyCell>

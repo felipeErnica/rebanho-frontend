@@ -1,12 +1,20 @@
 export function getPastureLabel(pasture: Pasture) {
-    return `${pasture.name} (${pasture.farmName})`
+    if (!pasture) return "-"
+    return `${pasture.name} (${pasture.farm.name})`
+}
+
+export type Farm = {
+    id:string
+    name: string
+    taxNumber?: string
+    state?: string
+    city?: string
 }
 
 export type Pasture = {
     id: string
     name: string
-    farmId: string
-    farmName: string
+    farm: Farm
     pastureSize: number
     animalsNumber: number
 }

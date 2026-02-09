@@ -4,15 +4,15 @@ import { AppRoute } from "@/Routes";
 import { LactationDashboard } from "./LactationDashboard";
 import { Outlet, useParams } from "react-router";
 import { findLactationById } from "./Service";
-import { LactationHist } from "./Entities";
+import { Lactation } from "./Entities";
 import { dateTransform } from "@/utils/Transformations";
 import { GroupEntriesTablePage } from "@features/milk/GroupEntriesTable";
 import { LactationEntriesTablePage } from "@features/milk/LactationEntriesTable";
 import { MilkEntriesTablePage } from "@features/milk/MilkEntriesTable";
 import { GroupTablePage } from "@features/milk/MilkGroupTable";
-import { DryAnimalsTablePage } from "./DryAnimalsTable";
 import { LacAnimalsTablePage } from "./LacAnimalsTable";
-import { LongLactationsTablePage } from "./LongLactationsTable";
+import { Animal, getAnimalLabel } from "@features/animals/Entities";
+import { LONG_LACTATION_DAYS } from "@shared/Globals";
 
 const GroupEntriesTablePageWrapper = () => {
     const { entryDate } = useParams<{ entryDate: string }>();
@@ -24,11 +24,11 @@ const LactationEntriesTablePageWrapper = () => {
     return <LactationEntriesTablePage lactationId={lactationId!} />;
 };
 
-function buildTitle(name: string, startDate: Date, endDate: Date | undefined) {
+function buildTitle(cow: Animal, startDate: Date, endDate: Date | undefined) {
     const startDateStr = dateTransform(startDate)
     const endDateStr = endDate ? dateTransform(endDate) : 'Hoje'
 
-    return `Lactação - ${name} (Início: ${startDateStr} - Fim: ${endDateStr})`
+    return `Lactação - ${getAnimalLabel(cow)} (Início: ${startDateStr} - Fim: ${endDateStr})`
 }
 
 export const lactationRoutes: AppRoute = {
@@ -71,7 +71,7 @@ export const lactationRoutes: AppRoute = {
             children: [
                 {
                     index: true,
-                    element: <LactationHistTablePage />,
+                    element: <LactationHistTablePage {...{ isFiltered: false }} />,
                 },
                 {
                     path: ":lactationId",
@@ -81,7 +81,7 @@ export const lactationRoutes: AppRoute = {
                         return findLactationById(lactationId)
                     },
                     handle: {
-                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate)
+                        title: (_, data?: Lactation) => buildTitle(data.cow, data.startDate, data.endDate)
                     }
                 }
             ]
@@ -93,7 +93,7 @@ export const lactationRoutes: AppRoute = {
             children: [
                 {
                     index: true,
-                    element: <DryAnimalsTablePage />,
+                    element: <LacAnimalsTablePage {...{ isFiltered: true, isLactating: false }} />,
                 },
                 {
                     path: ":lactationId",
@@ -103,7 +103,7 @@ export const lactationRoutes: AppRoute = {
                         return findLactationById(lactationId)
                     },
                     handle: {
-                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate)
+                        title: (_, data?: Lactation) => buildTitle(data.cow, data.startDate, data.endDate)
                     }
                 }
 
@@ -116,7 +116,7 @@ export const lactationRoutes: AppRoute = {
             children: [
                 {
                     index: true,
-                    element: <LacAnimalsTablePage />,
+                    element: <LacAnimalsTablePage {...{ isLactating: true, isFiltered: true }} />,
                 },
                 {
                     path: ":lactationId",
@@ -126,7 +126,7 @@ export const lactationRoutes: AppRoute = {
                         return findLactationById(lactationId)
                     },
                     handle: {
-                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate)
+                        title: (_, data?: Lactation) => buildTitle(data.cow, data.startDate, data.endDate)
                     }
                 }
 
@@ -139,7 +139,13 @@ export const lactationRoutes: AppRoute = {
             children: [
                 {
                     index: true,
-                    element: <LongLactationsTablePage />,
+                    element: (
+                        <LactationHistTablePage {...{
+                            isFiltered: true,
+                            minLacPeriod: LONG_LACTATION_DAYS,
+                            hasEndDate: false
+                        }} />
+                    ),
                 },
                 {
                     path: ":lactationId",
@@ -149,7 +155,7 @@ export const lactationRoutes: AppRoute = {
                         return findLactationById(lactationId)
                     },
                     handle: {
-                        title: (_, data?: LactationHist) => buildTitle(data.animalName, data.startDate, data.endDate)
+                        title: (_, data?: Lactation) => buildTitle(data.cow, data.startDate, data.endDate)
                     }
                 }
             ]

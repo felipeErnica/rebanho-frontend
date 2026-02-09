@@ -6,7 +6,6 @@ import {
     useContext,
     useEffect,
     useMemo,
-    useRef,
     useState
 } from "react"
 import { MilkEntry, MilkEntryFoot, MilkEntrySave } from "./Entities"
@@ -21,6 +20,7 @@ import {
     TableBodyRow,
     TableFooterRow,
     TableHeadCell,
+    TableHeadControlCell,
     TableHeadRow,
 } from "@shared/table/TableComponents"
 import { decimalTransform } from "@utils/Transformations"
@@ -31,9 +31,14 @@ import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { AddMilkEntryDialog } from "./AddMilkEntryDialog"
 import Add from "@mui/icons-material/Add"
 import { APIError } from "@utils/ApiRequest"
+import { getAnimalLabel } from "@features/animals/Entities"
+import { getPastureLabel } from "@features/farm-area/Entities"
+import { ErrorDialog } from "@shared/dialog/DialogComponents"
 
 type ErrorContextProps = {
-    setApiError: Dispatch<SetStateAction<APIError | undefined>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setRows: Dispatch<SetStateAction<MilkEntry[]>>
+    getFoot: () => void
 }
 
 const ErrorContext = createContext<ErrorContextProps>(undefined!)
@@ -54,6 +59,7 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTablePageProps)
     const [rows, setRows] = useState<MilkEntry[]>([])
     const [loading, setLoading] = useState(false)
     const [addMilkEntryOpen, setAddMilkEntryOpen] = useState(false)
+    const [error, setError] = useState<APIError>()
 
     const getFoot = useCallback(() => {
         getGroupEntriesFoot(entryDate)
@@ -65,7 +71,10 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTablePageProps)
         setLoading(true)
         getFoot()
         getGroupEntries(entryDate)
-            .then(response => setRows(response))
+            .then(response => {
+                setRows(response)
+                console.log(response)
+            })
             .catch(() => setRows([]))
             .finally(() => setLoading(false))
     }, [entryDate, getFoot])
@@ -77,14 +86,6 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTablePageProps)
         if (added) onReload()
     }, [onReload])
 
-    const onDelete = useCallback((id: string) => {
-        deleteMilkEntry(id)
-            .then(response => {
-                if (response.error) return
-                setRows(prev => prev.filter(item => item.id != id))
-                getFoot()
-            })
-    }, [getFoot, setRows])
 
     return <div className="w-full h-full overflow-hidden flex flex-col">
         <TableTopBar
@@ -98,57 +99,49 @@ export const GroupEntriesTablePage = ({ entryDate }: GroupEntriesTablePageProps)
                 </Button>
             )}
         />
-        <EntriesTable {...{ rows, loading, foot, onDelete }} />
+        <ErrorContext.Provider value={{ setError, setRows, getFoot }}>
+            <EntriesTable {...{ rows, loading, foot }} />
+        </ErrorContext.Provider>
         <AddMilkEntryDialog {...{ addMilkEntryOpen, onClose, entryDate }} />
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            message={error?.message}
+            onClose={() => setError(undefined)}
+        />
     </div>
 }
 
 type EntriesTableProps = {
-    onDelete: (id: string) => void
     rows: MilkEntry[]
     foot: MilkEntryFoot
     loading: boolean
 }
 
-const EntriesTable = ({ rows, loading, foot, onDelete }: EntriesTableProps) => {
+const COLUMN_COUNT = 4
 
-    const [unit, setUnit] = useState(0)
-    const tableRef = useRef<HTMLDivElement>(null)
+const EntriesTable = ({ rows, loading, foot }: EntriesTableProps) => {
 
-    useEffect(() => {
-        const handleResize = () => {
-            if (!tableRef.current) return
-            const table = tableRef.current
-            setUnit(table.offsetWidth / 100)
-        }
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    return <div
-        className="overflow-auto"
-        ref={tableRef}
-    >
+    return <div className="overflow-auto">
         <Table stickyHeader>
             <TableHead>
                 <TableHeadRow>
-                    <TableHeadCell width={unit * 10} />
-                    <TableHeadCell width={unit * 40}>Vaca</TableHeadCell>
-                    <TableHeadCell width={unit * 40}>Pasto</TableHeadCell>
-                    <TableHeadCell width={unit * 10}>Quantidade</TableHeadCell>
+                    <TableHeadControlCell />
+                    <TableHeadCell>Vaca</TableHeadCell>
+                    <TableHeadCell width={700}>Pasto</TableHeadCell>
+                    <TableHeadCell width={400}>Quantidade</TableHeadCell>
                 </TableHeadRow>
             </TableHead>
             <TableBody>
                 <TableBodyContainer
                     dataset={rows}
-                    colSpan={4}
+                    colSpan={COLUMN_COUNT}
                     loading={loading}
-                    render={item => <EntriesRow {...{ item, onDelete }} />}
+                    render={item => <EntriesRow {...item} />}
                 />
             </TableBody>
             <StickyTableFooter>
-                <TableFooterRow colSpan={4}>
+                <TableFooterRow colSpan={COLUMN_COUNT}>
                     <FooterContent title="Total" content={foot.animalsNumber} />
                     <FooterContent title="Produção Média" content={decimalTransform(foot.averageMilk)} />
                     <FooterContent title="Produção Total" content={decimalTransform(foot.totalMilk)} />
@@ -158,17 +151,23 @@ const EntriesTable = ({ rows, loading, foot, onDelete }: EntriesTableProps) => {
     </div>
 }
 
-type EntriesRowProps = {
-    onDelete: (id: string) => void
-    item: MilkEntry
-}
-
-const EntriesRow = ({ item, onDelete }: EntriesRowProps) => {
+const EntriesRow = (item: MilkEntry) => {
 
     const [rowData, setRowData] = useState<MilkEntry>(item)
     const [editing, setEditing] = useState(false)
 
+    const { getFoot, setRows, setError } = useContext(ErrorContext)
+
     useEffect(() => setRowData(item), [item])
+
+    const onDelete = useCallback((id: string) => {
+        deleteMilkEntry(id)
+            .then(() => {
+                setRows(prev => prev.filter(item => item.id != id))
+                getFoot()
+            })
+            .catch(err => setError(err))
+    }, [getFoot, setRows])
 
     if (editing) return <EntriesRowEditing {...{ rowData, setEditing, setRowData }} />
 
@@ -179,8 +178,8 @@ const EntriesRow = ({ item, onDelete }: EntriesRowProps) => {
                 onDelete={() => onDelete(item.id)}
             />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.cow)}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell>{decimalTransform(rowData.quantity ?? 0, 1)}</TableBodyCell>
     </TableBodyRow>
 }
@@ -196,17 +195,17 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
     const [loading, setLoading] = useState(false)
 
     const { control, handleSubmit } = useForm<MilkEntrySave>({ defaultValues: rowData })
-    const { setApiError } = useContext(ErrorContext)
+    const { setError } = useContext(ErrorContext)
 
     const onSubmit: SubmitHandler<MilkEntrySave> = (data: MilkEntrySave) => {
         setLoading(true)
         updateMilkEntry(data)
             .then(response => {
-                setApiError(undefined)
+                setError(undefined)
                 setRowData(response)
                 setEditing(false)
             })
-            .catch((error) => setApiError(error))
+            .catch(error => setError(error))
             .finally(() => setLoading(false))
     }
 
@@ -216,10 +215,14 @@ const EntriesRowEditing = ({ rowData, setRowData, setEditing }: EntriesRowEditin
         <TableBodyCell>
             <EditingControlButtons {...{ onSave, setEditing, loading }} />
         </TableBodyCell>
-        <TableBodyCell>{rowData.animalInfo}</TableBodyCell>
-        <TableBodyCell>{rowData.pastureName}</TableBodyCell>
+        <TableBodyCell>{getAnimalLabel(rowData.cow)}</TableBodyCell>
+        <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
         <TableBodyCell>
-            <FormTextField type="number" formProps={{ control, name: 'quantity' }} />
+            <FormTextField
+                className="w-[90px]"
+                formProps={{ control, name: 'quantity' }}
+                type="number"
+            />
         </TableBodyCell>
     </TableBodyRow>
 }

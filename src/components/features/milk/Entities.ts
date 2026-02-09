@@ -1,11 +1,12 @@
+import { Animal } from "@features/animals/Entities"
+import { Pasture } from "@features/farm-area/Entities"
 
 export type MilkEntry = {
     id: string
-    animalId?: string
-    animalInfo?: string
-    pastureName?: string
-    entryDate?: Date
-    quantity?: number
+    cow: Animal
+    pasture?: Pasture
+    entryDate: Date
+    quantity: number
 }
 
 export type MilkEntryFilter = {
@@ -47,6 +48,7 @@ export type LactationGroup = {
 
 export type LactationGroupSave = {
     entryDate: Date
+    oldEntry:Date
 }
 
 export type LactationGroupFilter = {

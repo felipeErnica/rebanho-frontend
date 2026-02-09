@@ -35,8 +35,8 @@ export function getLastAverageMilk() {
 }
 
 export function findGroupsPage(filter: LactationGroupFilter, order: string, cursor?: string) {
-    const pageQuery = `page?order=${order}${cursor ? `&cursor=${cursor}` : ''}`
-    return apiPost(GROUP_BASE + pageQuery, filter)
+    const params = buildPageParams("?", "entry_date", order, filter, cursor)
+    return apiGet(GROUP_BASE + "page" + params)
 }
 
 export function getGroupEntries(entryDate: Date) {
@@ -49,13 +49,12 @@ export function getGroupEntriesFoot(entryDate: Date) {
     return apiGet(GROUP_BASE + pageQuery)
 }
 
-export function updateMilkGroup(entryDate: Date, group: LactationGroupSave) {
-    const pageQuery = `${dateToISO(entryDate)}/update`
-    return apiPut(GROUP_BASE + pageQuery, group)
+export function updateMilkGroup(group: LactationGroupSave) {
+    return apiPut(GROUP_BASE, group)
 }
 
 export function deleteMilkGroup(entryDate: Date) {
-    return apiDelete(GROUP_BASE + `${dateToISO(entryDate)}/delete`)
+    return apiDelete(GROUP_BASE + `${dateToISO(entryDate)}`)
 }
 
 export function findEntriesPage(
@@ -83,8 +82,4 @@ export function addMilkEntry(entry: MilkEntrySave) {
 
 export function deleteMilkEntry(id: string) {
     return apiDelete(MILK_BASE + id)
-}
-
-export function searchAllPastures() {
-    return apiGet("farm-area/pastures/search-all")
 }

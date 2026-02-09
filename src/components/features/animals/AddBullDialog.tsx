@@ -278,7 +278,7 @@ const FormBody = ({ formType, control, externalAnimal, setValue }: FormBodyProps
                 onChange={(id) => {
                     if (!id) return
                     const animal = children.find(item => item.id === id)
-                    setValue('fatherId', animal.fatherId)
+                    setValue('fatherId', animal.father?.id)
                     setValue('birthDate', animal.birthDate)
                     setValue('weaningDate', animal.weaningDate)
                     setValue('weightBirth', animal.weightBirth)
