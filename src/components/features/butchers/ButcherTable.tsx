@@ -9,23 +9,26 @@ import {
 } from "@shared/table/TableComponents"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
 import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from "react"
-import { ButcherEntry, ButcherSave } from "./Entities"
-import { deleteButcher, findButchers, updateButcher } from "./Controller"
 import { APIError } from "@utils/ApiRequest"
 import { Button, Table, TableBody, TableHead, TableRow } from "@mui/material"
 import { AddButcherDialog } from "./AddButcherDialog"
-import { ErrorDialog } from "@shared/dialog/DialogComponents"
+import { ErrorDialog, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
 import { EditRowProps, TableRowProp } from "@shared/table/Entities"
 import { EditControlButtons, EditingControlButtons } from "@shared/table/ControlButtons"
-import { percentageTransform, transformWeight } from "@utils/Transformations"
+import { toPercentage, transformWeight } from "@utils/Transformations"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import Add from "@mui/icons-material/Add"
 import { useNavigate } from "react-router"
+import { ButcherDelete, Butcher, ButcherSave } from "./Entities"
+import { deleteButcher, findButchers, updateButcher } from "./Service"
+import { DefaultWarning, ERROR_TYPE } from "@shared/Globals"
+import { FormPercentageField } from "@shared/form-controls/FormPercentageField"
 
 type EditContextProps = {
-    setRows: Dispatch<SetStateAction<ButcherEntry[]>>
+    setRows: Dispatch<SetStateAction<Butcher[]>>
     setError: Dispatch<SetStateAction<APIError | undefined>>
+    setWarning: Dispatch<SetStateAction<YesNoDialogProps>>
 }
 
 const EditContext = createContext<EditContextProps>(undefined!)
@@ -33,9 +36,10 @@ const EditContext = createContext<EditContextProps>(undefined!)
 export const ButcherTable = () => {
 
     const [loading, setLoading] = useState(false)
-    const [rows, setRows] = useState<ButcherEntry[]>([])
+    const [rows, setRows] = useState<Butcher[]>([])
     const [addButcherOpen, setAddButcherOpen] = useState(false)
     const [error, setError] = useState<APIError>()
+    const [warning, setWarning] = useState<YesNoDialogProps>(DefaultWarning)
 
     const onReload = useCallback(() => {
         setLoading(true)
@@ -64,7 +68,7 @@ export const ButcherTable = () => {
                 </Button>
             )}
         />
-        <EditContext.Provider value={{ setError, setRows }}>
+        <EditContext.Provider value={{ setError, setRows, setWarning }}>
             <ButcherTableBody {...{ rows, loading }} />
         </EditContext.Provider>
         <AddButcherDialog {...{ addButcherOpen, closeAddButcher }} />
@@ -74,14 +78,17 @@ export const ButcherTable = () => {
             message={error?.message}
             onClose={() => setError(undefined)}
         />
+        <YesNoDialog {...warning} />
     </TablePageContainer>
 
 }
 
 type ButcherTableProps = {
-    rows: ButcherEntry[]
+    rows: Butcher[]
     loading: boolean
 }
+
+const COLUMN_COUNT = 9
 
 const ButcherTableBody = ({ rows, loading }: ButcherTableProps) => {
 
@@ -103,7 +110,7 @@ const ButcherTableBody = ({ rows, loading }: ButcherTableProps) => {
                 <TablePageBody
                     dataset={rows}
                     loading={loading}
-                    colSpan={9}
+                    colSpan={COLUMN_COUNT}
                     render={(row) => <ButcherRow {...{ row }} />}
                 />
             </TableBody>
@@ -111,30 +118,63 @@ const ButcherTableBody = ({ rows, loading }: ButcherTableProps) => {
     </div>
 }
 
-const ButcherRow = ({ row }: TableRowProp<ButcherEntry>) => {
+const ButcherRow = ({ row }: TableRowProp<Butcher>) => {
 
     const [rowData, setRowData] = useState(row)
     const [editing, setEditing] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [params, setParams] = useState<ButcherDelete>({
+        id: row.id,
+        ignoreDeaths: false,
+        override: false
+    })
 
-    const { setError, setRows } = useContext(EditContext)
+    const { setError, setRows, setWarning } = useContext(EditContext)
     const navigate = useNavigate()
 
     useEffect(() => setRowData(row), [row])
 
-    if (editing) return <EditButcherRow {...{ setEditing, rowData, setRowData }} />
+    const onYes = useCallback(() => {
+        setParams(params => ({ ...params, override: true }))
+        setWarning(warning => ({
+            ...warning,
+            message: "Deseja alterar as datas de morte dos animais abatidos no frigoríco?" +
+                "\nATENÇÃO: Ao confirmar, as datas serão apagadas e os animais constarão como vivos. Se recusar, os abates serão excluídos, " +
+                "mas os animais ainda constarão como mortos.",
+            onYes: () => {
+                setParams(params => ({ ...params, ignoreDeaths: true }))
+                onDelete()
+            },
+            onClose: () => {
+                onDelete()
+                setWarning(DefaultWarning)
+            }
+        }))
+    }, [])
 
-    const onDelete = () => {
+    const onDelete = useCallback(() => {
         setLoading(true)
-        deleteButcher(rowData.id)
-            .then(() => setRows(prev => prev.filter(item => item.id != rowData.id)))
-            .catch(err => setError(err))
+        deleteButcher(params)
+            .then(() => setRows(prev => prev.filter(item => item.id != params.id)))
+            .catch((err: APIError) => {
+                if (err.errType === ERROR_TYPE) {
+                    setError(err)
+                    return
+                }
+                setWarning({
+                    openYesNo: true,
+                    title: err.title,
+                    message: err.message,
+                    onClose: () => setWarning(DefaultWarning),
+                    onYes
+                })
+            })
             .finally(() => setLoading(false))
-    }
+    }, [params])
 
-    const onShow = () => {
-        navigate(`butchers/${rowData.id}`)
-    }
+    const onShow = useCallback(() => navigate(`butchers/${rowData.id}`), [row])
+
+    if (editing) return <EditButcherRow {...{ setEditing, rowData, setRowData }} />
 
     return <TableBodyRow>
         <TableBodyCell>
@@ -142,34 +182,33 @@ const ButcherRow = ({ row }: TableRowProp<ButcherEntry>) => {
         </TableBodyCell>
         <TableBodyCell>{rowData.name}</TableBodyCell>
         <TableBodyCell>{rowData.cnpj}</TableBodyCell>
-        <TableBodyCell align="center">{percentageTransform(rowData.discount)}</TableBodyCell>
+        <TableBodyCell align="center">{toPercentage(rowData.discount)}</TableBodyCell>
         <TableBodyCell align="center">{rowData.animalsNumber}</TableBodyCell>
         <TableBodyCell align="center">{transformWeight(rowData.averageWeight)}</TableBodyCell>
-        <TableBodyCell align="center">{percentageTransform(rowData.averageRate)}</TableBodyCell>
+        <TableBodyCell align="center">{toPercentage(rowData.averageRate)}</TableBodyCell>
         <TableBodyCell>{rowData.address}</TableBodyCell>
     </TableBodyRow>
 
 }
 
-const EditButcherRow = ({ rowData, setRowData, setEditing }: EditRowProps<ButcherEntry>) => {
+const EditButcherRow = ({ rowData, setRowData, setEditing }: EditRowProps<Butcher>) => {
 
     const [loading, setLoading] = useState(false)
 
     const { control, handleSubmit, setValue } = useForm<ButcherSave>({ defaultValues: rowData, mode: 'onBlur' })
     const { setError } = useContext(EditContext)
 
-    const onSubmit: SubmitHandler<ButcherSave> = (data: ButcherSave) => {
+    const onSubmit: SubmitHandler<ButcherSave> = useCallback((data: ButcherSave) => {
         setLoading(true)
-        console.log("update ", data)
         updateButcher(data)
-            .then((response: ButcherEntry) => {
-                setRowData(response)
+            .then(resp => {
+                setRowData(resp)
                 setEditing(false)
                 setError(undefined)
             })
             .catch(err => setError(err))
             .finally(() => setLoading(false))
-    }
+    }, [])
 
     const onSave = handleSubmit(onSubmit)
 
@@ -184,7 +223,13 @@ const EditButcherRow = ({ rowData, setRowData, setEditing }: EditRowProps<Butche
             <EditingControlButtons {...{ setEditing, onSave, loading }} />
         </TableBodyCell>
         <TableBodyCell>
-            <FormTextField formProps={{ control, name: 'name' }} />
+            <FormTextField
+                formProps={{
+                    control,
+                    name: 'name',
+                    rules: { required: true }
+                }}
+            />
         </TableBodyCell>
         <TableBodyCell>
             <FormTextField
@@ -197,18 +242,17 @@ const EditButcherRow = ({ rowData, setRowData, setEditing }: EditRowProps<Butche
             />
         </TableBodyCell>
         <TableBodyCell align="center">
-            <FormTextField
-                type="number"
+            <FormPercentageField
                 formProps={{
                     control,
                     name: 'discount',
-                    rules: { min: 0, max: 100 }
+                    rules: { required: true }
                 }}
             />
         </TableBodyCell>
         <TableBodyCell align="center">{rowData.animalsNumber}</TableBodyCell>
         <TableBodyCell align="center">{transformWeight(rowData.averageWeight)}</TableBodyCell>
-        <TableBodyCell align="center">{percentageTransform(rowData.averageRate)}</TableBodyCell>
+        <TableBodyCell align="center">{toPercentage(rowData.averageRate)}</TableBodyCell>
         <TableBodyCell>
             <FormTextField formProps={{ control, name: 'address' }} />
         </TableBodyCell>

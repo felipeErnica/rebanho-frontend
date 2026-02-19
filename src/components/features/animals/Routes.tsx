@@ -1,7 +1,6 @@
 import { AppRoute } from "@/Routes";
-import { AnimalsDashboard } from "./main-dashboard/AnimalsDashboard";
+import { AnimalsDashboard } from "./AnimalsDashboard";
 import { AnimalsTablePage } from "./AnimalsTablePage";
-import { DeadAnimalsTablePage } from "./DeadAnimalsTablePage";
 
 export const animalRoutes: AppRoute[] = [
     {
@@ -10,12 +9,17 @@ export const animalRoutes: AppRoute[] = [
     },
     {
         path: 'animals',
-        element: <AnimalsTablePage />,
+        element: <AnimalsTablePage {...{ isFiltered: false }} />,
         handle: { title: 'Tabela de Animais' }
     },
     {
         path: 'dead-animals',
-        element: <DeadAnimalsTablePage />,
+        element: <AnimalsTablePage {...{ isFiltered: true, hasDeath: true }} />,
         handle: { title: 'Animais Mortos' }
+    },
+    {
+        path: 'offspring',
+        element: <AnimalsTablePage {...{ isFiltered: true, types: ['OFFSPRING'] }} />,
+        handle: { title: 'Animais Jovens' }
     }
 ]

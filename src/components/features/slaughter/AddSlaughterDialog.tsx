@@ -1,15 +1,21 @@
 import { SubmitHandler, useForm } from "react-hook-form"
-import { ButcherEntry, SlaughterEntrySave } from "./Entities"
-import { Alert, AlertTitle, Collapse, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
-import { useEffect, useState } from "react"
+import { Alert, AlertTitle, Collapse, Dialog, DialogActions, DialogContent, DialogTitle, InputAdornment } from "@mui/material"
+import { useCallback, useEffect, useState } from "react"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
-import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
+import { CONFLICT_WARNING, ERROR_TYPE, REQUIRED_FIELD_MSG, WARNING_TYPE } from "@shared/Globals"
 import { FormSearchBox } from "@shared/form-controls/FormSearchBox"
-import { addSlaughter, findButcherById, replaceSlaughter, searchButcher } from "./Controller"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
 import { APIError } from "@utils/ApiRequest"
-import { AddButcherDialog } from "./AddButcherDialog"
+import { SlaughterSave } from "./Entities"
+import { addSlaughter } from "./Service"
+import { findButchers } from "@features/butchers/Service"
+import { AddButcherDialog } from "@features/butchers/AddButcherDialog"
+import { Butcher } from "@features/butchers/Entities"
+import { Animal, getAnimalBirthLabel } from "@features/animals/Entities"
+import { searchInternalAnimals } from "@features/animals/Service"
+import { SearchBoxItem } from "@shared/dialog/SearchBox"
+import { FormPercentageField } from "@shared/form-controls/FormPercentageField"
 
 type AddSlaughterDialogProps = {
     addSlaughterOpen: boolean
@@ -25,34 +31,59 @@ export const AddSlaughterDialog = ({
     butcherId,
 }: AddSlaughterDialogProps) => {
 
-    const [reloadFlag, setReloadFlag] = useState(0)
     const [loading, setLoading] = useState(false)
+    const [reload, setReload] = useState(0)
     const [added, setAdded] = useState(false)
     const [addButcherOpen, setButcherOpen] = useState(false)
 
     const [error, setError] = useState<APIError>()
     const [warning, setWarning] = useState<APIError>()
 
-    const {
-        control,
-        handleSubmit,
-        reset,
-        setFocus,
-        setValue
-    } = useForm<SlaughterEntrySave>({ defaultValues: { entryDate, butcherId } })
+    const [loadingAnimals, setLoadingAnimals] = useState(false)
+    const [animals, setAnimals] = useState<SearchBoxItem[]>([])
+
+    const [loadingButchers, setLoadingButchers] = useState(false)
+    const [butchers, setButchers] = useState<Butcher[]>([])
+
+    const searchAnimals = useCallback(() => {
+        setLoadingAnimals(true)
+        searchInternalAnimals()
+            .then((resp: Animal[]) => setAnimals(resp.map(item => ({
+                id: item.id,
+                label: getAnimalBirthLabel(item)
+            }))))
+            .catch(() => setAnimals([]))
+            .finally(() => setLoadingAnimals(false))
+    }, [])
+
+    const searchButchers = useCallback(() => {
+        setLoadingButchers(true)
+        findButchers()
+            .then(resp => setButchers(resp))
+            .catch(() => setButchers([]))
+            .finally(() => setLoadingButchers(false))
+    }, [])
+
+    const { control, handleSubmit, reset, setFocus, setValue } = useForm<SlaughterSave>({
+        defaultValues: { entryDate, butcherId }
+    })
+
+    useEffect(() => {
+        searchAnimals()
+        searchButchers()
+    }, [reload])
 
     useEffect(() => {
         if (entryDate) setValue('entryDate', new Date(entryDate))
         if (butcherId) setValue('butcherId', butcherId)
-    }, [butcherId, entryDate, setValue])
+    }, [butcherId, entryDate])
 
-    const closeAddButcher = (added?: boolean) => {
-        reset()
-        if (added) setReloadFlag(prev => prev + 1)
+    const closeAddButcher = useCallback((added: boolean) => {
+        if (added) setReload(prev => prev + 1)
         setButcherOpen(false)
-    }
+    }, [])
 
-    const onSave: SubmitHandler<SlaughterEntrySave> = (data: SlaughterEntrySave) => {
+    const onSave: SubmitHandler<SlaughterSave> = useCallback((data: SlaughterSave) => {
         setLoading(true)
         addSlaughter(data)
             .then(() => {
@@ -67,55 +98,39 @@ export const AddSlaughterDialog = ({
                 setAdded(true)
             })
             .catch((err: APIError) => {
-                if (err.errType === ERROR_TYPE) {
-                    setError(err)
-                    return
-                }
-                setWarning(err)
+                if (err.errType === ERROR_TYPE) setError(err)
+                if (err.errType === WARNING_TYPE) setWarning(err)
             })
             .finally(() => setLoading(false))
-    }
-
-    const onReplace: SubmitHandler<SlaughterEntrySave> = (data: SlaughterEntrySave) => {
-        setLoading(true)
-        replaceSlaughter(data)
-            .then(() => {
-                setError(undefined)
-                setWarning(undefined)
-                reset({
-                    entryDate: data.entryDate,
-                    butcherId: data.butcherId,
-                    discountRate: data.discountRate
-                })
-                setFocus('animalId')
-                setAdded(true)
-            })
-            .catch(err => setError(err))
-            .finally(() => setLoading(false))
-    }
+    }, [])
 
     return <Dialog
         open={addSlaughterOpen}
-        onClose={() => closeAddSlaughter(added)}
+        onClose={() => {
+            reset()
+            closeAddSlaughter(added)
+        }}
     >
         <DialogTitle>Adicionar Abate</DialogTitle>
         <DialogContent>
             <DialogContainer>
                 <Collapse in={!!error}>
-                    <Alert onClose={() => setError(undefined)}>
+                    <Alert severity="error" onClose={() => setError(undefined)}>
                         <AlertTitle>{error?.title}</AlertTitle>
                         {error?.message}
                     </Alert>
                 </Collapse>
                 <FormSearchBox
                     label="*Frigorífico"
-                    reload={reloadFlag}
                     className="w-[500px]"
-                    searchOptions={searchButcher}
+                    loading={loadingButchers}
+                    options={butchers.map(item => ({
+                        id: item.id,
+                        label: item.name
+                    }))}
                     onChange={(id) => {
-                        findButcherById(id)
-                            .then((response: ButcherEntry) => setValue('discountRate', response.discount))
-                            .catch(() => setValue('discountRate', undefined))
+                        const butcher = butchers.find(item => item.id === id)
+                        setValue('discountRate', butcher.discount)
                     }}
                     emptyProps={[{
                         id: "newSlaughterhouse",
@@ -137,19 +152,26 @@ export const AddSlaughterDialog = ({
                         rules: { required: REQUIRED_FIELD_MSG }
                     }}
                 />
-                <FormTextField
+                <FormPercentageField
                     label="*Taxa de Perda"
-                    className="w-[200px]"
-                    type="number"
+                    className="w-[100px]"
                     formProps={{
                         control,
                         name: 'discountRate',
-                        rules: { required: REQUIRED_FIELD_MSG, max: 100, min: 0 }
+                        rules: { required: REQUIRED_FIELD_MSG }
                     }}
                 />
                 <FormSearchBox
                     label="Animal"
-                    searchOptions={searchAnimal}
+                    loading={loadingAnimals}
+                    options={animals}
+                    onInput={(_, value) => {
+                        if (!value) {
+                            searchAnimals()
+                            return
+                        }
+                        setAnimals(prev => prev.filter(item => item.label.startsWith(value)))
+                    }}
                     formProps={{ control, name: 'animalId' }}
                 />
                 <FormTextField
@@ -161,6 +183,7 @@ export const AddSlaughterDialog = ({
                         rules: { required: true, min: 0 }
                     }}
                     type="number"
+                    endAdornment={<InputAdornment position="end">Kg</InputAdornment>}
                 />
                 <FormTextField
                     className="w-[200px]"
@@ -171,6 +194,7 @@ export const AddSlaughterDialog = ({
                         rules: { min: 0 }
                     }}
                     type="number"
+                    endAdornment={<InputAdornment position="end">Kg</InputAdornment>}
                 />
             </DialogContainer>
         </DialogContent>
@@ -187,7 +211,11 @@ export const AddSlaughterDialog = ({
             title={warning?.title}
             message={warning?.message}
             onClose={() => setWarning(undefined)}
-            onYes={handleSubmit(onReplace)}
+            onYes={() => {
+                if (warning.kind === CONFLICT_WARNING) setValue('overwrite', true)
+                if (warning.kind === "death_warning") setValue('ignoreDeath', true)
+                handleSubmit(onSave)
+            }}
         />
         <AddButcherDialog {...{ addButcherOpen, closeAddButcher }} />
     </Dialog>

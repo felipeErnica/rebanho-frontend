@@ -88,10 +88,10 @@ const menuList: MenuItem[] = [
         path: "weight"
     },
     {
-        key: 'slaughter-weight',
+        key: 'slaughter',
         title: 'Abate',
         icon: <SlaughterIcon />,
-        path: "slaughter-weight"
+        path: "slaughter"
     },
     {
         key: 'lactation-area',

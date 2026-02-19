@@ -1,6 +1,8 @@
 import { TextFieldVariants } from "@mui/material/TextField"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
 import { EmptyProps, MultipleSearchBox, SearchBox, SearchBoxItem } from "@shared/dialog/SearchBox"
+import { FormEventHandler } from "react"
+import { AutocompleteInputChangeReason } from "@mui/material"
 
 type FormSearchBoxProps<T extends FieldValues> = {
     label?: string
@@ -10,6 +12,7 @@ type FormSearchBoxProps<T extends FieldValues> = {
     options: SearchBoxItem[]
     className?: string
     onChange?: (id?: string, label?: string) => void
+    onInput?: (event: React.SyntheticEvent, value: string, reason: AutocompleteInputChangeReason) => void
     emptyProps?: EmptyProps[]
     autoFocus?: boolean
 }
@@ -22,6 +25,7 @@ export function FormSearchBox<T extends FieldValues>({
     className,
     variant,
     onChange,
+    onInput,
     emptyProps,
     autoFocus
 }: FormSearchBoxProps<T>) {
@@ -36,6 +40,7 @@ export function FormSearchBox<T extends FieldValues>({
                 loading={loading}
                 options={options}
                 onBlur={field.onBlur}
+                onInput={onInput}
                 emptyProps={emptyProps}
                 error={!field.disabled && !!error}
                 disabled={field.disabled}

@@ -17,7 +17,7 @@ import { FormDatePicker } from "@shared/form-controls/FormDatePicker"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { FormRadioGroup } from "@shared/form-controls/FormRadioGroup"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { addBirth, getPotentialFather } from "./Service"
 import { APIError } from "@utils/ApiRequest"
 import { CONFLICT_WARNING, ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
@@ -63,16 +63,16 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                 setPastures([])
             })
             .finally(() => setLoading(false))
-    }, [setFocus])
+    }, [])
 
-    const onClose = useCallback(() => {
+    const onClose = () => {
         reset()
         setError(undefined)
         setWarning(undefined)
         closeBirthDialog(added)
-    }, [added, closeBirthDialog, reset])
+    }
 
-    const onSave: SubmitHandler<BirthEntrySave> = useCallback((data: BirthEntrySave) => {
+    const onSave: SubmitHandler<BirthEntrySave> = (data: BirthEntrySave) => {
         setLoading(true)
         addBirth(data)
             .then(() => {
@@ -89,156 +89,154 @@ export const AddBirthDialog = ({ addBirthOpen, closeBirthDialog }: AddBirthDialo
                 }
             })
             .finally(() => setLoading(false))
-    }, [reset])
+    }
 
 
-    const getFatherId = useCallback(() => {
+    const getFatherId = () => {
         const motherId = getValues('motherId')
         const birthDate = getValues('birthDate')
 
         if (!motherId || !birthDate) return
         getPotentialFather(motherId, birthDate)
             .then((response: BirthEntrySave) => setValue('fatherId', response.fatherId))
-    }, [getValues, setValue])
+    }
 
     const noPasture = useWatch({ control, name: 'noPasture' })
 
-    return <>
-        <Dialog
-            open={addBirthOpen}
-            onClose={onClose}
-        >
-            <DialogTitle>Adicionar Parição</DialogTitle>
-            <DialogContent>
-                <Collapse in={!!error}>
-                    <Alert severity="error" onClose={() => setError(undefined)}>
-                        <AlertTitle>{error?.title}</AlertTitle>
-                        {error?.message}
-                    </Alert>
-                </Collapse>
-                <DialogContainer>
-                    <FormSearchBox
-                        label="Mãe*"
-                        options={mothers.map(item => ({
-                            id: item.id,
-                            label: getAnimalLabel(item)
-                        }))}
-                        className="w-100"
-                        onChange={(id) => {
-                            getFatherId()
-                            const mother = mothers.find(item => item.id === id)
-                            if (!mother) return
-                            setValue('tag', mother.tag)
-                            setValue('pastureId', mother.pasture?.id)
-                        }}
-                        formProps={{
-                            control,
-                            name: 'motherId',
-                            rules: { required: REQUIRED_FIELD_MSG }
-                        }}
-                    />
-                    <Box className="flex flex-row items-center gap-4">
-                        <FormTextField
-                            label="Brinco*"
-                            className="w-[80px]"
-                            formProps={{
-                                control,
-                                name: 'tag',
-                                rules: { required: REQUIRED_FIELD_MSG }
-                            }}
-                        />
-                        <FormDatePicker
-                            label="Data de Nascimento*"
-                            className="w-[250px]"
-                            onBlur={getFatherId}
-                            disableFuture
-                            formProps={{
-                                control,
-                                name: 'birthDate',
-                                rules: { required: REQUIRED_FIELD_MSG }
-                            }}
-                        />
-                    </Box>
-                    <FormRadioGroup
-                        label="Sexo*"
-                        row
-                        controls={[
-                            { label: 'Macho', value: 'M' },
-                            { label: 'Fêmea', value: 'F' }
-                        ]}
-                        formProps={{
-                            control,
-                            name: 'sex',
-                            rules: { required: REQUIRED_FIELD_MSG }
-                        }}
-                    />
-                    <FormSearchBox
-                        label="Pai*"
-                        options={fathers.map(item => ({
-                            id: item.id,
-                            label: getAnimalLabel(item)
-                        }))}
-                        formProps={{
-                            control,
-                            name: 'fatherId',
-                            rules: { required: REQUIRED_FIELD_MSG }
-                        }}
-                    />
-                    <Box className="flex flex-col">
-                        <FormSearchBox
-                            label="Pasto"
-                            formProps={{
-                                control,
-                                name: 'pastureId',
-                                disabled: noPasture,
-                                rules: { required: REQUIRED_FIELD_MSG }
-                            }}
-                            options={pastures.map(item => ({
-                                id: item.id,
-                                label: getPastureLabel(item)
-                            }))}
-                        />
-                        <FormControlLabel
-                            label="Sem Pasto"
-                            name="noPasture"
-                            control={(
-                                <Checkbox
-                                    checked={noPasture}
-                                    onChange={(_, checked) => setValue('noPasture', checked)}
-                                />
-                            )}
-                        />
-                    </Box>
-                    <FormTextField
-                        label="Observações da Parição"
-                        variant="outlined"
-                        multiline
-                        rows={5}
-                        formProps={{ control, name: 'observation' }}
-                    />
-                </DialogContainer>
-            </DialogContent>
-            <DialogActions>
-                <DialogActionButtons
-                    loading={loading}
-                    onSave={handleSubmit(onSave)}
-                    onClose={onClose}
-                    saveText="Adicionar"
+    return <Dialog
+        open={addBirthOpen}
+        onClose={onClose}
+    >
+        <DialogTitle>Adicionar Parição</DialogTitle>
+        <DialogContent>
+            <Collapse in={!!error}>
+                <Alert severity="error" onClose={() => setError(undefined)}>
+                    <AlertTitle>{error?.title}</AlertTitle>
+                    {error?.message}
+                </Alert>
+            </Collapse>
+            <DialogContainer>
+                <FormSearchBox
+                    label="Mãe*"
+                    options={mothers.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
+                    className="w-100"
+                    onChange={(id) => {
+                        getFatherId()
+                        const mother = mothers.find(item => item.id === id)
+                        if (!mother) return
+                        setValue('tag', mother.tag)
+                        setValue('pastureId', mother.pasture?.id)
+                    }}
+                    formProps={{
+                        control,
+                        name: 'motherId',
+                        rules: { required: REQUIRED_FIELD_MSG }
+                    }}
                 />
-            </DialogActions>
-        </Dialog>
-        <YesNoDialog
-            openYesNo={!!warning}
-            title={warning?.title}
-            message={warning?.message}
-            onClose={() => setWarning(undefined)}
-            onYes={() => {
-                if (warning.kind == CONFLICT_WARNING) {
-                    setValue('overwrite', true)
-                } else if (warning.kind === "TagWarning") {
-                    setValue('ignoreTag', true)
-                }
-            }}
-        />
-    </>
+                <div className="flex flex-row items-center gap-4">
+                    <FormTextField
+                        label="Brinco*"
+                        className="w-[80px]"
+                        formProps={{
+                            control,
+                            name: 'tag',
+                            rules: { required: REQUIRED_FIELD_MSG }
+                        }}
+                    />
+                    <FormDatePicker
+                        label="Data de Nascimento*"
+                        className="w-[250px]"
+                        onBlur={getFatherId}
+                        disableFuture
+                        formProps={{
+                            control,
+                            name: 'birthDate',
+                            rules: { required: REQUIRED_FIELD_MSG }
+                        }}
+                    />
+                </div>
+                <FormRadioGroup
+                    label="Sexo*"
+                    row
+                    controls={[
+                        { label: 'Macho', value: 'M' },
+                        { label: 'Fêmea', value: 'F' }
+                    ]}
+                    formProps={{
+                        control,
+                        name: 'sex',
+                        rules: { required: REQUIRED_FIELD_MSG }
+                    }}
+                />
+                <FormSearchBox
+                    label="Pai*"
+                    options={fathers.map(item => ({
+                        id: item.id,
+                        label: getAnimalLabel(item)
+                    }))}
+                    formProps={{
+                        control,
+                        name: 'fatherId',
+                        rules: { required: REQUIRED_FIELD_MSG }
+                    }}
+                />
+                <Box className="flex flex-col">
+                    <FormSearchBox
+                        label="Pasto"
+                        formProps={{
+                            control,
+                            name: 'pastureId',
+                            disabled: noPasture,
+                            rules: { required: REQUIRED_FIELD_MSG }
+                        }}
+                        options={pastures.map(item => ({
+                            id: item.id,
+                            label: getPastureLabel(item)
+                        }))}
+                    />
+                    <FormControlLabel
+                        label="Sem Pasto"
+                        name="noPasture"
+                        control={(
+                            <Checkbox
+                                checked={noPasture}
+                                onChange={(_, checked) => setValue('noPasture', checked)}
+                            />
+                        )}
+                    />
+                </Box>
+                <FormTextField
+                    label="Observações da Parição"
+                    variant="outlined"
+                    multiline
+                    rows={5}
+                    formProps={{ control, name: 'observation' }}
+                />
+            </DialogContainer>
+            <YesNoDialog
+                openYesNo={!!warning}
+                title={warning?.title}
+                message={warning?.message}
+                onClose={() => setWarning(undefined)}
+                onYes={() => {
+                    if (warning.kind == CONFLICT_WARNING) {
+                        setValue('overwrite', true)
+                    } else if (warning.kind === "TagWarning") {
+                        setValue('ignoreTag', true)
+                    }
+                }}
+            />
+        </DialogContent>
+        <DialogActions>
+            <DialogActionButtons
+                loading={loading}
+                onSave={handleSubmit(onSave)}
+                onClose={onClose}
+                saveText="Adicionar"
+            />
+        </DialogActions>
+    </Dialog>
 }

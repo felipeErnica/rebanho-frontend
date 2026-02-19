@@ -29,7 +29,7 @@ export const FormTextField = <T extends FieldValues>({
     type,
     variant,
     multiline,
-    endAdornment
+    endAdornment,
 }: FormTextFieldProps<T>) => {
 
     const treatError = (error: FieldError | undefined) => {

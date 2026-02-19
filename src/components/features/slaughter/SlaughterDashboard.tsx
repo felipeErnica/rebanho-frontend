@@ -7,19 +7,10 @@ import {
     DashboardTableBody,
     DashboardTopContainer,
 } from "@shared/dashboard/DashboardComponents"
-import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@shared/dashboard/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
-import {
-    PerformanceRateCard,
-    RateHist,
-    SlaughterEntry,
-    SlaughterEntrySave,
-    SlaughterGroup,
-    TableRatings,
-    WeightCardEntry,
-    WeightHist
-} from "./Entities"
+import { Slaughter, SlaughterSave, SlaughterGroup, TableRatings, WeightHist } from "./Entities"
 import {
     deleteSlaughter,
     getBestRatings,
@@ -31,8 +22,8 @@ import {
     getRateHist,
     getWeightHist,
     updateSlaughter
-} from "./Controller"
-import { dateTransform, decimalTransform, percentageTransform, transformWeight } from "@utils/Transformations"
+} from "./Service"
+import { dateToISO, dateTransform, decimalTransform, toPercentage, transformWeight } from "@utils/Transformations"
 import Table from "@mui/material/Table"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
@@ -59,7 +50,15 @@ import ListItemIcon from "@mui/material/ListItemIcon"
 import Add from "@mui/icons-material/Add"
 import Divider from "@mui/material/Divider"
 import { AddSlaughterDialog } from "./AddSlaughterDialog"
-import { AddButcherDialog } from "./AddButcherDialog"
+import { AddButcherDialog } from "../butchers/AddButcherDialog"
+import { CardEntry, DefaultCard, GraphData } from "@utils/Entities"
+import { getAnimalBirthLabel } from "@features/animals/Entities"
+
+type DashboardContextProps = {
+    setReloadFlag: Dispatch<SetStateAction<number>>
+}
+
+const DashboardContext = createContext<DashboardContextProps>(undefined!)
 
 export const SlaughterDashboard = () => {
 
@@ -71,7 +70,9 @@ export const SlaughterDashboard = () => {
 
     return <DashboardContainer>
         <DashboardToolbar {...{ setReloadFlag, activeRequests }} />
-        <DashboardInfo {...{ startLoading, stopLoading, reloadFlag }} />
+        <DashboardContext.Provider value={{setReloadFlag}}>
+            <DashboardInfo {...{ startLoading, stopLoading, reloadFlag }} />
+        </DashboardContext.Provider>
     </DashboardContainer>
 }
 
@@ -177,13 +178,7 @@ const DashboardInfo = ({ reloadFlag, stopLoading, startLoading }: DashboardInfor
 
 const WeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValues: WeightCardEntry = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [data, setData] = useState<WeightCardEntry>(defaultValues)
+    const [data, setData] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -191,12 +186,12 @@ const WeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
         startLoading()
         getLastAverageWeight()
             .then(results => setData(results))
-            .catch(() => setData(defaultValues))
+            .catch(() => setData(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValues, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -206,14 +201,14 @@ const WeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
             trendProps={{ trend: data.trend }}
             chart={(
                 <SparkLineChart
-                    data={data.hist.map(item => item.averageWeight)}
+                    data={data.hist.map(item => item.value)}
                     valueFormatter={value => transformWeight(value)}
                     showTooltip
                     showHighlight
                     height={90}
                     xAxis={{
-                        data: data.hist.map(item => new Date(item.entryDate)),
-                        valueFormatter: (value: Date) => value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
+                        data: data.hist.map(item => new Date(item.date)),
+                        valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
             )}
@@ -223,13 +218,7 @@ const WeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
 
 const DeadWeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValues: WeightCardEntry = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [data, setData] = useState<WeightCardEntry>(defaultValues)
+    const [data, setData] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -237,12 +226,12 @@ const DeadWeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
         startLoading()
         getLastDeadWeight()
             .then(results => setData(results))
-            .catch(() => setData(defaultValues))
+            .catch(() => setData(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValues, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
@@ -252,15 +241,15 @@ const DeadWeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
             trendProps={{ trend: data.trend }}
             chart={(
                 <SparkLineChart
-                    data={data.hist.map(item => item.averageWeight)}
+                    data={data.hist.map(item => item.value)}
                     valueFormatter={value => transformWeight(value)}
                     color={yellow[800]}
                     height={90}
                     showTooltip
                     showHighlight
                     xAxis={{
-                        data: data.hist.map(item => new Date(item.entryDate)),
-                        valueFormatter: (value: Date) => value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
+                        data: data.hist.map(item => new Date(item.date)),
+                        valueFormatter: (value: Date) => dateTransform(value)
                     }}
                 />
             )}
@@ -270,13 +259,7 @@ const DeadWeightCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
 
 const PerformanceCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const defaultValues: PerformanceRateCard = useMemo(() => ({
-        trend: 0,
-        current: 0,
-        hist: []
-    }), [])
-
-    const [data, setData] = useState<PerformanceRateCard>(defaultValues)
+    const [data, setData] = useState<CardEntry>(DefaultCard)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -284,29 +267,29 @@ const PerformanceCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
         startLoading()
         getLastPerformance()
             .then(results => setData(results))
-            .catch(() => setData(defaultValues))
+            .catch(() => setData(DefaultCard))
             .finally(() => {
                 setLoading(false)
                 stopLoading()
             })
-    }, [defaultValues, reloadFlag, startLoading, stopLoading])
+    }, [reloadFlag, startLoading, stopLoading])
 
     return <DashboardCard>
         <CardChartContent
             title="Rendimento Médio"
             loading={loading}
-            data={percentageTransform(data.current)}
+            data={toPercentage(data.current)}
             trendProps={{ trend: data.trend }}
             chart={(
                 <SparkLineChart
-                    data={data.hist.map(item => item.performanceRate)}
+                    data={data.hist.map(item => item.value)}
                     valueFormatter={value => transformWeight(value)}
                     height={90}
                     showTooltip
                     showHighlight
                     color={green[800]}
                     xAxis={{
-                        data: data.hist.map(item => new Date(item.entryDate)),
+                        data: data.hist.map(item => new Date(item.date)),
                         valueFormatter: (value: Date) => value.toLocaleDateString("pt-BR", { dateStyle: 'short' })
                     }}
                 />
@@ -317,7 +300,7 @@ const PerformanceCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
 
 const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const [results, setResults] = useState<SlaughterEntry[]>([])
+    const [results, setResults] = useState<Slaughter[]>([])
     const [entryDate, setEntryDate] = useState<Date>()
     const [lastDate, setLastDate] = useState<string>("Sem Data")
     const [butcher, setButcher] = useState<string>("")
@@ -330,12 +313,12 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
         setLoading(true)
         startLoading()
         getLastSlaughter()
-            .then((results: SlaughterEntry[]) => {
+            .then((results: Slaughter[]) => {
                 const entries = results
                 const entryDate = new Date(entries[0].entryDate)
-                const entrySlaugherhouse = entries[0].butcher
+                const butcherName = entries[0].butcher.name
                 setEntryDate(entryDate)
-                setButcher(entrySlaugherhouse)
+                setButcher(butcherName)
                 setLastDate(dateTransform(entryDate))
                 setResults(entries)
             })
@@ -367,7 +350,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                 </TableHead>
                 <TableBody>
                     <DashboardTableBody
-                        colSpan={5}
+                        colSpan={6}
                         loading={loading}
                         dataset={results}
                         render={row => <LastEntriesRow {...{ row, setError }} />}
@@ -386,7 +369,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
             endIcon={<ChevronRight />}
             onClick={() => {
                 if (!entryDate) return
-                const dateStr = entryDate.toISOString().split('T')[0]
+                const dateStr = dateToISO(entryDate)
                 navigate(`groups/${dateStr}`)
             }}
         >
@@ -396,7 +379,7 @@ const LastEntriesTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
 }
 
 type LastEntriesRowProps = {
-    row: SlaughterEntry
+    row: Slaughter
     setError: Dispatch<SetStateAction<APIError | undefined>>
 }
 
@@ -404,48 +387,57 @@ const LastEntriesRow = ({ row, setError }: LastEntriesRowProps) => {
 
     const [editing, setEditing] = useState(false)
     const [rowData, setRowData] = useState(row)
-    const [loadingControls, setLoadingControls] = useState(false)
+    const [loading, setLoading] = useState(false)
+
+    const { setReloadFlag } = useContext(DashboardContext)
 
     useEffect(() => setRowData(row), [row])
 
     const onDelete = useCallback(() => {
-        setLoadingControls(true)
+        setLoading(true)
         deleteSlaughter(rowData.id)
             .then(() => {
                 setError(undefined)
+                setReloadFlag(prev => prev + 1)
             })
             .catch(err => setError(err))
-            .finally(() => setLoadingControls(false))
-    }, [rowData.id, setError])
+            .finally(() => setLoading(false))
+    }, [])
 
     if (editing) return <EditingLastEntriesRow {...{ setEditing, setRowData, rowData, setError }} />
 
     return <TableRow>
         <TableCell>
-            <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
+            <EditControlButtons {...{ setEditing, onDelete, loading }} />
         </TableCell>
-        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell>{getAnimalBirthLabel(rowData.animal)}</TableCell>
         <TableCell> {transformWeight(rowData.weight)} </TableCell>
         <TableCell> {transformWeight(rowData.discountWeight)} </TableCell>
         <TableCell> {transformWeight(rowData.deadWeight)} </TableCell>
-        <TableCell>{percentageTransform(rowData.performanceRate)}</TableCell>
+        <TableCell>{toPercentage(rowData.performanceRate)}</TableCell>
     </TableRow>
 }
 
 type EditingLastEntriesRowProps = {
     setEditing: Dispatch<SetStateAction<boolean>>
     setError: Dispatch<SetStateAction<APIError | undefined>>
-    rowData: SlaughterEntry
-    setRowData: Dispatch<SetStateAction<SlaughterEntry>>
+    rowData: Slaughter
+    setRowData: Dispatch<SetStateAction<Slaughter>>
 }
 
 const EditingLastEntriesRow = ({ setEditing, rowData, setRowData, setError }: EditingLastEntriesRowProps) => {
 
     const [loading, setLoading] = useState(false)
 
-    const { handleSubmit, control } = useForm<SlaughterEntrySave>({ defaultValues: rowData })
+    const { handleSubmit, control } = useForm<SlaughterSave>({
+        defaultValues: {
+            ...rowData,
+            animalId: rowData.animal?.id,
+            butcherId: rowData.butcher.id,
+        }
+    })
 
-    const onSubmit: SubmitHandler<SlaughterEntrySave> = (data: SlaughterEntrySave) => {
+    const onSubmit: SubmitHandler<SlaughterSave> = (data: SlaughterSave) => {
         setLoading(true)
         updateSlaughter(data)
             .then(response => {
@@ -462,7 +454,7 @@ const EditingLastEntriesRow = ({ setEditing, rowData, setRowData, setError }: Ed
         <TableCell>
             <EditingControlButtons {...{ setEditing, onSave, loading }} />
         </TableCell>
-        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell>{getAnimalBirthLabel(rowData.animal)}</TableCell>
         <TableCell>
             <FormTextField
                 formProps={{ control, name: 'weight' }}
@@ -476,7 +468,7 @@ const EditingLastEntriesRow = ({ setEditing, rowData, setRowData, setError }: Ed
                 type="number"
             />
         </TableCell>
-        <TableCell>{percentageTransform(rowData.performanceRate)}</TableCell>
+        <TableCell>{toPercentage(rowData.performanceRate)}</TableCell>
     </TableRow>
 
 }
@@ -542,7 +534,7 @@ const BestRatingsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardIn
                                 </TableCell>
                                 <TableCell>
                                     <TrendValues
-                                        value={percentageTransform(item.performanceRate)}
+                                        value={toPercentage(item.performanceRate)}
                                         trendProps={{ trend: item.rateComparison }}
                                     />
                                 </TableCell>
@@ -599,13 +591,13 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                     <EditControlButtons
                                         onShow={() => {
                                             const entryDate = new Date(row.entryDate)
-                                            const dateStr = entryDate.toISOString().split('T')[0]
+                                            const dateStr = dateToISO(entryDate)
                                             navigate(`groups/${dateStr}`)
                                         }}
                                     />
                                 </TableCell>
                                 <TableCell>{dateTransform(row.entryDate)}</TableCell>
-                                <TableCell>{row.butcher}</TableCell>
+                                <TableCell>{row.butcher.name}</TableCell>
                                 <TableCell>{row.animalsNumber}</TableCell>
                                 <TableCell>
                                     <TrendValues
@@ -615,7 +607,7 @@ const LastGroupsTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
                                 </TableCell>
                                 <TableCell>
                                     <TrendValues
-                                        value={percentageTransform(row.averageRate)}
+                                        value={toPercentage(row.averageRate)}
                                         trendProps={{ trend: row.rateVariation }}
                                     />
                                 </TableCell>
@@ -694,7 +686,7 @@ const WeightHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInf
 
 const RateHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const [dataset, setDataset] = useState<RateHist[]>([])
+    const [dataset, setDataset] = useState<GraphData[]>([])
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -724,25 +716,22 @@ const RateHistChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInfor
                     showMark: false,
                     color: green[800],
                     area: true,
-                    data: dataset.map(item => item.averageRate),
-                    valueFormatter: (value) => percentageTransform(value),
+                    data: dataset.map(item => item.value),
+                    valueFormatter: (value) => toPercentage(value),
                     curve: 'linear',
                 },
             ]}
             yAxis={[{
                 min: 0,
-                max: 100,
+                max: 1,
                 scaleType: 'linear',
-                valueFormatter: (value) => percentageTransform(value)
+                valueFormatter: (value) => toPercentage(value)
             }]}
             xAxis={[{
                 domainLimit: 'strict',
-                data: dataset.map(item => new Date(item.entryDate)),
+                data: dataset.map(item => new Date(item.date)),
                 scaleType: 'time',
-                valueFormatter: (value: Date) => value.toLocaleString('pt-BR', {
-                    month: 'short',
-                    year: 'numeric'
-                })
+                valueFormatter: (value: Date) => dateTransform(value, { month: 'short', year: 'numeric' })
             }]}
         />
     </DashboardCard>

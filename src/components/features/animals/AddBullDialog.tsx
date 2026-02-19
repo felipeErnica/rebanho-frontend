@@ -187,19 +187,6 @@ export const AddBullDialog = ({
                     ]}
                 />
             </DialogContainer>
-            <ErrorDialog
-                openError={!!error}
-                title={error?.title}
-                message={error?.message}
-                onClose={() => setError(undefined)}
-            />
-            <YesNoDialog
-                openYesNo={!!warning}
-                title={warning?.title}
-                message={warning?.message}
-                onClose={() => setWarning(undefined)}
-                onYes={() => setValue('ignoreDead', true)}
-            />
         </DialogContent>
         <DialogActions>
             <DialogActionButtons
@@ -212,6 +199,19 @@ export const AddBullDialog = ({
                 }}
             />
         </DialogActions>
+        <ErrorDialog
+            openError={!!error}
+            title={error?.title}
+            message={error?.message}
+            onClose={() => setError(undefined)}
+        />
+        <YesNoDialog
+            openYesNo={!!warning}
+            title={warning?.title}
+            message={warning?.message}
+            onClose={() => setWarning(undefined)}
+            onYes={() => setValue('ignoreDead', true)}
+        />
     </Dialog>
 
 }

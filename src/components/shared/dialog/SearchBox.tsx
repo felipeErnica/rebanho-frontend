@@ -1,5 +1,5 @@
-import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete"
-import { FocusEventHandler, useEffect, useState } from "react"
+import Autocomplete, { AutocompleteInputChangeReason, createFilterOptions } from "@mui/material/Autocomplete"
+import { FocusEventHandler, FormEventHandler, useEffect, useState } from "react"
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
 import { Checkbox, Chip, CircularProgress } from "@mui/material"
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -26,6 +26,7 @@ type SearchBoxProps = {
     className?: string
     onChange?: (id?: string, label?: string) => void
     onBlur?: FocusEventHandler<HTMLDivElement>
+    onInput?: (event: React.SyntheticEvent, value: string, reason: AutocompleteInputChangeReason) => void
     emptyProps?: EmptyProps[]
     disabled?: boolean
     helperText?: string
@@ -47,6 +48,7 @@ export const SearchBox = ({
     variant,
     onChange,
     onBlur,
+    onInput,
     name,
     error,
     helperText,
@@ -69,8 +71,10 @@ export const SearchBox = ({
         className={className}
         loading={loading}
         loadingText="Carregando..."
+        getOptionKey={option => option.id}
         options={options}
         getOptionLabel={(option) => option.label}
+        onInputChange={onInput}
         onChange={(_, newValue) => {
             if (newValue?.addOption && emptyProps) {
                 const selectedOpt = emptyProps.find(item => item.id === newValue.id)
@@ -100,8 +104,8 @@ export const SearchBox = ({
         }}
         renderInput={(params) => <TextField
             {...params}
+            ref={ref}
             name={name}
-            inputRef={ref}
             disabled={disabled}
             error={error}
             helperText={helperText}

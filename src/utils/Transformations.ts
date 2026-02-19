@@ -3,7 +3,7 @@ export function positiveTransform(value: number) {
 }
 
 export function trendingTransform(value: number) {
-    const decimal = percentageTransform(value)
+    const decimal = toPercentage(value)
     return `${value > 0 ? '+' : ''}${decimal}`
 }
 
@@ -20,6 +20,13 @@ export function percentageTransform(value: number | null | undefined) {
     if (value === null || !value) return "-"
     const formatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 })
     return formatter.format(value) + '%'
+}
+
+export function toPercentage(value: number | null | undefined) {
+    if (value === null || !value) return "-"
+    const fullValue = value * 100
+    const formatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 })
+    return formatter.format(fullValue) + '%'
 }
 
 export function dateTransform(value: Date | undefined, options?: Intl.DateTimeFormatOptions) {

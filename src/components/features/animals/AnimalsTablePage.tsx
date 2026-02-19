@@ -27,7 +27,9 @@ import { FormDatePicker } from "@/components/shared/form-controls/FormDatePicker
 import { FormSearchBox } from "@/components/shared/form-controls/FormSearchBox"
 import { getPastureLabel } from "@features/farm-area/Entities"
 
-export const AnimalsTablePage = () => {
+export const ANIMALS_FILTER_KEY = 'animals_filter_key'
+
+export const AnimalsTablePage = (defaultFilter: AnimalFilter) => {
 
     const defaultFoot: AnimalFoot = useMemo(() => ({ total: 0 }), [])
     const defaultSort = 'animal_order, birth_date'
@@ -37,7 +39,12 @@ export const AnimalsTablePage = () => {
     const [sort, setSort] = useState(defaultSort)
     const [loading, setLoading] = useState(false)
     const [filterOpen, setFilterOpen] = useState(false)
-    const [filter, setFilter] = useState<AnimalFilter>({ isFiltered: false })
+
+    const [filter, setFilter] = useState<AnimalFilter>(() => {
+        const jsonFilter = sessionStorage.getItem(ANIMALS_FILTER_KEY)
+        if (jsonFilter) return JSON.parse(jsonFilter)
+        return defaultFilter
+    })
 
     const fetchPage = useCallback((cursor?: string) => {
         const tableFilter = { ...filter, isFiltered: true, isOutsideAnimal: false }
@@ -49,8 +56,15 @@ export const AnimalsTablePage = () => {
 
     const anchorEl = useRef<HTMLButtonElement>(null)
     const { rows, fetchNextPage, scrollRef } = usePagination<Animal>({ fetchPage, setLoading })
+    const onReload = useCallback(() => setFilter(defaultFilter), [])
 
-    const onReload = useCallback(() => setFilter({ isFiltered: false }), [])
+    useEffect(() => {
+        if (filter.isFiltered) {
+            sessionStorage.setItem(ANIMALS_FILTER_KEY, JSON.stringify(filter))
+        } else {
+            sessionStorage.removeItem(ANIMALS_FILTER_KEY)
+        }
+    }, [filter])
 
     const sortColumns: ComboBoxItem[] = [
         { name: 'Brinco', value: defaultSort },
@@ -90,7 +104,7 @@ type AnimalsTableProps = {
     foot: AnimalFoot
 }
 
-const COL_COUNT = 13
+const COL_COUNT = 14
 
 export const AnimalsTable = ({
     rows,
@@ -111,6 +125,7 @@ export const AnimalsTable = ({
                 <VirtuosoResizeHeadCell width={100}>Brinco</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Nome</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={180} align="center">Data de Nascimento</VirtuosoResizeHeadCell>
+                <VirtuosoResizeHeadCell width={150} align="center">Data de Morte</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Pai</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Mãe</VirtuosoResizeHeadCell>
                 <VirtuosoResizeHeadCell width={200}>Pasto</VirtuosoResizeHeadCell>
@@ -158,6 +173,7 @@ const AnimalRow = ({ row, loading }: TableRowProp<Animal>) => {
         <TableBodyCell>{rowData.tag}</TableBodyCell>
         <TableBodyCell>{rowData.name}</TableBodyCell>
         <TableBodyCell align="center">{dateTransform(rowData.birthDate)}</TableBodyCell>
+        <TableBodyCell align="center">{dateTransform(rowData.deathDate)}</TableBodyCell>
         <TableBodyCell>{getAnimalLabel(rowData.father)}</TableBodyCell>
         <TableBodyCell>{getAnimalLabel(rowData.mother)}</TableBodyCell>
         <TableBodyCell>{getPastureLabel(rowData.pasture)}</TableBodyCell>
@@ -216,6 +232,9 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
         <TableBodyCell align="center">
             <FormDatePicker formProps={{ control, name: 'birthDate' }} />
         </TableBodyCell>
+        <TableBodyCell align="center">
+            <FormDatePicker formProps={{ control, name: 'deathDate' }} />
+        </TableBodyCell>
         <TableBodyCell>
             <FormSearchBox
                 formProps={{ control, name: 'fatherId' }}
@@ -230,7 +249,7 @@ const EditingRow = ({ rowData, setRowData, setEditing }: EditRowProps<Animal>) =
                 formProps={{ control, name: 'motherId' }}
                 options={mothers.map(item => ({
                     id: item.id,
-                    label: [item.tag, item.name].join(' - ')
+                    label: getAnimalLabel(item)
                 }))}
             />
         </TableBodyCell>

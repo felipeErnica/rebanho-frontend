@@ -11,8 +11,16 @@ import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEf
 import { DashboardInformationProps, DashboardTopBarProps, OptionMenuProps } from "@shared/dashboard/Entities"
 import { CardEntry, DefaultCard, GraphData } from "@/utils/Entities"
 import { ReloadButton } from "@shared/table/TableTopBarComponents"
-import { AnimalByType, AnimalsByAge } from "./Entities"
-import { getAgeAndSex, getAnimalByTypes, getBirthHist, getDairyHist, getDeathHist, getLastDeaths, getSlaughterHist } from "./Service"
+import { AnimalByType, AnimalsByAge, getAnimalBirthLabel } from "./Entities"
+import {
+    getAgeAndSex,
+    getAnimalByTypes,
+    getBirthHist,
+    getDairyHist,
+    getDeathHist,
+    getLastDeaths,
+    getSlaughterHist
+} from "./Service"
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart"
 import { dateToISO, dateTransform, decimalTransform, percentageTransform, positiveTransform, transformWeight } from "@/utils/Transformations"
 import { green, lightBlue, pink, purple, red, yellow } from "@mui/material/colors"
@@ -46,16 +54,17 @@ import Divider from "@mui/material/Divider"
 import { AddBirthDialog } from "@/components/features/births/AddBirthDialog"
 import { AddCowDialog } from "@features/animals/AddCowDialog"
 import { AddBullDialog } from "@features/animals/AddBullDialog"
-import { SlaughterEntry, SlaughterEntrySave } from "@features/slaughter/Entities"
+import { Slaughter, SlaughterSave } from "@features/slaughter/Entities"
 import { APIError } from "@/utils/ApiRequest"
 import { ErrorDialog } from "@shared/dialog/DialogComponents"
-import { deleteSlaughter, getLastSlaughter, updateSlaughter } from "@features/slaughter/Controller"
 import { getNextBirths } from "@/components/features/pregnancy-test/Service"
 import { Animal, getAnimalLabel, transformAnimalType } from "@features/animals/Entities"
 import { LactationHistFoot } from "@features/lactation/Entities"
 import { Alert, AlertTitle, Collapse } from "@mui/material"
 import { getPastureLabel } from "@features/farm-area/Entities"
 import { LAC_HIST_STORAGE_KEY } from "@features/lactation/LactationHistTable"
+import { ANIMALS_FILTER_KEY } from "@features/animals/AnimalsTablePage"
+import { deleteSlaughter, getLastSlaughter, updateSlaughter } from "@features/slaughter/Service"
 
 type EditContextProps = { setReloadFlag: Dispatch<SetStateAction<number>> }
 
@@ -152,16 +161,19 @@ const OptionsMenu = ({ openMenu, menuAnchorEl, closeMenu, setReloadFlag }: Optio
                 Adicionar Vaca
             </MenuItem>
             <Divider />
-            <MenuItem onClick={() => navigate("animals")}>
+            <MenuItem onClick={() => {
+                sessionStorage.removeItem(ANIMALS_FILTER_KEY)
+                navigate("animals")
+            }}>
                 <ListItemIcon>
                     <ChevronRight />
                 </ListItemIcon>
                 Tabela de Animais
             </MenuItem>
         </Menu>
-        <AddBirthDialog {...{ closeBirthDialog, addBirthOpen }} />
         <AddCowDialog {...{ addCowOpen, closeAddCow }} />
         <AddBullDialog {...{ addBullOpen, closeAddBull }} />
+        <AddBirthDialog {...{ closeBirthDialog, addBirthOpen }} />
     </>
 }
 
@@ -317,7 +329,10 @@ const DeathsCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInformat
         />
         <Button
             className="mr-auto"
-            onClick={() => navigate('dead-animals')}
+            onClick={() => {
+                sessionStorage.removeItem(ANIMALS_FILTER_KEY)
+                navigate('dead-animals')
+            }}
             endIcon={<ChevronRight />}
         >
             Ver Mais...
@@ -574,7 +589,10 @@ const LastDeathsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
         <Button
             className="ml-auto"
             endIcon={<ChevronRight />}
-            onClick={() => navigate('/main/animals/deaths')}
+            onClick={() => {
+                sessionStorage.removeItem(ANIMALS_FILTER_KEY)
+                navigate('dead-animals')
+            }}
         >
             Ver Mais...
         </Button>
@@ -583,7 +601,7 @@ const LastDeathsTable = ({ stopLoading, startLoading, reloadFlag }: DashboardInf
 
 const LastSlaughterTable = ({ startLoading, stopLoading, reloadFlag }: DashboardInformationProps) => {
 
-    const [results, setResults] = useState<SlaughterEntry[]>([])
+    const [results, setResults] = useState<Slaughter[]>([])
     const [entryDate, setEntryDate] = useState<Date>()
     const [butcher, setButcher] = useState<string>("")
     const [loading, setLoading] = useState(false)
@@ -595,10 +613,10 @@ const LastSlaughterTable = ({ startLoading, stopLoading, reloadFlag }: Dashboard
         setLoading(true)
         startLoading()
         getLastSlaughter()
-            .then((results: SlaughterEntry[]) => {
+            .then((results: Slaughter[]) => {
                 const entryDate = new Date(results[0].entryDate)
                 setEntryDate(entryDate)
-                setButcher(results[0].butcher)
+                setButcher(results[0].butcher.name)
                 setResults(results)
             })
             .catch(() => {
@@ -665,7 +683,7 @@ const LastSlaughterTable = ({ startLoading, stopLoading, reloadFlag }: Dashboard
 }
 
 type LastEntriesRowProps = {
-    row: SlaughterEntry
+    row: Slaughter
     setError: Dispatch<SetStateAction<APIError | undefined>>
 }
 
@@ -693,28 +711,28 @@ const SlaughterRow = ({ row, setError }: LastEntriesRowProps) => {
         <TableCell>
             <EditControlButtons {...{ setEditing, onDelete, loading: loadingControls }} />
         </TableCell>
-        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell>{getAnimalBirthLabel(rowData.animal)}</TableCell>
         <TableCell> {transformWeight(rowData.weight)} </TableCell>
         <TableCell> {transformWeight(rowData.discountWeight)} </TableCell>
         <TableCell> {transformWeight(rowData.deadWeight)} </TableCell>
-        <TableCell>{percentageTransform(rowData.performanceRate)}</TableCell>
+        <TableCell>{percentageTransform(rowData.performanceRate * 100)}</TableCell>
     </TableRow>
 }
 
 type EditingLastEntriesRowProps = {
     setEditing: Dispatch<SetStateAction<boolean>>
     setError: Dispatch<SetStateAction<APIError | undefined>>
-    rowData: SlaughterEntry
-    setRowData: Dispatch<SetStateAction<SlaughterEntry>>
+    rowData: Slaughter
+    setRowData: Dispatch<SetStateAction<Slaughter>>
 }
 
 const EditingSlaughterRow = ({ setEditing, rowData, setRowData, setError }: EditingLastEntriesRowProps) => {
 
     const [loading, setLoading] = useState(false)
 
-    const { handleSubmit, control } = useForm<SlaughterEntrySave>({ defaultValues: rowData })
+    const { handleSubmit, control } = useForm<SlaughterSave>({ defaultValues: rowData })
 
-    const onSubmit: SubmitHandler<SlaughterEntrySave> = (data: SlaughterEntrySave) => {
+    const onSubmit: SubmitHandler<SlaughterSave> = (data: SlaughterSave) => {
         setLoading(true)
         updateSlaughter(data)
             .then(response => {
@@ -731,7 +749,7 @@ const EditingSlaughterRow = ({ setEditing, rowData, setRowData, setError }: Edit
         <TableCell>
             <EditingControlButtons {...{ setEditing, onSave, loading }} />
         </TableCell>
-        <TableCell>{rowData.animalInfo}</TableCell>
+        <TableCell>{getAnimalBirthLabel(rowData.animal)}</TableCell>
         <TableCell>
             <FormTextField
                 formProps={{ control, name: 'weight' }}
@@ -745,7 +763,7 @@ const EditingSlaughterRow = ({ setEditing, rowData, setRowData, setError }: Edit
                 type="number"
             />
         </TableCell>
-        <TableCell>{percentageTransform(rowData.performanceRate)}</TableCell>
+        <TableCell>{percentageTransform(rowData.performanceRate * 100)}</TableCell>
     </TableRow>
 
 }
@@ -911,6 +929,7 @@ const TypesChart = ({ startLoading, stopLoading, reloadFlag }: DashboardInformat
                 noData: NO_DATA_AVAILABLE
             }}
             onItemClick={(_, item) => {
+                if (item.dataIndex === 0) navigate('offspring')
                 if (item.dataIndex === 1) navigate('lactation')
             }}
             series={[{

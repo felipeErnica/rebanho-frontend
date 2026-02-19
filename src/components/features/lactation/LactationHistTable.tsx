@@ -27,7 +27,6 @@ import {
     TableFooterRow,
     TableHeadControlCell,
     TableHeadRow,
-    TableLoadingCells,
     VirtuosoHeadCell,
     VirtuosoResizeHeadCell,
     VirtuosoRowRender

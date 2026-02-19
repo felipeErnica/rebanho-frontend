@@ -5,8 +5,8 @@ import { SlaughterDashboard } from "./SlaughterDashboard";
 import { SlaughterEntriesTable } from "./SlaughterEntriesTable";
 import { SlaughterGroupsTable } from "./SlaughterGroupsTable";
 import { SlaughterGroupEntriesTable } from "./SlaughterGroupEntriesTable";
-import { ButcherTable } from "./ButcherTable";
-import { ButcherEntriesTable } from "./ButcherEntriesTable";
+import { ButcherTable } from "../butchers/ButcherTable";
+import { ButcherEntriesTable } from "../butchers/ButcherEntriesTable";
 import { useParams } from "react-router";
 import { dateTransform } from "@/utils/Transformations";
 

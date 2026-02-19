@@ -8,8 +8,8 @@ export const NO_DATA_AVAILABLE = 'Não há dados disponíveis'
 
 export const LONG_LACTATION_DAYS = 280
 
-export const GROUP_UPDATE_TITLE = 'ATENÇÃO: Atualização em conjunto!'
-export const GROUP_DELETE_TITLE = 'ATENÇÃO: Exclusão de conjunto!'
+export const GROUP_UPDATE_TITLE = 'ATENÇÃO: Atualização em lote!'
+export const GROUP_DELETE_TITLE = 'ATENÇÃO: Exclusão em lote!'
 
 export type ColorStrings = 'warning' | 'error' | 'success' | 'info' 
 | 'default' | 'primary'| 'secondary' 

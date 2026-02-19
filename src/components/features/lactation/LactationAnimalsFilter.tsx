@@ -24,7 +24,7 @@ export const LactationAnimalsFilter = ({
         searchAnimal({
             isFiltered: true,
             types: ['DAIRY_ANIMAL'],
-            isAlive: true,
+            hasDeath: true,
             isLactating: filter['isLactating']
         })
             .then(response => {

@@ -1,27 +1,28 @@
-export type SlaughterEntry = {
+import { Animal } from "@features/animals/Entities";
+import { Butcher } from "@features/butchers/Entities";
+
+export type Slaughter = {
     id: string;
-    animalId?: string;
-    animalInfo?: string;
-    fatherName?: string;
-    motherName?: string;
+    animal?: Animal
+    butcher: Butcher
     entryDate: Date;
-    discountRate: number;
-    butcherId: string;
-    butcher: string;
-    weight: number;
-    discountWeight: number;
-    deadWeight: number;
-    performanceRate: number;
+    discountRate?: number;
+    weight?: number;
+    discountWeight?: number;
+    deadWeight?: number;
+    performanceRate?: number;
 };
 
-export type SlaughterEntrySave = {
-    id: string;
+export type SlaughterSave = {
+    id?: string;
     animalId?: string;
     entryDate: Date;
     discountRate: number;
     butcherId: string;
     weight: number;
     deadWeight: number;
+    overwrite: boolean
+    ignoreDeath: boolean
 };
 
 export type SlaughterFoot = {
@@ -31,7 +32,7 @@ export type SlaughterFoot = {
     averageRate: number;
 };
 
-export type SlaughterEntryFilter = {
+export type SlaughterFilter = {
     isFiltered: boolean;
     animals?: string[];
     fathers?: string[];
@@ -47,28 +48,9 @@ export type SlaughterEntryFilter = {
     maxDeadWeight?: number;
 };
 
-export type ButcherEntry = {
-    id: string
-    name: string
-    cnpj?: string
-    address?: string
-    discount?: number
-    animalsNumber: number
-    averageWeight: number
-    averageRate: number
-};
-
-export type ButcherSave = {
-    id: string
-    name: string
-    cnpj?: string
-    address?: string
-    discount?: number
-};
-
 export type SlaughterGroup = {
     entryDate: Date;
-    butcher: string;
+    butcher: Butcher;
     animalsNumber: number;
     averageWeight: number;
     weightVariation: number;
@@ -78,37 +60,10 @@ export type SlaughterGroup = {
     rateVariation: number;
 };
 
-export type PerformanceRateHist = {
-    entryDate: Date;
-    performanceRate: number;
-};
-
-export type PerformanceRateCard = {
-    current: number;
-    trend: number;
-    hist: PerformanceRateHist[];
-};
-
-export type AverageWeightHist = {
-    entryDate: Date;
-    averageWeight: number;
-};
-
-export type WeightCardEntry = {
-    current: number;
-    trend: number;
-    hist: AverageWeightHist[];
-};
-
 export type WeightHist = {
     entryDate: Date;
     weight: number;
     deadWeight: number;
-};
-
-export type RateHist = {
-    entryDate: Date;
-    averageRate: number;
 };
 
 export type TableRatings = {

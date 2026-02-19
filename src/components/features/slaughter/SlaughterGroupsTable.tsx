@@ -8,22 +8,38 @@ import {
     TrendValues
 } from "@shared/table/TableComponents"
 import { TableTopBar } from "@shared/table/TableTopBarComponents"
-import { SlaughterGroup } from "./Entities"
-import { useCallback, useEffect, useState } from "react"
-import { findGroups } from "./Controller"
+import { Slaughter, SlaughterGroup } from "./Entities"
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from "react"
+import { deleteSlaughterBatch, findEntries, findGroups } from "./Service"
 import Table from "@mui/material/Table"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TableBody from "@mui/material/TableBody"
 import { EditControlButtons } from "@shared/table/ControlButtons"
-import { dateTransform, decimalTransform } from "@utils/Transformations"
+import { dateToISO, dateTransform, decimalTransform } from "@utils/Transformations"
 import { useNavigate } from "react-router"
+import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
+import { DefaultTimerWarning, DefaultWarning, GROUP_DELETE_TITLE } from "@shared/Globals"
+import { APIError } from "@utils/ApiRequest"
+
+type TableContextProps = {
+    setReload: Dispatch<SetStateAction<number>>
+    setError: Dispatch<SetStateAction<APIError | undefined>>
+    setWarning: Dispatch<SetStateAction<YesNoDialogProps>>
+    setTimerWarning: Dispatch<SetStateAction<TimerYesNoDialogProps>>
+}
+
+const TableContext = createContext<TableContextProps>(undefined!)
 
 export const SlaughterGroupsTable = () => {
 
     const [rows, setRows] = useState<SlaughterGroup[]>([])
     const [loading, setLoading] = useState(false)
     const [order, setOrder] = useState('desc')
+    const [reload, setReload] = useState(0)
+    const [warning, setWarning] = useState<YesNoDialogProps>(DefaultWarning)
+    const [timerWarning, setTimerWarning] = useState(DefaultTimerWarning)
+    const [error, setError] = useState<APIError>()
 
     const onReload = useCallback(() => {
         setLoading(true)
@@ -33,14 +49,24 @@ export const SlaughterGroupsTable = () => {
             .finally(() => setLoading(false))
     }, [order])
 
-    useEffect(onReload, [onReload])
+    useEffect(onReload, [reload])
 
     return <TablePageContainer>
         <TableTopBar
             reloadProps={{ onReload }}
             orderProps={{ setOrder, order }}
         />
-        <GroupTable {...{ rows, loading }} />
+        <TableContext.Provider value={{ setReload, setWarning, setError, setTimerWarning }} >
+            <GroupTable {...{ rows, loading }} />
+        </TableContext.Provider>
+        <YesNoDialog {...warning} />
+        <TimerYesNoDialog {...timerWarning} />
+        <ErrorDialog 
+            openError={!!error}
+            title={error.title}
+            message={error.message}
+            onClose={() => setError(undefined)}
+        />
     </TablePageContainer>
 }
 
@@ -49,9 +75,9 @@ type GroupTableProps = {
     rows: SlaughterGroup[]
 }
 
-const GroupTable = ({ rows, loading }: GroupTableProps) => {
+const COLUMN_COUNT = 7
 
-    const navigate = useNavigate()
+const GroupTable = ({ rows, loading }: GroupTableProps) => {
 
     return <div className="overflow-auto">
         <Table stickyHeader>
@@ -68,45 +94,75 @@ const GroupTable = ({ rows, loading }: GroupTableProps) => {
             </TableHead>
             <TableBody>
                 <TableBodyContainer
-                    colSpan={7}
+                    colSpan={COLUMN_COUNT}
                     loading={loading}
                     dataset={rows}
-                    render={row => (
-                        <TableBodyRow>
-                            <TableBodyCell>
-                                <EditControlButtons
-                                    onShow={() => {
-                                        const entryDate = new Date(row.entryDate)
-                                        const dateStr = entryDate.toISOString().split('T')[0]
-                                        navigate(`groups/${dateStr}`)
-                                    }}
-                                />
-                            </TableBodyCell>
-                            <TableBodyCell>{dateTransform(row.entryDate)}</TableBodyCell>
-                            <TableBodyCell>{row.butcher}</TableBodyCell>
-                            <TableBodyCell align="center">{row.animalsNumber}</TableBodyCell>
-                            <TableBodyCell align="center">
-                                <TrendValues
-                                    value={decimalTransform(row.averageWeight)}
-                                    trendProps={{ trend: row.weightVariation }}
-                                />
-                            </TableBodyCell>
-                            <TableBodyCell align="center">
-                                <TrendValues
-                                    value={decimalTransform(row.averageDeadWeight)}
-                                    trendProps={{ trend: row.deadWeightVariation }}
-                                />
-                            </TableBodyCell>
-                            <TableBodyCell align="center">
-                                <TrendValues
-                                    value={decimalTransform(row.averageRate)}
-                                    trendProps={{ trend: row.rateVariation }}
-                                />
-                            </TableBodyCell>
-                        </TableBodyRow>
-                    )}
+                    render={row => <GroupRow {...row} />}
                 />
             </TableBody>
         </Table>
     </div>
+}
+
+const GroupRow = (row: SlaughterGroup) => {
+
+    const [loading, setLoading] = useState(false)
+
+    const navigate = useNavigate()
+    const { setReload, setError, setTimerWarning } = useContext(TableContext)
+
+    const onDelete = useCallback(() => {
+        setLoading(true)
+        findEntries({ isFiltered: true, minEntryDate: row.entryDate, maxEntryDate: row.entryDate })
+            .then((resp: Slaughter[]) => {
+                const ids = resp.map(item => item.id)
+                deleteSlaughterBatch(ids)
+                    .then(() => setReload(prev => prev + 1))
+                    .catch(err => setError(err))
+            })
+            .finally(() => setLoading(false))
+    }, [])
+
+    return <TableBodyRow>
+        <TableBodyCell>
+            <EditControlButtons
+                loading={loading}
+                onDelete={() => {
+                    setTimerWarning({
+                        title: GROUP_DELETE_TITLE,
+                        message: `ATENÇÃO: Ao continuar, ${row.animalsNumber} registros serão excluídos e os animais abatidos terão a data de morte excluídas!`,
+                        openYesNo: true,
+                        onYes: onDelete,
+                        onClose: () => setTimerWarning(DefaultTimerWarning),
+                    })
+                }}
+                onShow={() => {
+                    const entryDate = new Date(row.entryDate)
+                    const dateStr = dateToISO(entryDate)
+                    navigate(`${dateStr}`)
+                }}
+            />
+        </TableBodyCell>
+        <TableBodyCell>{dateTransform(row.entryDate)}</TableBodyCell>
+        <TableBodyCell>{row.butcher.name}</TableBodyCell>
+        <TableBodyCell align="center">{row.animalsNumber}</TableBodyCell>
+        <TableBodyCell align="center">
+            <TrendValues
+                value={decimalTransform(row.averageWeight)}
+                trendProps={{ trend: row.weightVariation }}
+            />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <TrendValues
+                value={decimalTransform(row.averageDeadWeight)}
+                trendProps={{ trend: row.deadWeightVariation }}
+            />
+        </TableBodyCell>
+        <TableBodyCell align="center">
+            <TrendValues
+                value={decimalTransform(row.averageRate)}
+                trendProps={{ trend: row.rateVariation }}
+            />
+        </TableBodyCell>
+    </TableBodyRow>
 }

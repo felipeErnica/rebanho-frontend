@@ -56,4 +56,3 @@ export type LactationGroupFilter = {
     minEntryDate?: Date
     maxEntryDate?: Date
 }
-

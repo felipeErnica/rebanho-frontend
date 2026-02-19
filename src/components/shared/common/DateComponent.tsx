@@ -6,15 +6,14 @@ import { useParsedFormat, usePickerContext, useSplitFieldProps } from "@mui/x-da
 import { PickerValue } from "@mui/x-date-pickers/internals"
 import { useValidation, validateDate } from "@mui/x-date-pickers/validation"
 import dayjs, { Dayjs } from "dayjs"
-import React, { Ref, useEffect, useMemo, useState } from "react"
-import { RefCallBack } from "react-hook-form"
+import React, { RefCallback, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 type DateComponentProps = {
     label?: string
     name?: string
+    ref?: RefCallback<HTMLDivElement>
     value?: Dayjs | null
     disabled?: boolean
-    ref?: RefCallBack
     className?: string
     variant?: TextFieldVariants
     disablePast?: boolean
@@ -30,8 +29,8 @@ export const DateComponent = ({
     label,
     value,
     name,
-    error,
     ref,
+    error,
     onChange,
     onBlur,
     className,
@@ -45,6 +44,15 @@ export const DateComponent = ({
 
     const [validationError, setValidationError] = useState<DateValidationError | null>(null)
     const [dateValue, setDateValue] = useState<Dayjs | null>(value ?? null)
+    const [calendarAnchor, setCalendarAnchor] = useState<HTMLDivElement | null>(null)
+
+    const calendarRef = useCallback((node: HTMLDivElement) => {
+        if (node !== null) {
+            setCalendarAnchor(node)
+            if (ref) ref(node)
+        }
+    }, [ref])
+
 
     useEffect(() => setDateValue(value ?? null), [dateValue, value])
 
@@ -75,7 +83,7 @@ export const DateComponent = ({
         disableFuture={disableFuture}
         disablePast={disablePast}
         name={name}
-        inputRef={ref}
+        ref={calendarRef}
         maxDate={maxDate}
         minDate={minDate}
         value={dateValue}
@@ -95,13 +103,14 @@ export const DateComponent = ({
         format="DD/MM/YYYY"
         slots={{ field: CustomDateField }}
         slotProps={{
+            popper: { anchorEl: calendarAnchor },
             field: {
                 error: !!error || !!validationError,
                 variant: variant || 'standard',
                 helperText: error ?? errorMessage,
                 onBlur: onBlur,
                 disabled: disabled
-            } as CustomDateFieldProps
+            } as CustomDateFieldProps,
         }}
     />
 }
@@ -115,7 +124,7 @@ interface CustomDateFieldProps extends DatePickerFieldProps {
     onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
 }
 
-const CustomDateField = React.forwardRef((props: CustomDateFieldProps, ref: Ref<HTMLDivElement>) => {
+const CustomDateField = (props: CustomDateFieldProps) => {
 
     const { internalProps, forwardedProps } = useSplitFieldProps(props, 'date');
 
@@ -148,7 +157,6 @@ const CustomDateField = React.forwardRef((props: CustomDateFieldProps, ref: Ref<
         validator: validateDate,
     });
 
-
     return <TextField
         {...forwardedProps}
         placeholder={placeholder}
@@ -167,7 +175,6 @@ const CustomDateField = React.forwardRef((props: CustomDateFieldProps, ref: Ref<
         className={pickerContext.rootClassName}
         sx={pickerContext.rootSx}
         ref={pickerContext.rootRef}
-        inputRef={ref}
         fullWidth
         slotProps={{
             input: {
@@ -201,13 +208,12 @@ const CustomDateField = React.forwardRef((props: CustomDateFieldProps, ref: Ref<
                             />
                         </IconButton>
                     </InputAdornment>
-
                 ),
             }
         }}
     />
 
-})
+}
 
 function parsedDate(date: string) {
 

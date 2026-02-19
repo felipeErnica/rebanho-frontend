@@ -1,7 +1,6 @@
 import { dateTransform } from "@/utils/Transformations"
 import { Pasture } from "@features/farm-area/Entities"
 import { ComboBoxItem } from "@shared/common/ComboBox"
-import { render } from "react-dom"
 
 export enum AnimalType {
     REPRODUCTION_ANIMAL = "REPRODUCTION_ANIMAL",
@@ -131,11 +130,24 @@ export type AnimalFilter = {
     minChildrenNumber?: number
     maxChildrenNumber?: number
     hasName?: boolean
+    hasDeath?: boolean
     isLactating?: boolean
-    isAlive?: boolean
     isInseminationBull?: boolean
     isTransferBull?: boolean
     isBreedingBull?: boolean
     isEmbryoDonor?: boolean
     isOutsideAnimal?: boolean
+}
+
+export type AnimalByType = {
+	beefAnimals: number
+	dairyAnimals: number
+	reproductionAnimals: number
+	offspring: number
+}
+
+export type AnimalsByAge = {
+    category: string,
+    male: number,
+    female: number
 }

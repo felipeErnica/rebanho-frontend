@@ -1,12 +1,12 @@
 import { SubmitHandler, useForm } from "react-hook-form"
-import { ButcherSave } from "./Entities"
 import { Alert, AlertTitle, Collapse, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import { useState } from "react"
 import { FormTextField } from "@shared/form-controls/FormTextField"
 import { ERROR_TYPE, REQUIRED_FIELD_MSG } from "@shared/Globals"
-import { addButcher, replaceButcher } from "./Controller"
 import { DialogActionButtons, DialogContainer, YesNoDialog } from "@shared/dialog/DialogComponents"
 import { APIError } from "@utils/ApiRequest"
+import { ButcherSave } from "./Entities"
+import { addButcher } from "./Service"
 
 type AddButcherDialogProps = {
     addButcherOpen: boolean
@@ -43,20 +43,6 @@ export const AddButcherDialog = ({
                 }
                 setWarning(err)
             })
-            .finally(() => setLoading(false))
-    }
-
-    const onReplace: SubmitHandler<ButcherSave> = (data: ButcherSave) => {
-        setLoading(true)
-        replaceButcher(data)
-            .then(() => {
-                setError(undefined)
-                setWarning(undefined)
-                reset()
-                setFocus('name')
-                setAdded(true)
-            })
-            .catch(err => setError(err))
             .finally(() => setLoading(false))
     }
 
@@ -130,7 +116,10 @@ export const AddButcherDialog = ({
             title={warning?.title}
             message={warning?.message}
             onClose={() => setWarning(undefined)}
-            onYes={handleSubmit(onReplace)}
+            onYes={() => {
+                setValue('ignoreAddress', true)
+                handleSubmit(onSave)
+            }}
         />
     </Dialog>
 

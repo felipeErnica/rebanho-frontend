@@ -1,11 +1,11 @@
+import { InputAdornment } from "@mui/material"
 import TextField from "@mui/material/TextField"
-import{ ChangeEventHandler, FocusEventHandler, HTMLInputTypeAttribute, ReactNode, Ref, useEffect, useState } from "react"
+import { ChangeEventHandler, FocusEventHandler, Ref } from "react"
 
-type TextComponentProps = {
-    value?: any 
+type PercentageComponentProps = {
+    value?: any
     name?: string
     ref?: Ref<HTMLInputElement>
-    type?: HTMLInputTypeAttribute
     className?: string
     disabled?: boolean
     error?: boolean
@@ -15,17 +15,12 @@ type TextComponentProps = {
     size?: 'small' | 'medium'
     label?: string
     variant?: 'outlined' | 'standard' | 'filled'
-    multiline?: boolean
-    rows?: number
-    maxRows?: number
-    endAdornment?: ReactNode
 }
 
-export const TextComponent = ({
+export const PercentageComponent = ({
     value,
     ref,
     name,
-    type,
     className,
     disabled,
     error,
@@ -35,16 +30,11 @@ export const TextComponent = ({
     size,
     label,
     variant,
-    multiline,
-    rows,
-    maxRows,
-    endAdornment,
-}: TextComponentProps) => {
-
+}: PercentageComponentProps) => {
 
     return <TextField
-        value={value ?? ''}
-        type={type}
+        value={value ?? '-'}
+        type='number'
         name={name}
         inputRef={ref}
         className={className}
@@ -55,15 +45,12 @@ export const TextComponent = ({
         size={size ?? 'small'}
         label={label}
         variant={variant || 'standard'}
-        multiline={multiline}
-        rows={rows}
-        maxRows={maxRows}
         disabled={disabled}
         fullWidth
         slotProps={{
             input: {
                 sx: { color: !disabled && error ? 'red' : undefined },
-                endAdornment: endAdornment
+                endAdornment: <InputAdornment position="end">%</InputAdornment>
             }
         }}
     />

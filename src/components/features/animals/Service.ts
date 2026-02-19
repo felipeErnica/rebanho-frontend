@@ -1,7 +1,36 @@
 import { apiGet, apiPost, apiPut, buildFilterParams, buildPageParams } from "@utils/ApiRequest";
 import { AnimalFilter, AnimalSave } from "./Entities";
-const ANIMAL_BASE = "animals/"
 
+const ANIMAL_BASE = "animals/"
+const ANIMAL_STATS = "animals/stats/"
+
+export function getBirthHist() {
+    return apiGet(ANIMAL_STATS + "birth")
+}
+
+export function getDeathHist() {
+    return apiGet(ANIMAL_STATS + "death")
+}
+
+export function getDairyHist() {
+    return apiGet(ANIMAL_STATS + "dairy")
+}
+
+export function getSlaughterHist() {
+    return apiGet(ANIMAL_STATS + "slaughter")
+}
+
+export function getAnimalByTypes() {
+    return apiGet(ANIMAL_STATS + "types")
+}
+
+export function getLastDeaths() {
+    return apiGet(ANIMAL_STATS + "last-deaths")
+}
+
+export function getAgeAndSex() {
+    return apiGet(ANIMAL_STATS + "age-and-sex")
+}
 
 export function updateAnimal(entry: AnimalSave) {
     return apiPut(ANIMAL_BASE, entry)
@@ -31,10 +60,18 @@ export function findAnimals(filter: AnimalFilter, sort: string, order: string, c
 
 export function getAnimalsFoot(filter: AnimalFilter) {
     const params = buildFilterParams(filter, "?")
-    return apiGet(ANIMAL_BASE + `page/foot${params}`)
+    return apiGet(ANIMAL_BASE + `page/foot` + params)
 }
 
 //Common searchs
+export function searchInternalAnimals(filter?: AnimalFilter) {
+    return searchAnimal(
+        { ...filter, isFiltered: true, isOutsideAnimal: false },
+        "animal_order,birth_date",
+        "asc"
+    )
+}
+
 export function searchMothers(filter?: AnimalFilter) {
     return searchAnimal({
         ...filter,

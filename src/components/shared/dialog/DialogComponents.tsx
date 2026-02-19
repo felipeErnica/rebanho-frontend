@@ -31,15 +31,11 @@ type DialogContainerProps = {
     className?: string
 }
 
-export const DialogContainer = React.forwardRef(({ children, className }: DialogContainerProps, ref) => {
-    return <div
-        tabIndex={-1}
-        className={`flex flex-col gap-8 p-4 ${className}`}
-        ref={ref as Ref<HTMLDivElement>}
-    >
+export const DialogContainer = ({ children, className }: DialogContainerProps) => {
+    return <div className={`flex flex-col gap-8 p-4 ${className}`} >
         {children}
     </div>
-})
+}
 
 export type YesNoDialogProps = {
     loading?: boolean
@@ -105,7 +101,7 @@ export const YesNoDialog = ({
 }
 
 export type TimerYesNoDialogProps = YesNoDialogProps & {
-    waitTime: number
+    waitTime?: number
 }
 
 export const TimerYesNoDialog = ({
@@ -118,10 +114,10 @@ export const TimerYesNoDialog = ({
     loading
 }: TimerYesNoDialogProps) => {
 
-    const [secondsLeft, setSecondsLeft] = useState(waitTime)
+    const [secondsLeft, setSecondsLeft] = useState(waitTime ?? 10)
 
     useEffect(() => {
-        if (openYesNo) setSecondsLeft(waitTime)
+        if (openYesNo) setSecondsLeft(waitTime ?? 10)
     }, [openYesNo, waitTime])
 
     useEffect(() => {

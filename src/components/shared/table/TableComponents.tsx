@@ -227,14 +227,16 @@ type TableBodyCellProps = {
     children?: ReactNode
     className?: string
     colSpan?: number
+    width?: number
     align?: 'left' | 'right' | 'center' | 'justify'
 }
 
-export const TableBodyCell = ({ children, className, colSpan, align }: TableBodyCellProps) => {
+export const TableBodyCell = ({ children, className, colSpan, align, width }: TableBodyCellProps) => {
     return <TableCell
         className={`border-b border-b-gray-400 overflow-hidden text-nowrap overflow-ellipsis ${className}`}
         align={align ?? 'inherit'}
         colSpan={colSpan}
+        width={width}
     >
         {children}
     </TableCell>
