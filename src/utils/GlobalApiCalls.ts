@@ -1,4 +1,4 @@
-import { SearchBoxItem } from "@shared/dialog/SearchBox"
+import { SearchBoxItem } from "@shared/common/SearchBox"
 import { apiGet } from "./ApiRequest"
 
 const FARM_BASE = 'farm-area/farms/'

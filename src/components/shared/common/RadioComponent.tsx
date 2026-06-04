@@ -3,8 +3,8 @@ import { FormControlLabel, FormHelperText, IconButton, Radio, RadioGroup } from 
 import { red } from "@mui/material/colors"
 import FormControl from "@mui/material/FormControl"
 import FormLabel from "@mui/material/FormLabel"
+import React from "react"
 import { ChangeEvent, FocusEventHandler, useCallback, useEffect, useState } from "react"
-import { RefCallBack } from "react-hook-form"
 
 export type RadioControlProps = {
     value: string
@@ -36,7 +36,6 @@ type RadioComponentProps = {
     value?: string
     className?: string
     name?: string
-    ref?: RefCallBack
     label?: string
     controls: RadioControlProps[]
     disabled?: boolean
@@ -47,7 +46,7 @@ type RadioComponentProps = {
     onReset?: () => void
 }
 
-export const RadioComponent = ({
+export const RadioComponent = React.forwardRef<unknown, RadioComponentProps>(({
     value,
     error,
     className,
@@ -57,11 +56,10 @@ export const RadioComponent = ({
     controls,
     row,
     errorText,
-    ref,
     onChange,
     onBlur,
     onReset
-}: RadioComponentProps) => {
+}, ref) => {
 
     const [radioValue, setRadioValue] = useState(value)
 
@@ -108,4 +106,4 @@ export const RadioComponent = ({
         </RadioGroup>
         <FormHelperText>{errorText}</FormHelperText>
     </FormControl>
-}
+})

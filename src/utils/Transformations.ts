@@ -17,6 +17,7 @@ export function decimalTransform(value: any, digitNumbers?: number) {
 }
 
 export function percentageTransform(value: number | null | undefined) {
+    value = value * 100
     if (value === null || !value) return "-"
     const formatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 })
     return formatter.format(value) + '%'

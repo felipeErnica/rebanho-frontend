@@ -7,8 +7,8 @@ export type EditRowProps<T> = {
 }
 
 export type NormalRow<T> = {
-    setEditing: (isEditing: boolean) => void
-    rowValue: T
+    setEditing: Dispatch<SetStateAction<boolean>>
+    row: T
 }
 
 export type TableRowProp<T> = {

@@ -1,11 +1,11 @@
 import { InputAdornment } from "@mui/material"
 import TextField from "@mui/material/TextField"
-import { ChangeEventHandler, FocusEventHandler, Ref } from "react"
+import React from "react"
+import { ChangeEventHandler, FocusEventHandler } from "react"
 
 type PercentageComponentProps = {
     value?: any
     name?: string
-    ref?: Ref<HTMLInputElement>
     className?: string
     disabled?: boolean
     error?: boolean
@@ -17,9 +17,8 @@ type PercentageComponentProps = {
     variant?: 'outlined' | 'standard' | 'filled'
 }
 
-export const PercentageComponent = ({
+export const PercentageComponent = React.forwardRef<HTMLInputElement, PercentageComponentProps>(({
     value,
-    ref,
     name,
     className,
     disabled,
@@ -30,7 +29,7 @@ export const PercentageComponent = ({
     size,
     label,
     variant,
-}: PercentageComponentProps) => {
+}, ref) => {
 
     return <TextField
         value={value ?? '-'}
@@ -54,4 +53,4 @@ export const PercentageComponent = ({
             }
         }}
     />
-}
+})

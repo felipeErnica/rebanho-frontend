@@ -88,6 +88,7 @@ export function usePagination<T>({ fetchPage, setLoading }: PaginationProps<T>):
         setLoading(true)
         fetchPage()
             .then((result) => {
+                console.log(result)
                 const newPage: Page<T> = result
                 setPage(newPage)
                 setRows(newPage.list)

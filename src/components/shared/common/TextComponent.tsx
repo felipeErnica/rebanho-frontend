@@ -1,10 +1,10 @@
 import TextField from "@mui/material/TextField"
-import{ ChangeEventHandler, FocusEventHandler, HTMLInputTypeAttribute, ReactNode, Ref, useEffect, useState } from "react"
+import React from "react"
+import{ ChangeEventHandler, FocusEventHandler, HTMLInputTypeAttribute, ReactNode } from "react"
 
 type TextComponentProps = {
     value?: any 
     name?: string
-    ref?: Ref<HTMLInputElement>
     type?: HTMLInputTypeAttribute
     className?: string
     disabled?: boolean
@@ -21,9 +21,8 @@ type TextComponentProps = {
     endAdornment?: ReactNode
 }
 
-export const TextComponent = ({
+export const TextComponent = React.forwardRef<HTMLInputElement, TextComponentProps>(({
     value,
-    ref,
     name,
     type,
     className,
@@ -39,8 +38,7 @@ export const TextComponent = ({
     rows,
     maxRows,
     endAdornment,
-}: TextComponentProps) => {
-
+}, ref) => {
 
     return <TextField
         value={value ?? ''}
@@ -67,4 +65,4 @@ export const TextComponent = ({
             }
         }}
     />
-}
+})

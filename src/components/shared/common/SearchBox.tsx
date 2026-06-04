@@ -1,5 +1,5 @@
 import Autocomplete, { AutocompleteInputChangeReason, createFilterOptions } from "@mui/material/Autocomplete"
-import { FocusEventHandler, FormEventHandler, useEffect, useState } from "react"
+import { FocusEventHandler, Ref, RefObject, useEffect, useState } from "react"
 import TextField, { TextFieldVariants } from "@mui/material/TextField"
 import { Checkbox, Chip, CircularProgress } from "@mui/material"
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -30,31 +30,32 @@ type SearchBoxProps = {
     emptyProps?: EmptyProps[]
     disabled?: boolean
     helperText?: string
-    ref?: RefCallBack
+    ref?: Ref<HTMLInputElement>
     name?: string
     error?: boolean
     value?: string
     autoFocus?: boolean
 }
 
-export const SearchBox = ({
-    label,
-    ref,
-    loading,
-    emptyProps,
-    options,
-    className,
-    disabled,
-    variant,
-    onChange,
-    onBlur,
-    onInput,
-    name,
-    error,
-    helperText,
-    value,
-    autoFocus
-}: SearchBoxProps) => {
+export const SearchBox = React.forwardRef<HTMLInputElement, SearchBoxProps>((props, ref) => {
+
+    const {
+        label,
+        loading,
+        emptyProps,
+        options,
+        className,
+        disabled,
+        variant,
+        onChange,
+        onBlur,
+        onInput,
+        name,
+        error,
+        helperText,
+        value,
+        autoFocus
+    } = props;
 
     const filter = createFilterOptions<SearchBoxItem>()
     const [formValue, setFormValue] = useState<SearchBoxItem | null>(null)
@@ -104,8 +105,8 @@ export const SearchBox = ({
         }}
         renderInput={(params) => <TextField
             {...params}
-            ref={ref}
             name={name}
+            inputRef={ref}
             disabled={disabled}
             error={error}
             helperText={helperText}
@@ -126,7 +127,7 @@ export const SearchBox = ({
         />}
     />
 
-}
+})
 
 type MultipleSearchBoxProps = {
     label?: string

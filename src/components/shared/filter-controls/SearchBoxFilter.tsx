@@ -5,7 +5,7 @@ import Checkbox from "@mui/material/Checkbox"
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { IFilters } from "@utils/Filter"
 import Chip from "@mui/material/Chip"
-import { SearchBox, SearchBoxItem } from "@shared/dialog/SearchBox";
+import { SearchBox, SearchBoxItem } from "@shared/common/SearchBox";
 
 export type MultipleSearchBoxFilterProps = {
     label: string

@@ -2,8 +2,8 @@ import { Checkbox, FormControlLabel, FormGroup, FormHelperText } from "@mui/mate
 import { red } from "@mui/material/colors"
 import FormControl from "@mui/material/FormControl"
 import FormLabel from "@mui/material/FormLabel"
+import React from "react"
 import { ChangeEvent, FocusEventHandler } from "react"
-import { RefCallBack } from "react-hook-form"
 
 export type CheckboxControlProps = {
     value: boolean
@@ -11,7 +11,6 @@ export type CheckboxControlProps = {
     disabled?: boolean
     error?: boolean
     name?: string
-    ref?: RefCallBack
     onChange?: (event: ChangeEvent<HTMLInputElement>, value: boolean) => void
     onBlur?: FocusEventHandler<HTMLButtonElement>
 }
@@ -57,16 +56,15 @@ export const CheckboxGroup = ({
     </FormControl>
 }
 
-const CheckboxControl = ({
+const CheckboxControl = React.forwardRef<HTMLButtonElement, CheckboxControlProps>(({
     value,
     label,
     disabled,
     error,
     name,
-    ref,
     onChange,
     onBlur,
-}: CheckboxControlProps) => {
+}: CheckboxControlProps, ref) => {
 
     return <FormControlLabel
         sx={{ color: error ? red[700] : undefined }}
@@ -86,5 +84,5 @@ const CheckboxControl = ({
         )}
         disabled={disabled}
     />
-}
+})
 

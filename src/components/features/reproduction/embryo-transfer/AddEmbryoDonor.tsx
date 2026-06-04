@@ -1,5 +1,5 @@
 import { DialogActionButtons, DialogContainer } from "@shared/dialog/DialogComponents"
-import { SearchBox } from "@shared/dialog/SearchBox"
+import { SearchBox } from "@shared/common/SearchBox"
 import { Alert, AlertTitle, Collapse, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import Dialog from "@mui/material/Dialog"
 import { useState } from "react"

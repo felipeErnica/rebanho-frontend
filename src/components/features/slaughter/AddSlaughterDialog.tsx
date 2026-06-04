@@ -14,7 +14,7 @@ import { AddButcherDialog } from "@features/butchers/AddButcherDialog"
 import { Butcher } from "@features/butchers/Entities"
 import { Animal, getAnimalBirthLabel } from "@features/animals/Entities"
 import { searchInternalAnimals } from "@features/animals/Service"
-import { SearchBoxItem } from "@shared/dialog/SearchBox"
+import { SearchBoxItem } from "@shared/common/SearchBox"
 import { FormPercentageField } from "@shared/form-controls/FormPercentageField"
 
 type AddSlaughterDialogProps = {
@@ -54,7 +54,7 @@ export const AddSlaughterDialog = ({
             }))))
             .catch(() => setAnimals([]))
             .finally(() => setLoadingAnimals(false))
-    }, [])
+    }, [addSlaughterOpen])
 
     const searchButchers = useCallback(() => {
         setLoadingButchers(true)
@@ -62,16 +62,27 @@ export const AddSlaughterDialog = ({
             .then(resp => setButchers(resp))
             .catch(() => setButchers([]))
             .finally(() => setLoadingButchers(false))
-    }, [])
+    }, [addSlaughterOpen])
 
     const { control, handleSubmit, reset, setFocus, setValue } = useForm<SlaughterSave>({
-        defaultValues: { entryDate, butcherId }
+        defaultValues: { 
+            entryDate, 
+            butcherId, 
+            id: undefined,
+            animalId: undefined,
+            discountRate: undefined,
+            weight: undefined,
+            deadWeight: undefined,
+            overwrite: false,  
+            ignoreDeath: false,
+        }
     })
 
     useEffect(() => {
         searchAnimals()
         searchButchers()
-    }, [reload])
+        setAdded(false);
+    }, [addSlaughterOpen, reload])
 
     useEffect(() => {
         if (entryDate) setValue('entryDate', new Date(entryDate))
@@ -83,7 +94,7 @@ export const AddSlaughterDialog = ({
         setButcherOpen(false)
     }, [])
 
-    const onSave: SubmitHandler<SlaughterSave> = useCallback((data: SlaughterSave) => {
+    const onSubmit: SubmitHandler<SlaughterSave> = useCallback((data: SlaughterSave) => {
         setLoading(true)
         addSlaughter(data)
             .then(() => {
@@ -92,10 +103,10 @@ export const AddSlaughterDialog = ({
                 reset({
                     entryDate: data.entryDate,
                     butcherId: data.butcherId,
-                    discountRate: data.discountRate
+                    discountRate: data.discountRate,
                 })
-                setFocus('animalId')
                 setAdded(true)
+                setTimeout(() => setFocus('animalId'), 100)
             })
             .catch((err: APIError) => {
                 if (err.errType === ERROR_TYPE) setError(err)
@@ -104,12 +115,16 @@ export const AddSlaughterDialog = ({
             .finally(() => setLoading(false))
     }, [])
 
+    const handleClose = useCallback(() => {
+        reset();
+        closeAddSlaughter(added);
+    }, [reset, closeAddSlaughter, added]);
+
+    const onSave = useCallback(handleSubmit(onSubmit), [onSubmit])
+
     return <Dialog
         open={addSlaughterOpen}
-        onClose={() => {
-            reset()
-            closeAddSlaughter(added)
-        }}
+        onClose={handleClose}
     >
         <DialogTitle>Adicionar Abate</DialogTitle>
         <DialogContent>
@@ -146,6 +161,7 @@ export const AddSlaughterDialog = ({
                 <FormDatePicker
                     label="*Data de Abate"
                     className="w-[200px]"
+                    disableFuture
                     formProps={{
                         control,
                         name: 'entryDate',
@@ -154,7 +170,7 @@ export const AddSlaughterDialog = ({
                 />
                 <FormPercentageField
                     label="*Taxa de Perda"
-                    className="w-[100px]"
+                    className="w-[140px]"
                     formProps={{
                         control,
                         name: 'discountRate',
@@ -202,7 +218,7 @@ export const AddSlaughterDialog = ({
             <DialogActionButtons
                 loading={loading}
                 saveText="Adicionar"
-                onSave={handleSubmit(onSave)}
+                onSave={onSave}
                 onClose={() => closeAddSlaughter(added)}
             />
         </DialogActions>
@@ -214,7 +230,7 @@ export const AddSlaughterDialog = ({
             onYes={() => {
                 if (warning.kind === CONFLICT_WARNING) setValue('overwrite', true)
                 if (warning.kind === "death_warning") setValue('ignoreDeath', true)
-                handleSubmit(onSave)
+                onSave()
             }}
         />
         <AddButcherDialog {...{ addButcherOpen, closeAddButcher }} />

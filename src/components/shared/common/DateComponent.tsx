@@ -6,12 +6,11 @@ import { useParsedFormat, usePickerContext, useSplitFieldProps } from "@mui/x-da
 import { PickerValue } from "@mui/x-date-pickers/internals"
 import { useValidation, validateDate } from "@mui/x-date-pickers/validation"
 import dayjs, { Dayjs } from "dayjs"
-import React, { RefCallback, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 
 type DateComponentProps = {
     label?: string
     name?: string
-    ref?: RefCallback<HTMLDivElement>
     value?: Dayjs | null
     disabled?: boolean
     className?: string
@@ -25,11 +24,10 @@ type DateComponentProps = {
     onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
 }
 
-export const DateComponent = ({
+export const DateComponent = React.forwardRef<HTMLInputElement, DateComponentProps>(({
     label,
     value,
     name,
-    ref,
     error,
     onChange,
     onBlur,
@@ -40,20 +38,18 @@ export const DateComponent = ({
     disableFuture,
     maxDate,
     minDate
-}: DateComponentProps) => {
+}, ref) => {
 
     const [validationError, setValidationError] = useState<DateValidationError | null>(null)
     const [dateValue, setDateValue] = useState<Dayjs | null>(value ?? null)
-    const [calendarAnchor, setCalendarAnchor] = useState<HTMLDivElement | null>(null)
+    const [calendarAnchor, setCalendarAnchor] = useState<HTMLElement | null>(null)
 
-    const calendarRef = useCallback((node: HTMLDivElement) => {
+    const calendarRef = useCallback((node: HTMLElement) => {
         if (node !== null) {
             setCalendarAnchor(node)
-            if (ref) ref(node)
         }
-    }, [ref])
-
-
+    }, [])
+    
     useEffect(() => setDateValue(value ?? null), [dateValue, value])
 
     const errorMessage = useMemo(() => {
@@ -84,6 +80,7 @@ export const DateComponent = ({
         disablePast={disablePast}
         name={name}
         ref={calendarRef}
+        inputRef={ref}
         maxDate={maxDate}
         minDate={minDate}
         value={dateValue}
@@ -113,7 +110,7 @@ export const DateComponent = ({
             } as CustomDateFieldProps,
         }}
     />
-}
+})
 
 interface CustomDateFieldProps extends DatePickerFieldProps {
     name?: string

@@ -16,7 +16,7 @@ import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import TableBody from "@mui/material/TableBody"
 import { EditControlButtons } from "@shared/table/ControlButtons"
-import { dateToISO, dateTransform, decimalTransform } from "@utils/Transformations"
+import { dateToISO, dateTransform, decimalTransform, toPercentage } from "@utils/Transformations"
 import { useNavigate } from "react-router"
 import { ErrorDialog, TimerYesNoDialog, TimerYesNoDialogProps, YesNoDialog, YesNoDialogProps } from "@shared/dialog/DialogComponents"
 import { DefaultTimerWarning, DefaultWarning, GROUP_DELETE_TITLE } from "@shared/Globals"
@@ -63,8 +63,8 @@ export const SlaughterGroupsTable = () => {
         <TimerYesNoDialog {...timerWarning} />
         <ErrorDialog 
             openError={!!error}
-            title={error.title}
-            message={error.message}
+            title={error?.title}
+            message={error?.message}
             onClose={() => setError(undefined)}
         />
     </TablePageContainer>
@@ -160,7 +160,7 @@ const GroupRow = (row: SlaughterGroup) => {
         </TableBodyCell>
         <TableBodyCell align="center">
             <TrendValues
-                value={decimalTransform(row.averageRate)}
+                value={toPercentage(row.averageRate)}
                 trendProps={{ trend: row.rateVariation }}
             />
         </TableBodyCell>

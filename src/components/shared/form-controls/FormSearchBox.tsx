@@ -1,7 +1,6 @@
 import { TextFieldVariants } from "@mui/material/TextField"
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form"
-import { EmptyProps, MultipleSearchBox, SearchBox, SearchBoxItem } from "@shared/dialog/SearchBox"
-import { FormEventHandler } from "react"
+import { EmptyProps, MultipleSearchBox, SearchBox, SearchBoxItem } from "@shared/common/SearchBox"
 import { AutocompleteInputChangeReason } from "@mui/material"
 
 type FormSearchBoxProps<T extends FieldValues> = {

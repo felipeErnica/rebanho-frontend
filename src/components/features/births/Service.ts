@@ -3,7 +3,7 @@ import { BirthEntry, BirthEntryFilter, BirthEntrySave, BirthFooter } from "./Ent
 import { Page } from "@utils/Entities";
 
 const BIRTH_STATS_BASE = "births/stats/"
-const BIRTH_BASE = "births/"
+const BIRTH_BASE = "births"
 
 export function getBirthsBySex() {
     return apiGet(BIRTH_STATS_BASE + "total-sex")
@@ -51,7 +51,7 @@ export function getBirthHistory() {
 
 export function getPotentialFather(motherId: string, birthDate: Date) {
     const params = buildParams({ motherId, birthDate }, "?")
-    return apiGet(BIRTH_BASE + "potential-father" + params)
+    return apiGet(BIRTH_BASE + "/potential-father" + params)
 }
 
 export function findBirthsPage(
@@ -61,12 +61,12 @@ export function findBirthsPage(
     cursor?: string
 ): Promise<Page<BirthEntry>> {
     const params = buildPageParams("?", sort, order, filter, cursor)
-    return apiGet(BIRTH_BASE + "page" + params)
+    return apiGet(BIRTH_BASE + "/page" + params)
 }
 
 export function findBirthsPageFooter(filter: BirthEntryFilter): Promise<BirthFooter> {
     const params = buildFilterParams(filter, "?")
-    return apiGet(BIRTH_BASE + "page/foot" + params)
+    return apiGet(BIRTH_BASE + "/page/foot" + params)
 }
 
 export function addBirth(entry: BirthEntrySave) {
@@ -78,5 +78,5 @@ export function updateBirth(entry: BirthEntrySave) {
 }
 
 export function deleteBirth(id: string, skipValidation: boolean) {
-    return apiDelete(`animals?id=${id}&skipValidation=${skipValidation}`)
+    return apiDelete(`births?id=${id}&skipValidation=${skipValidation}`)
 }

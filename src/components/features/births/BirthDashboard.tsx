@@ -29,7 +29,7 @@ import {
 import { LOADING_MSG, NO_DATA_AVAILABLE } from "@shared/Globals"
 import { green, lightBlue, pink, red } from "@mui/material/colors"
 import { useCallback, useEffect, useState } from "react"
-import { dateTransform, decimalTransform, positiveTransform } from "@utils/Transformations"
+import { dateTransform, decimalTransform, percentageTransform, positiveTransform, trendingTransform } from "@utils/Transformations"
 import { Button, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import { TrendValues } from "@shared/table/TableComponents"
 import Add from "@mui/icons-material/Add"
@@ -221,13 +221,13 @@ const DeathIndexCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
         <CardChartContent
             title="Índice de Mortalidade"
             loading={loading}
-            data={decimalTransform(stats.current)}
+            data={percentageTransform(stats.current)}
             chart={(
                 <SparkLineChart
                     data={stats.hist.map(item => item.value)}
                     color={red[600]}
                     height={80}
-                    valueFormatter={(value) => decimalTransform(value ?? 0)}
+                    valueFormatter={(value) => percentageTransform(value ?? 0)}
                     xAxis={{
                         scaleType: 'time',
                         domainLimit: 'strict',
@@ -238,7 +238,7 @@ const DeathIndexCard = ({ stopLoading, startLoading, reloadFlag }: DashboardInfo
                     showHighlight
                 />
             )}
-            trendProps={{ trend: stats.trend, inverse: true }}
+            trendProps={{ trend: stats.trend, text: trendingTransform(stats.trend), inverse: true }}
         />
     </DashboardCard>
 }

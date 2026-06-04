@@ -32,6 +32,7 @@ interface ComboBoxProps {
 }
 
 export const ComboBox = (props: ComboBoxProps) => {
+
     return <Autocomplete
         value={props.items.find(item => item.value === props.value) ?? null}
         className={props.className}

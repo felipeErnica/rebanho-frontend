@@ -139,8 +139,6 @@ const COLUMN_COUNT = 8
 
 const BirthTable = ({ rows, scrollRef, fetchNextPage, loading, footerData }: BirthTableProps) => {
 
-    console.log(rows)
-
     return <TableVirtuoso
         ref={scrollRef}
         endReached={fetchNextPage}
@@ -199,10 +197,15 @@ const BirthRow = ({ data }: BirthRowProps) => {
     const onDelete = useCallback((skipValidation: boolean) => {
         setLoading(true)
         deleteBirth(data.calf.id, skipValidation)
-            .then(() => {
+            .then((res: BirthEntry) => {
                 setError(undefined)
                 setWarningProps(DefaultWarning)
-                setRows(prev => prev.filter(item => item.calf.id != data.calf.id))
+                setRows(prev => {
+                    const rowsMap = new Map(prev.map(item => [item.calf.id, item]))
+                    rowsMap.set(res.calf.id, res)
+                    rowsMap.delete(data.calf.id)
+                    return [...rowsMap.values()]
+                })
                 loadFoot()
             })
             .catch((error: APIError) => {
@@ -221,7 +224,7 @@ const BirthRow = ({ data }: BirthRowProps) => {
             .finally(() => setLoading(false))
     }, [data, loadFoot, setError, setRows, setWarningProps])
 
-    if (editing) return <BirthRowEdit {...{ setEditing, rowData, setRowData }} />
+    if (editing) return <BirthRowEdit {...{ setEditing, rowData }} />
 
     return <>
         <TableBodyCell>
@@ -243,11 +246,10 @@ const BirthRow = ({ data }: BirthRowProps) => {
 
 type BirthRowEditProps = {
     rowData: BirthEntry
-    setRowData: (rowData: BirthEntry) => void
     setEditing: (editing: boolean) => void
 }
 
-const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) => {
+const BirthRowEdit = ({ rowData, setEditing }: BirthRowEditProps) => {
 
     const [loading, setLoading] = useState(false)
     const [loadingControls, setLoadingControls] = useState(false)
@@ -276,13 +278,17 @@ const BirthRowEdit = ({ rowData, setEditing, setRowData }: BirthRowEditProps) =>
             observation: rowData.calf.observation
         }
     })
-    const { setError, setWarningProps, loadFoot } = useContext(ErrorContext)
+    const { setError, setWarningProps, loadFoot, setRows } = useContext(ErrorContext)
 
     const onSave: SubmitHandler<BirthEntrySave> = (data: BirthEntrySave) => {
         setLoading(true)
         updateBirth(data)
-            .then(res => {
-                setRowData(res)
+            .then((res: BirthEntry[]) => {
+                setRows(prev => {
+                    const prevMap = new Map(prev.map(item => [item.calf.id, item]))
+                    res.forEach(newItem => prevMap.set(newItem.calf.id, newItem))
+                    return [...prevMap.values()]
+                })
                 setError(undefined)
                 setWarningProps(DefaultWarning)
                 loadFoot()
